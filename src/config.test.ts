@@ -11,18 +11,13 @@ afterEach(async () => {
 });
 
 describe("loadConfig", () => {
-  it("defaults to AITUNNEL DeepSeek V4 Flash as an OpenAI-compatible provider", async () => {
+  it("ships no LLM endpoint by default, so nothing is sent to an unchosen service", async () => {
     const rootDir = await makeTempProject({});
 
     const config = loadConfig(rootDir);
 
-    expect(config.llm.provider).toBe("aitunnel");
-    expect(config.llm.providers.aitunnel).toMatchObject({
-      type: "openai-compatible",
-      baseUrl: "https://api.aitunnel.ru/v1/",
-      model: "deepseek-v4-flash",
-      apiKeyEnv: "AI_API_KEY",
-    });
+    expect(config.llm.provider).toBe("");
+    expect(config.llm.providers).toEqual({});
   });
 
   it("deep-merges the gitignored <indexDir>/config.json overlay over the committed base, overlay wins", async () => {
@@ -63,9 +58,22 @@ describe("loadConfig", () => {
     expect(config.llm.provider).toBe("local");
   });
 
-  it("merges configured providers with defaults", async () => {
+  it("keeps base providers the overlay does not mention", async () => {
     const rootDir = await makeTempProject({
       "codelore.config.json": JSON.stringify({
+        llm: {
+          provider: "base",
+          providers: {
+            base: {
+              type: "openai-compatible",
+              baseUrl: "https://example.test/v1/",
+              model: "base-model",
+              apiKey: "test-key",
+            },
+          },
+        },
+      }),
+      ".codelore/config.json": JSON.stringify({
         llm: {
           provider: "local",
           providers: {
@@ -84,7 +92,7 @@ describe("loadConfig", () => {
 
     expect(config.llm.provider).toBe("local");
     expect(config.llm.providers.local).toMatchObject({ model: "custom" });
-    expect(config.llm.providers.aitunnel).toMatchObject({ model: "deepseek-v4-flash" });
+    expect(config.llm.providers.base).toMatchObject({ model: "base-model" });
   });
 
   it("carries verifyProvider through the merge and omits it when unset", async () => {

@@ -137,10 +137,15 @@ export function createConfiguredProvider(
   const name = providerName ?? config.llm.provider;
   const providerConfig = config.llm.providers[name];
   if (!providerConfig) {
-    throw new CodeloreError("UNKNOWN_LLM_PROVIDER", `Unknown LLM provider "${name}"`, {
-      provider: name,
-      configuredProviders: Object.keys(config.llm.providers),
-    });
+    const configuredProviders = Object.keys(config.llm.providers);
+    // Nothing ships preconfigured, so an empty list is the first-run case, not a typo.
+    throw new CodeloreError(
+      "UNKNOWN_LLM_PROVIDER",
+      configuredProviders.length === 0
+        ? 'No LLM provider is configured. Add one under "llm.providers" in codelore.config.json (or .codelore/config.json) with type, baseUrl, model and apiKeyEnv, then set "llm.provider" to its name.'
+        : `Unknown LLM provider "${name}"`,
+      { provider: name, configuredProviders }
+    );
   }
 
   return createProvider(name, providerConfig, runtime);

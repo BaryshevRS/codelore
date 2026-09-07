@@ -542,6 +542,21 @@ describe("CodeloreService", () => {
 
   it("generateDocsForScope prunes sections whose owned entity was deleted", async () => {
     const rootDir = await makeTempProject({
+      // No provider ships by default, and generateDocsForScope builds one up front.
+      // Nothing here reaches the network: every section is pruned before a request.
+      "codelore.config.json": JSON.stringify({
+        llm: {
+          provider: "test",
+          providers: {
+            test: {
+              type: "openai-compatible",
+              baseUrl: "https://example.test/v1/",
+              model: "test-model",
+              apiKey: "test-key",
+            },
+          },
+        },
+      }),
       "src/pricing.ts": "export function buildPrice(amount: number): number { return amount; }\n",
     });
     const service = new CodeloreService(rootDir);

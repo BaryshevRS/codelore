@@ -9,7 +9,7 @@ function stripOuterFence(content: string): string {
 }
 
 // Three narrow replacements for LLM-emitted JSON-invalid escapes observed in
-// production on this project's default provider (aitunnel/deepseek-v4-flash).
+// production against an OpenAI-compatible gateway (deepseek-v4-flash).
 // Without these the pipeline fails on nearly every request. Anything beyond
 // these three is handled by the retry-with-feedback loop, not by widening
 // this list.

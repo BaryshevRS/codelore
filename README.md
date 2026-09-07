@@ -57,16 +57,21 @@ Either file may hold the `llm` block — this repository keeps its own in the co
 
 The API key never lives in a tracked file. `llm.providers.<name>.apiKeyEnv` names an environment variable (default `AI_API_KEY`); `<root>/.env` is loaded for local dev, and CI/hosts inject it directly. Precedence: env var > `.codelore/config.json` > `codelore.config.json` > built-in defaults.
 
+No endpoint is preconfigured — codelore never sends your source to a service you
+did not choose. Declare a provider and point `llm.provider` at it; any
+OpenAI-compatible endpoint works, and every tuning field (`temperature`,
+`contextWindow`, `timeoutMs`, …) falls back to a built-in default.
+
 ```jsonc
 // .codelore/config.json
 {
   "llm": {
-    "provider": "aitunnel",
+    "provider": "main",
     "providers": {
-      "aitunnel": {
+      "main": {
         "type": "openai-compatible",
-        "baseUrl": "https://api.aitunnel.ru/v1/",
-        "model": "deepseek-v4-flash",
+        "baseUrl": "https://your-openai-compatible-endpoint/v1/",
+        "model": "your-model",
         "apiKeyEnv": "AI_API_KEY"
       }
     },

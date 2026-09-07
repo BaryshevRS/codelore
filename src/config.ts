@@ -91,21 +91,12 @@ const defaultConfig = {
     significantGlobals: DEFAULT_SIGNIFICANT_GLOBALS,
   },
   llm: {
-    provider: "aitunnel",
-    providers: {
-      aitunnel: {
-        type: "openai-compatible",
-        baseUrl: "https://api.aitunnel.ru/v1/",
-        model: "deepseek-v4-flash",
-        apiKeyEnv: "AI_API_KEY",
-        temperature: 0.2,
-        timeoutMs: 300000,
-        contextWindow: 65536,
-        reservedOutputTokens: 8192,
-        charsPerToken: 4,
-        maxSectionsPerChunk: 6,
-      },
-    },
+    // No endpoint ships as a default: codelore must never send a user's source to
+    // a service they did not choose. Declare `llm.providers.<name>` and point
+    // `llm.provider` at it; every tuning field falls back to a code default, so a
+    // provider entry needs only type, baseUrl, model, and apiKeyEnv.
+    provider: "",
+    providers: {},
     concurrency: 50,
     verifyTypeContext: true,
   },
