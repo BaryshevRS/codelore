@@ -1,0 +1,105 @@
+{
+  "version": 4,
+  "docPath": "docs/domains/project-config.codelore.md",
+  "generatedAt": "2026-07-08T07:59:27.228Z",
+  "sectionOrder": [
+    "domain:project-config"
+  ],
+  "sections": {
+    "domain:project-config": {
+      "heading": "Конфигурация проекта",
+      "depth": 1,
+      "anchor": "конфигурация-проекта",
+      "owns": [
+        "domain:project-config"
+      ],
+      "depends": [
+        "file:src/config.ts",
+        "domain:markdown-rendering"
+      ],
+      "usedBy": [
+        "domain:codelore-service-facade",
+        "domain:llm-generation-pipeline"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Загружает и объединяет настройки проекта из `codelore.config.json` и `.env`-файла, а также выбирает локализованные термины для заданного языка и путей файлов. Система получает единый объект конфигурации и список терминов без необходимости самой разбирать файлы и переменные окружения.",
+          "rendered": true,
+          "fingerprint": "signature=3b93c930a4a8b173fa5453c9adb8f769de73638f05dad20c83a1a996cc9c1615,placement=6b8ecb9842ece3f8859b9217351cb221604564351e1577c2365be70b383c3f8a",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Загружает и объединяет настройки проекта из `codelore.config.json` и `.env`-файла, а также выбирает локализованные термины для заданного языка и путей файлов."
+          }
+        },
+        "responsibility": {
+          "body": "Читает `codelore.config.json`, сливает с дефолтными значениями и возвращает объект конфигурации. Загружает переменные окружения из `.env`-файла в процесс через `process.loadEnvFile`, если файл существует. Фильтрует группы терминов из `docs.terms`: пропускает группу, если её шаблон `match` не соответствует ни одному из переданных путей, затем собирает термины для указанного языка, удаляет дубликаты и пустые строки, сохраняя порядок групп.",
+          "rendered": true,
+          "fingerprint": "signature=3b93c930a4a8b173fa5453c9adb8f769de73638f05dad20c83a1a996cc9c1615,deps=fe7e846b425384de01852d341dabb9ed93efbf2f7b3467e07b596622b2c01c48,usage=cf0bb67bb2c786e541659ab54776ae0eee617a236ca2f4c3713e9a35700acb5b",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Читает `codelore.config.json`, сливает с дефолтными значениями, загружает `.env` в окружение процесса и фильтрует группы терминов по языку и шаблонам путей."
+          }
+        },
+        "dependencies": {
+          "body": "Подсистема не зависит от других частей Codelore и использует только встроенные механизмы Node.js для чтения файлов и переменных окружения. Сознательно не валидирует схему конфигурации и не разрешает относительные пути — эти обязанности остаются на вызывающем коде.",
+          "rendered": true,
+          "fingerprint": "deps=fe7e846b425384de01852d341dabb9ed93efbf2f7b3467e07b596622b2c01c48",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Подсистема не зависит от других частей Codelore и использует только встроенные механизмы Node.js для чтения файлов и переменных окружения."
+          }
+        },
+        "workflows": {
+          "body": "Загрузка конфигурации начинается с вызова `loadDotEnv`, который проверяет существование `.env`-файла и загружает его переменные в окружение процесса. Затем `loadConfig` читает `codelore.config.json`, объединяет его с дефолтными значениями и возвращает объект — без валидации схемы или разрешения относительных путей. Для получения терминов вызывающая сторона передаёт в `resolveTerms` массив групп терминов из конфигурации, код языка и список путей файлов; функция обходит группы, пропускает те, чей шаблон `match` не совпадает ни с одним путём, собирает термины для языка, удаляет дубликаты и возвращает итоговый список.",
+          "rendered": true,
+          "fingerprint": "body=3b93c930a4a8b173fa5453c9adb8f769de73638f05dad20c83a1a996cc9c1615,deps=fe7e846b425384de01852d341dabb9ed93efbf2f7b3467e07b596622b2c01c48",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Загрузка начинается с `loadDotEnv`, затем `loadConfig` читает и объединяет JSON-конфигурацию, после чего `resolveTerms` фильтрует термины по языку и путям."
+          }
+        },
+        "limitations": {
+          "body": "Не проверяет корректность схемы `codelore.config.json` — синтаксические ошибки JSON приведут к исключению, которое не перехватывается. Не разрешает относительные пути (например, `indexDir`), оставляя их как есть. Каждый вызов `loadConfig` создаёт новый объект конфигурации — подсистема не управляет временем жизни и не кеширует результат. `loadDotEnv` молча пропускает отсутствие `.env`-файла, не сообщая об этом вызывающей стороне. `resolveTerms` может вернуть пустой массив, если ни одна группа терминов не подходит под шаблоны `match` или для языка нет записей. Вызывающий код обязан сам обработать валидацию, разрешение путей и контроль жизненного цикла.",
+          "rendered": true,
+          "fingerprint": "body=3b93c930a4a8b173fa5453c9adb8f769de73638f05dad20c83a1a996cc9c1615",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Каждый вызов `loadConfig` создаёт новый объект конфигурации — подсистема не управляет временем жизни и не кеширует результат."
+          }
+        }
+      },
+      "memberDocsFingerprint": "9bcc06b8ed0918a09e6dcf3e86c9eb280ea89ccd6094f703e4e32896f20daaaa"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

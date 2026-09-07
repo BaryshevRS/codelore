@@ -1,0 +1,394 @@
+{
+  "version": 4,
+  "docPath": "src/indexer/state-indexer.codelore.md",
+  "generatedAt": "2026-06-20T13:35:28.094Z",
+  "sectionOrder": [
+    "symbol:src/indexer/state-indexer.ts#buildDocIndex",
+    "symbol:src/indexer/state-indexer.ts#patchDocIndexPaths"
+  ],
+  "sections": {
+    "symbol:src/indexer/state-indexer.ts#buildDocIndex": {
+      "heading": "buildDocIndex",
+      "depth": 1,
+      "anchor": "builddocindex",
+      "owns": [
+        "symbol:src/indexer/state-indexer.ts#buildDocIndex"
+      ],
+      "depends": [
+        "symbol:src/storage/doc-state-storage.ts#DocStateStorage"
+      ],
+      "usedBy": [
+        "file:src/service/index-manager.ts",
+        "symbol:src/service/index-manager.ts#IndexManager",
+        "symbol:src/service/index-manager.ts#IndexManager.buildScopedIndex",
+        "symbol:src/service/index-manager.ts#IndexManager.rebuild"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Строит индекс документации из состояний, хранящихся в `DocStateStorage`, для поиска секций по идентификатору, файлу и сущности.",
+          "rendered": true,
+          "fingerprint": "signature=b807e3df4d5d2efa2eaa163c0982cdb27b34d72ea0b8ec23adc4d4316b5cc097,placement=547c681aaabe2fbd03659db965cab8468d39db901bd17c059519f7d3c2bd908f",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "Преобразует состояния DocStateStorage в индекс с тремя картами поиска."
+          }
+        },
+        "responsibility": {
+          "body": "- Загружает состояния всех документов через `DocStateStorage` и преобразует их в индексные секции с обратными картами (`fileToSections`, `entityToSections`).\n- Сортирует пути документов и списки сущностей для детерминированного вывода.\n- Не изменяет состояния документов и не анализирует исходный код – строит индекс только из прочитанных состояний.\n- Не проверяет целостность связей – копирует данные без валидации.",
+          "rendered": true,
+          "fingerprint": "signature=b807e3df4d5d2efa2eaa163c0982cdb27b34d72ea0b8ec23adc4d4316b5cc097,deps=b010c79e188717b84122640ddb135a44a2015ebf6df16d25a338139727b893f1,usage=a2e78c7de5c50b23af4a3dda3b0d14ca16eb2d1f0cd75a8efd2eabf0d9584533",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Строит индекс только из состояний, не трогая исходный код и не изменяя состояния."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращает индекс с версией `INDEX_VERSION` и отметкой времени генерации.\n- Сортирует пути документов и массивы `entityToSections` для детерминированного вывода.\n- Пропускает состояния, для которых `loadDocState` вернул `undefined`.\n- При обнаружении дублирующегося `sectionId` в разных документах выбрасывает `CodeloreError` с кодом `DUPLICATE_SECTION`.\n- Гарантирует, что карты `sections`, `fileToSections`, `entityToSections` не `undefined` даже при пустом наборе состояний.",
+          "rendered": true,
+          "fingerprint": "signature=b807e3df4d5d2efa2eaa163c0982cdb27b34d72ea0b8ec23adc4d4316b5cc097,body=b47237d809e5816e3ead45805458a526c5bc0a5e8c5e2ba6ceef4350c5806b75",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "Стабильные контракты: версия, сортировка, пропуск отсутствующих состояний, ошибка на дубликат секций."
+          }
+        },
+        "dependencies": {
+          "body": "- `DocStateStorage` (`src/storage/doc-state-storage.ts`) — чтение списка и загрузка состояний секций.\n- `CodeloreError` (`src/errors.ts`) — формирование ошибки при дублирующемся идентификаторе секции.",
+          "rendered": true,
+          "fingerprint": "deps=b010c79e188717b84122640ddb135a44a2015ebf6df16d25a338139727b893f1",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Добавлена зависимость от CodeloreError, используемая при проверке на дубликаты."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `CodeloreService.buildPrepareInitialDocsIndex` и `CodeloreService.rebuildIndexes`. В обоих сценариях выполняется параллельно с `buildCodeIndex`. В `rebuildIndexes` перед вызовом может быть выполнено `reapplyConfigToAllDocs` (если `options.renderDocs`). Результат используется для построения `ProjectIndex`, кэшируется в `projectIndexCache`. Загрузка состояний происходит последовательно, по одному документу; при обнаружении дублирующегося `sectionId` работа прерывается с `CodeloreError`.",
+          "rendered": true,
+          "fingerprint": "body=b47237d809e5816e3ead45805458a526c5bc0a5e8c5e2ba6ceef4350c5806b75,deps=b010c79e188717b84122640ddb135a44a2015ebf6df16d25a338139727b893f1",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Уточнены параллельное выполнение с buildCodeIndex, опциональный reapplyConfigToAllDocs в rebuildIndexes и кэширование результата."
+          }
+        },
+        "limitations": {
+          "body": "Особых ограничений нет.",
+          "rendered": false,
+          "fingerprint": "body=b47237d809e5816e3ead45805458a526c5bc0a5e8c5e2ba6ceef4350c5806b75",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0,
+            "specificity": 0.25,
+            "novelFact": "Ограничения не выявлены."
+          }
+        },
+        "changeGuide": {
+          "body": "- Дублирование `sectionId` в разных документах приводит к аварийному завершению через `throw new CodeloreError(\"DUPLICATE_SECTION\", ...)`; тест `state-indexer.test.ts` проверяет это поведение.\n- Сортировка путей документов через `(await stateStorage.listDocStates()).sort()` гарантирует детерминированный порядок секций в `entityToSections`; тест `state-indexer.test.ts` проверяет стабильность вывода.\n- Пропуск состояний, для которых `loadDocState` вернул `undefined`, реализован через `if (!state) { continue; }`; тест `state-indexer.test.ts` проверяет обработку отсутствующего файла.",
+          "rendered": true,
+          "fingerprint": "body=b47237d809e5816e3ead45805458a526c5bc0a5e8c5e2ba6ceef4350c5806b75,deps=b010c79e188717b84122640ddb135a44a2015ebf6df16d25a338139727b893f1,usage=a2e78c7de5c50b23af4a3dda3b0d14ca16eb2d1f0cd75a8efd2eabf0d9584533,placement=547c681aaabe2fbd03659db965cab8468d39db901bd17c059519f7d3c2bd908f",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Инварианты, перечисленные в changeGuide, уже описаны в invariants и workflows; changeGuide добавляет ссылки на конкретные конструкции и тесты."
+          }
+        }
+      },
+      "depDocsFingerprint": "89af6b99fdf23ee6510f6caa28ec3e809e654f6147b84dd1e76b8ea5fe181801",
+      "generationHistory": [
+        {
+          "runId": "0e19f112-c1b3-46cb-ab93-e22c839f7888",
+          "timestamp": "2026-06-10T15:44:07.253Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "f567950f-269d-464c-bccb-1c1542a2d912",
+          "timestamp": "2026-06-10T16:00:52.488Z",
+          "command": "fix-stale",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "a7046937-2e94-4ccf-94da-48f19ec4f9cc",
+          "timestamp": "2026-06-10T21:16:14.956Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "c1327f82-e935-4ac7-9328-7b82bc1dfe0c",
+          "timestamp": "2026-06-11T21:29:23.594Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "ea3df4eb-2d04-4e4c-a68a-273c075c8aa6",
+          "timestamp": "2026-06-13T20:47:08.302Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "ea3df4eb-2d04-4e4c-a68a-273c075c8aa6",
+          "timestamp": "2026-06-13T20:48:59.339Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.833Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.093Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "changeGuide"
+          ]
+        }
+      ]
+    },
+    "symbol:src/indexer/state-indexer.ts#patchDocIndexPaths": {
+      "heading": "patchDocIndexPaths",
+      "depth": 1,
+      "anchor": "patchdocindexpaths",
+      "owns": [
+        "symbol:src/indexer/state-indexer.ts#patchDocIndexPaths"
+      ],
+      "depends": [
+        "symbol:src/storage/doc-state-storage.ts#DocStateStorage"
+      ],
+      "usedBy": [
+        "file:src/service/index-manager.ts",
+        "symbol:src/service/index-manager.ts#IndexManager",
+        "symbol:src/service/index-manager.ts#IndexManager.patchDocs"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Инкрементальное обновление `DocIndex` для заданного набора файлов без полной перестройки.",
+          "rendered": true,
+          "fingerprint": "signature=1e458e0d0db6ba91fe909e02993749162d2eef47393ce4f42aabfffc9c5e5867,placement=0d4455a3cafae55e2ca4b8a31fb87122c57741e34f2a554fd063a2e763660780",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция обновляет только переданные doc-файлы, не затрагивая остальные."
+          }
+        },
+        "responsibility": {
+          "body": "- Удаляет из индекса все секции для каждого `docPath`, включая очистку привязок к сущностям в `entityToSections`.\n- Загружает актуальные состояния через `stateStorage.loadDocState` и добавляет секции заново.\n- Сортирует только списки затронутых сущностей и обновляет `generatedAt`.\n- Не изменяет состояния на диске и не проверяет целостность связей – работает только с переданными путями и существующими данными.",
+          "rendered": true,
+          "fingerprint": "signature=1e458e0d0db6ba91fe909e02993749162d2eef47393ce4f42aabfffc9c5e5867,deps=e913cb1253e5e51712b31e80a99e84a3d4ed0a02db490141384dd05f5e5ed647,usage=708085658d892392e41d22ef39cded85a6b563f1bb2342ae68c0974af4d31965",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Инкрементально обновляет индекс для заданных путей, не затрагивая остальные документы."
+          }
+        },
+        "invariants": {
+          "body": "- После вызова `index.generatedAt` обновляется на текущее время.\n- Если `docPath` не найден в `stateStorage`, его записи удаляются из индекса без добавления новых.",
+          "rendered": true,
+          "fingerprint": "signature=1e458e0d0db6ba91fe909e02993749162d2eef47393ce4f42aabfffc9c5e5867,body=3955192e59bca45e5909f1ae075093bc70178495a792fa9277177b92ee92c40a",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Гарантируется, что после вызова индекс не содержит устаревших записей для переданных docPaths."
+          }
+        },
+        "dependencies": {
+          "body": "- `CodeloreError` (`src/errors.ts`) — формат ошибки дублирования секций, используется в `addSectionToIndex`.\n- `DocStateStorage` (`src/storage/doc-state-storage.ts`) — загрузка состояний документов через `loadDocState`.",
+          "rendered": true,
+          "fingerprint": "deps=e913cb1253e5e51712b31e80a99e84a3d4ed0a02db490141384dd05f5e5ed647",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "CodeloreError требуется только для проброса ошибки дублирования через addSectionToIndex, а DocStateStorage — для загрузки состояний."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `CodeloreService.patchDocIndexForDocs` при изменении набора документов (например, после записи файла или обновления метаданных). Процесс:\n1. Удаляет из индекса все секции для каждого переданного `docPath`, включая привязки к сущностям в `entityToSections`.\n2. Загружает актуальное состояние документа через `stateStorage.loadDocState`.\n3. Добавляет секции заново через `addSectionToIndex`.\n4. Сортирует списки затронутых сущностей и обновляет `index.generatedAt`.",
+          "rendered": true,
+          "fingerprint": "body=3955192e59bca45e5909f1ae075093bc70178495a792fa9277177b92ee92c40a,deps=e913cb1253e5e51712b31e80a99e84a3d4ed0a02db490141384dd05f5e5ed647",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается из CodeloreService при изменении набора документов, последовательно удаляет старые секции и загружает новые."
+          }
+        },
+        "limitations": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=3955192e59bca45e5909f1ae075093bc70178495a792fa9277177b92ee92c40a"
+        },
+        "changeGuide": {
+          "body": "- Удаление записей из `entityToSections` выполняется через `bucket.filter((id) => id !== sectionId)` и `delete index.entityToSections[ownedEntity]` при пустом остатке; тест `state-indexer.test.ts` проверяет корректность очистки.\n- Сортировка затронутых сущностей через `index.entityToSections[entity]?.sort()` гарантирует детерминированный порядок; тест `state-indexer.test.ts` проверяет стабильность после патча.\n- Обновление `index.generatedAt = new Date().toISOString()` в конце функции; тест `state-indexer.test.ts` проверяет, что метка времени обновляется.",
+          "rendered": true,
+          "fingerprint": "body=3955192e59bca45e5909f1ae075093bc70178495a792fa9277177b92ee92c40a,deps=e913cb1253e5e51712b31e80a99e84a3d4ed0a02db490141384dd05f5e5ed647,usage=708085658d892392e41d22ef39cded85a6b563f1bb2342ae68c0974af4d31965,placement=0d4455a3cafae55e2ca4b8a31fb87122c57741e34f2a554fd063a2e763660780",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Инварианты, перечисленные в changeGuide, уже описаны в invariants и workflows; changeGuide добавляет ссылки на конкретные конструкции и тесты."
+          }
+        }
+      },
+      "depDocsFingerprint": "89af6b99fdf23ee6510f6caa28ec3e809e654f6147b84dd1e76b8ea5fe181801",
+      "generationHistory": [
+        {
+          "runId": "1372adf6-4062-4467-b8d3-6610906819f7",
+          "timestamp": "2026-06-13T20:26:07.099Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "1372adf6-4062-4467-b8d3-6610906819f7",
+          "timestamp": "2026-06-13T20:32:16.307Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.834Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.094Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "changeGuide"
+          ]
+        }
+      ]
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

@@ -1,0 +1,130 @@
+{
+  "version": 4,
+  "docPath": "src/service/doc-reconcile.codelore.md",
+  "generatedAt": "2026-06-20T22:46:33.110Z",
+  "sectionOrder": [
+    "symbol:src/service/doc-reconcile.ts#reconcileDocStateWithCode"
+  ],
+  "sections": {
+    "symbol:src/service/doc-reconcile.ts#reconcileDocStateWithCode": {
+      "heading": "reconcileDocStateWithCode",
+      "depth": 1,
+      "anchor": "reconciledocstatewithcode",
+      "owns": [
+        "symbol:src/service/doc-reconcile.ts#reconcileDocStateWithCode"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.reconcileScopedDocStates"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Синхронизирует `DocState` с текущим набором сущностей кода: удаляет секции, чья сущность исчезла, и обрезает блоки, не разрешённые для сущности.",
+          "rendered": true,
+          "fingerprint": "signature=50f4a1a02842b2b8173ed183ebe435252af0c0474bc297cbc22f89a774230a71,placement=ef3d33b5f62c7d4b9c55d29e4df856dfb48ea2590a364b44fe2929e452fb3feb",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Удаляет секции и блоки, не соответствующие текущему коду."
+          }
+        },
+        "responsibility": {
+          "body": "- Удаляет из `state.sections` и `state.sectionOrder` секции, чья сущность-владелец отсутствует в `entities`.\n- Вызывает `pruneDisallowedBlocks` для каждой оставшейся секции, чтобы удалить блоки, не входящие в `owner.metadata.allowedBlocks`.\n- Возвращает `true`, если хотя бы одна секция или блок были удалены.",
+          "rendered": true,
+          "fingerprint": "signature=50f4a1a02842b2b8173ed183ebe435252af0c0474bc297cbc22f89a774230a71,deps=1984bbf2b75760034d8c3e4bf6ec22489ded7cca6848cbafa0a76178d0172080,usage=9177e460b50256c8b76916cdf008f8d82fa07e92c1b96a0b70aaea4ff73a2ee4",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Удаляет секции и блоки, не соответствующие текущему коду."
+          }
+        },
+        "invariants": {
+          "body": "- Не изменяет `state`, если все секции имеют живую сущность и все блоки разрешены.\n- При удалении секции также удаляет её идентификатор из `state.sectionOrder`.\n- Не бросает исключений при отсутствии сущности или разрешённых блоков.",
+          "rendered": true,
+          "fingerprint": "signature=50f4a1a02842b2b8173ed183ebe435252af0c0474bc297cbc22f89a774230a71,body=9ccc07544d70558709a2b2b3a3b2a55f9530421fb5a802db58d19ba6e58949e6",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не изменяет `state`, если все секции имеют живую сущность и все блоки разрешены."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `CodeloreService.reconcileScopedDocStates` (`src/service/codelore-service.ts`) для каждого `docPath`, чьи секции попадают под переданный `scope`. Если `reconcileDocStateWithCode` вернул `true`, вызывающий либо удаляет документ (при пустом `state.sectionOrder`), либо перезаписывает его, а затем перестраивает индексы без рендера документов.",
+          "rendered": true,
+          "fingerprint": "body=9ccc07544d70558709a2b2b3a3b2a55f9530421fb5a802db58d19ba6e58949e6,deps=1984bbf2b75760034d8c3e4bf6ec22489ded7cca6848cbafa0a76178d0172080",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается для каждого docPath, чьи секции попадают под scope; при изменении вызывающий удаляет документ или перезаписывает его, затем перестраивает индексы."
+          }
+        },
+        "limitations": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=9ccc07544d70558709a2b2b3a3b2a55f9530421fb5a802db58d19ba6e58949e6"
+        },
+        "changeGuide": {
+          "body": "- При удалении секции её идентификатор удаляется из `state.sectionOrder` через `state.sectionOrder.filter((id) => id !== sectionId)`. Тест: `reconcileDocStateWithCode` (предположительно в `doc-reconcile.test.ts`).\n- При удалении блока его идентификатор удаляется из `section.blockOrder` и `section.allowedBlocks` через `section.blockOrder.filter((id) => allowedSet.has(id))` и `section.allowedBlocks.filter((id) => allowedSet.has(id))`. Тест: `pruneDisallowedBlocks` (предположительно в `doc-reconcile.test.ts`).",
+          "rendered": true,
+          "fingerprint": "body=9ccc07544d70558709a2b2b3a3b2a55f9530421fb5a802db58d19ba6e58949e6,deps=1984bbf2b75760034d8c3e4bf6ec22489ded7cca6848cbafa0a76178d0172080,usage=9177e460b50256c8b76916cdf008f8d82fa07e92c1b96a0b70aaea4ff73a2ee4,placement=ef3d33b5f62c7d4b9c55d29e4df856dfb48ea2590a364b44fe2929e452fb3feb",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "При удалении секции её id удаляется из sectionOrder через filter; при удалении блока — из blockOrder и allowedBlocks через filter."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "81e106c6-d2cb-4c0d-b55c-c3f9dcd8012a",
+          "timestamp": "2026-06-20T22:45:12.653Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "81e106c6-d2cb-4c0d-b55c-c3f9dcd8012a",
+          "timestamp": "2026-06-20T22:46:33.109Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

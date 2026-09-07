@@ -1,0 +1,140 @@
+{
+  "version": 4,
+  "docPath": "src/analysis/class-cohesion.codelore.md",
+  "generatedAt": "2026-06-10T21:10:26.291Z",
+  "sectionOrder": [
+    "symbol:src/analysis/class-cohesion.ts#analyzeClassCohesion"
+  ],
+  "sections": {
+    "symbol:src/analysis/class-cohesion.ts#analyzeClassCohesion": {
+      "heading": "analyzeClassCohesion",
+      "depth": 1,
+      "anchor": "analyzeclasscohesion",
+      "owns": [
+        "symbol:src/analysis/class-cohesion.ts#analyzeClassCohesion"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/indexer/code-indexer.ts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Вычисляет метрики связности классов для документационного индекса.",
+          "rendered": true,
+          "fingerprint": "signature=4249d3a6e27ade00826a500eabbf06d56ee2f25f5d14d29c94c5c4b76e02aba0,placement=8919c81376956282828d11e39269cfacd1d49d2352d1fee883d431ca9f95f007",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 0.75,
+            "novelFact": "analyzeClassCohesion используется в populateDocumentationMetadata для построения cohesion-метрик, которые вместе с metrics и decision определяют allowedBlocks для каждой entity."
+          }
+        },
+        "responsibility": {
+          "body": "- Не проверяет синтаксическую корректность классов — это ответственность ts-morph.\n- Не сохраняет результаты — возвращает Map для обработки вызывающим.\n- Не обрабатывает классы без методов — для них поле fieldOverlap равно 0; класс без методов считается не связным, если не задан порог.",
+          "rendered": true,
+          "fingerprint": "signature=4249d3a6e27ade00826a500eabbf06d56ee2f25f5d14d29c94c5c4b76e02aba0,deps=b295ac75dafc1df7882bbee4ae4fc4330132d76d11ac1bc32b579285e1569ff8,usage=13942ae5183f2ec1c1b97bfcf2e8ab87456e72819b815bef6d8fbfecb11cfc91",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Из кода видно, что класс без методов (methods.length < 2, первый else if) получает 0, если methods.length === 0; описание уточняет границу: класс без методов не считается связным при любом пороге, если явно не задан 0."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращает запись для каждого класса в records, независимо от наличия методов, со значением cohesive === false для классов без методов.\n- Поле fieldOverlap всегда в диапазоне [0, 1]: 1 для одного метода, 0 для пустого класса; для нескольких методов — доля пар методов с пересечением this-полей.\n- Поле graphConnectedness === true для одного метода, false для пустого класса.\n- absorbedMethodIds пуст для не cohesive-классов, содержит все entity.id методов класса для cohesive.",
+          "rendered": true,
+          "fingerprint": "signature=4249d3a6e27ade00826a500eabbf06d56ee2f25f5d14d29c94c5c4b76e02aba0,body=0bf30ab8169350838487cbd79a5e27d2faf269b4938db479323029c5ae0943af",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Из кода: для methods.length < 2 fieldOverlap == 1 (один метод) или 0 (пустой класс), graphConnectedness == true или false соответственно; absorbedMethodIds пуст, если cohesive === false. Это контракт для populateDocumentationMetadata."
+          }
+        },
+        "dependencies": {
+          "body": "Нет дополнительных требований",
+          "rendered": false,
+          "fingerprint": "deps=b295ac75dafc1df7882bbee4ae4fc4330132d76d11ac1bc32b579285e1569ff8",
+          "scores": {
+            "informativeness": 0,
+            "novelty": 0.75,
+            "specificity": 0.5,
+            "novelFact": "Функция импортирует только type-сущности (CodeEntity, CodeloreConfig, AnalysisEntityRecord) и Node / SyntaxKind из ts-morph, которые не являются runtime-зависимостями документации. Никакой импорт не требует пояснения в секции."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `populateDocumentationMetadata` в `src/indexer/code-indexer.ts` после `computeEntityMetrics`. Результат `cohesion` вместе с `metrics` передаётся в `decideDocumentationRoles`, который определяет документационную роль каждой сущности. Если класс cohesive, его методы поглощаются в одну документационную секцию.",
+          "rendered": true,
+          "fingerprint": "body=0bf30ab8169350838487cbd79a5e27d2faf269b4938db479323029c5ae0943af,deps=b295ac75dafc1df7882bbee4ae4fc4330132d76d11ac1bc32b579285e1569ff8",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Из кода populateDocumentationMetadata: results = { metrics, cohesion, wrappers, decisions } — cohesion между metrics и decisions. Решение о поглощении методов принимается в decideDocumentationRoles на основе cohesive-флага. Секции методов, поглощённых классом, не создаются отдельно."
+          }
+        },
+        "limitations": {
+          "body": "- Не учитывает статические методы, работающие только с полями: они не принадлежат классу, но технически могут быть поглощены как методы.\n- Граф связности строится только по вызовам вида `this.method()` — `super.method()`, вызовы через касты, колбэки, декораторы не учитываются.\n- Не обрабатывает геттеры/сеттеры отдельно: они поглощаются как методы, если класс cohesive.",
+          "rendered": true,
+          "fingerprint": "body=0bf30ab8169350838487cbd79a5e27d2faf269b4938db479323029c5ae0943af",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Из кода: sameClassCallTarget проверяет только isThisExpression(expression.getExpression().getText()) — это строго `this.`. Супер-вызовы (`super.method`) не покрываются. Геттеры/сеттеры в ts-morph тоже MethodDeclaration, поэтому они проходят через фильтр Node.isMethodDeclaration."
+          }
+        },
+        "changeGuide": {
+          "body": "1. Если изменился порог связности `classFieldOverlap` — проверить, что секции классов с поглощаемыми методами корректно обновлены в doc-индексе.\n2. Если добавилась поддержка `super.method()` или вызовов через колбэки — проверить, что `classContainsAllMethods` не отфильтрует методы, имеющие только внешний вызов, а не через this.\n3. Если меняется логика поглощения (absorbedMethodIds) — убедиться, что `populateDocumentationMetadata` в `src/indexer/code-indexer.ts` корректно обрабатывает пустой массив для не cohesive классов (сейчас решения об этом не принимает; ошибка повлияет на doc-роли).",
+          "rendered": true,
+          "fingerprint": "body=0bf30ab8169350838487cbd79a5e27d2faf269b4938db479323029c5ae0943af,deps=b295ac75dafc1df7882bbee4ae4fc4330132d76d11ac1bc32b579285e1569ff8,usage=13942ae5183f2ec1c1b97bfcf2e8ab87456e72819b815bef6d8fbfecb11cfc91,placement=8919c81376956282828d11e39269cfacd1d49d2352d1fee883d431ca9f95f007",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Указаны три конкретных риска: изменение порога влияет на все секции классов; добавление super.method требует проверки classContainsAllMethods; пустой absorbedMethodIds для не cohesive классов — если populateDocumentationMetadata начнёт обрабатывать его иначе, сломаются doc-роли."
+          }
+        }
+      },
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "generationHistory": [
+        {
+          "runId": "61372614-014e-462a-bae1-622628a3489c",
+          "timestamp": "2026-06-10T21:10:26.291Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

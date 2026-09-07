@@ -1,0 +1,574 @@
+{
+  "version": 4,
+  "docPath": "src/utils/path.codelore.md",
+  "generatedAt": "2026-07-03T16:19:56.893Z",
+  "sectionOrder": [
+    "symbol:src/utils/path.ts#toPosixPath",
+    "symbol:src/utils/path.ts#relativeProjectPath",
+    "symbol:src/utils/path.ts#isProbablyExcluded",
+    "symbol:src/utils/path.ts#encodeResourceId",
+    "symbol:src/utils/path.ts#decodeResourceId"
+  ],
+  "sections": {
+    "symbol:src/utils/path.ts#toPosixPath": {
+      "heading": "toPosixPath",
+      "depth": 1,
+      "anchor": "toposixpath",
+      "owns": [
+        "symbol:src/utils/path.ts#toPosixPath"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/indexer/code-indexer.ts",
+        "file:src/service/prepare-docs.ts",
+        "symbol:src/service/prepare-docs.ts#normalizePreparePath",
+        "symbol:src/utils/path.ts#relativeProjectPath"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Нормализует разделители путей в стиле POSIX для кроссплатформенной совместимости.",
+          "rendered": true,
+          "fingerprint": "signature=3d6d2c6578514ecbdabccd0a13ee3439faf5a483c53aff7afccf9e3ec97711fa,placement=c8bb62eaef72dbc3e2eff8b8d79aaf6d987d31f2edf0380b604412aec4541839",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "toPosixPath заменяет обратные слеши на прямые, что необходимо для единообразной работы с путями на Windows."
+          }
+        },
+        "responsibility": {
+          "body": "- Заменяет все обратные слеши (`\\`) на прямые (`/`) во входной строке.\n- Не выполняет других преобразований: не изменяет регистр, не разрешает симлинки, не проверяет существование пути.\n- Принимает любую строку и всегда возвращает строку без исключений.",
+          "rendered": true,
+          "fingerprint": "signature=3d6d2c6578514ecbdabccd0a13ee3439faf5a483c53aff7afccf9e3ec97711fa,deps=8cec5bac34da34b6104f272da12a78dd9411dc7b7801c80c3464687c296a28dc,usage=83e3c156c396f2aac5568cf480fdd74925e285a0311c0345b65a661386a9bf78",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Заменяет все обратные слеши на прямые, не выполняя других преобразований."
+          },
+          "language": "ru"
+        },
+        "invariants": {
+          "body": "- Возвращает строку той же длины или короче (замена `\\` на `/`).\n- Не бросает исключений для любого входного `string`.\n- Идемпотентна: повторный вызов не меняет результат.",
+          "rendered": true,
+          "fingerprint": "signature=3d6d2c6578514ecbdabccd0a13ee3439faf5a483c53aff7afccf9e3ec97711fa,body=23bdca2062bcbe96d0981d5db039af2137bc7ab9069edea272d910eecca52d3c",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "toPosixPath гарантирует отсутствие исключений и идемпотентность."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `buildCodeIndex` (`src/indexer/code-indexer.ts`) для нормализации путей файлов, полученных от `ts-morph`. Также используется в `CodeloreService` (`src/service/codelore-service.ts`) при построении индекса и в `relativeProjectPath` для приведения результата `relative()` к POSIX-формату.",
+          "rendered": true,
+          "fingerprint": "body=23bdca2062bcbe96d0981d5db039af2137bc7ab9069edea272d910eecca52d3c,deps=8cec5bac34da34b6104f272da12a78dd9411dc7b7801c80c3464687c296a28dc",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "toPosixPath вызывается из buildCodeIndex и CodeloreService для нормализации путей."
+          }
+        },
+        "limitations": {
+          "body": "- Не обрабатывает UNC-пути (`\\\\server\\share`).\n- Не учитывает drive letter (`C:`).",
+          "rendered": true,
+          "fingerprint": "body=23bdca2062bcbe96d0981d5db039af2137bc7ab9069edea272d910eecca52d3c",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "toPosixPath не поддерживает UNC-пути и drive letter."
+          }
+        }
+      },
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "generationHistory": [
+        {
+          "runId": "61372614-014e-462a-bae1-622628a3489c",
+          "timestamp": "2026-06-10T21:10:32.150Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "workflows",
+            "limitations"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.854Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:19:56.892Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        }
+      ]
+    },
+    "symbol:src/utils/path.ts#relativeProjectPath": {
+      "heading": "relativeProjectPath",
+      "depth": 1,
+      "anchor": "relativeprojectpath",
+      "owns": [
+        "symbol:src/utils/path.ts#relativeProjectPath"
+      ],
+      "depends": [
+        "symbol:src/utils/path.ts#toPosixPath"
+      ],
+      "usedBy": [
+        "file:src/analysis/entity-metrics.ts",
+        "file:src/indexer/code-indexer.ts",
+        "symbol:src/indexer/code-indexer.ts#buildCodeIndex"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Вычисляет относительный путь от корня проекта к заданному абсолютному пути, нормализуя его в POSIX-формат.",
+          "rendered": true,
+          "fingerprint": "signature=45ee23652468fbe5db58597caed9e64f432438915c85923bfb4d2ac21ae09ebd,placement=ae524f2161006e44b54446412a7f843a60aa4fe1d282a3f0d3b88b2ec77fcd60",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "relativeProjectPath объединяет resolve и relative для получения относительного пути."
+          }
+        },
+        "responsibility": {
+          "body": "- Вычисляет относительный путь от `rootDir` до заданного `path`, разрешая `path` в абсолютный с помощью `resolve`.\n- Приводит разделители к POSIX-формату через `toPosixPath`.\n- Не проверяет, что `path` находится внутри `rootDir` — результирующий путь может содержать `..`; не проверяет существование путей.",
+          "rendered": true,
+          "fingerprint": "signature=45ee23652468fbe5db58597caed9e64f432438915c85923bfb4d2ac21ae09ebd,deps=c04b8e4eccaadf878dfeedebeae8cf6253fa0508a14c98dd4844b280147889ef,usage=26a6674efb01f735612ae74326f187d50970946caebf4e3731f5c00927e8542e",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Комбинирует `resolve` и `relative` с `toPosixPath` для получения POSIX-относительного пути."
+          },
+          "language": "ru"
+        },
+        "invariants": {
+          "body": "- Возвращает путь с разделителями `/` (POSIX).\n- Для `path`, равного `rootDir`, возвращает пустую строку.\n- Не бросает исключений для любых строковых аргументов.",
+          "rendered": true,
+          "fingerprint": "signature=45ee23652468fbe5db58597caed9e64f432438915c85923bfb4d2ac21ae09ebd,body=96c44d770ed23d8bf2a2c711945f63bbb34d9eefcb0c4b9b261195360fd388e7",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "relativeProjectPath гарантирует POSIX-разделители и отсутствие исключений."
+          }
+        },
+        "dependencies": {
+          "body": "- `toPosixPath` (`src/utils/path.ts`) — нормализация разделителей.\n- `relative` (из `node:path`) — вычисление относительного пути.\n- `resolve` (из `node:path`) — разрешение относительного пути в абсолютный.",
+          "rendered": true,
+          "fingerprint": "deps=c04b8e4eccaadf878dfeedebeae8cf6253fa0508a14c98dd4844b280147889ef",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "relativeProjectPath зависит от toPosixPath и стандартных функций node:path."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `buildCodeIndex` (`src/indexer/code-indexer.ts`) для каждого исходного файла: `relativeProjectPath(config.rootDir, sourceFile.getFilePath())` — результат используется как ключ в `fileToEntities` и как `path` сущности.",
+          "rendered": true,
+          "fingerprint": "body=96c44d770ed23d8bf2a2c711945f63bbb34d9eefcb0c4b9b261195360fd388e7,deps=c04b8e4eccaadf878dfeedebeae8cf6253fa0508a14c98dd4844b280147889ef",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "relativeProjectPath используется в buildCodeIndex для получения относительного пути каждого файла."
+          }
+        },
+        "limitations": {
+          "body": "- Не обрабатывает случай, когда `rootDir` не является родительским для `path` — результат может содержать `..`.\n- Зависит от `resolve`, который разрешает симлинки, что может дать неожиданный путь.",
+          "rendered": true,
+          "fingerprint": "body=96c44d770ed23d8bf2a2c711945f63bbb34d9eefcb0c4b9b261195360fd388e7",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "relativeProjectPath может вернуть путь с .. если rootDir не является родительским."
+          }
+        }
+      },
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "generationHistory": [
+        {
+          "runId": "61372614-014e-462a-bae1-622628a3489c",
+          "timestamp": "2026-06-10T21:10:32.151Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:19:56.893Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        }
+      ]
+    },
+    "symbol:src/utils/path.ts#isProbablyExcluded": {
+      "heading": "isProbablyExcluded",
+      "depth": 1,
+      "anchor": "isprobablyexcluded",
+      "owns": [
+        "symbol:src/utils/path.ts#isProbablyExcluded"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/indexer/code-indexer.ts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Быстрая эвристика для определения, должен ли путь быть исключён из индексации.",
+          "rendered": true,
+          "fingerprint": "signature=edd9d4c016105e02f17c0f50cc24f5d6fa281051d19c939717b763d39fad8963,placement=c451e9d9a4e7a293828ee6b26fb46a6601526c5798793d6b4bc1512e174ae799",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "isProbablyExcluded проверяет путь на вхождение в типичные исключаемые директории."
+          }
+        },
+        "responsibility": {
+          "body": "- Не проверяет файловую систему — только строку пути.\n- Не заменяет полноценную конфигурацию исключений — только базовые эвристики.\n- Не обрабатывает glob-паттерны или регулярные выражения.",
+          "rendered": true,
+          "fingerprint": "signature=edd9d4c016105e02f17c0f50cc24f5d6fa281051d19c939717b763d39fad8963,deps=7c5855aa9184bca1df9374a982cb4473926ec74e7fa96a11f55a41cebbd08769,usage=ad7dbfb73e7bf3893b9a7189743e794333bb3a8fcae654ffdf1da2ad301bf475",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "isProbablyExcluded не обращается к файловой системе и не поддерживает glob."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращает `true` для путей, содержащих `/node_modules/`, `/dist/`, `/build/`, `/.codelore/` или начинающихся с них.\n- Регистрозависима — `Node_Modules` не будет исключён.\n- Не бросает исключений.",
+          "rendered": true,
+          "fingerprint": "signature=edd9d4c016105e02f17c0f50cc24f5d6fa281051d19c939717b763d39fad8963,body=30d4d1c7f3ebacbd09fcfd7963bf7c563da3355755f920506b991c61448c35a6",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "isProbablyExcluded регистрозависима и не бросает исключений."
+          }
+        },
+        "workflows": {
+          "body": "Импортируется в `src/indexer/code-indexer.ts` и используется в `computeEntityMetrics` (`src/analysis/entity-metrics.ts`) с аргументом `\"dist/\"` (runtimeEvidence). Вызывается для фильтрации путей при сборе метрик.",
+          "rendered": true,
+          "fingerprint": "body=30d4d1c7f3ebacbd09fcfd7963bf7c563da3355755f920506b991c61448c35a6,deps=7c5855aa9184bca1df9374a982cb4473926ec74e7fa96a11f55a41cebbd08769",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "isProbablyExcluded вызывается из entity-metrics с аргументом dist/."
+          }
+        },
+        "limitations": {
+          "body": "- Не покрывает все возможные исключаемые директории (например, `.git`, `__pycache__`).\n- Регистрозависимость может пропустить `DIST/` или `Node_Modules`.",
+          "rendered": true,
+          "fingerprint": "body=30d4d1c7f3ebacbd09fcfd7963bf7c563da3355755f920506b991c61448c35a6",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "isProbablyExcluded не покрывает .git и регистрозависима."
+          }
+        }
+      },
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "generationHistory": [
+        {
+          "runId": "61372614-014e-462a-bae1-622628a3489c",
+          "timestamp": "2026-06-10T21:10:32.152Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    },
+    "symbol:src/utils/path.ts#encodeResourceId": {
+      "heading": "encodeResourceId",
+      "depth": 1,
+      "anchor": "encoderesourceid",
+      "owns": [
+        "symbol:src/utils/path.ts#encodeResourceId"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/server/create-server.ts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Кодирует идентификатор сущности для безопасного использования в URI ресурсов MCP.",
+          "rendered": true,
+          "fingerprint": "signature=6f22d850cdda08e2f7b5bd6cdd2acb98da0bfbbf849faa663e4f6e27931662da,placement=b1e27869ed7a2f8e4f66b76b8f613099c53cc4f44f7ae4bce3f79e898d29d797",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "encodeResourceId использует encodeURIComponent для экранирования спецсимволов в URI."
+          }
+        },
+        "responsibility": {
+          "body": "- Не проверяет, что входная строка является валидным идентификатором сущности.\n- Не обрабатывает декодирование — это задача `decodeResourceId`.\n- Не добавляет схему URI или префикс пути.",
+          "rendered": true,
+          "fingerprint": "signature=6f22d850cdda08e2f7b5bd6cdd2acb98da0bfbbf849faa663e4f6e27931662da,deps=2899b4b2b2444bc4b5b8463629d3c82be25061fbd58ff86d88d1254a9fe3ae77,usage=098cbc67321c1416849dfa1ecaa23efd34384963f0c41e37caa45c8819131bd0",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "encodeResourceId не проверяет валидность входного идентификатора."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращает строку, безопасную для вставки в URI (кодирует `:`, `/`, `#`, `?` и т.д.).\n- Идемпотентна: повторный вызов не меняет результат.\n- Не бросает исключений.",
+          "rendered": true,
+          "fingerprint": "signature=6f22d850cdda08e2f7b5bd6cdd2acb98da0bfbbf849faa663e4f6e27931662da,body=de457a894c5bfc4b1f9e5d4795a068d83190d226b1f666cff2faa9edb8ce0c4f",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "encodeResourceId идемпотентна и безопасна для URI."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается в `createCodeloreServer` (`src/server/create-server.ts`) при регистрации ресурсов `doc-section` и `code-entity`. Используется для кодирования `sectionId` и `entityId` в URI шаблона ресурса.",
+          "rendered": true,
+          "fingerprint": "body=de457a894c5bfc4b1f9e5d4795a068d83190d226b1f666cff2faa9edb8ce0c4f,deps=2899b4b2b2444bc4b5b8463629d3c82be25061fbd58ff86d88d1254a9fe3ae77",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "encodeResourceId используется в createCodeloreServer для кодирования идентификаторов в URI ресурсов."
+          }
+        },
+        "limitations": {
+          "body": "- Не обрабатывает случай, когда входная строка уже закодирована — двойное кодирование возможно.\n- Не поддерживает кастомные схемы кодирования, только стандартный `encodeURIComponent`.",
+          "rendered": true,
+          "fingerprint": "body=de457a894c5bfc4b1f9e5d4795a068d83190d226b1f666cff2faa9edb8ce0c4f",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "encodeResourceId может привести к двойному кодированию, если вход уже закодирован."
+          }
+        }
+      },
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "generationHistory": [
+        {
+          "runId": "61372614-014e-462a-bae1-622628a3489c",
+          "timestamp": "2026-06-10T21:10:32.153Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "workflows",
+            "limitations"
+          ]
+        }
+      ]
+    },
+    "symbol:src/utils/path.ts#decodeResourceId": {
+      "heading": "decodeResourceId",
+      "depth": 1,
+      "anchor": "decoderesourceid",
+      "owns": [
+        "symbol:src/utils/path.ts#decodeResourceId"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/server/create-server.ts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Декодирует идентификатор сущности из URI-безопасного формата обратно в исходную строку.",
+          "rendered": true,
+          "fingerprint": "signature=b276b6d7e97ceaeac689ee65036ffbe154a3fc59c4916faadad6177463be32b5,placement=8e94920c7da6572ba942ef584ac17c56075d100cb2fe04b3597db86922b057d5",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "decodeResourceId использует decodeURIComponent для восстановления исходного идентификатора."
+          }
+        },
+        "responsibility": {
+          "body": "- Не проверяет, что входная строка является валидным URI-компонентом.\n- Не кодирует — это задача `encodeResourceId`.\n- Не валидирует, что результат является корректным идентификатором сущности.",
+          "rendered": true,
+          "fingerprint": "signature=b276b6d7e97ceaeac689ee65036ffbe154a3fc59c4916faadad6177463be32b5,deps=3980a6b601273b8aad87250dd441017de47379b295b064866500112bf3d361f7,usage=e09819b0002511ed1b7cdc4d31eae02ccdfb009972590cdedab09cc4111b68bb",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "decodeResourceId не проверяет валидность входного URI-компонента."
+          }
+        },
+        "invariants": {
+          "body": "- Для любой строки `s` выполняется `decodeResourceId(encodeResourceId(s)) === s`.\n- Бросает `URIError`, если вход содержит некорректный percent-encoding (например, `%ZZ`).\n- Не изменяет строку, если в ней нет закодированных символов.",
+          "rendered": true,
+          "fingerprint": "signature=b276b6d7e97ceaeac689ee65036ffbe154a3fc59c4916faadad6177463be32b5,body=9133c7a5e8c56b1f007c7318df0b208e5be081a179641710f1d218fe680c74b2",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "decodeResourceId гарантирует обратимость с encodeResourceId, но может бросить URIError."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается в `createCodeloreServer` (`src/server/create-server.ts`) при обработке запросов к ресурсам `doc-section` и `code-entity`. Декодирует `sectionId` и `entityId` из URI-параметров для передачи в `CodeloreService`.",
+          "rendered": true,
+          "fingerprint": "body=9133c7a5e8c56b1f007c7318df0b208e5be081a179641710f1d218fe680c74b2,deps=3980a6b601273b8aad87250dd441017de47379b295b064866500112bf3d361f7",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "decodeResourceId используется в createCodeloreServer для декодирования идентификаторов из URI."
+          }
+        },
+        "limitations": {
+          "body": "- Бросает `URIError` на некорректном percent-encoding — вызывающий должен обрабатывать исключение.\n- Не поддерживает декодирование кастомных схем, только стандартный `decodeURIComponent`.",
+          "rendered": true,
+          "fingerprint": "body=9133c7a5e8c56b1f007c7318df0b208e5be081a179641710f1d218fe680c74b2",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "decodeResourceId может бросить URIError, что требует обработки вызывающим."
+          }
+        }
+      },
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "generationHistory": [
+        {
+          "runId": "61372614-014e-462a-bae1-622628a3489c",
+          "timestamp": "2026-06-10T21:10:32.154Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "workflows",
+            "limitations"
+          ]
+        }
+      ]
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

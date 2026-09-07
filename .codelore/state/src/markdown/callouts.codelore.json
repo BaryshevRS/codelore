@@ -1,0 +1,261 @@
+{
+  "version": 4,
+  "docPath": "src/markdown/callouts.codelore.md",
+  "generatedAt": "2026-07-03T16:25:43.478Z",
+  "sectionOrder": [
+    "symbol:src/markdown/callouts.ts#staleCalloutText",
+    "symbol:src/markdown/callouts.ts#translationPendingCalloutText"
+  ],
+  "sections": {
+    "symbol:src/markdown/callouts.ts#staleCalloutText": {
+      "heading": "staleCalloutText",
+      "depth": 1,
+      "anchor": "stalecallouttext",
+      "owns": [
+        "symbol:src/markdown/callouts.ts#staleCalloutText"
+      ],
+      "depends": [
+        "symbol:src/markdown/locales.ts#localeBundle"
+      ],
+      "usedBy": [
+        "file:src/markdown/render-doc.ts",
+        "symbol:src/markdown/render-doc.ts#renderSection"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Обеспечивает единообразное отображение уведомлений об устаревших блоках в виде маркдаун-цитаты, используя локализованные шаблоны из localeBundle.",
+          "rendered": true,
+          "fingerprint": "signature=189c16c08ec24b7e178cd376668948623c7b1b5dbbc7e847c75388eb84ac3437,placement=131ffd69304891016b2c65410033961e36f647f575a9f0c8531eb99795c634bf",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Эта функция форматирует сводку устаревших блоков, комбинируя причину, дату и заголовки."
+          }
+        },
+        "responsibility": {
+          "body": "- Разрешает локализованную фразу причины: если group.reason присутствует и есть в bundle.reasons, использует её; иначе — исходный ключ.\n- Заполняет шаблон bundle.callouts.stale подставляя значения reason (с запятой и пробелом), since и headings.\n- Возвращает строку с префиксом \"> \" и заполненным шаблоном.",
+          "rendered": true,
+          "fingerprint": "signature=189c16c08ec24b7e178cd376668948623c7b1b5dbbc7e847c75388eb84ac3437,deps=4ec07f51086b593056c44f29880666dea17dd81a252c8d8bf6bf7b02813f4a1c,usage=ecf916a2fd0e6ce7fa6bf9b093bf0e854031c8c7a4fa509f3c4390478b39146c",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Функция выбирает локализованную причину или оставляет исходный ключ, затем интерполирует три поля в шаблон."
+          }
+        },
+        "invariants": {
+          "body": "- Результат всегда начинается с \"> \".\n- Если group.reason не определён, в шаблоне для reason подставляется пустая строка (запятая и пробел не добавляются).\n- Параметры не мутируют.",
+          "rendered": false,
+          "fingerprint": "signature=189c16c08ec24b7e178cd376668948623c7b1b5dbbc7e847c75388eb84ac3437,body=3e771843b8205549ec131b4756e9b58d5438e5b672107d652f302c9d8eb1609f",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.25,
+            "specificity": 0.5,
+            "novelFact": "При отсутствии group.reason шаблон заполняется без фразы причины."
+          }
+        },
+        "dependencies": {
+          "body": "Использует localeBundle из src/markdown/locales.ts для получения локализованного набора строк callouts.",
+          "rendered": true,
+          "fingerprint": "deps=4ec07f51086b593056c44f29880666dea17dd81a252c8d8bf6bf7b02813f4a1c",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Зависимость от localeBundle обеспечивает локализацию шаблона уведомления."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из renderSection (src/markdown/render-doc.ts) для каждого сгруппированного набора устаревших блоков на этапе рендеринга секции. Функция renderSection собирает все блоки, помеченные staleSince, группирует их по совпадению reason и since, и для каждой группы вызывает staleCalloutText, передавая язык и объект StaleGroup. Результат вставляется в массив lines сразу после заголовка секции, формируя сводный баннер устаревания.",
+          "rendered": true,
+          "fingerprint": "body=3e771843b8205549ec131b4756e9b58d5438e5b672107d652f302c9d8eb1609f,deps=4ec07f51086b593056c44f29880666dea17dd81a252c8d8bf6bf7b02813f4a1c",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается один раз на группу устаревших блоков с одинаковой причиной и датой, а не на каждый блок отдельно."
+          }
+        },
+        "limitations": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=3e771843b8205549ec131b4756e9b58d5438e5b672107d652f302c9d8eb1609f"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:19:56.806Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:25:43.476Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "687a21b97204e4d2cef21663d19a128e8aeff463a8572f83d76a25a507d94f82"
+    },
+    "symbol:src/markdown/callouts.ts#translationPendingCalloutText": {
+      "heading": "translationPendingCalloutText",
+      "depth": 1,
+      "anchor": "translationpendingcallouttext",
+      "owns": [
+        "symbol:src/markdown/callouts.ts#translationPendingCalloutText"
+      ],
+      "depends": [
+        "symbol:src/markdown/locales.ts#localeBundle"
+      ],
+      "usedBy": [
+        "file:src/markdown/render-doc.ts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Создаёт текстовую цитату, сообщающую, что перевод данного блока ещё не готов, для вставки в документ вместо отсутствующего перевода.",
+          "rendered": true,
+          "fingerprint": "signature=ccd3d0572aab8af09c9f19a6252a09e1043c9c84772470a0bddd713fed683616,placement=ab974f26e1f8e28968db16dfcf1bf321cf5161bc1d286090456990ac21283abb",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Эта функция генерирует простое уведомление о том, что перевод ожидается."
+          }
+        },
+        "responsibility": {
+          "body": "- Извлекает локализованный текст из localeBundle(language).callouts.translationPending.\n- Возвращает строку с префиксом \"> \" и этим текстом.",
+          "rendered": true,
+          "fingerprint": "signature=ccd3d0572aab8af09c9f19a6252a09e1043c9c84772470a0bddd713fed683616,deps=31bb80cfc4150b96aae7ec0b5517ba5a4b39c34d2a8b14cc37a4cd1da7de60dd,usage=b6b2b7cf370f6e1804ee7b778aaccc843910e3fcb73352e625d9530c2f364a4b",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.25,
+            "specificity": 0.5,
+            "novelFact": "Возвращает строку, начинающуюся с \"> \", содержащую только фиксированное сообщение."
+          }
+        },
+        "invariants": {
+          "body": "- Результат всегда начинается с \"> \".\n- Функция не принимает параметров, кроме языка; текст сообщения предопределён в бандле.",
+          "rendered": false,
+          "fingerprint": "signature=ccd3d0572aab8af09c9f19a6252a09e1043c9c84772470a0bddd713fed683616,body=075e57f18edfd737093fc77de9d65841f1d862b607093fade91fe035dee0991a",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.25,
+            "specificity": 0.5,
+            "novelFact": "Возвращаемая строка всегда имеет фиксированную структуру с префиксом \"> \", контент не варьируется."
+          }
+        },
+        "dependencies": {
+          "body": "Использует localeBundle из src/markdown/locales.ts для получения локализованной строки translationPending.",
+          "rendered": false,
+          "fingerprint": "deps=31bb80cfc4150b96aae7ec0b5517ba5a4b39c34d2a8b14cc37a4cd1da7de60dd",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.25,
+            "specificity": 0.75,
+            "novelFact": "Зависимость от localeBundle обеспечивает локализацию сообщения о переводе."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из blockBody (src/markdown/render-doc.ts) в момент, когда для блока запрошен перевод на указанный язык, но перевод либо отсутствует в store, либо его sourceFingerprint не соответствует текущему каноническому телу блока. blockBody сначала проверяет наличие translationLanguage и при отсутствии/несовпадении fingerprint вызывает translationPendingCalloutText и добавляет результат в lines, возвращая undefined как тело блока.",
+          "rendered": true,
+          "fingerprint": "body=075e57f18edfd737093fc77de9d65841f1d862b607093fade91fe035dee0991a,deps=31bb80cfc4150b96aae7ec0b5517ba5a4b39c34d2a8b14cc37a4cd1da7de60dd",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается только в контексте перевода, когда канонический текст блока изменился (sourceFingerprint не совпадает) или перевод ещё не создан."
+          }
+        },
+        "limitations": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=075e57f18edfd737093fc77de9d65841f1d862b607093fade91fe035dee0991a"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:19:56.807Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:25:43.477Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "687a21b97204e4d2cef21663d19a128e8aeff463a8572f83d76a25a507d94f82"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

@@ -1,0 +1,105 @@
+{
+  "version": 4,
+  "docPath": "docs/domains/cli-entrypoint.codelore.md",
+  "generatedAt": "2026-07-08T07:59:27.227Z",
+  "sectionOrder": [
+    "domain:cli-entrypoint"
+  ],
+  "sections": {
+    "domain:cli-entrypoint": {
+      "heading": "Точка входа CLI",
+      "depth": 1,
+      "anchor": "точка-входа-cli",
+      "owns": [
+        "domain:cli-entrypoint"
+      ],
+      "depends": [
+        "file:src/cli/run-cli.ts",
+        "domain:codelore-service-facade",
+        "domain:dag-visualization",
+        "domain:error-handling",
+        "domain:mcp-server"
+      ],
+      "usedBy": [],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Запускает CLI-инструмент Codelore: разбирает глобальные аргументы, выбирает команду и передаёт управление либо `CodeloreService`, либо `startStdioServer`. При ошибке возвращает код выхода 1 и пишет сообщение в stderr. Сама бизнес-логику не выполняет — только диспетчеризует.",
+          "rendered": true,
+          "fingerprint": "signature=afe2bfc94ddce4845387fdcff54acfbd200c8bfba67b32158ab0fb4f4b929ad1,placement=bbc18c1c28ebe01e6aea591cce6f2e5ad64834fea0377fd4c7e451505c05a8ee",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Сама бизнес-логику не выполняет — только диспетчеризует."
+          }
+        },
+        "responsibility": {
+          "body": "Владеет циклом запуска: парсит глобальные аргументы, диспетчеризует команду, обрабатывает ошибки и форматирует результат в JSON с отступами для stdout. Не валидирует аргументы подкоманд — это делают `assertExpectedArgs` и функции `parse*`.",
+          "rendered": true,
+          "fingerprint": "signature=afe2bfc94ddce4845387fdcff54acfbd200c8bfba67b32158ab0fb4f4b929ad1,deps=3b24fad5646734c5f607f2862b750f79be31c2e3ed2986aecdfe9e1469350de9,usage=afe2bfc94ddce4845387fdcff54acfbd200c8bfba67b32158ab0fb4f4b929ad1",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Форматирует результат в JSON с отступами и выводит в stdout; не валидирует аргументы подкоманд."
+          }
+        },
+        "dependencies": {
+          "body": "Опирается на `CodeloreService` для выполнения команд, на `startStdioServer` для запуска MCP-режима и на `toCodeloreErrorPayload` или `CodeloreError` для единого формата ошибок. Не занимается бизнес-логикой, не управляет жизненным циклом MCP-сервера и не валидирует аргументы команд — это зоны ответственности других подсистем.",
+          "rendered": true,
+          "fingerprint": "deps=3b24fad5646734c5f607f2862b750f79be31c2e3ed2986aecdfe9e1469350de9",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не занимается бизнес-логикой — это зона ответственности других подсистем."
+          }
+        },
+        "workflows": {
+          "body": "1. Пользователь вызывает CLI с глобальными аргументами. 2. `runCli` парсит аргументы и определяет команду. 3. Если команда — `mcp`, запускает `startStdioServer`; иначе создаёт экземпляр `CodeloreService` и вызывает соответствующий метод. 4. При успехе сериализует результат в JSON и выводит в stdout. 5. При ошибке форматирует ошибку с помощью `toCodeloreErrorPayload`, выводит сообщение в stderr и возвращает код выхода 1.",
+          "rendered": true,
+          "fingerprint": "body=afe2bfc94ddce4845387fdcff54acfbd200c8bfba67b32158ab0fb4f4b929ad1,deps=3b24fad5646734c5f607f2862b750f79be31c2e3ed2986aecdfe9e1469350de9",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Если команда — `mcp`, запускает `startStdioServer`; иначе создаёт `CodeloreService` и вызывает соответствующий метод."
+          }
+        },
+        "limitations": {
+          "body": "Не выполняет бизнес-логику команд, не управляет MCP-сервером после запуска, не валидирует аргументы подкоманд. Ожидает, что вызывающая сторона использует возвращённый код выхода для завершения процесса.",
+          "rendered": true,
+          "fingerprint": "body=afe2bfc94ddce4845387fdcff54acfbd200c8bfba67b32158ab0fb4f4b929ad1",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Ожидает, что вызывающая сторона использует возвращённый код выхода для завершения процесса."
+          }
+        }
+      },
+      "memberDocsFingerprint": "145ea1f66526bc87863bc1bfcbe926ee6afca787ce23061f57b1d18427cc372c"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

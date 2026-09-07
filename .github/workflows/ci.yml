@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main, trunk]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The floor from `engines`, plus the current LTS.
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # The local `lint` script rewrites files with biome and shells out to PMD/Java;
+      # CI runs the read-only half of it instead.
+      - run: pnpm run check
+      - run: pnpm run lint:knip
+      - run: pnpm run pretest
+      - run: pnpm run test

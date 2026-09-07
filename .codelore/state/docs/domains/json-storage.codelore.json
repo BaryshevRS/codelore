@@ -1,0 +1,104 @@
+{
+  "version": 4,
+  "docPath": "docs/domains/json-storage.codelore.md",
+  "generatedAt": "2026-07-08T07:59:27.227Z",
+  "sectionOrder": [
+    "domain:json-storage"
+  ],
+  "sections": {
+    "domain:json-storage": {
+      "heading": "Хранилище индексов и анализа изменений",
+      "depth": 1,
+      "anchor": "хранилище-индексов-и-анализа-изменений",
+      "owns": [
+        "domain:json-storage"
+      ],
+      "depends": [
+        "file:src/storage/json-storage.ts"
+      ],
+      "usedBy": [
+        "domain:codelore-service-facade",
+        "domain:project-index-manager"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Хранилище сохраняет индексные данные и результаты анализа изменений в JSON-файлы и загружает их обратно. Хранилище изолирует файловый ввод-вывод: само создаёт директории, обрабатывает отсутствие файла, вычисляет пути из конфигурации. Вызывающий код не должен знать пути, создавать директории или обрабатывать ошибки чтения — хранилище делает это само.",
+          "rendered": true,
+          "fingerprint": "signature=135de8ae7a723833609100eb0ea92cce496f3ae3fe46ac26ce9acda33692e2f8,placement=6f3411f232311bf2886b52b307a0599a3c9dbe23b6559ac04095501d0ebe8e85",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Хранилище изолирует файловый ввод-вывод: само создаёт директории, обрабатывает отсутствие файла, вычисляет пути из конфигурации."
+          }
+        },
+        "responsibility": {
+          "body": "Вычисляет пути к файлам из конфигурации (`indexPath`, `changePath`). При записи создаёт все недостающие директории через `fs.mkdir` с `recursive: true`. При чтении перехватывает ошибку `ENOENT` и возвращает `undefined`, не выбрасывая исключение. Хранилище изолирует файловый ввод-вывод: само создаёт директории, обрабатывает отсутствие файла, вычисляет пути из конфигурации.",
+          "rendered": true,
+          "fingerprint": "signature=135de8ae7a723833609100eb0ea92cce496f3ae3fe46ac26ce9acda33692e2f8,deps=752033f6b2786037044eed51caacfd8e040e5fd46503d5a03a0500b7e353e675,usage=6e7cebacf71658b7ae0b6079cdc0d2d0c04eca6e3caaeeaea648c01b7bdcacb3",
+          "language": "ru",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Хранилище изолирует файловый ввод-вывод: само создаёт директории, обрабатывает отсутствие файла, вычисляет пути из конфигурации."
+          }
+        },
+        "dependencies": {
+          "body": "Зависит от встроенного модуля `fs` (Node.js) и объекта конфигурации с полями `indexPath` и `changePath`. Намеренно не занимается семантикой данных: не строит индексы, не анализирует изменения, не проверяет структуру загруженного JSON. Только сериализует переданные объекты в JSON и десериализует прочитанное. Хранилище изолирует файловый ввод-вывод: само создаёт директории, обрабатывает отсутствие файла, вычисляет пути из конфигурации.",
+          "rendered": true,
+          "fingerprint": "deps=752033f6b2786037044eed51caacfd8e040e5fd46503d5a03a0500b7e353e675",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Хранилище изолирует файловый ввод-вывод: само создаёт директории, обрабатывает отсутствие файла, вычисляет пути из конфигурации."
+          }
+        },
+        "workflows": {
+          "body": "Сохранение: получает путь из конфигурации (`indexPath` или `changePath`), создаёт родительские директории через `fs.mkdir` с `recursive: true`, записывает данные как JSON. Загрузка: читает файл по пути; если файл отсутствует (ошибка `ENOENT`), возвращает `undefined`; иначе парсит JSON и возвращает объект. Так хранилище изолирует файловый ввод-вывод: само создаёт директории, обрабатывает отсутствие файла, вычисляет пути из конфигурации.",
+          "rendered": true,
+          "fingerprint": "body=135de8ae7a723833609100eb0ea92cce496f3ae3fe46ac26ce9acda33692e2f8,deps=752033f6b2786037044eed51caacfd8e040e5fd46503d5a03a0500b7e353e675",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Хранилище изолирует файловый ввод-вывод: само создаёт директории, обрабатывает отсутствие файла, вычисляет пути из конфигурации."
+          }
+        },
+        "limitations": {
+          "body": "Не проверяет структуру загруженных данных — возвращает результат `JSON.parse` без валидации. При отсутствии файла возвращает `undefined`, и вызывающий код должен сам обработать эту ситуацию. Работает только с путями, заданными в конфигурации (`indexPath`, `changePath`), не поддерживает произвольные расположения. Хранилище изолирует файловый ввод-вывод: само создаёт директории, обрабатывает отсутствие файла, вычисляет пути из конфигурации.",
+          "rendered": true,
+          "fingerprint": "body=135de8ae7a723833609100eb0ea92cce496f3ae3fe46ac26ce9acda33692e2f8",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Хранилище изолирует файловый ввод-вывод: само создаёт директории, обрабатывает отсутствие файла, вычисляет пути из конфигурации."
+          }
+        }
+      },
+      "memberDocsFingerprint": "2516570f4c13c970f5f61e4e7490a12791634cc8f34de238dfd458ec45cdb01d"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

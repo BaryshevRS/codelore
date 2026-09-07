@@ -1,0 +1,107 @@
+{
+  "version": 4,
+  "docPath": "docs/domains/doc-state-storage.codelore.md",
+  "generatedAt": "2026-07-08T07:59:27.227Z",
+  "sectionOrder": [
+    "domain:doc-state-storage"
+  ],
+  "sections": {
+    "domain:doc-state-storage": {
+      "heading": "Хранилище состояния документации",
+      "depth": 1,
+      "anchor": "хранилище-состояния-документации",
+      "owns": [
+        "domain:doc-state-storage"
+      ],
+      "depends": [
+        "file:src/storage/doc-state-storage.ts",
+        "domain:markdown-rendering"
+      ],
+      "usedBy": [
+        "domain:code-doc-indexing",
+        "domain:codelore-service-facade",
+        "domain:project-index-manager",
+        "domain:section-rewrite-application"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Хранилище состояния документации получает готовое JSON-состояние документа и сохраняет его на диск вместе с Markdown-файлом и переводами, гарантируя целостность данных при сбоях за счёт атомарной записи (временный файл с последующим переименованием). Остальной системе оно позволяет передать состояние и забыть о деталях — не нужно беспокоиться о безопасной записи, согласованности JSON и Markdown или удалении устаревших переводов.",
+          "rendered": true,
+          "fingerprint": "signature=8ba66c72c5b5a97a3987ca57cb0b559df22123badd80ae3aabd19a08c39f9b8e,placement=2d58a8e848e5b1a9414ef74873093d2e80b368e8c467fac645094656531ace43",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Атомарная запись через временный файл и rename защищает целостность данных при сбоях."
+          }
+        },
+        "responsibility": {
+          "body": "Подсистема владеет полным циклом сохранения документа. Сначала атомарно записывает JSON-состояние в `<indexDir>/state/`. Затем вызывает `renderDoc` (подсистема рендеринга), чтобы получить Markdown-представление, и атомарно сохраняет его. Для каждого языка из `config.docs.translations` через `translationDocPath` вычисляет путь и генерирует переведённый Markdown-файл; после этого `cleanupTranslationFiles` удаляет переводные файлы, у которых нет актуального состояния. При изменении конфигурации `reapplyConfigToAllDocs` перебирает все сохранённые документы, с помощью `computeConfigFingerprint` сравнивает отпечатки конфигурации и перерендеривает только те, где отпечаток изменился.",
+          "rendered": true,
+          "fingerprint": "signature=8ba66c72c5b5a97a3987ca57cb0b559df22123badd80ae3aabd19a08c39f9b8e,deps=46c5700386fb56cbddf1db6368c075396e86e3698c5dd9d03cc1fa57f2ddb254,usage=36698919e2f7d7d5cde358eb0418990a79c05d9a88f08216cc3cc407b8e5e3b8",
+          "language": "ru",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "`reapplyConfigToAllDocs` сравнивает отпечаток конфигурации и перерендеривает только изменившиеся документы."
+          }
+        },
+        "dependencies": {
+          "body": "Хранилище не формирует Markdown-разметку: за локализованные заголовки, группировку устаревших блоков и общее форматирование отвечает подсистема рендеринга. Хранилище лишь передаёт состояние документа через `renderDoc` и получает готовый текст. Самостоятельно не принимает решение, какие блоки отображать — это делает `applyRenderDecision`, которая используется подсистемой рендеринга. Внутреннее хеширование конфигурации выполняет `computeConfigFingerprint`, но сам отпечаток вычисляется в рамках этого же модуля, поэтому зависимость внешняя только от рендеринга.",
+          "rendered": true,
+          "fingerprint": "deps=46c5700386fb56cbddf1db6368c075396e86e3698c5dd9d03cc1fa57f2ddb254",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "За локализацию заголовков и группировку устаревших блоков отвечает подсистема рендеринга."
+          }
+        },
+        "workflows": {
+          "body": "При поступлении состояния документа: 1) JSON-файл атомарно записывается в `<indexDir>/state/`. 2) Вызывается `renderDoc`, полученный Markdown атомарно сохраняется. 3) Для каждого языка из `config.docs.translations` с помощью `translationDocPath` вычисляется путь, генерируется переведённый Markdown-файл (тоже атомарно). 4) `cleanupTranslationFiles` удаляет переводные файлы, для которых нет состояния. При вызове `reapplyConfigToAllDocs`: для каждого сохранённого состояния вычисляется отпечаток `computeConfigFingerprint`; если он отличается от предыдущего — документ перерендеривается, иначе пропускается.",
+          "rendered": true,
+          "fingerprint": "body=8ba66c72c5b5a97a3987ca57cb0b559df22123badd80ae3aabd19a08c39f9b8e,deps=46c5700386fb56cbddf1db6368c075396e86e3698c5dd9d03cc1fa57f2ddb254",
+          "language": "ru",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 0.5,
+            "specificity": 1,
+            "novelFact": "Переводные файлы генерируются атомарно через `translationDocPath`, а `cleanupTranslationFiles` удаляет устаревшие."
+          }
+        },
+        "limitations": {
+          "body": "Хранилище не отслеживает изменения исходного кода и не инициирует пересборку — оно работает только с переданными состояниями. `reapplyConfigToAllDocs` должен быть вызван внешним кодом. `translationDocPath` не проверяет существование директорий и не валидирует коды языков, полагаясь на вызывающую сторону. Также не гарантируется создание недостающих директорий при атомарной записи.",
+          "rendered": false,
+          "fingerprint": "body=8ba66c72c5b5a97a3987ca57cb0b559df22123badd80ae3aabd19a08c39f9b8e",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.25,
+            "specificity": 0.75,
+            "novelFact": "`translationDocPath` не валидирует коды языков и не проверяет существование директорий."
+          }
+        }
+      },
+      "memberDocsFingerprint": "8d2fac3c3fbbee666102b0938b2612e15e334f99c94ab5f981245e5d347008dc"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

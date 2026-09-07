@@ -1,0 +1,265 @@
+{
+  "version": 4,
+  "docPath": "src/graph/impact.codelore.md",
+  "generatedAt": "2026-06-16T23:05:48.219Z",
+  "sectionOrder": [
+    "symbol:src/graph/impact.ts#getAffectedSectionsForEntities",
+    "symbol:src/graph/impact.ts#getImpactForEntity"
+  ],
+  "sections": {
+    "symbol:src/graph/impact.ts#getAffectedSectionsForEntities": {
+      "heading": "getAffectedSectionsForEntities",
+      "depth": 1,
+      "anchor": "getaffectedsectionsforentities",
+      "owns": [
+        "symbol:src/graph/impact.ts#getAffectedSectionsForEntities"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.analyzeChange",
+        "symbol:src/service/codelore-service.ts#CodeloreService.getAffectedSections"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Вычисляет множество секций, затронутых изменением переданных сущностей, объединяя прямое и транзитивное влияние.",
+          "rendered": true,
+          "fingerprint": "signature=de3d699a68e5ec66549542fea13b1784cc4b4eda0c33330032ed9cbb97883fe9,placement=f8d054f3b1971fc9e55689a0c156dc548e1f4847f8be8d2a84148e24b44d671c",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Комбинирует прямое и транзитивное распространение в одном алгоритме."
+          }
+        },
+        "responsibility": {
+          "body": "- Определяет прямое влияние через принадлежность (`owns`) и зависимость (`depends`) сущностей в секциях.\n- Добавляет транзитивное влияние: секции, зависящие от уже затронутых секций.\n- Дедуплицирует секции и выбирает минимальный порядок (`order`).\n- Возвращает результат, отсортированный по порядку, а при равенстве — по идентификатору секции.",
+          "rendered": true,
+          "fingerprint": "signature=de3d699a68e5ec66549542fea13b1784cc4b4eda0c33330032ed9cbb97883fe9,deps=f19beef646faec3a464dfa96f2c8574e49cba46ed4ac1a451326af25a0cb5f93,usage=f9bf721ccb84bcf8147f31576fdd1cc5de6ba495d347a5b03745f8be086a61c7",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Делегирует сбор прямых влияний в `collectDirectlyAffected`, а транзитивных — в `propagateTransitive`."
+          }
+        },
+        "invariants": {
+          "body": "- Результат отсортирован по возрастанию поля `order`, а при равном `order` — лексикографически по `sectionId`.\n- Каждый элемент результата содержит уникальный `sectionId` — дубликаты объединяются с конкатенацией причин.\n- Функция не мутирует входные объекты (`docs`).",
+          "rendered": true,
+          "fingerprint": "signature=de3d699a68e5ec66549542fea13b1784cc4b4eda0c33330032ed9cbb97883fe9,body=848b17027189427fcaa835359f6863ca7780d1dfe9287708da4621c028d64061",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Гарантирует уникальность `sectionId` в результате."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `CodeloreService.analyzeChange` и `CodeloreService.getAffectedSections`. В `analyzeChange` передаются идентификаторы изменённых сущностей, полученные из diff или списка файлов. Функция собирает прямое влияние через `collectDirectlyAffected`, затем транзитивное через `propagateTransitive`. Результат сортируется и возвращается вызывающему.",
+          "rendered": true,
+          "fingerprint": "body=848b17027189427fcaa835359f6863ca7780d1dfe9287708da4621c028d64061,deps=f19beef646faec3a464dfa96f2c8574e49cba46ed4ac1a451326af25a0cb5f93",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция является центральной точкой для определения объёма перегенерации документации при изменениях."
+          }
+        },
+        "limitations": {
+          "body": "Не обрабатывает сущности, не представленные в индексе документации — они игнорируются. Транзитивное распространение не учитывает вес или тип зависимости — все транзитивные зависимости получают одинаковый порядок 2.",
+          "rendered": true,
+          "fingerprint": "body=848b17027189427fcaa835359f6863ca7780d1dfe9287708da4621c028d64061",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Транзитивные зависимости не дифференцируются по типу."
+          }
+        },
+        "changeGuide": {
+          "body": "Сортировка результата: `[...affected.values()].sort((left, right) => left.order - right.order || left.sectionId.localeCompare(right.sectionId))`. Дедупликация секций: в `addAffected` при наличии существующей записи причина конкатенируется, а порядок выбирается минимальный: `if (existing) { ... existing.order = Math.min(existing.order, order); return; }`.",
+          "rendered": true,
+          "fingerprint": "body=848b17027189427fcaa835359f6863ca7780d1dfe9287708da4621c028d64061,deps=f19beef646faec3a464dfa96f2c8574e49cba46ed4ac1a451326af25a0cb5f93,usage=f9bf721ccb84bcf8147f31576fdd1cc5de6ba495d347a5b03745f8be086a61c7,placement=f8d054f3b1971fc9e55689a0c156dc548e1f4847f8be8d2a84148e24b44d671c",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Дедупликация и сортировка — ключевые инварианты, обеспечивающие детерминированный результат."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "839f8b08-6756-4ddf-aad7-7f68663e6f85",
+          "timestamp": "2026-06-16T23:03:39.295Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "839f8b08-6756-4ddf-aad7-7f68663e6f85",
+          "timestamp": "2026-06-16T23:05:48.218Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "symbol:src/graph/impact.ts#getImpactForEntity": {
+      "heading": "getImpactForEntity",
+      "depth": 1,
+      "anchor": "getimpactforentity",
+      "owns": [
+        "symbol:src/graph/impact.ts#getImpactForEntity"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.readImpact"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Собирает полный профиль влияния одной сущности: зависимости, использования, и секции, которым она принадлежит или от которых зависит.",
+          "rendered": true,
+          "fingerprint": "signature=9f7f1f925f616838dfa8243a9d7a965e28091b4cbf28f9727b5ccacec4686d7c,placement=e033a76b1539c2ce58e18090a3e85808c959730eb8d3b5afc7dba1eab8ebaa8d",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Объединяет данные из индексов кода и документации в единый объект."
+          }
+        },
+        "responsibility": {
+          "body": "- Извлекает из индекса кода прямые зависимости (`directDeps`) и использования (`directUsages`) сущности.\n- Находит секции документации, которые владеют сущностью (`owns`) или зависят от неё (`depends`).\n- Возвращает списки `ownedSections` и `dependentSections` отсортированными по идентификатору.",
+          "rendered": true,
+          "fingerprint": "signature=9f7f1f925f616838dfa8243a9d7a965e28091b4cbf28f9727b5ccacec4686d7c,deps=8e01e7f762d10eede72777299e1a482d084f3b8e7e399b499377e8aefebec209,usage=98a4e09503797209075586f5b603eaff2bf1f6efd406f3049729de19602bd459",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не обращается к транзитивному распространению — только прямые связи."
+          }
+        },
+        "invariants": {
+          "body": "- Результат содержит все четыре списка в любом случае (даже если некоторые пусты).\n- Список `directDeps` и `directUsages` берётся из `code.entities[entityId]`; если сущность не найдена, возвращаются пустые массивы.\n- `ownedSections` и `dependentSections` всегда отсортированы лексикографически.",
+          "rendered": true,
+          "fingerprint": "signature=9f7f1f925f616838dfa8243a9d7a965e28091b4cbf28f9727b5ccacec4686d7c,body=40c0e6dae42839765b9e19092365956ccdb2e889bb00514c47ac4ddea208ccc0",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Всегда возвращает объект, даже для отсутствующей сущности."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `CodeloreService.readImpact`. Функция получает индексы кода и документации, извлекает из `code.entities[entityId]` прямые зависимости и использования, затем фильтрует секции документации по полям `owns` и `depends`. Возвращает объект с полями `directDeps`, `directUsages`, `ownedSections` и `dependentSections`, причем последние два отсортированы.",
+          "rendered": true,
+          "fingerprint": "body=40c0e6dae42839765b9e19092365956ccdb2e889bb00514c47ac4ddea208ccc0,deps=8e01e7f762d10eede72777299e1a482d084f3b8e7e399b499377e8aefebec209",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция предоставляет полный профиль влияния одной сущности для анализа."
+          }
+        },
+        "limitations": {
+          "body": "Не включает транзитивные зависимости или использования — только прямые. При отсутствии сущности в индексе кода возвращает пустые массивы для `directDeps` и `directUsages`.",
+          "rendered": true,
+          "fingerprint": "body=40c0e6dae42839765b9e19092365956ccdb2e889bb00514c47ac4ddea208ccc0",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Отсутствие транзитивного анализа — основное ограничение."
+          }
+        },
+        "changeGuide": {
+          "body": "Гарантия наличия всех четырёх списков: `directDeps: entity?.directDeps ?? []` и аналогично для `directUsages`. Сортировка `ownedSections` и `dependentSections`: `.sort()`.",
+          "rendered": true,
+          "fingerprint": "body=40c0e6dae42839765b9e19092365956ccdb2e889bb00514c47ac4ddea208ccc0,deps=8e01e7f762d10eede72777299e1a482d084f3b8e7e399b499377e8aefebec209,usage=98a4e09503797209075586f5b603eaff2bf1f6efd406f3049729de19602bd459,placement=e033a76b1539c2ce58e18090a3e85808c959730eb8d3b5afc7dba1eab8ebaa8d",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Инвариант: результат всегда содержит все четыре поля, даже пустые."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "839f8b08-6756-4ddf-aad7-7f68663e6f85",
+          "timestamp": "2026-06-16T23:03:39.297Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "839f8b08-6756-4ddf-aad7-7f68663e6f85",
+          "timestamp": "2026-06-16T23:05:48.219Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

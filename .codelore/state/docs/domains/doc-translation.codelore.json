@@ -1,0 +1,105 @@
+{
+  "version": 4,
+  "docPath": "docs/domains/doc-translation.codelore.md",
+  "generatedAt": "2026-07-08T07:59:27.227Z",
+  "sectionOrder": [
+    "domain:doc-translation"
+  ],
+  "sections": {
+    "domain:doc-translation": {
+      "heading": "Перевод документации",
+      "depth": 1,
+      "anchor": "перевод-документации",
+      "owns": [
+        "domain:doc-translation"
+      ],
+      "depends": [
+        "file:src/llm/translator.ts",
+        "domain:error-handling",
+        "domain:llm-json-response-parsing"
+      ],
+      "usedBy": [
+        "domain:codelore-service-facade"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Подсистема переводит канонические тела блоков документации на заданный язык через LLM-провайдера, гарантируя сохранность кодовых промежутков и отсутствие нетранслированного эха исходного текста. Остальная система получает карту только качественных переводов — блоки с дефектами отбрасываются, что позволяет вызывающему коду опираться на готовый результат без дополнительной валидации.",
+          "rendered": true,
+          "fingerprint": "signature=13bad7d03f204244a8f8afcd91fdbe3557aaf35899676a2fdf7c0c2154cbc0a7,placement=25c9a8af9d7207832e6bc69c21f86e1f485d33f8e0e59778a818a8b6438d1162",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Подсистема переводит канонические тела блоков документации на заданный язык через LLM, сохраняя кодовые вставки и отбрасывая дефектные переводы."
+          }
+        },
+        "responsibility": {
+          "body": "Подсистема владеет полным циклом перевода блоков документации. translateBlocks принимает входные блоки с идентификаторами раздела и блока, строит промпт для LLM через buildTranslateRequest и получает ответ через completeAndParseTranslation — этот вызов автоматически обрабатывает невалидный JSON повторами запроса, возвращая либо структурированный объект, либо ошибку INVALID_LLM_RESPONSE. Затем collectViolations проверяет каждый переведённый блок на наличие в ответе, целостность кодовых промежутков и отсутствие нетранслированного текста. При нарушениях для проблемных блоков формируется ремонтный запрос buildRepairRequest, ответ на который снова проверяется. Финальный вызов blockViolation отсеивает оставшиеся дефектные переводы, и наружу возвращается карта только качественных переводов. translationNeedsWork позволяет вызывающему коду проверить сохранённый перевод на дефекты, делегируя проверку той же функции blockViolation.",
+          "rendered": true,
+          "fingerprint": "signature=13bad7d03f204244a8f8afcd91fdbe3557aaf35899676a2fdf7c0c2154cbc0a7,deps=7a6c70db7cf58d90873f0bb75ce8df5d1cfa83ebde9a9eaac39a9ee318f1f19c,usage=69e80235f87017681444b1c115434d759dfc39defedb03b8f5f5fd098b18fce1",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "translateBlocks строит запрос, получает ответ через completeAndParseTranslation с автоматическими повторами при невалидном JSON, выявляет нарушения через collectViolations, ремонтирует проблемные блоки и возвращает только прошедшие финальную проверку."
+          }
+        },
+        "dependencies": {
+          "body": "Подсистема опирается на два внешних сервиса. Разбор JSON-ответов LLM с повтором запроса берёт на себя извлечение структурированного объекта из текстового ответа модели: исправляет Markdown-фенсы и другие артефакты, а при неудаче повторяет запрос к модели с объяснением ошибки. translateBlocks вызывает completeAndParseTranslation, которая внутри использует этот механизм, и получает либо готовый объект, либо CodeloreError с кодом INVALID_LLM_RESPONSE — собственная логика повторов для невалидного JSON подсистеме не нужна. Единый формат ошибок гарантирует, что наружу из completeAndParseTranslation уходит предсказуемая структура CodeloreErrorPayload с машиночитаемым кодом, на которую может положиться вызывающий код.",
+          "rendered": true,
+          "fingerprint": "deps=7a6c70db7cf58d90873f0bb75ce8df5d1cfa83ebde9a9eaac39a9ee318f1f19c",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Подсистема не реализует повторные попытки при невалидном JSON — она делегирует это подсистеме разбора JSON-ответов LLM, которая сама перезапрашивает модель."
+          }
+        },
+        "workflows": {
+          "body": "Входные блоки с идентификаторами раздела и блока передаются в translateBlocks. Функция buildTranslateRequest формирует промпт для LLM, completeAndParseTranslation отправляет его и через подсистему разбора JSON получает структурированный ответ, повторяя запрос при невалидном JSON. Затем collectViolations проверяет каждый переведённый блок на наличие, целостность кодовых промежутков и отсутствие нетранслированного текста. При нарушениях для проблемных блоков собирается ремонтный запрос buildRepairRequest — остальные блоки не перезапрашиваются. Ответ на ремонтный запрос снова проходит проверку. Финальный вызов blockViolation отсеивает оставшиеся дефектные переводы, и на выходе возвращается карта только качественных переводов.",
+          "rendered": true,
+          "fingerprint": "body=13bad7d03f204244a8f8afcd91fdbe3557aaf35899676a2fdf7c0c2154cbc0a7,deps=7a6c70db7cf58d90873f0bb75ce8df5d1cfa83ebde9a9eaac39a9ee318f1f19c",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "При нарушениях collectViolations подсистема не переводит все блоки заново, а формирует ремонтный запрос buildRepairRequest только для проблемных блоков."
+          }
+        },
+        "limitations": {
+          "body": "Подсистема не проверяет семантическую точность перевода — контроль ограничен формальными признаками: целостность кодовых промежутков и отсутствие нетранслированного эха исходного текста. Блоки, не прошедшие финальную проверку blockViolation, отбрасываются без уведомления, поэтому вызывающий код должен самостоятельно обрабатывать ситуацию отсутствия перевода. Подсистема работает только с текстовым содержимым блоков: не управляет языковыми настройками, не сохраняет переводы на диск и не взаимодействует с пользовательским интерфейсом.",
+          "rendered": true,
+          "fingerprint": "body=13bad7d03f204244a8f8afcd91fdbe3557aaf35899676a2fdf7c0c2154cbc0a7",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Блоки, не прошедшие финальную проверку blockViolation, отбрасываются без уведомления — вызывающий код должен самостоятельно обнаружить отсутствие перевода."
+          }
+        }
+      },
+      "memberDocsFingerprint": "a57c44c6f8d58bdfb61d8b4474332d245d5dbb1e3a77d15b174ad33e9f7c937a"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

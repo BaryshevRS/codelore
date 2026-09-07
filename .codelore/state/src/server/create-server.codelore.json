@@ -1,0 +1,319 @@
+{
+  "version": 4,
+  "docPath": "src/server/create-server.codelore.md",
+  "generatedAt": "2026-07-03T17:19:50.687Z",
+  "sectionOrder": [
+    "symbol:src/server/create-server.ts#createCodeloreServer"
+  ],
+  "sections": {
+    "symbol:src/server/create-server.ts#createCodeloreServer": {
+      "heading": "createCodeloreServer",
+      "depth": 1,
+      "anchor": "createcodeloreserver",
+      "owns": [
+        "symbol:src/server/create-server.ts#createCodeloreServer"
+      ],
+      "depends": [
+        "symbol:src/service/codelore-service.ts#CodeloreService"
+      ],
+      "usedBy": [
+        "file:src/server/start-stdio-server.ts",
+        "symbol:src/server/start-stdio-server.ts#startStdioServer"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Точка входа для создания MCP-сервера Codelore с полной настройкой ресурсов, инструментов и навыков.",
+          "rendered": true,
+          "fingerprint": "signature=b299dfc385476faf9e3ee210ec9e2d7ff3b40588458601c92f05967824b719a3,placement=fc643b46efafa9ff00358c9b3a15476bc474e4d912d52b74e349b37b53af3d74",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция собирает все регистрационные шаги и возвращает готовый к подключению сервер."
+          },
+          "translations": {
+            "en": {
+              "body": "Entry point for creating a Codelore MCP server with full configuration of resources, tools, and skills.",
+              "sourceFingerprint": "b304b4652b4f238b1f0347890b42bfca0ef5a481d1659dbadb74d94f2d98f799"
+            }
+          }
+        },
+        "responsibility": {
+          "body": "- Делегирует все операции с документацией сервису `CodeloreService`.\n- Не управляет транспортом и соединением — возвращает настроенный `McpServer`.\n- Регистрирует ресурсы и инструменты через локальные функции `registerResources` и `registerTools`.\n- При наличии `projectContext` регистрирует ресурс `context://project` через `registerProjectContextResource`.",
+          "rendered": true,
+          "fingerprint": "signature=b299dfc385476faf9e3ee210ec9e2d7ff3b40588458601c92f05967824b719a3,deps=4ede692bd3b3a7d10036209aa049c19a04ba4f3247803392793ca232bbda7c2a,usage=373d60f100381ae2f53a72135de26854e6abe9c3649fba55cd89c492e2b2e578",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 0.75,
+            "novelFact": "Функция не занимается загрузкой или регистрацией скилов — эта ответственность удалена из текущей реализации."
+          },
+          "translations": {
+            "en": {
+              "body": "- Delegates all documentation operations to the `CodeloreService`.\n- Does not manage transport and connection — returns a configured `McpServer`.\n- Registers resources and tools via local functions `registerResources` and `registerTools`.\n- If `projectContext` is present, registers the `context://project` resource via `registerProjectContextResource`.",
+              "sourceFingerprint": "56b3765a1794dc95568ebcef6053c1da33b7974e163013ba45c4de62d35c52f2"
+            }
+          }
+        },
+        "invariants": {
+          "body": "Имя сервера всегда \"codelore\", версия \"0.1.0\". При каждом вызове создаётся новый экземпляр CodeloreService; состояние между вызовами не разделяется. Инструкции сервера всегда содержат baseInstructions. Все ресурсы и инструменты зарегистрированы до возврата сервера.",
+          "rendered": true,
+          "fingerprint": "signature=b299dfc385476faf9e3ee210ec9e2d7ff3b40588458601c92f05967824b719a3,body=a63ed5de972c1d46fca5ad971f6597da92eef3792f994fde6367db15b16a23d7",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "При каждом вызове создаётся новый экземпляр CodeloreService; состояние между вызовами не разделяется."
+          },
+          "translations": {
+            "en": {
+              "body": "- Server name is always `\"codelore\"`, version `\"0.1.0\"`.\n- Each call creates a new instance of `CodeloreService`; state is not shared between calls.\n- Server instructions always contain `baseInstructions`; if `projectContext` is truthy, the `projectContextLine` string is appended.\n- All resources and tools are registered before the server is returned.",
+              "sourceFingerprint": "86e2d2c8ac97338c81b63952c480ba670c88267995453d77dc7604603c7a51c4"
+            }
+          },
+          "language": "ru"
+        },
+        "dependencies": {
+          "body": "- `CodeloreService` (`src/service/codelore-service.ts`) — центральный сервис для индексации, генерации и обновления документации, включая тип `GenerateDocsRuntime`.",
+          "rendered": true,
+          "fingerprint": "deps=4ede692bd3b3a7d10036209aa049c19a04ba4f3247803392793ca232bbda7c2a",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Функция зависит от CodeloreService для всей бизнес-логики."
+          },
+          "language": "ru",
+          "translations": {
+            "en": {
+              "body": "- `CodeloreService` (`src/service/codelore-service.ts`) — the central service for indexing, generating, and updating documentation, including the `GenerateDocsRuntime` type.",
+              "sourceFingerprint": "382a7b3ba1c6dfb1d6d4a9877abe225c2bccb3fc61a42ef25daf78aad772fe36"
+            }
+          }
+        },
+        "workflows": {
+          "body": "Вызывается функцией `startStdioServer` (`src/server/start-stdio-server.ts`):\n1. `startStdioServer` вызывает `createCodeloreServer({ rootDir })` и ожидает возврата `McpServer`.\n2. Внутри `createCodeloreServer` создаётся экземпляр `new CodeloreService(rootDir)`, определяются инструкции `baseInstructions` как строковый литерал, создаётся `new McpServer` с именем `\"codelore\"` и версией `\"0.1.0\"`.\n3. Регистрируются пять ресурсов (`doc-section`, `code-entity`, `impact-graph`, `change-analysis`, `doc-file`) и четыре инструмента (`document`, `update`, `mark_stale`, `check`) через функции `registerResources` и `registerTools`.\n4. Сервер возвращается.\n5. `startStdioServer` создаёт `StdioServerTransport` и вызывает `server.connect(transport)`.",
+          "rendered": true,
+          "fingerprint": "body=a63ed5de972c1d46fca5ad971f6597da92eef3792f994fde6367db15b16a23d7,deps=4ede692bd3b3a7d10036209aa049c19a04ba4f3247803392793ca232bbda7c2a",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается `startStdioServer`, которая после получения сервера подключает его к `StdioServerTransport`."
+          },
+          "language": "ru",
+          "translations": {
+            "en": {
+              "body": "Called by `startStdioServer` (`src/server/start-stdio-server.ts`).\n1. `startStdioServer` calls `createCodeloreServer` with parameter `{ rootDir }`.\n2. An instance of `CodeloreService` is created and `projectContext` is obtained via `service.getProjectContext()`.\n3. An `McpServer` is created with name `\"codelore\"`, version `\"0.1.0\"`, and instructions consisting of `baseInstructions` and, if `projectContext` is present, the `projectContextLine` string.\n4. Five resources are registered: `doc-section`, `code-entity`, `impact-graph`, `change-analysis`, `doc-file`.\n5. If `projectContext` is truthy, the `context://project` resource is registered.\n6. Four tools are registered: `document`, `update`, `mark_stale`, `check`.\n7. The server is returned.\n8. `startStdioServer` creates a `StdioServerTransport` and connects the server via `server.connect(transport)`.",
+              "sourceFingerprint": "083c05127b298ba94e9d35773d637d5662292646a1b93e3c5ee57d9d5b712a4b"
+            }
+          }
+        },
+        "limitations": {
+          "body": "- Не проверяет существование `rootDir`; ошибки ввода-вывода возникают только при первом обращении к методам `CodeloreService` (конструкция: отсутствие guards).\n- Ошибки при регистрации ресурсов или инструментов не перехватываются; исключение в `registerResources` или `registerTools` вызывает необработанное отклонение промиса (конструкция: отсутствие `try-catch`).",
+          "rendered": true,
+          "fingerprint": "body=a63ed5de972c1d46fca5ad971f6597da92eef3792f994fde6367db15b16a23d7",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Отсутствует проверка существования rootDir; отсутствует обработка ошибок при регистрации ресурсов."
+          },
+          "language": "ru",
+          "translations": {
+            "en": {
+              "body": "- Each call creates a new instance of `CodeloreService` via `new CodeloreService(options.rootDir)`.\n- Does not check the existence of `rootDir` — I/O errors occur on the first call to service methods.\n- Server instructions (`baseInstructions` and `projectContextLine`) are computed and concatenated once in a template literal; subsequent changes to `projectContext` do not affect the instructions.",
+              "sourceFingerprint": "dc308ea1c10c42d9fe1cf19bab403a72a1732d4dbbe07ecb76d83df8185581ce"
+            }
+          }
+        },
+        "changeGuide": {
+          "body": "- Сервис `CodeloreService` всегда создаётся с параметром `rootDir` из аргументов, что гарантируется вызовом `new CodeloreService(options.rootDir)`. Изменение параметров вызова изменит корневую директорию сервера.\n- Функция всегда возвращает новый экземпляр `McpServer`, так как оператор `return server;` выполняется без условной логики или кэширующего механизма. Изменение этой строки на условный возврат или кэш повлияет на поведение вызова.",
+          "rendered": true,
+          "fingerprint": "body=a63ed5de972c1d46fca5ad971f6597da92eef3792f994fde6367db15b16a23d7,deps=4ede692bd3b3a7d10036209aa049c19a04ba4f3247803392793ca232bbda7c2a,usage=373d60f100381ae2f53a72135de26854e6abe9c3649fba55cd89c492e2b2e578,placement=fc643b46efafa9ff00358c9b3a15476bc474e4d912d52b74e349b37b53af3d74",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Сервис всегда создаётся с переданным rootDir; функция всегда возвращает новый экземпляр McpServer."
+          },
+          "language": "ru",
+          "translations": {
+            "en": {
+              "body": "- Server name and version are fixed by the string literal `version: \"0.1.0\"` in the `McpServer` constructor. Changing the literal changes the server identity for the client.\n- Conditional registration of the `context://project` resource is fixed by the expression `if (projectContext) { registerProjectContextResource(server, service); }`. If `projectContext` returns `null`, the resource is not registered; changing the condition may hide or add a resource.",
+              "sourceFingerprint": "2cc82cbb0bc61b944ed81c61c3ac4a33c7972aaed225fe94e277870cbaa1da94"
+            }
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "007588c1-48d1-4603-8736-c2052978b94f",
+          "timestamp": "2026-06-06T15:33:47.016Z",
+          "command": "generate",
+          "intent": "phase 2 + validSnippetIds smoke на MCP сервере",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "74780818-2bcb-467b-a4ba-ae5bbf256e9a",
+          "timestamp": "2026-06-11T21:24:44.788Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "1205729d-eb3a-4c33-8f3d-3875d9bc9951",
+          "timestamp": "2026-06-12T15:52:48.354Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "ea3df4eb-2d04-4e4c-a68a-273c075c8aa6",
+          "timestamp": "2026-06-13T20:47:08.311Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "ea3df4eb-2d04-4e4c-a68a-273c075c8aa6",
+          "timestamp": "2026-06-13T20:48:59.348Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "25edcfe6-910c-4993-8cc6-4eabb2b2d4d5",
+          "timestamp": "2026-06-19T16:22:35.784Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "25edcfe6-910c-4993-8cc6-4eabb2b2d4d5",
+          "timestamp": "2026-06-19T16:25:56.905Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.118Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "1d4d443b-9d90-438f-9065-79933ce63e63",
+          "timestamp": "2026-06-29T14:41:12.134Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:25:43.579Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "91ea44ec-1834-4f37-8172-053f43e38ef1",
+          "timestamp": "2026-07-03T17:19:50.687Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "9fa3ab46f4a1d008504e62caafef3bf56be39f4ebaca6fe85389920d6c1b3523"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

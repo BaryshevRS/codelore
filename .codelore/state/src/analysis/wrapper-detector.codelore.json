@@ -1,0 +1,143 @@
+{
+  "version": 4,
+  "docPath": "src/analysis/wrapper-detector.codelore.md",
+  "generatedAt": "2026-06-10T21:20:13.751Z",
+  "sectionOrder": [
+    "symbol:src/analysis/wrapper-detector.ts#detectPrivateWrappers"
+  ],
+  "sections": {
+    "symbol:src/analysis/wrapper-detector.ts#detectPrivateWrappers": {
+      "heading": "detectPrivateWrappers",
+      "depth": 1,
+      "anchor": "detectprivatewrappers",
+      "owns": [
+        "symbol:src/analysis/wrapper-detector.ts#detectPrivateWrappers"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/indexer/code-indexer.ts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Определяет, какие приватные методы классов полностью инкапсулированы тонкой публичной обёрткой, для последующего исключения из обязательных блоков документации.",
+          "rendered": true,
+          "fingerprint": "signature=ece1e57fd86a8a37b622f9f5034b2b2742c461c1a878b4930caceda9178138b9,placement=229e134f934e25d55f159764c9384039b709c3d36dd5553d1990b90d0c41c276",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Определение абсорбции приватных методов"
+          }
+        },
+        "responsibility": {
+          "body": "- Не принимает решение о роли сущности — это `decideDocumentationRoles`.\n- Не анализирует методы вне классов.\n- Не распознаёт вызовы через `call` / `apply` или косвенные обращения.\n- Не обрабатывает перегрузки методов.",
+          "rendered": true,
+          "fingerprint": "signature=ece1e57fd86a8a37b622f9f5034b2b2742c461c1a878b4930caceda9178138b9,deps=436ba29dd8e2712f1cff21f3e4f563d367dd4fe511a00c40477d97a91a471318,usage=ddd8a3a87457125d4e32a0d617f67ba33a6174f60adb1279849655ee614887f7",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Границы ответственности: не принятие решений, не обработка call/apply"
+          }
+        },
+        "invariants": {
+          "body": "- Все ключи `anchorByPublicId` — ID публичных методов, все значения `absorbedPrivateById` — ID приватных.\n- Приватный метод считается абсорбированным, только если у него ровно одно эффективное использование (`effectiveDirectUsages`) и количество операторов ≥ 3 × количество операторов публичной обёртки.\n- Функция никогда не выбрасывает исключения.\n- Входные `records` должны содержать узлы `MethodDeclaration` для анализа.",
+          "rendered": true,
+          "fingerprint": "signature=ece1e57fd86a8a37b622f9f5034b2b2742c461c1a878b4930caceda9178138b9,body=47391641e85a00c968adf8f98d081b978e06ed3c895c02e3e73ad92445e49964",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Условия абсорбции: ровно одно использование, соотношение операторов ≥3"
+          }
+        },
+        "dependencies": {
+          "body": "- `countStatements` (`src/analysis/entity-metrics.ts`) — подсчёт операторов в теле метода.\n- `effectiveDirectUsages` (`src/analysis/entity-metrics.ts`) — подсчёт эффективных прямых использований (исключая файл и класс-владелец).",
+          "rendered": true,
+          "fingerprint": "deps=436ba29dd8e2712f1cff21f3e4f563d367dd4fe511a00c40477d97a91a471318",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Зависимости: countStatements и effectiveDirectUsages из entity-metrics.ts"
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `populateDocumentationMetadata` в `src/indexer/code-indexer.ts`. Принимает коллекцию записей `records` и карту `entities`. Группирует методы по классам, для каждого публичного метода с 1–2 операторами проверяет, вызывает ли он ровно один приватный метод, который значительно больше (≥3× операторов) и не имеет других использований. Результат `WrapperDetection` передаётся в `decideDocumentationRoles`, где приватные методы с обёрткой помечаются как `absorbed` и исключаются из обязательных блоков документации.",
+          "rendered": true,
+          "fingerprint": "body=47391641e85a00c968adf8f98d081b978e06ed3c895c02e3e73ad92445e49964,deps=436ba29dd8e2712f1cff21f3e4f563d367dd4fe511a00c40477d97a91a471318",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызов из populateDocumentationMetadata, передача в decideDocumentationRoles"
+          }
+        },
+        "limitations": {
+          "body": "- Работает только с методами классов; функции верхнего уровня игнорируются.\n- Распознаёт только прямые вызовы `this.method()`; вызовы через `call`, `apply` или рефлексию не отслеживаются.\n- Пороговое отношение операторов (3×) жёстко зашито и не настраивается через конфиг.\n- Не учитывает перегрузки: если метод имеет несколько сигнатур, анализируется только первая реализация.",
+          "rendered": true,
+          "fingerprint": "body=47391641e85a00c968adf8f98d081b978e06ed3c895c02e3e73ad92445e49964",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Ограничения: только классы, только direct this.method(), hardcoded 3x"
+          }
+        }
+      },
+      "depDocsFingerprint": "0ff8470e68d549e5b0764c193e0489e37e39ed0c4255ee277c2adf26e2609aa5",
+      "generationHistory": [
+        {
+          "runId": "61372614-014e-462a-bae1-622628a3489c",
+          "timestamp": "2026-06-10T21:13:00.191Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "07eadac0-d4e5-4345-8c28-887c613c3df4",
+          "timestamp": "2026-06-10T21:20:13.751Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

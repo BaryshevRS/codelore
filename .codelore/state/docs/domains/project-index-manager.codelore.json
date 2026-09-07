@@ -1,0 +1,106 @@
+{
+  "version": 4,
+  "docPath": "docs/domains/project-index-manager.codelore.md",
+  "generatedAt": "2026-07-08T07:59:27.228Z",
+  "sectionOrder": [
+    "domain:project-index-manager"
+  ],
+  "sections": {
+    "domain:project-index-manager": {
+      "heading": "Управление индексом проекта",
+      "depth": 1,
+      "anchor": "управление-индексом-проекта",
+      "owns": [
+        "domain:project-index-manager"
+      ],
+      "depends": [
+        "file:src/service/index-manager.ts",
+        "domain:code-doc-indexing",
+        "domain:doc-state-storage",
+        "domain:json-storage"
+      ],
+      "usedBy": [
+        "domain:codelore-service-facade"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Предоставляет единую точку для получения актуального ProjectIndex, объединяющего код и документацию. IndexManager автоматически проверяет свежесть кэша и перестраивает индекс при необходимости, избавляя остальную систему от повторной сборки и проверки.",
+          "rendered": true,
+          "fingerprint": "signature=8edbb9ed70665c22119089b1fe8ffca497bae73a4f5939dd3ce5d41765e5bdf3,placement=049e3ec2434639c556b7731fbb4fc6e7e35a7c3114aee0597c4c29381b615337",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 0.75,
+            "novelFact": "IndexManager автоматически проверяет свежесть кэша и перестраивает индекс при необходимости."
+          }
+        },
+        "responsibility": {
+          "body": "IndexManager запускает параллельную сборку код- и док-индексов через buildCodeIndex и buildDocIndex. Проверяет свежесть сохранённого индекса по времени модификации файлов относительно generatedAt. Хранит кэш в приватном поле cache и сбрасывает его при перестроении через колбэк onIndexChanged. Для точечных обновлений документации вызывает patchDocIndexPaths.",
+          "rendered": true,
+          "fingerprint": "signature=8edbb9ed70665c22119089b1fe8ffca497bae73a4f5939dd3ce5d41765e5bdf3,deps=c7fb520128cd44f245ef515594610ace1647a60e72e606e51ade06312b875a82,usage=cc279d9384b6f8cfd7d965f5d2d2dd82a337122829030d1204f6013c780136fd",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "IndexManager сам решает, когда перестраивать индекс, сравнивая время изменения файлов с generatedAt."
+          }
+        },
+        "dependencies": {
+          "body": "Для построения индексов использует buildCodeIndex и buildDocIndex из подсистемы индексации кода и документации. Сохранение и загрузку кэша делегирует хранилищу индексов и анализа изменений. Точечное обновление документации выполняет через patchDocIndexPaths, предоставляемый хранилищем состояния документации. Сам IndexManager не строит индексы, не пишет на диск и не управляет состоянием документации.",
+          "rendered": true,
+          "fingerprint": "deps=c7fb520128cd44f245ef515594610ace1647a60e72e606e51ade06312b875a82",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "IndexManager не выполняет построение индексов самостоятельно — он только координирует вызовы внешних билдеров."
+          }
+        },
+        "workflows": {
+          "body": "При запросе индекса IndexManager проверяет кэш: если он пуст или устарел (persistedIndexIsFresh возвращает false), запускает параллельную сборку buildCodeIndex и buildDocIndex, формирует ProjectIndex, сохраняет его через хранилище индексов, обновляет cache и вызывает onIndexChanged. Для точечного обновления документации вызывается patchDocIndexPaths, который изменяет только указанные пути в док-индексе, не трогая код-индекс.",
+          "rendered": true,
+          "fingerprint": "body=8edbb9ed70665c22119089b1fe8ffca497bae73a4f5939dd3ce5d41765e5bdf3,deps=c7fb520128cd44f245ef515594610ace1647a60e72e606e51ade06312b875a82",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "IndexManager проверяет свежесть кэша по времени модификации файлов относительно generatedAt."
+          }
+        },
+        "limitations": {
+          "body": "IndexManager не выполняет построение индексов самостоятельно — только координирует вызовы внешних билдеров. Не обрабатывает ошибки индексации, пробрасывает их вызывающему коду. Не гарантирует атомарность обновления кэша при конкурентных вызовах. Не управляет сохранением на диск напрямую — делегирует хранилищу.",
+          "rendered": true,
+          "fingerprint": "body=8edbb9ed70665c22119089b1fe8ffca497bae73a4f5939dd3ce5d41765e5bdf3",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "IndexManager не гарантирует атомарность обновления кэша при конкурентных вызовах."
+          }
+        }
+      },
+      "memberDocsFingerprint": "88ccbb1b3d4554a7ee874ffc595abde554258402c82b92370545998f1d90a59a"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

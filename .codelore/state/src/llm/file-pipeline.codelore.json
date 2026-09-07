@@ -1,0 +1,2433 @@
+{
+  "version": 4,
+  "docPath": "src/llm/file-pipeline.codelore.md",
+  "generatedAt": "2026-07-03T20:14:50.999Z",
+  "sectionOrder": [
+    "symbol:src/llm/file-pipeline.ts#generateFileGroup",
+    "symbol:src/llm/file-pipeline.ts#dependencyDocsFingerprint",
+    "symbol:src/llm/file-pipeline.ts#collectDependencyDocs",
+    "symbol:src/llm/file-pipeline.ts#compactChunkCallers",
+    "symbol:src/llm/file-pipeline.ts#verifyChunkFacts",
+    "symbol:src/llm/file-pipeline.ts#buildVerifySections",
+    "symbol:src/llm/file-pipeline.ts#buildRepairRequest",
+    "symbol:src/llm/file-pipeline.ts#verifyBlocksAgainstDeps",
+    "symbol:src/llm/file-pipeline.ts#privateHelperDepIds"
+  ],
+  "sections": {
+    "symbol:src/llm/file-pipeline.ts#generateFileGroup": {
+      "heading": "generateFileGroup",
+      "depth": 1,
+      "anchor": "generatefilegroup",
+      "owns": [
+        "symbol:src/llm/file-pipeline.ts#generateFileGroup"
+      ],
+      "depends": [
+        "symbol:src/config.ts#resolveTerms",
+        "symbol:src/llm/file-chunks.ts#planWriterChunks",
+        "symbol:src/llm/file-pipeline.ts#collectDependencyDocs",
+        "symbol:src/llm/file-writer.ts#writeRequestOverheadChars"
+      ],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.runPipelineForSections"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Точка входа для LLM-генерации документации группы файлов: загружает контекст, разбивает на чанки, выполняет запросы с валидацией и ремонтом, собирает результат.",
+          "rendered": true,
+          "fingerprint": "signature=9224afb56c22578ce305efea179a5f16e01eccdecc220fec82ad86045058ade5,placement=1d155a6a840ed466a7d23e7a6097d03f11d5d7e6837561261b164c3fb32bdd4f",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 0.25,
+            "specificity": 1,
+            "novelFact": "Точка входа для LLM-генерации документации группы файлов: загружает контекст, разбивает на чанки, выполняет запросы с валидацией и ремонтом, собирает результат."
+          }
+        },
+        "responsibility": {
+          "body": "- Загружает контекст каждой секции (документацию, контекст сервиса, исходный код файлов) и документацию зависимостей группы, если фаза не `propagating`.\n- Разбивает секции на чанки через `planWriterChunks`, учитывая бюджет провайдера и накладные расходы, и обрабатывает каждый чанк параллельно через `generateChunk`.\n- Объединяет результаты чанков: последующие чанки перезаписывают одноимённые блоки (через `mergeRepairedBlocks`).\n- Собирает итоговый `FileGenerationOutcome` (список перезаписей, записанных секций, сохранённых блоков и секций для ревью) и записывает отладочную информацию; не сохраняет результат на диск.",
+          "rendered": true,
+          "fingerprint": "signature=9224afb56c22578ce305efea179a5f16e01eccdecc220fec82ad86045058ade5,deps=fe3f387d0e86dd9a6514bc7c5e0bc201dc60f9f840cb4a3824bc8cc609166225,usage=bd4f92b1ed4ede449fc041b226996e6f65ffd80d42449780d19f5bf4a9e5da83",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Оркестрирует полный пайплайн генерации документации для группы файлов: загрузка контекста, разбиение на чанки, параллельная обработка с валидацией и ремонтом, объединение результатов."
+          },
+          "language": "ru"
+        },
+        "invariants": {
+          "body": "1. Если `input.phase` задан, фильтр блоков применяется до разбиения на чанки: генерируются только блоки указанной фазы (`propagating` или `terminal`).\n2. Если после фильтрации не осталось ни одной секции с целевыми блоками, функция немедленно возвращает пустой `FileGenerationOutcome` (через `emptyOutcome`).\n3. Чанки обрабатываются параллельно с ограничением конкуренции из `service.config.llm.concurrency` (через `pLimit`), но результаты объединяются последовательно — более поздние чанки могут перезаписывать одноимённые блоки от предыдущих.\n4. `generateFileGroup` не выполняет запись результирующей документации на диск — это ответственность вызывающего кода.\n5. Если секция не получила ни одного нового блока, а существующий блок непустой, он сохраняется в `keptBlocks` без замены (через `buildOutcome`).",
+          "rendered": true,
+          "fingerprint": "signature=9224afb56c22578ce305efea179a5f16e01eccdecc220fec82ad86045058ade5,body=fdf51ea0dc1f1aac125b0e6e2dc93b8d8ae052453deff36156b932e46259a37c",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция не записывает результат на диск — это обязанность вызывающего кода."
+          },
+          "language": "ru"
+        },
+        "dependencies": {
+          "body": "generateFileGroup использует resolveTerms для выбора терминов по языку, writeRequestOverheadChars для расчёта накладных расходов, planWriterChunks для разбиения секций на чанки и collectDependencyDocs для сбора документации зависимостей. Внешние зависимости: p-limit для ограничения конкуренции и readFile (node:fs/promises) для чтения исходных файлов. Генерация каждого чанка делегирована локальной функции generateChunk, которая выполняет запросы к LLM, валидацию и верификацию.",
+          "rendered": true,
+          "fingerprint": "deps=fe3f387d0e86dd9a6514bc7c5e0bc201dc60f9f840cb4a3824bc8cc609166225",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 0.75,
+            "novelFact": "generateFileGroup делегирует разбиение на чанки в planWriterChunks, а каждый чанк обрабатывается через generateChunk с полным циклом генерации, валидации и верификации."
+          },
+          "language": "ru"
+        },
+        "workflows": {
+          "body": "Вызывается из CodeloreService.runPipelineForSections после сбора секций для группы файлов. generateFileGroup загружает контекст секций, исходный код, документацию зависимостей (кроме фазы propagating), термины, разбивает на чанки через planWriterChunks, обрабатывает каждый чанк параллельно (с ограничением concurrency из service.config.llm.concurrency) функцией generateChunk, объединяет результаты, формирует FileGenerationOutcome и записывает отладочную информацию через debugSink.",
+          "rendered": true,
+          "fingerprint": "body=fdf51ea0dc1f1aac125b0e6e2dc93b8d8ae052453deff36156b932e46259a37c,deps=fe3f387d0e86dd9a6514bc7c5e0bc201dc60f9f840cb4a3824bc8cc609166225",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Параллельная обработка чанков ограничена concurrency из конфигурации."
+          },
+          "language": "ru"
+        },
+        "limitations": {
+          "body": "Если input.phase указан, генерируются только блоки этой фазы (propagating или terminal); секции без целевых блоков для фазы пропускаются. После фильтрации может остаться ноль секций — возвращается пустой outcome. Разбиение на чанки использует budget.maxSectionsPerChunk и maxSourceChars провайдера, класс и его методы всегда в одном чанке.",
+          "rendered": true,
+          "fingerprint": "body=fdf51ea0dc1f1aac125b0e6e2dc93b8d8ae052453deff36156b932e46259a37c",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Фильтрация по фазе происходит до разбиения на чанки."
+          },
+          "language": "ru"
+        },
+        "changeGuide": {
+          "body": "Два инварианта: 1. Сбор документации зависимостей выполняется только при input.phase !== 'propagating' — условие (input.phase === 'propagating' ? [] : collectDependencyDocs(index, files)). 2. Параллельная обработка чанков ограничена конкуренцией: pLimit(service.config.llm.concurrency). Тесты: не видны.",
+          "rendered": true,
+          "fingerprint": "body=fdf51ea0dc1f1aac125b0e6e2dc93b8d8ae052453deff36156b932e46259a37c,deps=fe3f387d0e86dd9a6514bc7c5e0bc201dc60f9f840cb4a3824bc8cc609166225,usage=bd4f92b1ed4ede449fc041b226996e6f65ffd80d42449780d19f5bf4a9e5da83,placement=1d155a6a840ed466a7d23e7a6097d03f11d5d7e6837561261b164c3fb32bdd4f",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Инвариант фазы propagating исключает зависимость от других файлов."
+          },
+          "language": "ru"
+        }
+      },
+      "depDocsFingerprint": "d0de4d83224197125fa18f75eb1644c43b0f6abf9aa9a173f61b7ed3de00cea5",
+      "generationHistory": [
+        {
+          "runId": "22bccca0-cf47-476d-bbf5-52789133117c",
+          "timestamp": "2026-06-10T19:51:21.116Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "50cbf62e-c6b5-408a-95d1-9c08f50dfdd9",
+          "timestamp": "2026-06-10T21:39:24.561Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "81af40e5-cc8b-405f-bf3c-2e2e5fe4f8dc",
+          "timestamp": "2026-06-11T18:49:38.415Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "c1327f82-e935-4ac7-9328-7b82bc1dfe0c",
+          "timestamp": "2026-06-11T21:33:07.349Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "1205729d-eb3a-4c33-8f3d-3875d9bc9951",
+          "timestamp": "2026-06-12T15:49:56.142Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "1372adf6-4062-4467-b8d3-6610906819f7",
+          "timestamp": "2026-06-13T20:26:07.115Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "1372adf6-4062-4467-b8d3-6610906819f7",
+          "timestamp": "2026-06-13T20:32:16.319Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "fa92cf6f-4796-4e31-ac2b-e3cc14e6ac1b",
+          "timestamp": "2026-06-16T17:10:13.314Z",
+          "command": "document",
+          "intent": "Примерная регенерация после правки verifier source: обновить документацию только для file-pipeline.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "fa92cf6f-4796-4e31-ac2b-e3cc14e6ac1b",
+          "timestamp": "2026-06-16T17:13:45.562Z",
+          "command": "document",
+          "intent": "Примерная регенерация после правки verifier source: обновить документацию только для file-pipeline.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d25b1641-f184-434f-b438-c630be3cc8f4",
+          "timestamp": "2026-06-16T19:29:34.781Z",
+          "command": "force-regenerate file-pipeline",
+          "intent": "Перегенерировать документацию file-pipeline после изменения verifier source. Описать факты: source верификатора состоит из среза сущности, релевантных imports/header и достижимых private top-level helpers по прямым вызовам; helper context ограничен depth/cap; соседние exported entities исключены.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "d25b1641-f184-434f-b438-c630be3cc8f4",
+          "timestamp": "2026-06-16T19:32:57.591Z",
+          "command": "force-regenerate file-pipeline",
+          "intent": "Перегенерировать документацию file-pipeline после изменения verifier source. Описать факты: source верификатора состоит из среза сущности, релевантных imports/header и достижимых private top-level helpers по прямым вызовам; helper context ограничен depth/cap; соседние exported entities исключены.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "9bd4bb59-c204-4771-bee5-e93a8e7773a0",
+          "timestamp": "2026-06-16T20:13:26.188Z",
+          "command": "quality-refill file-pipeline invariants",
+          "intent": "Переписать только invariants. Каждый блок должен содержать 2-3 уникальных для этой функции контракта, не повторять purpose/responsibility/limitations. novelFact должен быть конкретным контрактом, которого нет в других блоках секции. Если текст не повторяет другие блоки ответа, ставить novelty не ниже 0.5. Не писать общие фразы.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "25edcfe6-910c-4993-8cc6-4eabb2b2d4d5",
+          "timestamp": "2026-06-19T16:25:57.058Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:19:56.867Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:25:43.530Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "8494bec7-02ea-49ea-8a23-080e830cf6ef",
+          "timestamp": "2026-07-03T17:53:42.128Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "8494bec7-02ea-49ea-8a23-080e830cf6ef",
+          "timestamp": "2026-07-03T18:00:25.635Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ],
+          "manualReviewNeeded": true
+        },
+        {
+          "runId": "bca55909-d48d-4114-ba6c-1f8f9cc0ac3e",
+          "timestamp": "2026-07-03T20:14:50.999Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies"
+          ]
+        }
+      ]
+    },
+    "symbol:src/llm/file-pipeline.ts#dependencyDocsFingerprint": {
+      "heading": "dependencyDocsFingerprint",
+      "depth": 1,
+      "anchor": "dependencydocsfingerprint",
+      "owns": [
+        "symbol:src/llm/file-pipeline.ts#dependencyDocsFingerprint"
+      ],
+      "depends": [
+        "symbol:src/utils/hash.ts#sha256"
+      ],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "file:src/service/stale-detection.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.recordDepDocsFingerprints",
+        "symbol:src/service/stale-detection.ts#collectDepDocStaleBlocks"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Вычисляет детерминированный SHA-256-хеш массива документации зависимостей для обнаружения изменений в контексте генерации.",
+          "rendered": true,
+          "fingerprint": "signature=ce5e2985304c9c0f703977c074d54010e339c2ad47e096fa2addd14a9c7a3721,placement=ad4f8d335a1ae6375795c29581aefdb28afdd8fa4613e419634e0ab7e88e47a0",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.25,
+            "specificity": 1,
+            "novelFact": "Вычисляет детерминированный SHA-256-хеш массива документации зависимостей для обнаружения изменений в контексте генерации."
+          }
+        },
+        "responsibility": {
+          "body": "- Принимает массив `DependencyDoc` и возвращает детерминированный SHA-256 хеш.\n- Делегирует хеширование внешней функции `sha256`.\n- Не выполняет I/O и не имеет побочных эффектов.\n- Не валидирует входные данные — вызывающий гарантирует корректность.",
+          "rendered": true,
+          "fingerprint": "signature=ce5e2985304c9c0f703977c074d54010e339c2ad47e096fa2addd14a9c7a3721,deps=808688ed6235b66a7b8bef887173eb974e0e4c80de961cd61ed2b903ed8cdb23,usage=add5c35143c28d684fce03c999caa3bf54d54183c77b7d51c0292b13fd8bdac9",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 0.75,
+            "novelFact": "Извлекает только выбранные блоки из документированных зависимостей."
+          }
+        },
+        "invariants": {
+          "body": "1. Функция чистая: не имеет побочных эффектов и не выполняет I/O.\n2. Является синхронной (не async) — результат доступен сразу, без ожидания.\n3. Для пустого массива возвращает SHA-256 от литерала `[]`.",
+          "rendered": true,
+          "fingerprint": "signature=ce5e2985304c9c0f703977c074d54010e339c2ad47e096fa2addd14a9c7a3721,body=5772f1d12965592c933d95153990cd4ca559098f953e468e0a5950ab39af039e",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция синхронная и не имеет побочных эффектов."
+          }
+        },
+        "dependencies": {
+          "body": "Единственная внешняя зависимость — функция sha256 из src/utils/hash.ts.",
+          "rendered": true,
+          "fingerprint": "deps=808688ed6235b66a7b8bef887173eb974e0e4c80de961cd61ed2b903ed8cdb23",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Очень простая функция, выполняет только хеширование."
+          },
+          "language": "ru"
+        },
+        "workflows": {
+          "body": "Вызывается из CodeloreService.recordDepDocsFingerprints для записи фингерпринта в состояние секции после генерации, и из collectDepDocStaleBlocks для сравнения текущего фингерпринта с сохранённым и обнаружения устаревших блоков (staleness).",
+          "rendered": true,
+          "fingerprint": "body=5772f1d12965592c933d95153990cd4ca559098f953e468e0a5950ab39af039e,deps=808688ed6235b66a7b8bef887173eb974e0e4c80de961cd61ed2b903ed8cdb23",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Используется для детекции устаревания блоков зависимостей."
+          },
+          "language": "ru"
+        },
+        "limitations": {
+          "body": "Результат зависит от порядка полей в DependencyDoc при JSON.stringify — изменение порядка (например, добавление нового поля) изменит хеш без изменения семантики. Каноническая сериализация не применяется, что может вызвать ложные срабатывания staleness.",
+          "rendered": true,
+          "fingerprint": "body=5772f1d12965592c933d95153990cd4ca559098f953e468e0a5950ab39af039e",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Хеш чувствителен к порядку полей в JSON."
+          },
+          "language": "ru"
+        }
+      },
+      "depDocsFingerprint": "d0de4d83224197125fa18f75eb1644c43b0f6abf9aa9a173f61b7ed3de00cea5",
+      "generationHistory": [
+        {
+          "runId": "22bccca0-cf47-476d-bbf5-52789133117c",
+          "timestamp": "2026-06-10T19:51:21.117Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        },
+        {
+          "runId": "50cbf62e-c6b5-408a-95d1-9c08f50dfdd9",
+          "timestamp": "2026-06-10T21:39:24.562Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        },
+        {
+          "runId": "81af40e5-cc8b-405f-bf3c-2e2e5fe4f8dc",
+          "timestamp": "2026-06-11T18:49:38.416Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        },
+        {
+          "runId": "c1327f82-e935-4ac7-9328-7b82bc1dfe0c",
+          "timestamp": "2026-06-11T21:33:07.351Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        },
+        {
+          "runId": "1205729d-eb3a-4c33-8f3d-3875d9bc9951",
+          "timestamp": "2026-06-12T15:49:56.143Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        },
+        {
+          "runId": "ea3df4eb-2d04-4e4c-a68a-273c075c8aa6",
+          "timestamp": "2026-06-13T20:47:08.254Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "ea3df4eb-2d04-4e4c-a68a-273c075c8aa6",
+          "timestamp": "2026-06-13T20:48:59.279Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        },
+        {
+          "runId": "d25b1641-f184-434f-b438-c630be3cc8f4",
+          "timestamp": "2026-06-16T19:29:34.783Z",
+          "command": "force-regenerate file-pipeline",
+          "intent": "Перегенерировать документацию file-pipeline после изменения verifier source. Описать факты: source верификатора состоит из среза сущности, релевантных imports/header и достижимых private top-level helpers по прямым вызовам; helper context ограничен depth/cap; соседние exported entities исключены.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "d25b1641-f184-434f-b438-c630be3cc8f4",
+          "timestamp": "2026-06-16T19:32:57.595Z",
+          "command": "force-regenerate file-pipeline",
+          "intent": "Перегенерировать документацию file-pipeline после изменения verifier source. Описать факты: source верификатора состоит из среза сущности, релевантных imports/header и достижимых private top-level helpers по прямым вызовам; helper context ограничен depth/cap; соседние exported entities исключены.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        },
+        {
+          "runId": "9bd4bb59-c204-4771-bee5-e93a8e7773a0",
+          "timestamp": "2026-06-16T20:13:26.193Z",
+          "command": "quality-refill file-pipeline invariants",
+          "intent": "Переписать только invariants. Каждый блок должен содержать 2-3 уникальных для этой функции контракта, не повторять purpose/responsibility/limitations. novelFact должен быть конкретным контрактом, которого нет в других блоках секции. Если текст не повторяет другие блоки ответа, ставить novelty не ниже 0.5. Не писать общие фразы.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "25edcfe6-910c-4993-8cc6-4eabb2b2d4d5",
+          "timestamp": "2026-06-19T16:25:57.060Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.839Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:25:43.536Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        },
+        {
+          "runId": "8494bec7-02ea-49ea-8a23-080e830cf6ef",
+          "timestamp": "2026-07-03T18:00:25.640Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        }
+      ]
+    },
+    "symbol:src/llm/file-pipeline.ts#collectDependencyDocs": {
+      "heading": "collectDependencyDocs",
+      "depth": 1,
+      "anchor": "collectdependencydocs",
+      "owns": [
+        "symbol:src/llm/file-pipeline.ts#collectDependencyDocs"
+      ],
+      "depends": [
+        "symbol:src/graph/file-dag.ts#buildFileDag"
+      ],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "file:src/service/stale-detection.ts",
+        "symbol:src/llm/file-pipeline.ts#generateFileGroup",
+        "symbol:src/llm/file-pipeline.ts#verifyBlocksAgainstDeps",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.recordDepDocsFingerprints",
+        "symbol:src/service/stale-detection.ts#collectDepDocStaleBlocks"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Собирает структурированную документацию прямых файловых зависимостей группы, ограниченную по размеру, для передачи в контекст LLM-генерации.",
+          "rendered": true,
+          "fingerprint": "signature=a86ff7b7b0d907207033032f394647c545861f9d6e0bbeab00b7092a62710b5b,placement=58d1c2377454a84c589a1540585db23f5749cee3a5a91638f75fbbccc4986a35",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 0.25,
+            "specificity": 1,
+            "novelFact": "Собирает структурированную документацию прямых файловых зависимостей группы, ограниченную по размеру, для передачи в контекст LLM-генерации."
+          }
+        },
+        "responsibility": {
+          "body": "- Строит граф прямых зависимостей через `buildFileDag` и отбирает файлы, от которых зависят переданные `files`, исключая сами файлы группы.\n- Для каждого файла-зависимости извлекает документацию только блоков `purpose`, `responsibility`, `invariants` (`PROPAGATING_BLOCKS`).\n- Ограничивает общий размер: не более `DEP_DOCS_TOTAL_CAP` символов, на один файл не более `DEP_DOC_FILE_CAP`.\n- Сортирует файлы по алфавиту для детерминизма.\n- Не загружает исходный код — работает только с `index.docs.sections` и `index.code.entities`.",
+          "rendered": true,
+          "fingerprint": "signature=a86ff7b7b0d907207033032f394647c545861f9d6e0bbeab00b7092a62710b5b,deps=2ea89f7a87489540116ad5241275a41f93b3ceaecf89d40444dc6e201662dd91,usage=c81310eeea30d95c741be68089b83c8ddd9847499a4264a22201cb1415f66f00",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 0.75,
+            "novelFact": "Ограничивает контекст LLM размером и набором блоков."
+          }
+        },
+        "invariants": {
+          "body": "1. Не включает файлы, уже входящие в группу `files` (самозависимости группы исключены).\n2. Для каждого файла-зависимости извлекаются только блоки `purpose`, `responsibility`, `invariants` (`PROPAGATING_BLOCKS`).\n3. Ограничивает общий размер возвращаемой документации: не более `DEP_DOCS_TOTAL_CAP` (15000) символов, на один файл не более `DEP_DOC_FILE_CAP` (2500) символов.",
+          "rendered": true,
+          "fingerprint": "signature=a86ff7b7b0d907207033032f394647c545861f9d6e0bbeab00b7092a62710b5b,body=38f699f5c334a9920b10c3dbf30a0704cb85b04273f3c3c13eb287fb9c647130",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не включает файлы, уже входящие в группу `files` (самозависимости группы исключены)."
+          }
+        },
+        "dependencies": {
+          "body": "Основная внешняя зависимость — buildFileDag (src/graph/file-dag.ts) для построения графа прямых зависимостей. Также использует константу PROPAGATING_BLOCKS и функцию dependencyDocForFile из этого же файла.",
+          "rendered": true,
+          "fingerprint": "deps=2ea89f7a87489540116ad5241275a41f93b3ceaecf89d40444dc6e201662dd91",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Собирает документацию только для прямых зависимостей."
+          },
+          "language": "ru"
+        },
+        "workflows": {
+          "body": "Вызывается из generateFileGroup (при фазе не propagating) для обеспечения контекста генерации, а также из verifyBlocksAgainstDeps для верификации готовых блоков. Внутри: buildFileDag строит DAG, затем для каждого файла группы отбираются файлы-зависимости, исключая саму группу, и для них через dependencyDocForFile извлекаются блоки purpose, responsibility, invariants с ограничением размера DEP_DOC_FILE_CAP и DEP_DOCS_TOTAL_CAP.",
+          "rendered": true,
+          "fingerprint": "body=38f699f5c334a9920b10c3dbf30a0704cb85b04273f3c3c13eb287fb9c647130,deps=2ea89f7a87489540116ad5241275a41f93b3ceaecf89d40444dc6e201662dd91",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Работает только с пропагатирующими блоками (purpose, responsibility, invariants)."
+          },
+          "language": "ru"
+        },
+        "limitations": {
+          "body": "Учитываются только прямые (не транзитивные) зависимости, так как DAG строится на одном уровне. Включаются только блоки purpose, responsibility, invariants (PROPAGATING_BLOCKS), остальные блоки не передаются LLM. Капы DEP_DOC_FILE_CAP (2500) и DEP_DOCS_TOTAL_CAP (15000) могут отсечь документацию глубоких или многочисленных зависимостей. Детерминизм обеспечивается лексикографической сортировкой файлов, но при достижении лимита DEP_DOCS_TOTAL_CAP часть файлов отбрасывается без учёта размера их документации.",
+          "rendered": true,
+          "fingerprint": "body=38f699f5c334a9920b10c3dbf30a0704cb85b04273f3c3c13eb287fb9c647130",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Лимиты отсечения могут привести к потере контекста."
+          },
+          "language": "ru"
+        },
+        "changeGuide": {
+          "body": "Два инварианта: 1. Размер документации одного файла-зависимости ограничен DEP_DOC_FILE_CAP (2500) — при превышении лишние блоки отбрасываются в цикле с проверкой used + block.body.length > DEP_DOC_FILE_CAP. 2. Общий размер документации зависимостей ограничен DEP_DOCS_TOTAL_CAP (15000) — при превышении цикл прерывается: if (totalChars + size > DEP_DOCS_TOTAL_CAP) break;. Тесты: не видны.",
+          "rendered": true,
+          "fingerprint": "body=38f699f5c334a9920b10c3dbf30a0704cb85b04273f3c3c13eb287fb9c647130,deps=2ea89f7a87489540116ad5241275a41f93b3ceaecf89d40444dc6e201662dd91,usage=c81310eeea30d95c741be68089b83c8ddd9847499a4264a22201cb1415f66f00,placement=58d1c2377454a84c589a1540585db23f5749cee3a5a91638f75fbbccc4986a35",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Капы реализованы как проверки в цикле."
+          },
+          "language": "ru"
+        }
+      },
+      "depDocsFingerprint": "d0de4d83224197125fa18f75eb1644c43b0f6abf9aa9a173f61b7ed3de00cea5",
+      "generationHistory": [
+        {
+          "runId": "22bccca0-cf47-476d-bbf5-52789133117c",
+          "timestamp": "2026-06-10T19:51:21.118Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "50cbf62e-c6b5-408a-95d1-9c08f50dfdd9",
+          "timestamp": "2026-06-10T21:39:24.563Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "81af40e5-cc8b-405f-bf3c-2e2e5fe4f8dc",
+          "timestamp": "2026-06-11T18:49:38.417Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "c1327f82-e935-4ac7-9328-7b82bc1dfe0c",
+          "timestamp": "2026-06-11T21:33:07.352Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "1205729d-eb3a-4c33-8f3d-3875d9bc9951",
+          "timestamp": "2026-06-12T15:49:56.145Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "1372adf6-4062-4467-b8d3-6610906819f7",
+          "timestamp": "2026-06-13T20:26:07.118Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "1372adf6-4062-4467-b8d3-6610906819f7",
+          "timestamp": "2026-06-13T20:32:16.321Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d25b1641-f184-434f-b438-c630be3cc8f4",
+          "timestamp": "2026-06-16T19:29:34.785Z",
+          "command": "force-regenerate file-pipeline",
+          "intent": "Перегенерировать документацию file-pipeline после изменения verifier source. Описать факты: source верификатора состоит из среза сущности, релевантных imports/header и достижимых private top-level helpers по прямым вызовам; helper context ограничен depth/cap; соседние exported entities исключены.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "d25b1641-f184-434f-b438-c630be3cc8f4",
+          "timestamp": "2026-06-16T19:32:57.598Z",
+          "command": "force-regenerate file-pipeline",
+          "intent": "Перегенерировать документацию file-pipeline после изменения verifier source. Описать факты: source верификатора состоит из среза сущности, релевантных imports/header и достижимых private top-level helpers по прямым вызовам; helper context ограничен depth/cap; соседние exported entities исключены.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "9bd4bb59-c204-4771-bee5-e93a8e7773a0",
+          "timestamp": "2026-06-16T20:13:26.197Z",
+          "command": "quality-refill file-pipeline invariants",
+          "intent": "Переписать только invariants. Каждый блок должен содержать 2-3 уникальных для этой функции контракта, не повторять purpose/responsibility/limitations. novelFact должен быть конкретным контрактом, которого нет в других блоках секции. Если текст не повторяет другие блоки ответа, ставить novelty не ниже 0.5. Не писать общие фразы.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "25edcfe6-910c-4993-8cc6-4eabb2b2d4d5",
+          "timestamp": "2026-06-19T16:25:57.062Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.841Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.099Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:25:43.543Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "8494bec7-02ea-49ea-8a23-080e830cf6ef",
+          "timestamp": "2026-07-03T18:00:25.644Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    },
+    "symbol:src/llm/file-pipeline.ts#compactChunkCallers": {
+      "heading": "compactChunkCallers",
+      "depth": 1,
+      "anchor": "compactchunkcallers",
+      "owns": [
+        "symbol:src/llm/file-pipeline.ts#compactChunkCallers"
+      ],
+      "depends": [],
+      "usedBy": [],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Уменьшает дублирование тел вызывающих функций между секциями одного чанка, отдавая приоритет вызывающим с runtimeEvidence.",
+          "rendered": true,
+          "fingerprint": "signature=97f2fbdfc73df4affe0b1208379c10202a64c7a147fde10ca2c809ecc22261db,placement=b8989786c3a1f12fad5170c9edc2a79f8bad84b54be637f2314c762ea129ce22",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.25,
+            "specificity": 1,
+            "novelFact": "Уменьшает дублирование тел вызывающих функций между секциями одного чанка, отдавая приоритет вызывающим с runtimeEvidence."
+          }
+        },
+        "responsibility": {
+          "body": "- Не изменяет порядок секций — возвращает массив той же длины.\n- Не удаляет вызывающих полностью — только их тела (поле body).\n- Делегирует сортировку вызывающих: сначала с runtimeEvidence, затем без.\n- Не проверяет корректность тел — только их длину.",
+          "rendered": true,
+          "fingerprint": "signature=97f2fbdfc73df4affe0b1208379c10202a64c7a147fde10ca2c809ecc22261db,deps=ddaf2495af5c72fbc34ee920e94af0e355d6317fdcdb2b5645948652a096c437,usage=ddaf2495af5c72fbc34ee920e94af0e355d6317fdcdb2b5645948652a096c437",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.25,
+            "specificity": 0.75,
+            "novelFact": "- Не изменяет порядок секций — возвращает массив той же длины."
+          }
+        },
+        "invariants": {
+          "body": "1. Не изменяет количество вызывающих в каждой секции — массив `callers` остаётся той же длины, меняется только наличие поля `body`.\n2. Если вызывающий уже был отправлен с телом в предыдущей секции, его тело не дублируется в последующих (глобальный дедуплицирующий набор).\n3. Приоритет при распределении бюджета `SECTION_CALLER_BODIES_CAP` имеют вызывающие с `runtimeEvidence` (сортируются первыми).",
+          "rendered": true,
+          "fingerprint": "signature=97f2fbdfc73df4affe0b1208379c10202a64c7a147fde10ca2c809ecc22261db,body=b1a0a7693554a9c6c3be8cb709f7490de4503842ecb25998d6857f3b365807fe",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Если вызывающий уже был отправлен с телом в предыдущей секции, его тело не дублируется в последующих."
+          }
+        },
+        "dependencies": {
+          "body": "Не имеет внешних зависимостей — использует только типы FileWriteCaller и FileWriteSection, определённые в этом же модуле.",
+          "rendered": true,
+          "fingerprint": "deps=ddaf2495af5c72fbc34ee920e94af0e355d6317fdcdb2b5645948652a096c437",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Локальная функция без внешних зависимостей."
+          },
+          "language": "ru"
+        },
+        "limitations": {
+          "body": "Приоритизация runtimeEvidence при распределении бюджета SECTION_CALLER_BODIES_CAP (8000) может привести к обрезанию тела важного статического вызывающего, если его тело превышает оставшийся бюджет. Бюджет распределяется последовательно в порядке сортировки — первые вызывающие получают тело, последние могут быть обрезаны.",
+          "rendered": true,
+          "fingerprint": "body=b1a0a7693554a9c6c3be8cb709f7490de4503842ecb25998d6857f3b365807fe",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Бюджет распределяется последовательно, что может привести к потере тел поздних вызывающих."
+          },
+          "language": "ru"
+        }
+      },
+      "depDocsFingerprint": "d0de4d83224197125fa18f75eb1644c43b0f6abf9aa9a173f61b7ed3de00cea5",
+      "generationHistory": [
+        {
+          "runId": "81af40e5-cc8b-405f-bf3c-2e2e5fe4f8dc",
+          "timestamp": "2026-06-11T18:49:38.410Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "c1327f82-e935-4ac7-9328-7b82bc1dfe0c",
+          "timestamp": "2026-06-11T21:33:07.353Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "1205729d-eb3a-4c33-8f3d-3875d9bc9951",
+          "timestamp": "2026-06-12T15:49:56.146Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "ea3df4eb-2d04-4e4c-a68a-273c075c8aa6",
+          "timestamp": "2026-06-13T20:47:08.258Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "ea3df4eb-2d04-4e4c-a68a-273c075c8aa6",
+          "timestamp": "2026-06-13T20:48:59.283Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d25b1641-f184-434f-b438-c630be3cc8f4",
+          "timestamp": "2026-06-16T19:29:34.786Z",
+          "command": "force-regenerate file-pipeline",
+          "intent": "Перегенерировать документацию file-pipeline после изменения verifier source. Описать факты: source верификатора состоит из среза сущности, релевантных imports/header и достижимых private top-level helpers по прямым вызовам; helper context ограничен depth/cap; соседние exported entities исключены.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "d25b1641-f184-434f-b438-c630be3cc8f4",
+          "timestamp": "2026-06-16T19:32:57.601Z",
+          "command": "force-regenerate file-pipeline",
+          "intent": "Перегенерировать документацию file-pipeline после изменения verifier source. Описать факты: source верификатора состоит из среза сущности, релевантных imports/header и достижимых private top-level helpers по прямым вызовам; helper context ограничен depth/cap; соседние exported entities исключены.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "8a484781-5d84-4a85-8396-67088b9b8d73",
+          "timestamp": "2026-06-16T19:38:40.766Z",
+          "command": "quality-refill file-pipeline",
+          "intent": "Заполнить только пустые required blocks. Для invariants писать проверяемые контракты из кода: условия пустого результата, детерминированный порядок, caps, отсутствие I/O, сохранение количества callers, форма ChatCompletionInput. Для dependencies писать только реальные direct deps, по одной зависимости на строку. Не писать общие оценки.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies"
+          ]
+        },
+        {
+          "runId": "9bd4bb59-c204-4771-bee5-e93a8e7773a0",
+          "timestamp": "2026-06-16T20:13:26.201Z",
+          "command": "quality-refill file-pipeline invariants",
+          "intent": "Переписать только invariants. Каждый блок должен содержать 2-3 уникальных для этой функции контракта, не повторять purpose/responsibility/limitations. novelFact должен быть конкретным контрактом, которого нет в других блоках секции. Если текст не повторяет другие блоки ответа, ставить novelty не ниже 0.5. Не писать общие фразы.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "25edcfe6-910c-4993-8cc6-4eabb2b2d4d5",
+          "timestamp": "2026-06-19T16:25:57.063Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:25:43.556Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations"
+          ]
+        },
+        {
+          "runId": "8494bec7-02ea-49ea-8a23-080e830cf6ef",
+          "timestamp": "2026-07-03T18:00:25.648Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations"
+          ]
+        }
+      ]
+    },
+    "symbol:src/llm/file-pipeline.ts#verifyChunkFacts": {
+      "heading": "verifyChunkFacts",
+      "depth": 1,
+      "anchor": "verifychunkfacts",
+      "owns": [
+        "symbol:src/llm/file-pipeline.ts#verifyChunkFacts"
+      ],
+      "depends": [
+        "symbol:src/llm/complete-and-parse.ts#completeAndParse",
+        "symbol:src/llm/doc-verifier.ts#buildVerifyRequest",
+        "symbol:src/llm/doc-verifier.ts#parseVerifyResponse",
+        "symbol:src/llm/file-pipeline.ts#buildRepairRequest",
+        "symbol:src/llm/file-pipeline.ts#buildVerifySections",
+        "symbol:src/llm/file-writer.ts#parseFileWriteResponse",
+        "symbol:src/llm/type-context.ts#collectTypeContext"
+      ],
+      "usedBy": [],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Проверяет сгенерированные блоки документации на фактические противоречия с исходным кодом через LLM и исправляет найденные нарушения.",
+          "rendered": true,
+          "fingerprint": "signature=ad70b849abf8d80c922fedde311b9f76e425cb8b9ff1966c524241c8ba2d691b,placement=4d88a78e95e86b0c9df37e17a2f7b6e174c01b2d768ef9ceb35bf59bea27810a",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Проверяет сгенерированные блоки документации на фактические противоречия с исходным кодом через LLM и исправляет найденные нарушения."
+          }
+        },
+        "responsibility": {
+          "body": "- Не проверяет структурные нарушения (длину, ссылки) — это задача validateFileWrite.\n- Делегирует построение запроса верификации buildVerifyRequest, парсинг ответа — parseVerifyResponse.\n- При обнаружении противоречий запускает ремонт через buildRepairRequest и повторную верификацию.\n- Не модифицирует исходный result напрямую — возвращает новый объект с исправлениями.",
+          "rendered": true,
+          "fingerprint": "signature=ad70b849abf8d80c922fedde311b9f76e425cb8b9ff1966c524241c8ba2d691b,deps=c1260fc72758ba5ea94ed173f7641b1c175dbf8f1acef72b387161f2fcc1eadc,usage=5e8032917f9f7f602d0cc711458ebc96f7d7a203e93a8f5ccc1d1fc36e47940b",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Не проверяет структурные нарушения (длину, ссылки) — это задача validateFileWrite."
+          }
+        },
+        "invariants": {
+          "body": "- Если buildVerifySections не вернул ни одной секции, возвращает исходный result без изменений.\n- Если LLM не нашла противоречий, возвращает пустые массивы factViolations и remaining.\n- Блоки, не исправленные ремонтом, удаляются из результата (dropViolatingBlocks).\n- После ремонта выполняется повторная верификация (factRecheck); оставшиеся нарушения также удаляются.",
+          "rendered": true,
+          "fingerprint": "signature=ad70b849abf8d80c922fedde311b9f76e425cb8b9ff1966c524241c8ba2d691b,body=5bca853f659ef4ecafdf821a69800e7ba295eccd5689172b4be683bc910f0e94",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "- Если buildVerifySections не вернул ни одной секции, возвращает исходный result без изменений."
+          }
+        },
+        "dependencies": {
+          "body": "Внешние зависимости: completeAndParse (src/llm/complete-and-parse.ts); buildVerifyRequest и parseVerifyResponse (src/llm/doc-verifier.ts); parseFileWriteResponse (src/llm/file-writer.ts); collectTypeContext (src/llm/type-context.ts).",
+          "rendered": true,
+          "fingerprint": "deps=c1260fc72758ba5ea94ed173f7641b1c175dbf8f1acef72b387161f2fcc1eadc",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Использует LLM для проверки фактов и ремонта."
+          },
+          "language": "ru"
+        },
+        "limitations": {
+          "body": "Верификация полностью зависит от качества LLM: модель может не заметить противоречия или дать ложное срабатывание. Исходный код для верификации, формируемый через buildVerifySections, ограничен VERIFY_SOURCE_CAP и VERIFY_HELPER_CONTEXT_CAP с глубиной VERIFY_HELPER_CONTEXT_DEPTH, что может не включать все релевантные детали.",
+          "rendered": true,
+          "fingerprint": "body=5bca853f659ef4ecafdf821a69800e7ba295eccd5689172b4be683bc910f0e94",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Ограничения контекста верификации могут снизить точность."
+          },
+          "language": "ru"
+        },
+        "changeGuide": {
+          "body": "Два инварианта: 1. Если buildVerifySections возвращает пустой массив, функция сразу возвращает исходный результат без изменений: условие if (verifySections.length === 0) return { result: args.result, factViolations: [], remaining: [] };. 2. Если contradictions не найдены (claims.length === 0), функция возвращает результат без изменений: if (claims.length === 0) return { result: args.result, factViolations: [], remaining: [] };. Тесты: не видны.",
+          "rendered": true,
+          "fingerprint": "body=5bca853f659ef4ecafdf821a69800e7ba295eccd5689172b4be683bc910f0e94,deps=c1260fc72758ba5ea94ed173f7641b1c175dbf8f1acef72b387161f2fcc1eadc,usage=5e8032917f9f7f602d0cc711458ebc96f7d7a203e93a8f5ccc1d1fc36e47940b,placement=4d88a78e95e86b0c9df37e17a2f7b6e174c01b2d768ef9ceb35bf59bea27810a",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Ранний выход при отсутствии данных для верификации."
+          },
+          "language": "ru"
+        }
+      },
+      "depDocsFingerprint": "d0de4d83224197125fa18f75eb1644c43b0f6abf9aa9a173f61b7ed3de00cea5",
+      "generationHistory": [
+        {
+          "runId": "81af40e5-cc8b-405f-bf3c-2e2e5fe4f8dc",
+          "timestamp": "2026-06-11T18:49:38.411Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "c1327f82-e935-4ac7-9328-7b82bc1dfe0c",
+          "timestamp": "2026-06-11T21:33:07.354Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "1205729d-eb3a-4c33-8f3d-3875d9bc9951",
+          "timestamp": "2026-06-12T15:49:56.147Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "ea3df4eb-2d04-4e4c-a68a-273c075c8aa6",
+          "timestamp": "2026-06-13T20:47:08.261Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "ea3df4eb-2d04-4e4c-a68a-273c075c8aa6",
+          "timestamp": "2026-06-13T20:48:59.286Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d25b1641-f184-434f-b438-c630be3cc8f4",
+          "timestamp": "2026-06-16T19:29:34.788Z",
+          "command": "force-regenerate file-pipeline",
+          "intent": "Перегенерировать документацию file-pipeline после изменения verifier source. Описать факты: source верификатора состоит из среза сущности, релевантных imports/header и достижимых private top-level helpers по прямым вызовам; helper context ограничен depth/cap; соседние exported entities исключены.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "d25b1641-f184-434f-b438-c630be3cc8f4",
+          "timestamp": "2026-06-16T19:32:57.604Z",
+          "command": "force-regenerate file-pipeline",
+          "intent": "Перегенерировать документацию file-pipeline после изменения verifier source. Описать факты: source верификатора состоит из среза сущности, релевантных imports/header и достижимых private top-level helpers по прямым вызовам; helper context ограничен depth/cap; соседние exported entities исключены.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "25edcfe6-910c-4993-8cc6-4eabb2b2d4d5",
+          "timestamp": "2026-06-19T16:25:57.065Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:25:43.558Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "8494bec7-02ea-49ea-8a23-080e830cf6ef",
+          "timestamp": "2026-07-03T18:00:25.650Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    },
+    "symbol:src/llm/file-pipeline.ts#buildVerifySections": {
+      "heading": "buildVerifySections",
+      "depth": 1,
+      "anchor": "buildverifysections",
+      "owns": [
+        "symbol:src/llm/file-pipeline.ts#buildVerifySections"
+      ],
+      "depends": [],
+      "usedBy": [
+        "symbol:src/llm/file-pipeline.ts#verifyChunkFacts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Формирует массив секций для верификации, извлекая для каждой entity-специфичный исходный код с помощью `verificationSource`, который включает срез сущности, релевантные импорты и достижимые приватные хелперы в пределах одного файла.",
+          "rendered": true,
+          "fingerprint": "signature=0eabcd6351804e0585b3d5c440c81648c6484a7cc1e092437652384622cd59f8,placement=84bb8e51d31b06f5c6f45b9ebb6a63632365f42eb59faeee1fe40c5828a68a20",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Учёт нового состава source: срез + импорты + helper-контекст"
+          }
+        },
+        "responsibility": {
+          "body": "- Не загружает файлы — использует переданные `sources` и `code.entities`.\n- Делегирует сборку исходного кода `verificationSource`: извлекает срез сущности по `entity.range`, добавляет однофайловый контекст (импорты, приватные хелперы) с ограничением по `VERIFY_SOURCE_CAP` и глубине `VERIFY_HELPER_CONTEXT_DEPTH`.\n- Пропускает секции, у которых нет сущности в `code.entities` или исходного файла в `sources`.\n- Фильтрует блоки из `result`, оставляя только те, что имеют не-undefined значение.",
+          "rendered": true,
+          "fingerprint": "signature=0eabcd6351804e0585b3d5c440c81648c6484a7cc1e092437652384622cd59f8,deps=32d92b36c8019c98bd0b40c7741b579a9f8e5df055c12995a145133c907da857,usage=48d92f4414544b08cb555cd7292c213937d05c320e596c0b3635949f4f433088",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Делегирование `verificationSource` с helper-контекстом"
+          }
+        },
+        "invariants": {
+          "body": "- Возвращает пустой массив, если ни одна секция не имеет блоков в `result`.\n- Каждый элемент содержит `sectionId`, `entityId`, `source` (строка, сформированная `verificationSource`) и `blocks` (массив объектов с `blockId` и `text`).\n- Поле `source` всегда включает срез тела сущности (без комментариев), а также может включать однофайловый контекст (импорты и приватные хелперы), если позволяет бюджет `VERIFY_SOURCE_CAP`.\n- Порядок элементов соответствует порядку `sections` на входе.",
+          "rendered": true,
+          "fingerprint": "signature=0eabcd6351804e0585b3d5c440c81648c6484a7cc1e092437652384622cd59f8,body=69470b91322cf56a3937190433398937326c50dfba5301b58165ef684e6d3bf1",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Состав field source: срез + опциональный helper-контекст"
+          }
+        },
+        "dependencies": {
+          "body": "Использует типы из `src/llm/doc-verifier.ts` (`VERIFY_SOURCE_CAP`, `VerifySectionInput`) и `src/llm/file-writer.ts` (`FileWriteSection`, `FileWriteResult`). Внутренние зависимости: `verificationSource`, `sourceFileFromText`, `sameFileHelperContext`, `fileOutline`, `composeVerifySource` (все локальные). Также использует константы `VERIFY_HELPER_CONTEXT_CAP`, `VERIFY_HELPER_CONTEXT_DEPTH` и `VERIFY_OUTLINE_HEADING` из этого же файла.",
+          "rendered": true,
+          "fingerprint": "deps=32d92b36c8019c98bd0b40c7741b579a9f8e5df055c12995a145133c907da857",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Формирует VerifySectionInput с исходным кодом, включающим срез сущности, однофайловый контекст (импорты, приватные хелперы) и оглавление файла, ограниченный VERIFY_SOURCE_CAP."
+          },
+          "language": "ru"
+        },
+        "workflows": {
+          "body": "Вызывается из `verifyChunkFacts` (этот же файл) дважды: на первом проходе для всех секций, имеющих блоки в `result`, и на втором проходе (после ремонта) только для исправленных блоков. Для каждой секции проверяется наличие сущности в `code.entities` и исходного файла в `sources`; если отсутствует, секция пропускается. Затем через `verificationSource` формируется строка исходного кода с учётом капов.",
+          "rendered": true,
+          "fingerprint": "body=69470b91322cf56a3937190433398937326c50dfba5301b58165ef684e6d3bf1,deps=32d92b36c8019c98bd0b40c7741b579a9f8e5df055c12995a145133c907da857",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается из verifyChunkFacts дважды: на первом проходе для всех секций с блоками в result, и на втором проходе только для исправленных блоков."
+          },
+          "language": "ru"
+        },
+        "limitations": {
+          "body": "Секция пропускается, если сущность отсутствует в `code.entities` или её исходный файл не передан в `sources` (условия `if (!entity || fileSource === undefined) { continue; }`). Включаются только секции с хотя бы одним блоком с не-undefined значением (условие `if (blocks.length === 0) { continue; }`). Исходный код сущности обрезается по `VERIFY_SOURCE_CAP` (константа из `src/llm/doc-verifier.ts`).",
+          "rendered": true,
+          "fingerprint": "body=69470b91322cf56a3937190433398937326c50dfba5301b58165ef684e6d3bf1",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Секция пропускается, если сущность отсутствует в code.entities или её исходный файл не передан в sources; также пропускаются секции без блоков с не-undefined значением."
+          },
+          "language": "ru"
+        },
+        "changeGuide": {
+          "body": "Два инварианта:\n1. Секция без сущности в `code.entities` или без исходного файла в `sources` молча пропускается: проверка `if (!entity || fileSource === undefined) { continue; }`.\n2. Секция не включается в результат, если `blocks.length === 0`: проверка `if (blocks.length === 0) { continue; }`.\n\nТесты: не видны.",
+          "rendered": true,
+          "fingerprint": "body=69470b91322cf56a3937190433398937326c50dfba5301b58165ef684e6d3bf1,deps=32d92b36c8019c98bd0b40c7741b579a9f8e5df055c12995a145133c907da857,usage=48d92f4414544b08cb555cd7292c213937d05c320e596c0b3635949f4f433088,placement=84bb8e51d31b06f5c6f45b9ebb6a63632365f42eb59faeee1fe40c5828a68a20",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Два инварианта: пропуск секций без сущности или исходного файла, и пропуск секций без блоков."
+          },
+          "language": "ru"
+        }
+      },
+      "depDocsFingerprint": "d0de4d83224197125fa18f75eb1644c43b0f6abf9aa9a173f61b7ed3de00cea5",
+      "generationHistory": [
+        {
+          "runId": "81af40e5-cc8b-405f-bf3c-2e2e5fe4f8dc",
+          "timestamp": "2026-06-11T18:49:38.413Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "c1327f82-e935-4ac7-9328-7b82bc1dfe0c",
+          "timestamp": "2026-06-11T21:33:07.355Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "1205729d-eb3a-4c33-8f3d-3875d9bc9951",
+          "timestamp": "2026-06-12T15:49:56.149Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "ea3df4eb-2d04-4e4c-a68a-273c075c8aa6",
+          "timestamp": "2026-06-13T20:47:08.265Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "ea3df4eb-2d04-4e4c-a68a-273c075c8aa6",
+          "timestamp": "2026-06-13T20:48:59.289Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "fa92cf6f-4796-4e31-ac2b-e3cc14e6ac1b",
+          "timestamp": "2026-06-16T17:10:13.318Z",
+          "command": "document",
+          "intent": "Примерная регенерация после правки verifier source: обновить документацию только для file-pipeline.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "fa92cf6f-4796-4e31-ac2b-e3cc14e6ac1b",
+          "timestamp": "2026-06-16T17:13:45.563Z",
+          "command": "document",
+          "intent": "Примерная регенерация после правки verifier source: обновить документацию только для file-pipeline.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ],
+          "manualReviewNeeded": true
+        },
+        {
+          "runId": "aa6dacb0-e110-42c0-afe5-66ca5abee042",
+          "timestamp": "2026-06-16T17:13:48.003Z",
+          "command": "update",
+          "intent": "Завершить примерную регенерацию одной секции после изменения verifier source.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d25b1641-f184-434f-b438-c630be3cc8f4",
+          "timestamp": "2026-06-16T19:29:34.790Z",
+          "command": "force-regenerate file-pipeline",
+          "intent": "Перегенерировать документацию file-pipeline после изменения verifier source. Описать факты: source верификатора состоит из среза сущности, релевантных imports/header и достижимых private top-level helpers по прямым вызовам; helper context ограничен depth/cap; соседние exported entities исключены.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "d25b1641-f184-434f-b438-c630be3cc8f4",
+          "timestamp": "2026-06-16T19:32:57.607Z",
+          "command": "force-regenerate file-pipeline",
+          "intent": "Перегенерировать документацию file-pipeline после изменения verifier source. Описать факты: source верификатора состоит из среза сущности, релевантных imports/header и достижимых private top-level helpers по прямым вызовам; helper context ограничен depth/cap; соседние exported entities исключены.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "25edcfe6-910c-4993-8cc6-4eabb2b2d4d5",
+          "timestamp": "2026-06-19T16:25:57.067Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:25:43.559Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "8494bec7-02ea-49ea-8a23-080e830cf6ef",
+          "timestamp": "2026-07-03T18:00:25.653Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    },
+    "symbol:src/llm/file-pipeline.ts#buildRepairRequest": {
+      "heading": "buildRepairRequest",
+      "depth": 1,
+      "anchor": "buildrepairrequest",
+      "owns": [
+        "symbol:src/llm/file-pipeline.ts#buildRepairRequest"
+      ],
+      "depends": [
+        "symbol:src/llm/doc-validator.ts#allowedRefsForSection"
+      ],
+      "usedBy": [
+        "symbol:src/llm/file-pipeline.ts#verifyChunkFacts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Формирует компактный запрос к LLM для исправления блоков документации, нарушивших детерминированную валидацию (недопустимые ссылки, превышение длины).",
+          "rendered": true,
+          "fingerprint": "signature=c129c8311157cbbc0cbc6fda2a92efe023815b7088291607abf754e9ca1d8acd,placement=3b3d3a543ef994d1c2211e80f60a809f18babaf8e65e46794632b2f7cd56a9b3",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.25,
+            "specificity": 0.75,
+            "novelFact": "Формирует компактный запрос к LLM для исправления блоков документации, нарушивших детерминированную валидацию (недопустимые ссылки, превышение длины)."
+          }
+        },
+        "responsibility": {
+          "body": "- Не выполняет LLM-запрос — только возвращает `ChatCompletionInput`.\n- Не включает исходный код файлов или dependency docs — только нарушенные блоки и списки разрешённых ссылок.\n- Группирует нарушения по секции и блоку, чтобы LLM видела все проблемы одного блока совокупно.\n- Делегирует получение разрешённых ссылок `allowedRefsForSection`.",
+          "rendered": true,
+          "fingerprint": "signature=c129c8311157cbbc0cbc6fda2a92efe023815b7088291607abf754e9ca1d8acd,deps=e2b4923250b2f1de4d6aafa830ddbfe79a28013ee0b9076c708ffec12df15953,usage=bcc22cf5fcdb0fdd2052a5e4f5c53cf6443b1f86cd8bf4376211e8b447831606",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.25,
+            "specificity": 0.75,
+            "novelFact": "- Не выполняет LLM-запрос — только возвращает `ChatCompletionInput`."
+          }
+        },
+        "invariants": {
+          "body": "Каждый блок в запросе содержит массив `violations` с текстовыми описаниями нарушений.\nПоле `allowedRefsBySection` содержит отсортированные списки разрешённых ссылок для каждой секции.\nЕсли секция или блок отсутствуют в `result`, они не включаются в запрос.\nВозвращаемый `ChatCompletionInput` всегда содержит ровно два сообщения: system и user.",
+          "rendered": true,
+          "fingerprint": "signature=c129c8311157cbbc0cbc6fda2a92efe023815b7088291607abf754e9ca1d8acd,body=1102b33f2413fc6d8ea22ba6db1eca7f1b2bdbbe38d7d3557114170e5c270b21",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Возвращаемый `ChatCompletionInput` всегда содержит ровно два сообщения: system и user."
+          }
+        },
+        "dependencies": {
+          "body": "Использует `allowedRefsForSection` из `src/llm/doc-validator.ts` для вычисления разрешённых ссылок. Типы: `DocViolation` (из `src/llm/doc-validator.ts`), `FileWriteSection`, `FileWriteResult` (из `src/llm/file-writer.ts`), `ChatCompletionInput` (из `src/llm/provider.ts`). Внутренняя группировка нарушений по секции и блоку.",
+          "rendered": true,
+          "fingerprint": "deps=e2b4923250b2f1de4d6aafa830ddbfe79a28013ee0b9076c708ffec12df15953",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Делегирует вычисление разрешённых ссылок allowedRefsForSection и группирует нарушения по секции и блоку."
+          },
+          "language": "ru"
+        },
+        "workflows": {
+          "body": "Вызывается из `verifyChunkFacts` (этот же файл) при факт-противоречиях в верификации. Функция группирует входящие нарушения по секции и блоку, для каждой уникальной пары запрашивает разрешённые ссылки через `allowedRefsForSection` и формирует `ChatCompletionInput` с двумя сообщениями: системная инструкция не добавлять новых фактов и пользовательское сообщение с JSON нарушенных блоков, их текущим содержимым и списками разрешённых ссылок.",
+          "rendered": true,
+          "fingerprint": "body=1102b33f2413fc6d8ea22ba6db1eca7f1b2bdbbe38d7d3557114170e5c270b21,deps=e2b4923250b2f1de4d6aafa830ddbfe79a28013ee0b9076c708ffec12df15953",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается из verifyChunkFacts при факт-противоречиях; формирует ChatCompletionInput с системной инструкцией не добавлять новых фактов и пользовательским сообщением с JSON нарушенных блоков и списками разрешённых ссылок."
+          },
+          "language": "ru"
+        },
+        "limitations": {
+          "body": "Системное сообщение содержит команду `Do not add new facts: only remove or minimally rephrase the statements named in the violations`, что запрещает LLM добавлять факты, делая невозможным исправление блока, если единственное верное действие — заменить неверное утверждение на верное, а не удалить или перефразировать. Условие `if (!section || !block) { continue; }` пропускает секции и блоки, отсутствующие в `result`, не позволяя их исправить.",
+          "rendered": true,
+          "fingerprint": "body=1102b33f2413fc6d8ea22ba6db1eca7f1b2bdbbe38d7d3557114170e5c270b21",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Системное сообщение запрещает LLM добавлять новые факты, что делает невозможным замену неверного утверждения на верное, если единственное корректное действие — замена."
+          },
+          "language": "ru"
+        },
+        "changeGuide": {
+          "body": "Два инварианта:\n1. Системное сообщение содержит фразу `Do not add new facts: only remove or minimally rephrase the statements named in the violations` — если изменить это сообщение, разрешив добавление, LLM сможет заменять неверные утверждения на верные, но может внести необоснованные факты без контекста.\n2. Условие `if (!section || !block) { continue; }` пропускает секции и блоки, отсутствующие в `result`; при удалении этого условия запрос может содержать блоки с неопределёнными значениями, что приведёт к невалидному JSON.\n\nТесты: не видны.",
+          "rendered": true,
+          "fingerprint": "body=1102b33f2413fc6d8ea22ba6db1eca7f1b2bdbbe38d7d3557114170e5c270b21,deps=e2b4923250b2f1de4d6aafa830ddbfe79a28013ee0b9076c708ffec12df15953,usage=bcc22cf5fcdb0fdd2052a5e4f5c53cf6443b1f86cd8bf4376211e8b447831606,placement=3b3d3a543ef994d1c2211e80f60a809f18babaf8e65e46794632b2f7cd56a9b3",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Два инварианта: системное сообщение запрещает добавление фактов, и условие пропускает отсутствующие в result блоки."
+          },
+          "language": "ru"
+        }
+      },
+      "depDocsFingerprint": "d0de4d83224197125fa18f75eb1644c43b0f6abf9aa9a173f61b7ed3de00cea5",
+      "generationHistory": [
+        {
+          "runId": "81af40e5-cc8b-405f-bf3c-2e2e5fe4f8dc",
+          "timestamp": "2026-06-11T18:49:38.414Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "c1327f82-e935-4ac7-9328-7b82bc1dfe0c",
+          "timestamp": "2026-06-11T21:33:07.356Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "1205729d-eb3a-4c33-8f3d-3875d9bc9951",
+          "timestamp": "2026-06-12T15:49:56.150Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "ea3df4eb-2d04-4e4c-a68a-273c075c8aa6",
+          "timestamp": "2026-06-13T20:47:08.268Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "ea3df4eb-2d04-4e4c-a68a-273c075c8aa6",
+          "timestamp": "2026-06-13T20:48:59.292Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d25b1641-f184-434f-b438-c630be3cc8f4",
+          "timestamp": "2026-06-16T19:29:34.793Z",
+          "command": "force-regenerate file-pipeline",
+          "intent": "Перегенерировать документацию file-pipeline после изменения verifier source. Описать факты: source верификатора состоит из среза сущности, релевантных imports/header и достижимых private top-level helpers по прямым вызовам; helper context ограничен depth/cap; соседние exported entities исключены.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "d25b1641-f184-434f-b438-c630be3cc8f4",
+          "timestamp": "2026-06-16T19:32:57.613Z",
+          "command": "force-regenerate file-pipeline",
+          "intent": "Перегенерировать документацию file-pipeline после изменения verifier source. Описать факты: source верификатора состоит из среза сущности, релевантных imports/header и достижимых private top-level helpers по прямым вызовам; helper context ограничен depth/cap; соседние exported entities исключены.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "8a484781-5d84-4a85-8396-67088b9b8d73",
+          "timestamp": "2026-06-16T19:37:40.194Z",
+          "command": "quality-refill file-pipeline",
+          "intent": "Заполнить только пустые required blocks. Для invariants писать проверяемые контракты из кода: условия пустого результата, детерминированный порядок, caps, отсутствие I/O, сохранение количества callers, форма ChatCompletionInput. Для dependencies писать только реальные direct deps, по одной зависимости на строку. Не писать общие оценки.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "25edcfe6-910c-4993-8cc6-4eabb2b2d4d5",
+          "timestamp": "2026-06-19T16:25:57.075Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:25:43.561Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "8494bec7-02ea-49ea-8a23-080e830cf6ef",
+          "timestamp": "2026-07-03T18:00:25.654Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    },
+    "symbol:src/llm/file-pipeline.ts#verifyBlocksAgainstDeps": {
+      "heading": "verifyBlocksAgainstDeps",
+      "depth": 1,
+      "anchor": "verifyblocksagainstdeps",
+      "owns": [
+        "symbol:src/llm/file-pipeline.ts#verifyBlocksAgainstDeps"
+      ],
+      "depends": [
+        "symbol:src/llm/doc-verifier.ts#buildVerifyRequest",
+        "symbol:src/llm/doc-verifier.ts#parseVerifyResponse",
+        "symbol:src/llm/file-pipeline.ts#collectDependencyDocs",
+        "symbol:src/service/codelore-service.ts#CodeloreService"
+      ],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.gateDepDocsCascade"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Проверяет, что существующие тексты блоков не противоречат документации файловых зависимостей, и возвращает идентификаторы секций, прошедших проверку.",
+          "rendered": true,
+          "fingerprint": "signature=51057d9212493339da2e5c783a12ba4095fb5acc541f7b556e1340da952f7dcb,placement=26f75ebed2a6c702e851abe3fe9c7d5da323593d5ee9075aedae13db2b8486cc",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Проверяет, что существующие тексты блоков не противоречат документации файловых зависимостей, и возвращает идентификаторы секций, прошедших проверку."
+          }
+        },
+        "responsibility": {
+          "body": "- Не изменяет блоки, не генерирует новые — только верифицирует уже существующие тексты на соответствие документации зависимостей.\n- Для каждого файла с целевыми секциями загружает его исходный код с диска, собирает документацию файловых зависимостей через `collectDependencyDocs` и формирует `VerifySectionInput` с исходным кодом каждой сущности (через `verificationSource`, включающий helper-контекст).\n- Передаёт LLM запрос через `provider.complete` с помощью `buildVerifyRequest` и извлекает противоречия через `parseVerifyResponse`.\n- Возвращает `Set<string>` идентификаторов секций, для которых не найдено противоречий; не указывает, какие блоки нарушены.",
+          "rendered": true,
+          "fingerprint": "signature=51057d9212493339da2e5c783a12ba4095fb5acc541f7b556e1340da952f7dcb,deps=bd6bc3c3ae8e80a12fda7e0e9654118eb231654009ba6fbc6191eb8591be80b0,usage=46eaf60c7cab95f3a837c65a65fe1d5b557a0374fe8a757112b1a94c58c06bca",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Использование `verificationSource` с helper-контекстом для формирования VerifySectionInput"
+          }
+        },
+        "invariants": {
+          "body": "- Для файла без зависимостей (пустой результат `collectDependencyDocs`) функция не выполняет LLM-запрос и не включает секции этого файла в возвращаемое множество.\n- Порядок обработки файлов детерминирован: итерация по записям `Map`, сформированному из входного массива `targets`.\n- Всегда возвращает `Set<string>` (не `null`, не `undefined`), даже если все секции отвергнуты.\n- Загружает исходный код с диска при каждом вызове; ошибка чтения файла пробрасывается вызывающему.",
+          "rendered": true,
+          "fingerprint": "signature=51057d9212493339da2e5c783a12ba4095fb5acc541f7b556e1340da952f7dcb,body=d454e0d32bef71d62e3cb0a9edec910617091d5ab972dc225edff349d681450b",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Загрузка кода с диска, проброс ошибок"
+          }
+        },
+        "dependencies": {
+          "body": "Использует `buildVerifyRequest` и `parseVerifyResponse` из `src/llm/doc-verifier.ts`, `collectDependencyDocs`, `verificationSource`, `sourceFileFromText`, `sameFileHelperContext`, `fileOutline`, `composeVerifySource` (все из этого файла), и `CodeloreService` из `src/service/codelore-service.ts`.",
+          "rendered": true,
+          "fingerprint": "deps=bd6bc3c3ae8e80a12fda7e0e9654118eb231654009ba6fbc6191eb8591be80b0",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Для каждого файла с целевыми секциями собирает документацию зависимостей через collectDependencyDocs и загружает исходный код с диска, затем передаёт LLM запрос через buildVerifyRequest и извлекает противоречия через parseVerifyResponse."
+          },
+          "language": "ru"
+        },
+        "workflows": {
+          "body": "Вызывается из `CodeloreService.gateDepDocsCascade` (`src/service/codelore-service.ts`) с целями — секциями и их блоками, подлежащими верификации. Функция группирует цели по файлу их владельца, для каждого файла собирает документацию прямых зависимостей через `collectDependencyDocs`. Если зависимости есть, загружает исходный код файла с диска (`readFile`), для каждой целевой секции формирует `VerifySectionInput` с исходным кодом сущности (через `verificationSource`, включающий helper-контекст) и передаёт запрос в LLM через `buildVerifyRequest` плюс `provider.complete`. Извлекает противоречия через `parseVerifyResponse`. Возвращает множество идентификаторов секций, для которых не найдено противоречий.",
+          "rendered": true,
+          "fingerprint": "body=d454e0d32bef71d62e3cb0a9edec910617091d5ab972dc225edff349d681450b,deps=bd6bc3c3ae8e80a12fda7e0e9654118eb231654009ba6fbc6191eb8591be80b0",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается из CodeloreService.gateDepDocsCascade; группирует цели по файлу, для каждого файла собирает зависимости, загружает исходный код, формирует VerifySectionInput и вызывает LLM через provider.complete."
+          },
+          "language": "ru"
+        },
+        "limitations": {
+          "body": "Условие `if (dependencyDocs.length === 0) { continue; }` пропускает файлы без зависимостей, не выполняя для них LLM-верификацию, т.е. такая секция гарантированно не попадает в возвращаемое множество. Отсутствие ретраев: при ошибке LLM-запроса (`provider.complete`) ошибка пробрасывается без повторных попыток. Загрузка исходного кода с диска при каждом вызове через `const fileSource = await readFile(join(service.config.rootDir, file), \"utf8\")`; ошибка чтения файла пробрасывается вызывающему. Результат — только множество идентификаторов секций, а не конкретных блоков: функция не указывает, какие блоки какой секции нарушены.",
+          "rendered": true,
+          "fingerprint": "body=d454e0d32bef71d62e3cb0a9edec910617091d5ab972dc225edff349d681450b",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Файлы без зависимостей пропускаются без LLM-верификации; отсутствуют ретраи при ошибке LLM; загрузка исходного кода с диска при каждом вызове без кэширования; возвращает только идентификаторы секций, а не конкретных блоков."
+          },
+          "language": "ru"
+        },
+        "changeGuide": {
+          "body": "Два инварианта:\n1. Условие `if (dependencyDocs.length === 0) { continue; }` — при его удалении функция будет вызывать LLM с пустым массивом зависимостей, что приведёт к лишним запросам, подтверждающим все блоки.\n2. Вызов `readFile` с `join(service.config.rootDir, file)` пробрасывает ошибки чтения; при добавлении `try-catch` или замене на другой метод загрузки (например, кэширующий) изменится поведение при отсутствии файла.\n\nТесты: не видны.",
+          "rendered": true,
+          "fingerprint": "body=d454e0d32bef71d62e3cb0a9edec910617091d5ab972dc225edff349d681450b,deps=bd6bc3c3ae8e80a12fda7e0e9654118eb231654009ba6fbc6191eb8591be80b0,usage=46eaf60c7cab95f3a837c65a65fe1d5b557a0374fe8a757112b1a94c58c06bca,placement=26f75ebed2a6c702e851abe3fe9c7d5da323593d5ee9075aedae13db2b8486cc",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Два инварианта: пропуск файлов без зависимостей и пробрасывание ошибок чтения файла."
+          },
+          "language": "ru"
+        }
+      },
+      "depDocsFingerprint": "d0de4d83224197125fa18f75eb1644c43b0f6abf9aa9a173f61b7ed3de00cea5",
+      "generationHistory": [
+        {
+          "runId": "1372adf6-4062-4467-b8d3-6610906819f7",
+          "timestamp": "2026-06-13T20:26:07.112Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "1372adf6-4062-4467-b8d3-6610906819f7",
+          "timestamp": "2026-06-13T20:32:16.317Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "ea3df4eb-2d04-4e4c-a68a-273c075c8aa6",
+          "timestamp": "2026-06-13T20:47:08.271Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "ea3df4eb-2d04-4e4c-a68a-273c075c8aa6",
+          "timestamp": "2026-06-13T20:48:59.295Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "fa92cf6f-4796-4e31-ac2b-e3cc14e6ac1b",
+          "timestamp": "2026-06-16T17:10:13.322Z",
+          "command": "document",
+          "intent": "Примерная регенерация после правки verifier source: обновить документацию только для file-pipeline.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "fa92cf6f-4796-4e31-ac2b-e3cc14e6ac1b",
+          "timestamp": "2026-06-16T17:13:45.565Z",
+          "command": "document",
+          "intent": "Примерная регенерация после правки verifier source: обновить документацию только для file-pipeline.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ],
+          "manualReviewNeeded": true
+        },
+        {
+          "runId": "8d27edf3-ce6d-4f08-93be-ff1195fc7032",
+          "timestamp": "2026-06-16T17:23:14.216Z",
+          "command": "update",
+          "intent": "Обновить только tombstoned блок dependencies для verifyBlocksAgainstDeps. Описать зависимости строками из directDeps; не менять остальной текст без необходимости.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies"
+          ]
+        },
+        {
+          "runId": "d25b1641-f184-434f-b438-c630be3cc8f4",
+          "timestamp": "2026-06-16T19:29:34.791Z",
+          "command": "force-regenerate file-pipeline",
+          "intent": "Перегенерировать документацию file-pipeline после изменения verifier source. Описать факты: source верификатора состоит из среза сущности, релевантных imports/header и достижимых private top-level helpers по прямым вызовам; helper context ограничен depth/cap; соседние exported entities исключены.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "d25b1641-f184-434f-b438-c630be3cc8f4",
+          "timestamp": "2026-06-16T19:32:57.610Z",
+          "command": "force-regenerate file-pipeline",
+          "intent": "Перегенерировать документацию file-pipeline после изменения verifier source. Описать факты: source верификатора состоит из среза сущности, релевантных imports/header и достижимых private top-level helpers по прямым вызовам; helper context ограничен depth/cap; соседние exported entities исключены.",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "25edcfe6-910c-4993-8cc6-4eabb2b2d4d5",
+          "timestamp": "2026-06-19T16:25:57.085Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:25:43.562Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "8494bec7-02ea-49ea-8a23-080e830cf6ef",
+          "timestamp": "2026-07-03T18:00:25.657Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    },
+    "symbol:src/llm/file-pipeline.ts#privateHelperDepIds": {
+      "heading": "privateHelperDepIds",
+      "depth": 1,
+      "anchor": "privatehelperdepids",
+      "owns": [
+        "symbol:src/llm/file-pipeline.ts#privateHelperDepIds"
+      ],
+      "depends": [],
+      "usedBy": [],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Создаёт синтетические идентификаторы для приватных хелперов, чтобы они проходили валидацию рефов, генерируя строки вида `symbol:путь#имя` для каждого хелпера, достижимого из данной сущности.",
+          "rendered": true,
+          "fingerprint": "signature=31569f7e85bbd30f023a918e501de008a1c4cc49b9918b2db0d66c5dc61143aa,placement=6526ed8671037af6efb2874afe3be5f3e7764a4304a5bf73a5bebef53b633a5d",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Создаёт синтетические идентификаторы для приватных хелперов, чтобы они проходили валидацию рефов."
+          }
+        },
+        "responsibility": {
+          "body": "Делегирует поиск достижимых приватных хелперов в `reachablePrivateHelpers` и преобразует каждый результат в строку `symbol:${entity.path}#${helper.name}`.\nВозвращает пустой массив, если у сущности нет приватных хелперов.",
+          "rendered": true,
+          "fingerprint": "signature=31569f7e85bbd30f023a918e501de008a1c4cc49b9918b2db0d66c5dc61143aa,deps=1d78fbbbcf09d07889a45d3bda4113924446c4edaaff2d53df590f66ad5d6c3c,usage=1d78fbbbcf09d07889a45d3bda4113924446c4edaaff2d53df590f66ad5d6c3c",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Делегирует поиск хелперов в `reachablePrivateHelpers` и формирует строки `symbol:путь#имя`."
+          }
+        },
+        "invariants": {
+          "body": "Возвращаемый массив пуст, если у сущности нет достижимых приватных хелперов.\nКаждый идентификатор уникален и имеет формат `symbol:${entity.path}#${helper.name}`.\nПорядок элементов соответствует порядку обхода `reachablePrivateHelpers`.",
+          "rendered": true,
+          "fingerprint": "signature=31569f7e85bbd30f023a918e501de008a1c4cc49b9918b2db0d66c5dc61143aa,body=05ae4a5c7252ee5bfc8b525e5b4b6207a42855f25c9aaf951e4eb2b546737163",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Возвращает пустой массив, если нет достижимых хелперов; каждый идентификатор уникален."
+          }
+        },
+        "dependencies": {
+          "body": "Зависит от внутренних функций reachablePrivateHelpers и sourceFileFromText, определённых в этом же файле, для поиска приватных хелперов и создания SourceFile.",
+          "rendered": true,
+          "fingerprint": "deps=1d78fbbbcf09d07889a45d3bda4113924446c4edaaff2d53df590f66ad5d6c3c",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция преобразует приватные хелперы в синтетические идентификаторы для прохождения валидации рефов."
+          }
+        },
+        "limitations": {
+          "body": "Возвращает пустой массив, если у сущности нет достижимых приватных хелперов; идентификаторы генерируются только для хелперов, достижимых через reachablePrivateHelpers с ограничением глубины VERIFY_HELPER_CONTEXT_DEPTH, что может не включить все приватные хелперы файла.",
+          "rendered": true,
+          "fingerprint": "body=05ae4a5c7252ee5bfc8b525e5b4b6207a42855f25c9aaf951e4eb2b546737163",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Глубина поиска хелперов ограничена константой VERIFY_HELPER_CONTEXT_DEPTH, равной 2."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "8494bec7-02ea-49ea-8a23-080e830cf6ef",
+          "timestamp": "2026-07-03T17:53:42.126Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "8494bec7-02ea-49ea-8a23-080e830cf6ef",
+          "timestamp": "2026-07-03T18:00:25.633Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "d0de4d83224197125fa18f75eb1644c43b0f6abf9aa9a173f61b7ed3de00cea5"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

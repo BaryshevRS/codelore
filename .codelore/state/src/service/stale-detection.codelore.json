@@ -1,0 +1,2103 @@
+{
+  "version": 4,
+  "docPath": "src/service/stale-detection.codelore.md",
+  "generatedAt": "2026-07-03T16:25:43.502Z",
+  "sectionOrder": [
+    "symbol:src/service/stale-detection.ts#targetBlocksFromTombstones",
+    "symbol:src/service/stale-detection.ts#addTargetBlock",
+    "symbol:src/service/stale-detection.ts#filterSectionsByScope",
+    "symbol:src/service/stale-detection.ts#sourcePathFromEntityId",
+    "symbol:src/service/stale-detection.ts#collectDepDocStaleBlocks",
+    "symbol:src/service/stale-detection.ts#mergeStaleBlocks",
+    "symbol:src/service/stale-detection.ts#collectStaleBlocks",
+    "symbol:src/service/stale-detection.ts#collectTombstonedBlocks",
+    "symbol:src/service/stale-detection.ts#deletedOwnedEntityBlocks",
+    "symbol:src/service/stale-detection.ts#staleReasonFor",
+    "symbol:src/service/stale-detection.ts#staleBlockInfoFor",
+    "symbol:src/service/stale-detection.ts#tombstonedBlockInfoFor",
+    "symbol:src/service/stale-detection.ts#buildRewriteContextBundle",
+    "symbol:src/service/stale-detection.ts#refreshStaleResult",
+    "symbol:src/service/stale-detection.ts#collectLanguageStaleBlocks"
+  ],
+  "sections": {
+    "symbol:src/service/stale-detection.ts#targetBlocksFromTombstones": {
+      "heading": "targetBlocksFromTombstones",
+      "depth": 1,
+      "anchor": "targetblocksfromtombstones",
+      "owns": [
+        "symbol:src/service/stale-detection.ts#targetBlocksFromTombstones"
+      ],
+      "depends": [
+        "symbol:src/service/stale-detection.ts#addTargetBlock"
+      ],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.fixStaleDocs"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Преобразует массив записей о \"похороненных\" блоках в карту, группируя идентификаторы блоков по идентификатору секции для последующей перезаписи.",
+          "rendered": true,
+          "fingerprint": "signature=d094833280442b39f4a089fae681918c2a0be40ef2fcd6e7f7d27a97c2124c7b,placement=b058ab21fabe86f77d7a8b151da18bf627aec35da1993b68c10406f60831961b",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Преобразует массив tombstoned в карту."
+          }
+        },
+        "responsibility": {
+          "body": "- Перебирает переданные записи tombstoned.\n- Делегирует вставку в карту функции `addTargetBlock`.\n- Возвращает новую `Map` — не мутирует внешнее состояние.",
+          "rendered": true,
+          "fingerprint": "signature=d094833280442b39f4a089fae681918c2a0be40ef2fcd6e7f7d27a97c2124c7b,deps=bde467c6dcaed666f0d5f8720b047957d24a1bd305b6bbcb49140fe0122c400e,usage=c4c2d31d881301b352c85de9b64062f2458a61da7354c973a2630d575593f317",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Делегирует addTargetBlock, не мутирует внешнее."
+          }
+        },
+        "invariants": {
+          "body": "- Каждый раздел сопоставляется с массивом уникальных `BlockId` (дубликаты не допускаются).\n- Неизвестные идентификаторы блоков молча пропускаются через `addTargetBlock`.",
+          "rendered": true,
+          "fingerprint": "signature=d094833280442b39f4a089fae681918c2a0be40ef2fcd6e7f7d27a97c2124c7b,body=854fabd5b484caec665742deddfc85e90b4d9d1f1afed42baba632a1ad40f01b",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Уникальность blockId, пропуск неизвестных."
+          }
+        },
+        "dependencies": {
+          "body": "`addTargetBlock` (внутренняя) — добавляет блок в карту.",
+          "rendered": false,
+          "fingerprint": "deps=bde467c6dcaed666f0d5f8720b047957d24a1bd305b6bbcb49140fe0122c400e",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0,
+            "specificity": 0.25,
+            "novelFact": "`addTargetBlock` (внутренняя) — добавляет блок в карту."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `CodeloreService.fixStaleDocs` для преобразования массива `tombstoned` (списка похороненных блоков) в карту `Map<sectionId, BlockId[]>`. Каждая запись передаётся в `addTargetBlock`, которая вставляет идентификатор блока в карту или пропускает неизвестные блоки. Результат используется для генерации документации только целевых блоков.",
+          "rendered": true,
+          "fingerprint": "body=854fabd5b484caec665742deddfc85e90b4d9d1f1afed42baba632a1ad40f01b,deps=bde467c6dcaed666f0d5f8720b047957d24a1bd305b6bbcb49140fe0122c400e",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается из `CodeloreService.fixStaleDocs` для преобразования массива `tombstoned` (списка похороненных блоков) в карту `Map<sectionId, BlockId[]>`."
+          }
+        },
+        "limitations": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=854fabd5b484caec665742deddfc85e90b4d9d1f1afed42baba632a1ad40f01b"
+        },
+        "changeGuide": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=854fabd5b484caec665742deddfc85e90b4d9d1f1afed42baba632a1ad40f01b,deps=bde467c6dcaed666f0d5f8720b047957d24a1bd305b6bbcb49140fe0122c400e,usage=c4c2d31d881301b352c85de9b64062f2458a61da7354c973a2630d575593f317,placement=b058ab21fabe86f77d7a8b151da18bf627aec35da1993b68c10406f60831961b"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.811Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.061Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "8dc7f5cfe22b47bac5ae896d3b479fdafc7e90e74f0deb483403e8eca53fbee2"
+    },
+    "symbol:src/service/stale-detection.ts#addTargetBlock": {
+      "heading": "addTargetBlock",
+      "depth": 1,
+      "anchor": "addtargetblock",
+      "owns": [
+        "symbol:src/service/stale-detection.ts#addTargetBlock"
+      ],
+      "depends": [
+        "symbol:src/service/helpers.ts#isKnownBlockId"
+      ],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.generateDocsForScope",
+        "symbol:src/service/stale-detection.ts#targetBlocksFromTombstones"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Добавляет идентификатор блока в список указанного раздела внутри карты целей, исключая дубликаты и неизвестные блоки.",
+          "rendered": true,
+          "fingerprint": "signature=660216a6236a716903ee1cfd6c53cbd0a4af5838c8cf591c19412019384f7d8b,placement=7bef3df6eba8b8c3e67f5704126cd0cc655657f6ebb318076223213f55bd442a",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Добавляет в карту с проверками."
+          }
+        },
+        "responsibility": {
+          "body": "- Мутирует существующую `Map` на месте.\n- Отфильтровывает неизвестные идентификаторы блоков с помощью `isKnownBlockId`.\n- Предотвращает дублирование записи в пределах одного раздела.",
+          "rendered": true,
+          "fingerprint": "signature=660216a6236a716903ee1cfd6c53cbd0a4af5838c8cf591c19412019384f7d8b,deps=6e8139665fde3cb891afbec30c81447d801d2279ffb900854b7b0125ce95e42d,usage=69152ab0b3cbf5032ad54e88f17f61f9be4bbf6fec418375968e2d2741e49f08",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Мутирует, пропускает неизвестные, не дублирует."
+          }
+        },
+        "invariants": {
+          "body": "- Если `blockId` не является известным идентификатором блока, функция ничего не делает.\n- После вызова `targets` для данного раздела будет содержать `blockId` не более одного раза.",
+          "rendered": true,
+          "fingerprint": "signature=660216a6236a716903ee1cfd6c53cbd0a4af5838c8cf591c19412019384f7d8b,body=36c14f562378afb202eefbd0ae7adc634f6cccbc5c5f1dbb43e1e72426bfe8fa",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Неизвестный blockId → бездействие, не более одного вхождения."
+          }
+        },
+        "dependencies": {
+          "body": "`isKnownBlockId` (`./helpers.js`) — проверяет, что `blockId` является известным идентификатором блока.",
+          "rendered": true,
+          "fingerprint": "deps=6e8139665fde3cb891afbec30c81447d801d2279ffb900854b7b0125ce95e42d",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "`isKnownBlockId` (`./helpers.js`) — проверяет, что `blockId` является известным идентификатором блока."
+          }
+        },
+        "workflows": {
+          "body": "1. Вызывается из `CodeloreService.generateDocsForScope` при построении `targetBlocksBySection`: для каждого похороненного блока вызывает `addTargetBlock` в цикле.\n2. Вызывается из `targetBlocksFromTombstones` для каждой записи массива `tombstoned`.\nМутирует переданную карту `targets`, вставляя `blockId` в массив для `sectionId` при условии, что блок известен и ещё не добавлен.",
+          "rendered": true,
+          "fingerprint": "body=36c14f562378afb202eefbd0ae7adc634f6cccbc5c5f1dbb43e1e72426bfe8fa,deps=6e8139665fde3cb891afbec30c81447d801d2279ffb900854b7b0125ce95e42d",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "1."
+          }
+        },
+        "limitations": {
+          "body": "Не проверяет, что переданный `sectionId` существует в индексе документации — вызывающий гарантирует корректность.\nНе обрабатывает случай, когда `targets` уже содержит секцию с другим типом (всегда ожидается массив `BlockId[]`).",
+          "rendered": true,
+          "fingerprint": "body=36c14f562378afb202eefbd0ae7adc634f6cccbc5c5f1dbb43e1e72426bfe8fa",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не проверяет, что переданный `sectionId` существует в индексе документации — вызывающий гарантирует корректность."
+          }
+        },
+        "changeGuide": {
+          "body": "- Неизвестные идентификаторы блоков игнорируются: конструкция `if (!isKnownBlockId(blockId)) { return; }`.\n- Дубликаты в пределах одной секции предотвращаются: условие `if (!existing.includes(blockId))` перед вставкой.",
+          "rendered": true,
+          "fingerprint": "body=36c14f562378afb202eefbd0ae7adc634f6cccbc5c5f1dbb43e1e72426bfe8fa,deps=6e8139665fde3cb891afbec30c81447d801d2279ffb900854b7b0125ce95e42d,usage=69152ab0b3cbf5032ad54e88f17f61f9be4bbf6fec418375968e2d2741e49f08,placement=7bef3df6eba8b8c3e67f5704126cd0cc655657f6ebb318076223213f55bd442a",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Неизвестные идентификаторы блоков игнорируются: конструкция `if (!isKnownBlockId(blockId)) { return; }`."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.812Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.068Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "8dc7f5cfe22b47bac5ae896d3b479fdafc7e90e74f0deb483403e8eca53fbee2"
+    },
+    "symbol:src/service/stale-detection.ts#filterSectionsByScope": {
+      "heading": "filterSectionsByScope",
+      "depth": 1,
+      "anchor": "filtersectionsbyscope",
+      "owns": [
+        "symbol:src/service/stale-detection.ts#filterSectionsByScope"
+      ],
+      "depends": [
+        "symbol:src/service/stale-detection.ts#sourcePathFromEntityId"
+      ],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.reconcileScopedDocStates",
+        "symbol:src/service/codelore-service.ts#CodeloreService.refreshStaleDocs",
+        "symbol:src/service/codelore-service.ts#CodeloreService.translateScope"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Отфильтровывает секции документации, соответствующие заданной области видимости (идентификаторы секций, пути файлов или префиксы путей).",
+          "rendered": true,
+          "fingerprint": "signature=ce23a0eaeffa03ab51bcd56bef35e88fc8d5b24521af146fbf8339a5f517ccb8,placement=7b2ad5929fa541e486ec599c12e17659f0f1a737b7b96eb8aeff3481b1449059",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Фильтрует секции по scope."
+          }
+        },
+        "responsibility": {
+          "body": "- Возвращает неизменённый массив секций при отсутствии scope или пустых критериях.\n- Проверяет совпадение секции по её идентификатору с элементами `scope.sectionIds`.\n- Проверяет совпадение путей файлов сущностей секции (через `entities[ownId]?.path` с запасным вариантом `sourcePathFromEntityId`) с элементами `scope.files`.\n- Проверяет, начинается ли путь любого файла сущности секции с префикса из `scope.paths`.",
+          "rendered": true,
+          "fingerprint": "signature=ce23a0eaeffa03ab51bcd56bef35e88fc8d5b24521af146fbf8339a5f517ccb8,deps=49e21ee45a250a452cdc55df7135e36455b303f18c2b6d2abef991320b9f3bf5,usage=ace08ab99e2155caefcc847a27e457a94d173ae8e2619f84aaca22cc600f07f8",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Поддерживает три вида фильтрации: по идентификатору секции, по пути файла и по префиксу пути."
+          },
+          "language": "ru"
+        },
+        "invariants": {
+          "body": "- Возвращает новый массив — исходный `sections` не мутируется.\n- Секция считается подходящей, если путь хотя бы одной из её принадлежащих сущностей совпадает с файлом из `scope.files` или начинается с любого префикса из `scope.paths`.",
+          "rendered": true,
+          "fingerprint": "signature=ce23a0eaeffa03ab51bcd56bef35e88fc8d5b24521af146fbf8339a5f517ccb8,body=027f996736b6772471ef212d9f73d83f2ae6e54ad647de57d53d5919f677cd7a",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не мутирует, совпадение по owned path."
+          }
+        },
+        "dependencies": {
+          "body": "`sourcePathFromEntityId` (из того же файла) — извлекает путь к файлу из идентификатора сущности для сопоставления с `scope.files` и `scope.paths`.",
+          "rendered": true,
+          "fingerprint": "deps=49e21ee45a250a452cdc55df7135e36455b303f18c2b6d2abef991320b9f3bf5",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "`sourcePathFromEntityId` (из того же файла) — извлекает путь к файлу из идентификатора сущности для сопоставления с `scope.files` и `scope.paths`."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `CodeloreService.refreshStaleDocs` для ограничения набора секций документации переданным scope. Применяет три проверки: совпадение по `sectionId`, по пути файла принадлежащей сущности в `scope.files`, по префиксу пути в `scope.paths`. Возвращает отфильтрованный массив.",
+          "rendered": true,
+          "fingerprint": "body=027f996736b6772471ef212d9f73d83f2ae6e54ad647de57d53d5919f677cd7a,deps=49e21ee45a250a452cdc55df7135e36455b303f18c2b6d2abef991320b9f3bf5",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается из `CodeloreService.refreshStaleDocs` для ограничения набора секций документации переданным scope."
+          }
+        },
+        "limitations": {
+          "body": "Сопоставление по пути файла зависит от `sourcePathFromEntityId`, который поддерживает только идентификаторы с префиксами `file:` и `symbol:`; сущности с другими префиксами не участвуют в фильтрации.\nПроверка по префиксам выполняется через `path === prefix || path.startsWith(prefix + \"/\")` — не учитывает регистр и не нормализует разделители путей.",
+          "rendered": true,
+          "fingerprint": "body=027f996736b6772471ef212d9f73d83f2ae6e54ad647de57d53d5919f677cd7a",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Сопоставление по пути файла зависит от `sourcePathFromEntityId`, который поддерживает только идентификаторы с префиксами `file:` и `symbol:`; сущности с другими префиксами не участвуют в фильтрации."
+          }
+        },
+        "changeGuide": {
+          "body": "- При отсутствии `scope` или пустых критериях все секции возвращаются без фильтрации — это обеспечивается условием `if (!scope || (!scope.sectionIds?.length && !scope.files?.length && !scope.paths?.length)) { return sections; }`.\n- Для сопоставления с `scope.files` используется `Set` для константного времени проверки принадлежности: `const files = new Set(scope.files ?? []);` и `ownedPaths.some((path) => files.has(path))`.",
+          "rendered": true,
+          "fingerprint": "body=027f996736b6772471ef212d9f73d83f2ae6e54ad647de57d53d5919f677cd7a,deps=49e21ee45a250a452cdc55df7135e36455b303f18c2b6d2abef991320b9f3bf5,usage=ace08ab99e2155caefcc847a27e457a94d173ae8e2619f84aaca22cc600f07f8,placement=7b2ad5929fa541e486ec599c12e17659f0f1a737b7b96eb8aeff3481b1449059",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Ранний возврат при пустом scope предотвращает фильтрацию, возвращая все секции."
+          },
+          "language": "ru"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.813Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.070Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:19:56.846Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:25:43.502Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "e96d18680381084d7bd12718f9f15473da635a298d9d7a668156acbb42574ca4"
+    },
+    "symbol:src/service/stale-detection.ts#sourcePathFromEntityId": {
+      "heading": "sourcePathFromEntityId",
+      "depth": 1,
+      "anchor": "sourcepathfromentityid",
+      "owns": [
+        "symbol:src/service/stale-detection.ts#sourcePathFromEntityId"
+      ],
+      "depends": [],
+      "usedBy": [
+        "symbol:src/service/stale-detection.ts#filterSectionsByScope"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Извлекает путь к файлу из строки идентификатора сущности для префиксов `file:` и `symbol:`.",
+          "rendered": true,
+          "fingerprint": "signature=15a53689f6f36c5f5e7510556f7885710e2d3114745a3b505d17b0cf8bed590b,placement=cdec4b8351000bda884c6b987343916f0a614601a67875b4550003e757d7c39a",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Извлекает путь из id."
+          }
+        },
+        "responsibility": {
+          "body": "- Для префикса `file:` возвращает всё, что после `file:`.\n- Для префикса `symbol:` извлекает часть до разделителя `#`.\n- Возвращает `undefined` для любого другого префикса.",
+          "rendered": true,
+          "fingerprint": "signature=15a53689f6f36c5f5e7510556f7885710e2d3114745a3b505d17b0cf8bed590b,deps=207cc56ef37a48065095cff5a152f2a089f94c6306d469d1e0078265fe2caecb,usage=8d4c976d704ffb1344e258ad399bf20efad1f6ac6686929eb8e8c8c2bfaa093f",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Только file: и symbol:, остальное undefined."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращает `undefined`, если идентификатор сущности не начинается с `file:` или `symbol:`.\n- Для `symbol:` возвращает `undefined`, если часть пути пуста.",
+          "rendered": true,
+          "fingerprint": "signature=15a53689f6f36c5f5e7510556f7885710e2d3114745a3b505d17b0cf8bed590b,body=a3fb678394941244420b0431e20666947c7e79d8d945732d62304cac63ddf9fc",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "undefined для нераспознанного префикса, пустой путь для symbol:."
+          }
+        },
+        "dependencies": {
+          "body": "Нет внешних зависимостей.",
+          "rendered": false,
+          "fingerprint": "deps=207cc56ef37a48065095cff5a152f2a089f94c6306d469d1e0078265fe2caecb",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Нет внешних зависимостей."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `filterSectionsByScope` для извлечения пути файла из идентификатора сущности при отсутствии прямого поля `path`. Также используется в рантайме модулями `code-indexer`, `doc-validator` и `file-pipeline` для обратного преобразования идентификаторов (`file:`, `symbol:`) в путь к файлу.",
+          "rendered": true,
+          "fingerprint": "body=a3fb678394941244420b0431e20666947c7e79d8d945732d62304cac63ddf9fc,deps=207cc56ef37a48065095cff5a152f2a089f94c6306d469d1e0078265fe2caecb",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается из `filterSectionsByScope` для извлечения пути файла из идентификатора сущности при отсутствии прямого поля `path`."
+          }
+        },
+        "limitations": {
+          "body": "Обрабатывает только идентификаторы с префиксами `file:` и `symbol:`; для всех остальных возвращает `undefined`.\nДля `symbol:` извлекает путь как часть до первого символа `#` — не подходит, если в пути содержится `#` (маловероятно для файловых путей).",
+          "rendered": true,
+          "fingerprint": "body=a3fb678394941244420b0431e20666947c7e79d8d945732d62304cac63ddf9fc",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Обрабатывает только идентификаторы с префиксами `file:` и `symbol:`; для всех остальных возвращает `undefined`."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.815Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.073Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "8dc7f5cfe22b47bac5ae896d3b479fdafc7e90e74f0deb483403e8eca53fbee2"
+    },
+    "symbol:src/service/stale-detection.ts#collectDepDocStaleBlocks": {
+      "heading": "collectDepDocStaleBlocks",
+      "depth": 1,
+      "anchor": "collectdepdocstaleblocks",
+      "owns": [
+        "symbol:src/service/stale-detection.ts#collectDepDocStaleBlocks"
+      ],
+      "depends": [
+        "symbol:src/llm/file-pipeline.ts#collectDependencyDocs",
+        "symbol:src/llm/file-pipeline.ts#dependencyDocsFingerprint",
+        "symbol:src/service/helpers.ts#isKnownBlockId"
+      ],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.refreshStaleDocs"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Обнаруживает секции, чья документация зависимостей изменилась, что приводит к устареванию непропагирующих блоков.",
+          "rendered": true,
+          "fingerprint": "signature=724a2252be55f20afc59f50baa61805894fdcd01008bf94eba8809dbf4c25aad,placement=18f7e398329c599d1594e3fc9b29c4e0963385c8864bf1ec54986a62da0f763d",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Устаревание по depDocs."
+          }
+        },
+        "responsibility": {
+          "body": "- Обрабатывает только секции, у которых есть сохранённый `depDocsFingerprint`.\n- Сравнивает текущий отпечаток зависимостей с сохранённым, используя `dependencyDocsFingerprint`.\n- Пропускает блоки, которые уже устарели, пусты, или являются пропагирующими (`PROPAGATING_BLOCKS`).\n- Сообщает об устаревании с `changedFacets: [\"depDocs\"]`.",
+          "rendered": true,
+          "fingerprint": "signature=724a2252be55f20afc59f50baa61805894fdcd01008bf94eba8809dbf4c25aad,deps=a56ce5e672f5d9275e19a10aa35207033459463cdd256ba4ad9d061a0ce1e0fe,usage=644603c60b3b82230ea89a647ed6509915fa98ff6cc3b5c5a58fd2cfa3124772",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Сравнение fingerprint, пропуск propagating."
+          }
+        },
+        "invariants": {
+          "body": "- Каждая секция порождает не более одной записи об устаревании на блок.\n- Пропагирующие блоки (`PROPAGATING_BLOCKS`) никогда не считаются устаревшими из-за изменения зависимостей.",
+          "rendered": true,
+          "fingerprint": "signature=724a2252be55f20afc59f50baa61805894fdcd01008bf94eba8809dbf4c25aad,body=a0b176bb382ee2607a6f43f0f3a4aba115c3e5b774e189ff5ab3ea9925d54f5b",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не более одной записи на блок, исключение propagating."
+          }
+        },
+        "dependencies": {
+          "body": "`collectDependencyDocs` (`src/llm/file-pipeline.ts`) — собирает документацию прямых зависимостей для файла.\n`dependencyDocsFingerprint` (`src/llm/file-pipeline.ts`) — вычисляет SHA-256 хеш документации зависимостей.\n`isKnownBlockId` (`./helpers.ts`) — проверяет, что идентификатор блока является известным.\n`PROPAGATING_BLOCKS` (`src/llm/file-pipeline.ts`) — константа со списком блоков, которые не зависят от документации зависимостей.",
+          "rendered": true,
+          "fingerprint": "deps=a56ce5e672f5d9275e19a10aa35207033459463cdd256ba4ad9d061a0ce1e0fe",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "`collectDependencyDocs` (`src/llm/file-pipeline.ts`) — собирает документацию прямых зависимостей для файла."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `CodeloreService.refreshStaleDocs`. Перебирает секции, для каждой с сохранённым `depDocsFingerprint` вычисляет текущий отпечаток и сравнивает. Если отпечаток изменился, помечает все непустые, не-пропагирующие блоки, которые ещё не помечены как устаревшие, как устаревшие с фасетом `depDocs`.",
+          "rendered": true,
+          "fingerprint": "body=a0b176bb382ee2607a6f43f0f3a4aba115c3e5b774e189ff5ab3ea9925d54f5b,deps=a56ce5e672f5d9275e19a10aa35207033459463cdd256ba4ad9d061a0ce1e0fe",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Вызывается из `CodeloreService.refreshStaleDocs`."
+          }
+        },
+        "limitations": {
+          "body": "Учитывает только первую принадлежащую сущность секции (`section.owns[0]`) для получения пути файла — если секция владеет несколькими файлами, зависимые документы собираются только по первому.\nБлоки с пустым телом (`block.body.trim() === \"\"`) или уже устаревшие (`block.staleSince !== undefined`) пропускаются, даже если depDocs изменились.",
+          "rendered": true,
+          "fingerprint": "body=a0b176bb382ee2607a6f43f0f3a4aba115c3e5b774e189ff5ab3ea9925d54f5b",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Учитывает только первую принадлежащую сущность секции (`section.owns[0]`) для получения пути файла — если секция владеет несколькими файлами, зависимые документы собираются только по первому."
+          }
+        },
+        "changeGuide": {
+          "body": "- Секции без сохранённого `depDocsFingerprint` пропускаются: условие `if (section.depDocsFingerprint === undefined) { continue; }`.",
+          "rendered": true,
+          "fingerprint": "body=a0b176bb382ee2607a6f43f0f3a4aba115c3e5b774e189ff5ab3ea9925d54f5b,deps=a56ce5e672f5d9275e19a10aa35207033459463cdd256ba4ad9d061a0ce1e0fe,usage=644603c60b3b82230ea89a647ed6509915fa98ff6cc3b5c5a58fd2cfa3124772,placement=18f7e398329c599d1594e3fc9b29c4e0963385c8864bf1ec54986a62da0f763d",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Секции без сохранённого `depDocsFingerprint` пропускаются: условие `if (section.depDocsFingerprint === undefined) { continue; }`."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.816Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.074Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "8dc7f5cfe22b47bac5ae896d3b479fdafc7e90e74f0deb483403e8eca53fbee2"
+    },
+    "symbol:src/service/stale-detection.ts#mergeStaleBlocks": {
+      "heading": "mergeStaleBlocks",
+      "depth": 1,
+      "anchor": "mergestaleblocks",
+      "owns": [
+        "symbol:src/service/stale-detection.ts#mergeStaleBlocks"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.refreshStaleDocs"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Объединяет несколько проходов обнаружения устаревших блоков в единый список, устраняя дубликаты и объединяя изменившиеся фасеты.",
+          "rendered": true,
+          "fingerprint": "signature=5c208f9e6b1e74d82509f14c0cab137cdcc8e516e02603c02bc40c1d0930d12b,placement=d02a3e0c22217b18345c53828108c8c5caa3297414f285577689a1190b2e515b",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Объединяет списки stale с дедупликацией."
+          }
+        },
+        "responsibility": {
+          "body": "- Дедуплицирует записи по составному ключу `sectionId + \\\\0 + blockId`.\n- При повторном появлении одного и того же блока объединяет массивы `changedFacets` (объединение множеств).\n- Сохраняет остальные поля первой найденной записи.",
+          "rendered": true,
+          "fingerprint": "signature=5c208f9e6b1e74d82509f14c0cab137cdcc8e516e02603c02bc40c1d0930d12b,deps=3d24a7e2abc34547025842d0c0c63814555696fada62d34355ba28262bf2af83,usage=8d012e9ca9bd04d284047fc5c669a2bf32b027a6867ee3bf4236defabe17379c",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Дедупликация по ключу, объединение facets."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращает новый массив — исходные массивы не мутируются.\n- Каждая результирующая запись уникальна для пары (sectionId, blockId).",
+          "rendered": true,
+          "fingerprint": "signature=5c208f9e6b1e74d82509f14c0cab137cdcc8e516e02603c02bc40c1d0930d12b,body=27ca5feb5b262c149d1c8baa9c8a95870863f742b24ecda12357aa1a81941ee2",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не мутирует, уникальность (sectionId, blockId)."
+          }
+        },
+        "dependencies": {
+          "body": "Нет внешних зависимостей.",
+          "rendered": false,
+          "fingerprint": "deps=3d24a7e2abc34547025842d0c0c63814555696fada62d34355ba28262bf2af83",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Нет внешних зависимостей."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `CodeloreService.refreshStaleDocs` для объединения устаревших блоков, устраняя дубликаты по составному ключу `sectionId + '\\\\u0000' + blockId`, и объединяя массивы `changedFacets` при повторных вхождениях.",
+          "rendered": true,
+          "fingerprint": "body=27ca5feb5b262c149d1c8baa9c8a95870863f742b24ecda12357aa1a81941ee2,deps=3d24a7e2abc34547025842d0c0c63814555696fada62d34355ba28262bf2af83",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Вызывается из `CodeloreService.refreshStaleDocs`."
+          }
+        },
+        "limitations": {
+          "body": "Ключ дедупликации строится через конкатенацию с нуль-символом (`\\u0000`) — предполагается, что ни `sectionId`, ни `blockId` не содержат нуль-символов.\nОбъединение `changedFacets` выполняется только для первой встреченной записи; все остальные поля (например, `drift`, `docPath`) остаются от первой записи.",
+          "rendered": true,
+          "fingerprint": "body=27ca5feb5b262c149d1c8baa9c8a95870863f742b24ecda12357aa1a81941ee2",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Ключ дедупликации строится через конкатенацию с нуль-символом (`\\u0000`) — предполагается, что ни `sectionId`, ни `blockId` не содержат нуль-символов."
+          }
+        },
+        "changeGuide": {
+          "body": "- Дубликаты устраняются по составному ключу: `const key = entry.sectionId + '\\u0000' + entry.blockId;`.\n- При повторном вхождении фасеты объединяются: `existing.changedFacets = [...new Set([...existing.changedFacets, ...entry.changedFacets])];`.",
+          "rendered": true,
+          "fingerprint": "body=27ca5feb5b262c149d1c8baa9c8a95870863f742b24ecda12357aa1a81941ee2,deps=3d24a7e2abc34547025842d0c0c63814555696fada62d34355ba28262bf2af83,usage=8d012e9ca9bd04d284047fc5c669a2bf32b027a6867ee3bf4236defabe17379c,placement=d02a3e0c22217b18345c53828108c8c5caa3297414f285577689a1190b2e515b",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Дубликаты устраняются по составному ключу: `const key = entry.sectionId + '\\u0000' + entry.blockId;`."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.817Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.076Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "8dc7f5cfe22b47bac5ae896d3b479fdafc7e90e74f0deb483403e8eca53fbee2"
+    },
+    "symbol:src/service/stale-detection.ts#collectStaleBlocks": {
+      "heading": "collectStaleBlocks",
+      "depth": 1,
+      "anchor": "collectstaleblocks",
+      "owns": [
+        "symbol:src/service/stale-detection.ts#collectStaleBlocks"
+      ],
+      "depends": [
+        "symbol:src/service/stale-detection.ts#deletedOwnedEntityBlocks",
+        "symbol:src/service/stale-detection.ts#staleBlockInfoFor"
+      ],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.refreshStaleDocs"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Обнаруживает устаревшие блоки документации.",
+          "rendered": true,
+          "fingerprint": "signature=a70fcb6962cf615f016c4eed281d8750db6897c2b12d917d65fd5fc8b39f77ee,placement=0edb4882450560e3a78a2bfaadb7f52de81c0a58a7528a0f88b793107abea6a0",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Обнаруживает устаревшие блоки документации."
+          }
+        },
+        "responsibility": {
+          "body": "- Делегирует проверку отдельных блоков функции `staleBlockInfoFor` для секций, у которых есть хотя бы одна принадлежащая сущность.\n- Для секций, все принадлежащие сущности которых удалены, делегирует `deletedOwnedEntityBlocks`, которая помечает все блоки как устаревшие с причиной `owned_entity_deleted`.\n- Возвращает плоский массив; каждый элемент содержит идентификатор секции, блока и список изменившихся фасетов.\n- Не изменяет переданные секции или сущности.",
+          "rendered": true,
+          "fingerprint": "signature=a70fcb6962cf615f016c4eed281d8750db6897c2b12d917d65fd5fc8b39f77ee,deps=09c82c44fc245a78a37ea7ca091809a56373bf182262d6c9a2c8ff384df9e9a0,usage=335b622842bb7e4f87cc19ce8279d11a6c60142c401db77c4c789f668dcc03c8",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Делегирует проверку отдельных блоков функции `staleBlockInfoFor` для секций, у которых есть хотя бы одна принадлежащая сущность."
+          }
+        },
+        "invariants": {
+          "body": "- Каждый элемент возвращаемого массива имеет `drift` равный `\"facet_changed\"` (если получен от `staleBlockInfoFor`) или `\"owned_entity_deleted\"` (от `deletedOwnedEntityBlocks`).\n- Не включает блоки с пустым телом, неизвестным идентификатором или уже установленным `staleSince`.\n- Функция чистая — не мутирует аргументы.",
+          "rendered": true,
+          "fingerprint": "signature=a70fcb6962cf615f016c4eed281d8750db6897c2b12d917d65fd5fc8b39f77ee,body=9a720b71a7704d985af7f4ca86cd9886754eb458b37023f2a4aebe5c92763ce0",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Каждый элемент возвращаемого массива имеет `drift` равный `\"facet_changed\"` (если получен от `staleBlockInfoFor`) или `\"owned_entity_deleted\"` (от `deletedOwnedEntityBlocks`)."
+          }
+        },
+        "dependencies": {
+          "body": "- `deletedOwnedEntityBlocks` (`src/service/stale-detection.ts`) — формирует записи для секций, все owned-сущности которых удалены.\n- `staleBlockInfoFor` (`src/service/stale-detection.ts`) — проверяет отдельный блок на изменение отпечатка.",
+          "rendered": true,
+          "fingerprint": "deps=09c82c44fc245a78a37ea7ca091809a56373bf182262d6c9a2c8ff384df9e9a0",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Зависимости — две внутренние функции, делегирующие проверку."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `CodeloreService.refreshStaleDocs` (`src/service/codelore-service.ts`) после фильтрации секций по scope.\n1. Для каждой секции фильтруются owned-сущности, присутствующие в `entities`.\n2. Если ни одна owned-сущность не найдена, вызывается `deletedOwnedEntityBlocks`.\n3. Иначе для каждого блока секции вызывается `staleBlockInfoFor`.",
+          "rendered": true,
+          "fingerprint": "body=9a720b71a7704d985af7f4ca86cd9886754eb458b37023f2a4aebe5c92763ce0,deps=09c82c44fc245a78a37ea7ca091809a56373bf182262d6c9a2c8ff384df9e9a0",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается в цепочке stale-detection, результат мержится с depDocs-пассом."
+          }
+        },
+        "limitations": {
+          "body": "Не проверяет блоки с уже установленным `staleSince` — они считаются похороненными.",
+          "rendered": true,
+          "fingerprint": "body=9a720b71a7704d985af7f4ca86cd9886754eb458b37023f2a4aebe5c92763ce0",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Ограничение: не обрабатывает tombstoned-блоки."
+          }
+        },
+        "changeGuide": {
+          "body": "- Если изменить условие `presentOwns.length === 0` на другую проверку, секции с удалёнными owned-сущностями перестанут помечаться как stale — тест `collectStaleBlocks` должен покрывать этот сценарий.\n- Если убрать вызов `staleBlockInfoFor` из цикла по блокам, блоки с изменившимся отпечатком не будут обнаружены — тест `collectStaleBlocks` должен проверять обнаружение изменений фасетов.",
+          "rendered": true,
+          "fingerprint": "body=9a720b71a7704d985af7f4ca86cd9886754eb458b37023f2a4aebe5c92763ce0,deps=09c82c44fc245a78a37ea7ca091809a56373bf182262d6c9a2c8ff384df9e9a0,usage=335b622842bb7e4f87cc19ce8279d11a6c60142c401db77c4c789f668dcc03c8,placement=0edb4882450560e3a78a2bfaadb7f52de81c0a58a7528a0f88b793107abea6a0",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Два инварианта: проверка `presentOwns.length === 0` и вызов `staleBlockInfoFor`."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.818Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.077Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "8dc7f5cfe22b47bac5ae896d3b479fdafc7e90e74f0deb483403e8eca53fbee2"
+    },
+    "symbol:src/service/stale-detection.ts#collectTombstonedBlocks": {
+      "heading": "collectTombstonedBlocks",
+      "depth": 1,
+      "anchor": "collecttombstonedblocks",
+      "owns": [
+        "symbol:src/service/stale-detection.ts#collectTombstonedBlocks"
+      ],
+      "depends": [
+        "symbol:src/service/stale-detection.ts#deletedOwnedEntityBlocks",
+        "symbol:src/service/stale-detection.ts#tombstonedBlockInfoFor"
+      ],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.refreshStaleDocs"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Выявляет блоки, уже отмеченные как «похороненные» (имеющие `staleSince`).",
+          "rendered": true,
+          "fingerprint": "signature=3f17d9d139f525d7b6a4488c6bde9395ecca68cb346bd5868bf02937a11900ec,placement=bdef3618219f8ed0f1e47dd1bc3042df49058b2cadb9978b693a2915c823447e",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Выявляет блоки, уже отмеченные как «похороненные» (имеющие `staleSince`)."
+          }
+        },
+        "responsibility": {
+          "body": "- Для секций с существующими принадлежащими сущностями проверяет каждый блок через `tombstonedBlockInfoFor`, который возвращает информацию только для блоков с `staleSince`.\n- Для секций без принадлежащих сущностей вызывает `deletedOwnedEntityBlocks` с `tombstonedOnly: true`, включая только уже похороненные блоки (с `staleSince`).\n- Возвращает только блоки, у которых тело не пусто и у которых `staleSince` установлен.\n- Не требует вычисления отпечатков или доступа к актуальному коду сущностей.",
+          "rendered": true,
+          "fingerprint": "signature=3f17d9d139f525d7b6a4488c6bde9395ecca68cb346bd5868bf02937a11900ec,deps=5fec58ab54bce70d7261c349f6db080b5b408b17daeb66c7f8856329bc5f5a9f,usage=6190a7192a816052232b24d97669cb5b4ef8773964bff2b5421fc04453193f75",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Для секций с существующими принадлежащими сущностями проверяет каждый блок через `tombstonedBlockInfoFor`, который возвращает информацию только для блоков с `staleSince`."
+          }
+        },
+        "invariants": {
+          "body": "- Все возвращённые записи имеют `drift: \"tombstoned\"`.\n- Изменённые фасеты берутся из поля `staleFacets` блока, если оно есть, иначе из `BLOCK_FACETS[block.id]`.\n- Не изменяет состояние.",
+          "rendered": true,
+          "fingerprint": "signature=3f17d9d139f525d7b6a4488c6bde9395ecca68cb346bd5868bf02937a11900ec,body=c62f464269f1f98665e5785a01ed4a47c57a37133106c256adaeaf69e2c3c376",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Все возвращённые записи имеют `drift: \"tombstoned\"`."
+          }
+        },
+        "dependencies": {
+          "body": "- `deletedOwnedEntityBlocks` (`src/service/stale-detection.ts`) — формирует записи для секций без owned-сущностей, с опцией `tombstonedOnly: true`.\n- `tombstonedBlockInfoFor` (`src/service/stale-detection.ts`) — извлекает информацию о похороненном блоке из его метаданных.",
+          "rendered": true,
+          "fingerprint": "deps=5fec58ab54bce70d7261c349f6db080b5b408b17daeb66c7f8856329bc5f5a9f",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Зависимости — две внутренние функции."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `CodeloreService.refreshStaleDocs` (`src/service/codelore-service.ts`). Результат используется для формирования `rewritePlan` или для применения tombstone.\n1. Для каждой секции фильтруются owned-сущности, присутствующие в `entities`.\n2. Если ни одна owned-сущность не найдена, вызывается `deletedOwnedEntityBlocks` с `tombstonedOnly: true`.\n3. Иначе для каждого блока секции вызывается `tombstonedBlockInfoFor`.",
+          "rendered": true,
+          "fingerprint": "body=c62f464269f1f98665e5785a01ed4a47c57a37133106c256adaeaf69e2c3c376,deps=5fec58ab54bce70d7261c349f6db080b5b408b17daeb66c7f8856329bc5f5a9f",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается после stale-пассов, результат используется для rewrite или tombstone."
+          }
+        },
+        "limitations": {
+          "body": "Не проверяет блоки без `staleSince` — они считаются свежими.",
+          "rendered": true,
+          "fingerprint": "body=c62f464269f1f98665e5785a01ed4a47c57a37133106c256adaeaf69e2c3c376",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Ограничение: не обрабатывает не-tombstoned блоки."
+          }
+        },
+        "changeGuide": {
+          "body": "- Если изменить условие `presentOwns.length === 0` на другую проверку, секции с удалёнными owned-сущностями перестанут обрабатываться через `deletedOwnedEntityBlocks` — тест `collectTombstonedBlocks` должен покрывать этот сценарий.\n- Если убрать вызов `tombstonedBlockInfoFor` из цикла по блокам, tombstoned-блоки не будут обнаружены — тест `collectTombstonedBlocks` должен проверять обнаружение блоков с `staleSince`.",
+          "rendered": true,
+          "fingerprint": "body=c62f464269f1f98665e5785a01ed4a47c57a37133106c256adaeaf69e2c3c376,deps=5fec58ab54bce70d7261c349f6db080b5b408b17daeb66c7f8856329bc5f5a9f,usage=6190a7192a816052232b24d97669cb5b4ef8773964bff2b5421fc04453193f75,placement=bdef3618219f8ed0f1e47dd1bc3042df49058b2cadb9978b693a2915c823447e",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Два инварианта: проверка `presentOwns.length === 0` и вызов `tombstonedBlockInfoFor`."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.819Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.078Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "8dc7f5cfe22b47bac5ae896d3b479fdafc7e90e74f0deb483403e8eca53fbee2"
+    },
+    "symbol:src/service/stale-detection.ts#deletedOwnedEntityBlocks": {
+      "heading": "deletedOwnedEntityBlocks",
+      "depth": 1,
+      "anchor": "deletedownedentityblocks",
+      "owns": [
+        "symbol:src/service/stale-detection.ts#deletedOwnedEntityBlocks"
+      ],
+      "depends": [
+        "symbol:src/service/helpers.ts#isKnownBlockId"
+      ],
+      "usedBy": [
+        "symbol:src/service/stale-detection.ts#collectStaleBlocks",
+        "symbol:src/service/stale-detection.ts#collectTombstonedBlocks"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Формирует записи об устаревших блоках для секции, все принадлежащие сущности которой удалены.",
+          "rendered": true,
+          "fingerprint": "signature=d8aa75a43a9aea94248582ed482ffcc02cb170f9ccc11326281f8877975d5d11,placement=2ed9d14487d54588ace0995afedffff7f9c5759b4f277e7d228649774c913ed1",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Формирует записи об устаревших блоках для секции, все принадлежащие сущности которой удалены."
+          }
+        },
+        "responsibility": {
+          "body": "- Обрабатывает все блоки секции, отфильтровывая неизвестные и пустые.\n- Параметр `tombstonedOnly` управляет фильтрацией: если `false` (по умолчанию), включает только блоки без `staleSince` (свежие); если `true` — только блоки с `staleSince`.\n- Для каждого подходящего блока создаёт `StaleBlockInfo` с `drift: \"owned_entity_deleted\"` и `changedFacets: [\"owned\"]`.\n- Возвращает массив; может быть пустым, если ни один блок не соответствует условиям.",
+          "rendered": true,
+          "fingerprint": "signature=d8aa75a43a9aea94248582ed482ffcc02cb170f9ccc11326281f8877975d5d11,deps=6d9342c5880f880f2d0da0f6829f61c48b9699e7c9533c2fc6b51d97143c4d7c,usage=3f8f96adb38fbc864236e63789805068c448ede7eed8a3ab716d31b6963dd625",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Обрабатывает все блоки секции, отфильтровывая неизвестные и пустые."
+          }
+        },
+        "invariants": {
+          "body": "- Для каждого возвращённого элемента поле `changedFacets` всегда равно `[\"owned\"]`.\n- `drift` всегда `\"owned_entity_deleted\"`.\n- Не проверяет наличие принадлежащих сущностей; полагается на вызывающего.",
+          "rendered": true,
+          "fingerprint": "signature=d8aa75a43a9aea94248582ed482ffcc02cb170f9ccc11326281f8877975d5d11,body=b8fa9ca91079946244274fefa1998d8bd42a17d53fa8623fc8b2e5c90dc2502f",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Для каждого возвращённого элемента поле `changedFacets` всегда равно `[\"owned\"]`."
+          }
+        },
+        "dependencies": {
+          "body": "- `isKnownBlockId` (`src/service/helpers.ts`) — проверяет, является ли идентификатор блока известным.",
+          "rendered": true,
+          "fingerprint": "deps=6d9342c5880f880f2d0da0f6829f61c48b9699e7c9533c2fc6b51d97143c4d7c",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Единственная внешняя зависимость — проверка известности blockId."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `collectStaleBlocks` (с `tombstonedOnly: false`) и из `collectTombstonedBlocks` (с `tombstonedOnly: true`). Оба вызывающих передают секцию, у которой `presentOwns.length === 0`.\n1. Перебирает все блоки секции.\n2. Пропускает блоки с неизвестным ID или пустым телом.\n3. Если `tombstonedOnly` не совпадает с наличием `staleSince`, блок пропускается.\n4. Для подходящих блоков создаётся `StaleBlockInfo` с `drift: \"owned_entity_deleted\"`.",
+          "rendered": true,
+          "fingerprint": "body=b8fa9ca91079946244274fefa1998d8bd42a17d53fa8623fc8b2e5c90dc2502f,deps=6d9342c5880f880f2d0da0f6829f61c48b9699e7c9533c2fc6b51d97143c4d7c",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается двумя разными pass-ами с разными опциями."
+          }
+        },
+        "limitations": {
+          "body": "Не проверяет, действительно ли owned-сущности удалены — полагается на вызывающего, который уже отфильтровал `presentOwns`.",
+          "rendered": true,
+          "fingerprint": "body=b8fa9ca91079946244274fefa1998d8bd42a17d53fa8623fc8b2e5c90dc2502f",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Ограничение: не проверяет удаление сущностей."
+          }
+        },
+        "changeGuide": {
+          "body": "- Если изменить условие `(block.staleSince !== undefined) !== (options.tombstonedOnly ?? false)`, изменится фильтрация tombstoned-блоков — тест `deletedOwnedEntityBlocks` должен покрывать оба режима.\n- Если убрать проверку `isKnownBlockId(block.id)`, неизвестные blockId будут включены в результат — тест `deletedOwnedEntityBlocks` должен проверять фильтрацию неизвестных ID.",
+          "rendered": true,
+          "fingerprint": "body=b8fa9ca91079946244274fefa1998d8bd42a17d53fa8623fc8b2e5c90dc2502f,deps=6d9342c5880f880f2d0da0f6829f61c48b9699e7c9533c2fc6b51d97143c4d7c,usage=3f8f96adb38fbc864236e63789805068c448ede7eed8a3ab716d31b6963dd625,placement=2ed9d14487d54588ace0995afedffff7f9c5759b4f277e7d228649774c913ed1",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Два инварианта: фильтрация по `staleSince` и по `isKnownBlockId`."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.821Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.080Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "8dc7f5cfe22b47bac5ae896d3b479fdafc7e90e74f0deb483403e8eca53fbee2"
+    },
+    "symbol:src/service/stale-detection.ts#staleReasonFor": {
+      "heading": "staleReasonFor",
+      "depth": 1,
+      "anchor": "stalereasonfor",
+      "owns": [
+        "symbol:src/service/stale-detection.ts#staleReasonFor"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.applyTombstones"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Преобразует информацию о причине устаревания блока в короткую строку для сохранения в метаданных.",
+          "rendered": true,
+          "fingerprint": "signature=819c40ed62a9a46e8e116722e77a64c65e278614e67d61df6f259cb757322994,placement=794a611299501b15b8c4eb8861a5ac8725912e50a39dd09339b4af24a745ccf3",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Преобразует информацию о причине устаревания блока в короткую строку для сохранения в метаданных."
+          }
+        },
+        "responsibility": {
+          "body": "- Если поле `drift` равно `\"owned_entity_deleted\"`, возвращает точно `\"owned_entity_deleted\"`.\n- Иначе, если `changedFacets` содержит ровно один элемент, возвращает строку вида `\"<фасет>_changed\"`; иначе возвращает `\"code_changed\"`.\n- Не использует внешние зависимости; чистая функция.",
+          "rendered": true,
+          "fingerprint": "signature=819c40ed62a9a46e8e116722e77a64c65e278614e67d61df6f259cb757322994,deps=b187dc14ce1afb9b58538cd3f4ad6c472608bf0d780a8576e033507c142210af,usage=2fc8b32aa509c7a38f855bc009b79dea0c479bfacb743db67120c74282ae0512",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Если поле `drift` равно `\"owned_entity_deleted\"`, возвращает точно `\"owned_entity_deleted\"`."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращаемая строка всегда непуста.\n- Результат детерминирован относительно входных полей.",
+          "rendered": true,
+          "fingerprint": "signature=819c40ed62a9a46e8e116722e77a64c65e278614e67d61df6f259cb757322994,body=00566c406fe3e3eacf3a2ce6076cbecbea3af87caf826cfea2c45262c1478cd5",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Возвращаемая строка всегда непуста."
+          }
+        },
+        "dependencies": {
+          "body": "Нет внешних зависимостей.",
+          "rendered": true,
+          "fingerprint": "deps=b187dc14ce1afb9b58538cd3f4ad6c472608bf0d780a8576e033507c142210af",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Чистая функция без зависимостей."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `CodeloreService.applyTombstones` (`src/service/codelore-service.ts`) для каждого stale-блока, чтобы получить строку причины для поля `staleReason`. Также используется в `staleValidationIssue` (`src/service/doc-validation.ts`) при формировании сообщения валидации — там литерал `\"code_changed\"` используется как fallback в шаблоне строки.",
+          "rendered": true,
+          "fingerprint": "body=00566c406fe3e3eacf3a2ce6076cbecbea3af87caf826cfea2c45262c1478cd5,deps=b187dc14ce1afb9b58538cd3f4ad6c472608bf0d780a8576e033507c142210af",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Используется в двух местах: applyTombstones и staleValidationIssue."
+          }
+        },
+        "limitations": {
+          "body": "Не различает комбинации фасетов — при двух и более изменившихся фасетах всегда возвращает `\"code_changed\"`.",
+          "rendered": true,
+          "fingerprint": "body=00566c406fe3e3eacf3a2ce6076cbecbea3af87caf826cfea2c45262c1478cd5",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Ограничение: не детализирует множественные изменения фасетов."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.822Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.081Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "8dc7f5cfe22b47bac5ae896d3b479fdafc7e90e74f0deb483403e8eca53fbee2"
+    },
+    "symbol:src/service/stale-detection.ts#staleBlockInfoFor": {
+      "heading": "staleBlockInfoFor",
+      "depth": 1,
+      "anchor": "staleblockinfofor",
+      "owns": [
+        "symbol:src/service/stale-detection.ts#staleBlockInfoFor"
+      ],
+      "depends": [
+        "symbol:src/markdown/block-facets.ts#computeBlockFingerprint",
+        "symbol:src/markdown/block-facets.ts#diffFacetHashes",
+        "symbol:src/markdown/block-facets.ts#parseBlockFingerprintValue",
+        "symbol:src/service/helpers.ts#isKnownBlockId"
+      ],
+      "usedBy": [
+        "symbol:src/service/stale-detection.ts#collectStaleBlocks"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Определяет, изменился ли отпечаток отдельного блока по сравнению с сохранённым, и, если изменился, возвращает информацию о фасетах, которые стали неактуальны.",
+          "rendered": true,
+          "fingerprint": "signature=c882cc9b2053b0a9c4652fbe8649daa2b52634779014998c704448faf9297c65,placement=2be39f4a3a09c23f3af57468bd506879e59aa0d20536e25186f1b2d0540bff7f",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Определяет, изменился ли отпечаток отдельного блока по сравнению с сохранённым, и, если изменился, возвращает информацию о фасетах, которые стали неактуальны."
+          }
+        },
+        "responsibility": {
+          "body": "- Пропускает блоки с неизвестным ID, пустым телом или уже установленным `staleSince`.\n- Вычисляет текущий отпечаток через `computeBlockFingerprint`; если он `undefined`, возвращает `undefined`.\n- Сравнивает текущий отпечаток с сохранённым (`section.blockFingerprints[block.id]`).\n- Если отпечатки совпадают, возвращает `undefined`; иначе вычисляет изменившиеся фасеты через `diffFacetHashes`; если различие пусто, использует все фасеты для данного типа блока.\n- Возвращает `StaleBlockInfo` с `drift: \"facet_changed\"`.",
+          "rendered": true,
+          "fingerprint": "signature=c882cc9b2053b0a9c4652fbe8649daa2b52634779014998c704448faf9297c65,deps=e8651ecdb294485507a9c9c1d1b231668d5abc1e08a508c09d54b4146c631da6,usage=c45b9e1d91a2e07c8557b98f251fd640f3658c8a07bf177f3042884f66ee052f",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Пропускает блоки с неизвестным ID, пустым телом или уже установленным `staleSince`."
+          }
+        },
+        "invariants": {
+          "body": "- Не изменяет состояние.\n- Для блоков, у которых отпечаток не изменился, возвращает `undefined`.",
+          "rendered": true,
+          "fingerprint": "signature=c882cc9b2053b0a9c4652fbe8649daa2b52634779014998c704448faf9297c65,body=4938fa8e9ffdef77729f119e4a9a7340e94a5b38b3e9c9fbe61ec5879c480881",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "- Не изменяет состояние.\n- Для блоков, у которых отпечаток не изменился, возвращает `undefined`."
+          }
+        },
+        "dependencies": {
+          "body": "- `computeBlockFingerprint` (`src/markdown/block-facets.ts`) — вычисляет текущий отпечаток блока.\n- `diffFacetHashes` (`src/markdown/block-facets.ts`) — определяет изменившиеся фасеты.\n- `parseBlockFingerprintValue` (`src/markdown/block-facets.ts`) — преобразует строку отпечатка в объект.\n- `isKnownBlockId` (`src/service/helpers.ts`) — проверяет известность идентификатора блока.",
+          "rendered": true,
+          "fingerprint": "deps=e8651ecdb294485507a9c9c1d1b231668d5abc1e08a508c09d54b4146c631da6",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Четыре внешние зависимости для вычисления и сравнения отпечатков."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `collectStaleBlocks` для каждого блока секции, у которой есть owned-сущности.\n1. Пропускает блоки с неизвестным ID, пустым телом или `staleSince`.\n2. Вычисляет текущий отпечаток через `computeBlockFingerprint`.\n3. Если отпечаток `undefined`, возвращает `undefined`.\n4. Сравнивает с сохранённым отпечатком из `section.blockFingerprints`.\n5. При несовпадении вычисляет изменившиеся фасеты через `diffFacetHashes`; если различие пусто, использует все фасеты для данного типа блока.",
+          "rendered": true,
+          "fingerprint": "body=4938fa8e9ffdef77729f119e4a9a7340e94a5b38b3e9c9fbe61ec5879c480881,deps=e8651ecdb294485507a9c9c1d1b231668d5abc1e08a508c09d54b4146c631da6",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается для каждого блока секции с owned-сущностями."
+          }
+        },
+        "limitations": {
+          "body": "Не обрабатывает блоки с `staleSince` — они считаются похороненными.",
+          "rendered": true,
+          "fingerprint": "body=4938fa8e9ffdef77729f119e4a9a7340e94a5b38b3e9c9fbe61ec5879c480881",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Ограничение: не обрабатывает tombstoned-блоки."
+          }
+        },
+        "changeGuide": {
+          "body": "- Если изменить условие `block.staleSince !== undefined || block.body.trim() === \"\"`, блоки с пустым телом или staleSince будут включены в проверку — тест `staleBlockInfoFor` должен покрывать эти случаи.\n- Если убрать вызов `diffFacetHashes`, все блоки с изменившимся отпечатком будут помечены как stale со всеми фасетами — тест `staleBlockInfoFor` должен проверять точность определения изменившихся фасетов.",
+          "rendered": true,
+          "fingerprint": "body=4938fa8e9ffdef77729f119e4a9a7340e94a5b38b3e9c9fbe61ec5879c480881,deps=e8651ecdb294485507a9c9c1d1b231668d5abc1e08a508c09d54b4146c631da6,usage=c45b9e1d91a2e07c8557b98f251fd640f3658c8a07bf177f3042884f66ee052f,placement=2be39f4a3a09c23f3af57468bd506879e59aa0d20536e25186f1b2d0540bff7f",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Два инварианта: фильтрация по `staleSince`/пустому телу и вызов `diffFacetHashes`."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.823Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.083Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "8dc7f5cfe22b47bac5ae896d3b479fdafc7e90e74f0deb483403e8eca53fbee2"
+    },
+    "symbol:src/service/stale-detection.ts#tombstonedBlockInfoFor": {
+      "heading": "tombstonedBlockInfoFor",
+      "depth": 1,
+      "anchor": "tombstonedblockinfofor",
+      "owns": [
+        "symbol:src/service/stale-detection.ts#tombstonedBlockInfoFor"
+      ],
+      "depends": [
+        "symbol:src/service/helpers.ts#isKnownBlockId"
+      ],
+      "usedBy": [
+        "symbol:src/service/stale-detection.ts#collectTombstonedBlocks"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Извлекает информацию о похороненном блоке из его метаданных без сравнения с текущим кодом.",
+          "rendered": true,
+          "fingerprint": "signature=929652f8df3e84b58802c8a3276012be37c2559cdfbde67bb7e3e781a221ee32,placement=985915191f525aa69e100747a17d7cb8230cacb09182d9ad488f54cd1167e946",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Извлекает информацию о похороненном блоке из его метаданных без сравнения с текущим кодом."
+          }
+        },
+        "responsibility": {
+          "body": "- Фильтрует блоки, у которых `staleSince` не установлен, тело пусто или ID неизвестен.\n- Для подходящих блоков возвращает `StaleBlockInfo` с `drift: \"tombstoned\"`.\n- Изменённые фасеты берутся из `block.staleFacets`, если есть, иначе из `BLOCK_FACETS[block.id]`.",
+          "rendered": true,
+          "fingerprint": "signature=929652f8df3e84b58802c8a3276012be37c2559cdfbde67bb7e3e781a221ee32,deps=0dc0406d0e777b81f861f98937b02e08abd535f2195f42701b6b0816a5b5bc1b,usage=19b889c8e16095447ea16a4377ec71bf1cfd19e18f5844f861a496740934079c",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Фильтрует блоки, у которых `staleSince` не установлен, тело пусто или ID неизвестен."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращает запись только для блоков с непустым `staleSince`.\n- Не использует код сущностей или отпечатки.",
+          "rendered": true,
+          "fingerprint": "signature=929652f8df3e84b58802c8a3276012be37c2559cdfbde67bb7e3e781a221ee32,body=4a92a43abd939324f7ddb642883af68734628be1539c749490b280b47a365770",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Возвращает запись только для блоков с непустым `staleSince`."
+          }
+        },
+        "dependencies": {
+          "body": "- `isKnownBlockId` (`src/service/helpers.ts`) — проверяет, является ли идентификатор блока известным.",
+          "rendered": true,
+          "fingerprint": "deps=0dc0406d0e777b81f861f98937b02e08abd535f2195f42701b6b0816a5b5bc1b",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Единственная внешняя зависимость — проверка известности blockId."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `collectTombstonedBlocks` для каждого блока секции, у которой есть owned-сущности.\n1. Пропускает блоки с неизвестным ID, пустым телом или без `staleSince`.\n2. Для подходящих блоков возвращает `StaleBlockInfo` с `drift: \"tombstoned\"`.\n3. Изменённые фасеты берутся из `block.staleFacets`, если есть, иначе из `BLOCK_FACETS[block.id]`.",
+          "rendered": true,
+          "fingerprint": "body=4a92a43abd939324f7ddb642883af68734628be1539c749490b280b47a365770,deps=0dc0406d0e777b81f861f98937b02e08abd535f2195f42701b6b0816a5b5bc1b",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается для каждого блока секции с owned-сущностями."
+          }
+        },
+        "limitations": {
+          "body": "Не проверяет блоки без `staleSince` — они считаются свежими.",
+          "rendered": true,
+          "fingerprint": "body=4a92a43abd939324f7ddb642883af68734628be1539c749490b280b47a365770",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Ограничение: не обрабатывает не-tombstoned блоки."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.824Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.084Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "8dc7f5cfe22b47bac5ae896d3b479fdafc7e90e74f0deb483403e8eca53fbee2"
+    },
+    "symbol:src/service/stale-detection.ts#buildRewriteContextBundle": {
+      "heading": "buildRewriteContextBundle",
+      "depth": 1,
+      "anchor": "buildrewritecontextbundle",
+      "owns": [
+        "symbol:src/service/stale-detection.ts#buildRewriteContextBundle"
+      ],
+      "depends": [
+        "symbol:src/service/helpers.ts#summarizeCodeEntity"
+      ],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.refreshStaleDocs"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Собирает из записи об устаревании и проектного индекса все данные, необходимые для последующей перезаписи блока: текущий текст, сводки владельцев и причину изменения.",
+          "rendered": true,
+          "fingerprint": "signature=077a63f0ac3535a7459de728d44e404d32e6057a4677d209657c644a3c4580e7,placement=692936c8361f04554acfef4c196b5d824647a5d332c4e4932b792656814344d0",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Собирает из записи об устаревании и проектного индекса все данные, необходимые для последующей перезаписи блока: текущий текст, сводки владельцев и причину изменения."
+          }
+        },
+        "responsibility": {
+          "body": "* Извлекает секцию и блок из `index.docs.sections` по `entry.sectionId` и `entry.blockId`.\n* Отбирает из `section.owns` только те сущности, которые присутствуют в `index.code.entities`, и для каждой вызывает `summarizeCodeEntity`.\n* Собирает поля `RewritContextBundle`: `currentText`, `owns`, `changedFacets`, `reason`.\n* Не выполняет саму перезапись — возвращает пакет для планировщика перезаписи.",
+          "rendered": true,
+          "fingerprint": "signature=077a63f0ac3535a7459de728d44e404d32e6057a4677d209657c644a3c4580e7,deps=535b262be0b0500f056db05bb7945052159eea09268eca1a9796bd1a32148f34,usage=d472861331cdf53e8af67a5fe86e0a26508242f27b763ff0037f02115005b4c6",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "* Извлекает секцию и блок из `index.docs.sections` по `entry.sectionId` и `entry.blockId`."
+          }
+        },
+        "invariants": {
+          "body": "* Возвращаемый `reason` всегда составлен из `entry.changedFacets.join(', ')` и имён владельцев.\n* Поле `owns` содержит только существующие сущности; отсутствующие в индексе отфильтрованы.",
+          "rendered": true,
+          "fingerprint": "signature=077a63f0ac3535a7459de728d44e404d32e6057a4677d209657c644a3c4580e7,body=7da16eefec2f56b752a951ebb0600ba081e4b78f853c7b1fedebbd42136b84e0",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "* Возвращаемый `reason` всегда составлен из `entry.changedFacets.join(', ')` и имён владельцев."
+          }
+        },
+        "dependencies": {
+          "body": "- `summarizeCodeEntity` (`src/service/helpers.ts`) — преобразует `CodeEntity` в `CodeEntitySummary` для поля `owns`.",
+          "rendered": true,
+          "fingerprint": "deps=535b262be0b0500f056db05bb7945052159eea09268eca1a9796bd1a32148f34",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "- `summarizeCodeEntity` (`src/service/helpers.ts`) — преобразует `CodeEntity` в `CodeEntitySummary` для поля `owns`."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `CodeloreService.refreshStaleDocs` при `mode === \"rewrite_plan\"`. Для каждой записи из объединения `stale` и `tombstoned` создаёт `RewriteContextBundle`, который собирается в массив `rewritePlan` и возвращается в `RefreshStaleDocsResult.rewritePlan`.",
+          "rendered": true,
+          "fingerprint": "body=7da16eefec2f56b752a951ebb0600ba081e4b78f853c7b1fedebbd42136b84e0,deps=535b262be0b0500f056db05bb7945052159eea09268eca1a9796bd1a32148f34",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Вызывается из `CodeloreService.refreshStaleDocs` при `mode === \"rewrite_plan\"`."
+          }
+        },
+        "limitations": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=7da16eefec2f56b752a951ebb0600ba081e4b78f853c7b1fedebbd42136b84e0"
+        },
+        "changeGuide": {
+          "body": "1. Функция включает в `owns` только сущности, присутствующие в `index.code.entities` — фильтр `.filter((entity): entity is CodeEntity => Boolean(entity))`.\n2. Поле `currentText` всегда строка — fallback `block?.body ?? \"\"`.",
+          "rendered": false,
+          "fingerprint": "body=7da16eefec2f56b752a951ebb0600ba081e4b78f853c7b1fedebbd42136b84e0,deps=535b262be0b0500f056db05bb7945052159eea09268eca1a9796bd1a32148f34,usage=d472861331cdf53e8af67a5fe86e0a26508242f27b763ff0037f02115005b4c6,placement=692936c8361f04554acfef4c196b5d824647a5d332c4e4932b792656814344d0",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.25,
+            "specificity": 0.75,
+            "novelFact": "1."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.825Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.085Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "8dc7f5cfe22b47bac5ae896d3b479fdafc7e90e74f0deb483403e8eca53fbee2"
+    },
+    "symbol:src/service/stale-detection.ts#refreshStaleResult": {
+      "heading": "refreshStaleResult",
+      "depth": 1,
+      "anchor": "refreshstaleresult",
+      "owns": [
+        "symbol:src/service/stale-detection.ts#refreshStaleResult"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.refreshStaleDocs"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Формирует итоговый результат операции обновления устаревшей документации по заданному режиму.",
+          "rendered": true,
+          "fingerprint": "signature=efd84a0557215627d57fdc87d5ceca75a5f657fb506ff91ed45e498f5cc393da,placement=f285a0c58d3561f4d661a1ffe697bc68c50c1a38c5aae8ef8606b917252eff5d",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Формирует итоговый результат операции обновления устаревшей документации по заданному режиму."
+          }
+        },
+        "responsibility": {
+          "body": "* Вычисляет поля `summary.stale`, `summary.tombstoned`, `summary.appliedTombstones` как длины переданных массивов.\n* Включает поле `appliedTombstones` в результат только если `mode === 'tombstone'`.\n* Передаёт `rewritePlan` в результат, если он передан; иначе поле отсутствует.\n* Не модифицирует состояние индекса или хранилища — только упаковывает данные.",
+          "rendered": true,
+          "fingerprint": "signature=efd84a0557215627d57fdc87d5ceca75a5f657fb506ff91ed45e498f5cc393da,deps=7ff73e42981df24f9915ce1414023e2267144574eb2669c43799ff77a9271dda,usage=58c258d4984f53d4cae24a4edbae328763ef3beebbfad8c9e7ebef559603077e",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "* Вычисляет поля `summary.stale`, `summary.tombstoned`, `summary.appliedTombstones` как длины переданных массивов."
+          }
+        },
+        "invariants": {
+          "body": "* При `mode === 'tombstone'` в результате присутствует поле `appliedTombstones` с тем же массивом.",
+          "rendered": true,
+          "fingerprint": "signature=efd84a0557215627d57fdc87d5ceca75a5f657fb506ff91ed45e498f5cc393da,body=e5d964f4eef1dda2928075169ae3ad550bc3870bf43f44cc3dbbb5a422b28acc",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "* При `mode === 'tombstone'` в результате присутствует поле `appliedTombstones` с тем же массивом."
+          }
+        },
+        "dependencies": {
+          "body": "Нет зависимостей — функция использует только свои параметры.",
+          "rendered": true,
+          "fingerprint": "deps=7ff73e42981df24f9915ce1414023e2267144574eb2669c43799ff77a9271dda",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Нет зависимостей — функция использует только свои параметры."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `CodeloreService.refreshStaleDocs` в трёх ветках:\n- Для `mode === \"report\"` — только с массивами `stale` и `tombstoned`.\n- Для `mode === \"rewrite_plan\"` — с дополнительным массивом `rewritePlan`.\n- Для `mode === \"tombstone\"` — с массивом `appliedTombstones`.\nВозвращает `RefreshStaleDocsResult`.",
+          "rendered": true,
+          "fingerprint": "body=e5d964f4eef1dda2928075169ae3ad550bc3870bf43f44cc3dbbb5a422b28acc,deps=7ff73e42981df24f9915ce1414023e2267144574eb2669c43799ff77a9271dda",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается из `CodeloreService.refreshStaleDocs` в трёх ветках: - Для `mode === \"report\"` — только с массивами `stale` и `tombstoned`."
+          }
+        },
+        "limitations": {
+          "body": "Отсутствуют — функция не выполняет валидацию режима или массивов, передаёт данные без преобразования.",
+          "rendered": true,
+          "fingerprint": "body=e5d964f4eef1dda2928075169ae3ad550bc3870bf43f44cc3dbbb5a422b28acc",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Отсутствуют — функция не выполняет валидацию режима или массивов, передаёт данные без преобразования."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.826Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.087Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "8dc7f5cfe22b47bac5ae896d3b479fdafc7e90e74f0deb483403e8eca53fbee2"
+    },
+    "symbol:src/service/stale-detection.ts#collectLanguageStaleBlocks": {
+      "heading": "collectLanguageStaleBlocks",
+      "depth": 1,
+      "anchor": "collectlanguagestaleblocks",
+      "owns": [
+        "symbol:src/service/stale-detection.ts#collectLanguageStaleBlocks"
+      ],
+      "depends": [
+        "symbol:src/service/helpers.ts#isKnownBlockId"
+      ],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.refreshStaleDocs"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Обнаруживает блоки документации, язык которых не соответствует текущему каноническому языку, чтобы отметить их как устаревшие для последующей регенерации.",
+          "rendered": true,
+          "fingerprint": "signature=f588759d6684b393ec5d4f07f63dc19cd9a2398e614b2ae3279e071a3502828b,placement=7192638aa1e0c61bfbe3177507c1c98bf58f767ff478af1f3f948c56ec9d1126",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Обнаруживает блоки, язык которых не соответствует каноническому, помечая их как устаревшие."
+          }
+        },
+        "responsibility": {
+          "body": "- Проверяет, что `canonicalLanguage` задан; при отсутствии возвращает пустой массив.\n- Пропускает блоки с неизвестным идентификатором, уже помеченные как устаревшие, пустые или не имеющие языковой метки (`block.language === undefined`).\n- Для каждого блока, чья метка `block.language` отличается от `canonicalLanguage`, создаёт запись `StaleBlockInfo` с фасетом `\"language\"`.",
+          "rendered": true,
+          "fingerprint": "signature=f588759d6684b393ec5d4f07f63dc19cd9a2398e614b2ae3279e071a3502828b,deps=bf6c999f7815c68259f817fe55470b4bf1bc95ddd3cffd564feb610a323cccd2,usage=dac8beef236d311a934a423ab0594c23ca3889d47af7c7a8dfb9af9d9335f471",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Проверяет только блоки с меткой языка, отличной от канонической."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращает пустой массив, если `canonicalLanguage` равен `undefined`.\n- Флагирует только блоки, у которых `block.language` существует и не совпадает с `canonicalLanguage`.\n- Не изменяет переданные секции и блоки, возвращая новые записи.",
+          "rendered": true,
+          "fingerprint": "signature=f588759d6684b393ec5d4f07f63dc19cd9a2398e614b2ae3279e071a3502828b,body=6554396f8c13e9093fbcaf29d8b84d9cb67a181e8d6c9adc0890a07cf897c54a",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не мутирует входные данные, возвращает пустой массив при отсутствии канонического языка."
+          }
+        },
+        "dependencies": {
+          "body": "Функция использует `isKnownBlockId` из `src/service/helpers.ts` для проверки, является ли идентификатор блока известным.",
+          "rendered": true,
+          "fingerprint": "deps=bf6c999f7815c68259f817fe55470b4bf1bc95ddd3cffd564feb610a323cccd2",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Зависит только от `isKnownBlockId` для отсева неизвестных идентификаторов блоков."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `CodeloreService.refreshStaleDocs` с аргументом `this.config.docs.language` в качестве канонического языка. Функция последовательно обходит все секции и блоки, отфильтровывая блоки без языковой метки, и возвращает массив устаревших блоков для последующей обработки.",
+          "rendered": true,
+          "fingerprint": "body=6554396f8c13e9093fbcaf29d8b84d9cb67a181e8d6c9adc0890a07cf897c54a,deps=bf6c999f7815c68259f817fe55470b4bf1bc95ddd3cffd564feb610a323cccd2",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Параметр `canonicalLanguage` поступает из конфигурации сервиса (`this.config.docs.language`)."
+          }
+        },
+        "limitations": {
+          "body": "Функция не обрабатывает блоки, у которых отсутствует языковая метка (`block.language === undefined`) — такие блоки не считаются устаревшими, даже если канонический язык изменился. Это ограничение заложено в условии `continue` при `block.language === undefined`.",
+          "rendered": true,
+          "fingerprint": "body=6554396f8c13e9093fbcaf29d8b84d9cb67a181e8d6c9adc0890a07cf897c54a",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Блоки без языковой метки игнорируются, а не помечаются как устаревшие."
+          }
+        },
+        "changeGuide": {
+          "body": "- Если `canonicalLanguage` равен `undefined`, функция возвращает пустой массив — это обеспечивается ранним возвратом `if (canonicalLanguage === undefined) { return []; }`.\n- Только блоки с известным идентификатором, не являющиеся устаревшими, непустые и с установленной языковой меткой проходят проверку — это гарантирует условие `if (!isKnownBlockId(block.id) || block.staleSince !== undefined || block.body.trim() === \"\" || block.language === undefined) { continue; }`.",
+          "rendered": true,
+          "fingerprint": "body=6554396f8c13e9093fbcaf29d8b84d9cb67a181e8d6c9adc0890a07cf897c54a,deps=bf6c999f7815c68259f817fe55470b4bf1bc95ddd3cffd564feb610a323cccd2,usage=dac8beef236d311a934a423ab0594c23ca3889d47af7c7a8dfb9af9d9335f471,placement=7192638aa1e0c61bfbe3177507c1c98bf58f767ff478af1f3f948c56ec9d1126",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Ранний возврат при `canonicalLanguage === undefined` предотвращает любую фильтрацию, когда язык не задан."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:19:56.844Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:25:43.500Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "e96d18680381084d7bd12718f9f15473da635a298d9d7a668156acbb42574ca4"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

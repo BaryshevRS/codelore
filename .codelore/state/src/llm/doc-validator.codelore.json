@@ -1,0 +1,465 @@
+{
+  "version": 4,
+  "docPath": "src/llm/doc-validator.codelore.md",
+  "generatedAt": "2026-07-03T16:25:43.516Z",
+  "sectionOrder": [
+    "symbol:src/llm/doc-validator.ts#validateFileWrite",
+    "symbol:src/llm/doc-validator.ts#allowedRefsForSection",
+    "symbol:src/llm/doc-validator.ts#buildEntityNameToIds"
+  ],
+  "sections": {
+    "symbol:src/llm/doc-validator.ts#validateFileWrite": {
+      "heading": "validateFileWrite",
+      "depth": 1,
+      "anchor": "validatefilewrite",
+      "owns": [
+        "symbol:src/llm/doc-validator.ts#validateFileWrite"
+      ],
+      "depends": [
+        "symbol:src/llm/doc-validator.ts#allowedRefsForSection"
+      ],
+      "usedBy": [
+        "file:src/llm/file-pipeline.ts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide",
+        "dependencies"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide",
+        "dependencies"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Проверяет сгенерированные блоки документации на соответствие структурным правилам и контексту секции.",
+          "rendered": true,
+          "fingerprint": "signature=b41a1f7006be43a81142ab50d8d7c76647eab9dcfed4e474d439807140f3a30b,placement=e62d6b4018f5a7687c3fce279f787fa207bdacb20fbabb82fd68afc0784319df",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция выполняет валидацию на основе переданных правил и контекста."
+          }
+        },
+        "responsibility": {
+          "body": "- Не исправляет нарушения — только возвращает список `DocViolation`.\n- Не проверяет семантическую корректность текста, только структурные правила (ссылки, длина, существование путей).\n- Не проверяет пути, не соответствующие шаблону `MENTIONED_PATH_PATTERN`.\n- Делегирует проверку существования путей внешнему колбэку `fileExists`.",
+          "rendered": true,
+          "fingerprint": "signature=b41a1f7006be43a81142ab50d8d7c76647eab9dcfed4e474d439807140f3a30b,deps=3e33d4d06e0fd2c5c253a586aa28a46e9211dce27a5a777d59ba716c76e9205f,usage=6073c56bc9e336f72cf58e5d57c922561484a10f793d8bf9cd5492531d7fafb8",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция не занимается исправлением или семантической проверкой."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращает всегда массив (пустой при отсутствии нарушений).\n- Не бросает исключения.\n- Секции из `result`, отсутствующие в `sections`, игнорируются.\n- Для проверки длины текста используется константа `MAX_BLOCK_CHARS` (2500).",
+          "rendered": true,
+          "fingerprint": "signature=b41a1f7006be43a81142ab50d8d7c76647eab9dcfed4e474d439807140f3a30b,body=3ac1d419605dcb0c1bd84f42c84fbccaa785d80a58e8acfe7a16014a377fe511",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "- Возвращает всегда массив (пустой при отсутствии нарушений)."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из файла `src/llm/file-pipeline.ts` после завершения генерации файлов. Функция перебирает секции в `result`. Для каждой секции проверяется длина текста каждого блока, валидность ссылок (`validateRef`), соответствие ролей ссылок (`validateRefRole`), существование упомянутых путей (`validateMentionedPaths`) и символов (`validateMentionedSymbols`). Нарушения собираются в массив и возвращаются вызывающему коду для анализа качества генерации.",
+          "rendered": true,
+          "fingerprint": "body=3ac1d419605dcb0c1bd84f42c84fbccaa785d80a58e8acfe7a16014a377fe511,deps=3e33d4d06e0fd2c5c253a586aa28a46e9211dce27a5a777d59ba716c76e9205f",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Вызывается из файла `src/llm/file-pipeline.ts` после завершения генерации файлов."
+          }
+        },
+        "limitations": {
+          "body": "- Проверка существования путей (`validateMentionedPaths`) активна только при переданном колбэке `fileExists`; при его отсутствии пути не проверяются.\n- Шаблон `MENTIONED_PATH_PATTERN` не покрывает пути без расширения или с нестандартными расширениями.\n- `validateRefRole` выполняется исключительно для блока `dependencies` — условие `if (blockId !== \"dependencies\") { return []; }`.\n- Не проверяется, что каждая ссылка из `refs` упоминается в тексте блока — проверяются только существование ссылки и совпадение символов в тексте со списком разрешённых.",
+          "rendered": true,
+          "fingerprint": "body=3ac1d419605dcb0c1bd84f42c84fbccaa785d80a58e8acfe7a16014a377fe511",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Проверка существования путей (`validateMentionedPaths`) активна только при переданном колбэке `fileExists`; при его отсутствии пути не проверяются."
+          }
+        },
+        "changeGuide": {
+          "body": "1. Игнорирование отсутствующих секций — условие `if (!section) { continue; }` предотвращает ошибки при неполном наборе секций.\n2. Ограничение длины текста блока — константа `const MAX_BLOCK_CHARS = 2500` и проверка `block.text.length > MAX_BLOCK_CHARS`.",
+          "rendered": true,
+          "fingerprint": "body=3ac1d419605dcb0c1bd84f42c84fbccaa785d80a58e8acfe7a16014a377fe511,deps=3e33d4d06e0fd2c5c253a586aa28a46e9211dce27a5a777d59ba716c76e9205f,usage=6073c56bc9e336f72cf58e5d57c922561484a10f793d8bf9cd5492531d7fafb8,placement=e62d6b4018f5a7687c3fce279f787fa207bdacb20fbabb82fd68afc0784319df",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "1."
+          }
+        },
+        "dependencies": {
+          "body": "- `BlockId` (`src/markdown/block-ids.ts`) — тип идентификатора блока.\n- `FileWriteResult`, `FileWriteSection` (`src/llm/file-writer.ts`) — типы результата и секции файла.",
+          "rendered": true,
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Функция зависит от типов, определённых в других модулях."
+          },
+          "fingerprint": "deps=3e33d4d06e0fd2c5c253a586aa28a46e9211dce27a5a777d59ba716c76e9205f"
+        }
+      },
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "generationHistory": [
+        {
+          "runId": "22bccca0-cf47-476d-bbf5-52789133117c",
+          "timestamp": "2026-06-10T19:48:24.184Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "74780818-2bcb-467b-a4ba-ae5bbf256e9a",
+          "timestamp": "2026-06-11T21:18:16.300Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "25edcfe6-910c-4993-8cc6-4eabb2b2d4d5",
+          "timestamp": "2026-06-19T16:22:35.774Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "25edcfe6-910c-4993-8cc6-4eabb2b2d4d5",
+          "timestamp": "2026-06-19T16:25:56.890Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    },
+    "symbol:src/llm/doc-validator.ts#allowedRefsForSection": {
+      "heading": "allowedRefsForSection",
+      "depth": 1,
+      "anchor": "allowedrefsforsection",
+      "owns": [
+        "symbol:src/llm/doc-validator.ts#allowedRefsForSection"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/llm/file-pipeline.ts",
+        "symbol:src/llm/doc-validator.ts#validateFileWrite",
+        "symbol:src/llm/file-pipeline.ts#buildRepairRequest"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Вычисляет множество идентификаторов, которые разрешено указывать в `refs` блока документации для данной секции.",
+          "rendered": true,
+          "fingerprint": "signature=701587170012c95c5fce90c9670dbd6710e500b46aa33cb1b99879327964e202,placement=4ff58bc30953359f1cbe3464b5720b40585f37f3f971e7266b38e3df2e6733d4",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция строит разрешённое множество на основе сущности секции, её вызывающих, зависимостей и файлов группы."
+          }
+        },
+        "responsibility": {
+          "body": "- Включает в множество идентификатор самой сущности секции.\n- Включает идентификаторы и пути всех вызывающих (`section.callers`).\n- Включает идентификаторы всех прямых зависимостей (`section.dependencyEntityIds`) и их пути.\n- Включает пути из `dependencyDocPaths` и `groupFiles`.\n- Не проверяет, что возвращённые идентификаторы действительно существуют в индексе — это задача вызывающего.",
+          "rendered": true,
+          "fingerprint": "signature=701587170012c95c5fce90c9670dbd6710e500b46aa33cb1b99879327964e202,deps=fac62849e982d234a8676d0876d1a0baab9acee221ea7bc49afc790f5b802f74,usage=f2603fbee79f0a10016039b30c11ffcfb96150e56aac8ea9ed97373d6f53d594",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция не проверяет существование идентификаторов в индексе, только собирает их из переданных данных."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращаемое множество всегда содержит как минимум идентификатор сущности секции (`section.entity.id`).\n- Функция никогда не бросает исключения при любых входных данных.\n- Не модифицирует ни один из переданных объектов.",
+          "rendered": true,
+          "fingerprint": "signature=701587170012c95c5fce90c9670dbd6710e500b46aa33cb1b99879327964e202,body=2e24868a4bdc216be396a46e10a1deec4be9fab5eb34c60d70ce9cb07af4375b",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция никогда не бросает исключения и всегда возвращает множество, содержащее как минимум идентификатор сущности секции."
+          },
+          "language": "ru"
+        },
+        "workflows": {
+          "body": "1. `validateFileWrite` (`src/llm/doc-validator.ts`) для каждой секции вызывает `allowedRefsForSection`, затем использует полученное множество для проверки ссылок через `validateRef` и `validateMentionedSymbols`.\n2. `buildRepairRequest` (`src/llm/file-pipeline.ts`) для каждой секции с нарушениями вызывает `allowedRefsForSection` и включает отсортированный список разрешённых ссылок в промпт ремонта.",
+          "rendered": true,
+          "fingerprint": "body=2e24868a4bdc216be396a46e10a1deec4be9fab5eb34c60d70ce9cb07af4375b,deps=fac62849e982d234a8676d0876d1a0baab9acee221ea7bc49afc790f5b802f74",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается для каждой секции в двух разных контекстах: при валидации и при формировании запроса на ремонт."
+          },
+          "language": "ru"
+        },
+        "limitations": {
+          "body": "Функция не содержит проверок входных данных и не накладывает ограничений на передаваемые значения.",
+          "rendered": false,
+          "fingerprint": "body=2e24868a4bdc216be396a46e10a1deec4be9fab5eb34c60d70ce9cb07af4375b",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.25,
+            "specificity": 0.5,
+            "novelFact": "Отсутствуют явные ограничения; функция принимает любые входные данные без валидации."
+          },
+          "language": "ru"
+        },
+        "changeGuide": {
+          "body": "1. Собственный идентификатор сущности всегда добавляется первым в множество. Конструкт: `allowed.add(section.entity.id);`.\n2. Для каждой прямой зависимости добавляется как её идентификатор, так и путь к файлу (если определён). Конструкты: цикл `for (const depId of section.dependencyEntityIds) { ... }` и условие `if (path) { allowed.add(path); allowed.add(`file:${path}`); }`.",
+          "rendered": true,
+          "fingerprint": "body=2e24868a4bdc216be396a46e10a1deec4be9fab5eb34c60d70ce9cb07af4375b,deps=fac62849e982d234a8676d0876d1a0baab9acee221ea7bc49afc790f5b802f74,usage=f2603fbee79f0a10016039b30c11ffcfb96150e56aac8ea9ed97373d6f53d594,placement=4ff58bc30953359f1cbe3464b5720b40585f37f3f971e7266b38e3df2e6733d4",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Первая добавляемая запись — собственный идентификатор; для зависимостей дублируется идентификатор и путь с префиксом `file:`."
+          },
+          "language": "ru"
+        }
+      },
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "generationHistory": [
+        {
+          "runId": "74780818-2bcb-467b-a4ba-ae5bbf256e9a",
+          "timestamp": "2026-06-11T21:18:16.299Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:19:56.857Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:25:43.514Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    },
+    "symbol:src/llm/doc-validator.ts#buildEntityNameToIds": {
+      "heading": "buildEntityNameToIds",
+      "depth": 1,
+      "anchor": "buildentitynametoids",
+      "owns": [
+        "symbol:src/llm/doc-validator.ts#buildEntityNameToIds"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/llm/file-pipeline.ts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Создаёт обратный индекс для поиска идентификаторов сущностей по имени в процессе валидации упомянутых символов.",
+          "rendered": true,
+          "fingerprint": "signature=bc0fb9487e0e132dc07d31a77d2b387781a4001bba3f830a92e76ce64deb7f96,placement=1ef56f4980331e4b54877009306b0ca1f008ed77c0d53a9c5baddd5c143a4c43",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Создаёт обратный индекс для поиска идентификаторов сущностей по имени в процессе валидации упомянутых символов."
+          }
+        },
+        "responsibility": {
+          "body": "- Возвращает `Map`, где каждому имени сопоставлен массив из одного или нескольких идентификаторов сущностей.\n- Не проверяет корректность входных данных — предполагает, что `entities` — корректная запись.\n- Не модифицирует входной объект.",
+          "rendered": true,
+          "fingerprint": "signature=bc0fb9487e0e132dc07d31a77d2b387781a4001bba3f830a92e76ce64deb7f96,deps=7d92c20d6bb6aafe1c8a52700a7219cd521e07634942b80f7a1b300269e49b3a,usage=93fe97fb1bf2613acb82a41eed7eff0493a0ffce881990ef754aa827dcb178e9",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "- Возвращает `Map`, где каждому имени сопоставлен массив из одного или нескольких идентификаторов сущностей."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращаемый `Map` содержит только ключи, являющиеся полным именем сущности или частью после последней точки (если точка присутствует).\n- Массивы идентификаторов для одного ключа не содержат дубликатов (проверка `!ids.includes(id)` во внутренней функции `add`).\n- Функция не бросает исключения при любом входе.\n- Не модифицирует входной объект `entities`.",
+          "rendered": true,
+          "fingerprint": "signature=bc0fb9487e0e132dc07d31a77d2b387781a4001bba3f830a92e76ce64deb7f96,body=16cdec673a0064234bc6137343a13963ad0e190078cae391a959a318b76613de",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Массивы идентификаторов в возвращаемом Map не содержат дубликатов."
+          },
+          "language": "ru"
+        },
+        "workflows": {
+          "body": "Вызывается из `src/llm/file-pipeline.ts` для построения обратного индекса имён сущностей.",
+          "rendered": true,
+          "fingerprint": "body=16cdec673a0064234bc6137343a13963ad0e190078cae391a959a318b76613de,deps=7d92c20d6bb6aafe1c8a52700a7219cd521e07634942b80f7a1b300269e49b3a",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Создаёт обратный индекс имён, используемый при валидации символов в `validateMentionedSymbols`."
+          },
+          "language": "ru"
+        },
+        "limitations": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=79dc8730d6a6b2fff5d52c94683881513b7af5b1acee9c60ca08d439a78b5445"
+        },
+        "changeGuide": {
+          "body": "1. При наличии точки в имени сущности в индекс добавляется как полное имя, так и часть после последней точки. Конструкт: `const dot = entity.name.lastIndexOf(\".\"); if (dot >= 0 && dot < entity.name.length - 1) { add(entity.name.slice(dot + 1), id); }`.\n2. Массивы идентификаторов для одного имени не содержат дубликатов. Конструкт: проверка `!ids.includes(id)` во внутренней функции `add`.",
+          "rendered": true,
+          "fingerprint": "body=16cdec673a0064234bc6137343a13963ad0e190078cae391a959a318b76613de,deps=7d92c20d6bb6aafe1c8a52700a7219cd521e07634942b80f7a1b300269e49b3a,usage=93fe97fb1bf2613acb82a41eed7eff0493a0ffce881990ef754aa827dcb178e9,placement=1ef56f4980331e4b54877009306b0ca1f008ed77c0d53a9c5baddd5c143a4c43",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Индекс включает как полное имя, так и короткое (после последней точки), и гарантирует отсутствие дубликатов в массивах идентификаторов."
+          },
+          "language": "ru"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "25edcfe6-910c-4993-8cc6-4eabb2b2d4d5",
+          "timestamp": "2026-06-19T16:22:35.771Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "25edcfe6-910c-4993-8cc6-4eabb2b2d4d5",
+          "timestamp": "2026-06-19T16:25:56.887Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:19:56.858Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:25:43.515Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

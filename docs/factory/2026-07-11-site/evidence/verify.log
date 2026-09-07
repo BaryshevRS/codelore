@@ -1,0 +1,26 @@
+2026-07-11 — @codelore/site verification
+
+$ pnpm run test
+Test Files  46 passed (46)
+Tests  365 passed (365)
+
+$ pnpm run lint
+Exit 0. Existing repository warnings from Biome and PMD/CPD remain; Knip completed without workspace configuration hints. Root and @codelore/site type checks passed.
+
+$ node packages/site/dist/bin/codelore-site.js init --root /Users/rock/Projects/codelore --output /tmp/codelore-site-smoke.SG9GWW
+Generated a Fumadocs Next.js project.
+
+$ node packages/site/dist/bin/codelore-site.js sync --root /Users/rock/Projects/codelore --output /tmp/codelore-site-smoke.SG9GWW
+After adapting to the current on-disk state schema version, synchronized 78 canonical Codelore documents.
+
+$ pnpm --dir /tmp/codelore-site-smoke.SG9GWW install
+postinstall: fumadocs-mdx generated the content source.
+
+$ pnpm --dir /tmp/codelore-site-smoke.SG9GWW run build
+Next.js production build passed. It statically generated /docs plus 78 documentation routes.
+
+$ curl --fail --silent http://localhost:3000/docs
+HTTP 200; rendered page title: Обзор проекта.
+
+$ pnpm --filter @codelore/site pack --dry-run
+Tarball contains package.json, README.md, and compiled dist/bin plus public modules.

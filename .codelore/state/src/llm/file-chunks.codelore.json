@@ -1,0 +1,224 @@
+{
+  "version": 4,
+  "docPath": "src/llm/file-chunks.codelore.md",
+  "generatedAt": "2026-07-03T17:36:25.774Z",
+  "sectionOrder": [
+    "symbol:src/llm/file-chunks.ts#planWriterChunks"
+  ],
+  "sections": {
+    "symbol:src/llm/file-chunks.ts#planWriterChunks": {
+      "heading": "planWriterChunks",
+      "depth": 1,
+      "anchor": "planwriterchunks",
+      "owns": [
+        "symbol:src/llm/file-chunks.ts#planWriterChunks"
+      ],
+      "depends": [
+        "symbol:src/llm/strip-comments.ts#stripComments"
+      ],
+      "usedBy": [
+        "file:src/llm/file-pipeline.ts",
+        "symbol:src/llm/file-pipeline.ts#generateFileGroup"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Разбивает набор исходных файлов и секций документации на чанки, каждый из которых помещается в контекст одной LLM-генерации с учётом лимитов токенов и числа секций, заданных через WriterBudget.",
+          "rendered": true,
+          "fingerprint": "signature=bcf2f27caed7cdbea46cbc7445887eb8b058fde98a3f63614e4adade6f73c015,placement=73730f7de9bf94d627dc9b9802016bf6db3c0b238379c597dbf29720a6e81018",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция является единой точкой входа для планирования чанкового разбиения документации."
+          },
+          "language": "ru"
+        },
+        "responsibility": {
+          "body": "- Проверяет, укладывается ли общий объём исходников и число секций в лимиты; при выполнении обоих условий возвращает единственный чанк со всеми файлами (с удалёнными комментариями) и секциями.\n- Если лимиты превышены, разбивает файлы по границам top-level сущностей, а затем распределяет секции по полученным драфтам.\n- Драфты, которым не назначена ни одна секция, не порождают чанков - их код не передаётся в LLM.\n- Каждый драфт с секциями дополнительно дробится по maxSectionsPerChunk; итоговые чанки нумеруются последовательно.",
+          "rendered": true,
+          "fingerprint": "signature=bcf2f27caed7cdbea46cbc7445887eb8b058fde98a3f63614e4adade6f73c015,deps=d9fedbcc2243d91865d2539a2e2e95a66f571dff9bb45084193361d95e9121e7,usage=527e4d82edcb39923a87cf15463d867061fdd2fb0ea5fb32cc37798a45d0237f",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция разбивает файлы по top-level границам, сохраняя целостность классов и их методов в одном чанке."
+          },
+          "language": "ru"
+        },
+        "invariants": {
+          "body": "- Если общий объём и число секций укладываются в лимиты, возвращается ровно один чанк (проверка if (total <= maxSourceChars && input.sections.length <= maxSections)).\n- Каждый чанк содержит не более budget.maxSectionsPerChunk секций (цикл for (let start = 0; start < draftSections.length; start += maxSections)).\n- Класс и все его методы всегда находятся в одном чанке: разрез файла производится только по top-level границам.\n- Драфт без назначенных секций не порождает чанков: пустой массив draftSections приводит к нулевым итерациям цикла.\n- Число итоговых чанков равно числу элементов в массиве pieces, каждый с уникальным номером part от 1 до parts.",
+          "rendered": true,
+          "fingerprint": "signature=bcf2f27caed7cdbea46cbc7445887eb8b058fde98a3f63614e4adade6f73c015,body=36900d327a37a05a8752181c5bc6567821c61147e8d5471da10d91e166b3b7a8",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Гарантия, что драфты без секций исключаются из итоговых чанков, достигнута за счёт цикла по draftSections - пустой массив даёт ноль итераций."
+          },
+          "language": "ru"
+        },
+        "dependencies": {
+          "body": "- `stripComments` (`src/llm/strip-comments.ts`) — очищает исходный код от комментариев для уменьшения объёма, передаваемого в LLM.",
+          "rendered": true,
+          "fingerprint": "deps=d9fedbcc2243d91865d2539a2e2e95a66f571dff9bb45084193361d95e9121e7",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Зависимость необходима для очистки комментариев и уменьшения размера исходников перед отправкой в LLM."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `generateFileGroup` (`src/llm/file-pipeline.ts`) после того, как та собрала исходные файлы и секции документации. `generateFileGroup` передаёт в `planWriterChunks` массив `sources` (содержимое файлов, прочитанное через `readFile`), массив `sections` (сформированных через `fileWriteSection`), `code` из `index.code`, `budget` из `provider.writerBudget` и `overheadChars`. Результат — массив `WriterChunk[]` — `generateFileGroup` передаёт в `generateChunk` для каждого чанка, параллельно через `pLimit`.",
+          "rendered": true,
+          "fingerprint": "body=36900d327a37a05a8752181c5bc6567821c61147e8d5471da10d91e166b3b7a8,deps=d9fedbcc2243d91865d2539a2e2e95a66f571dff9bb45084193361d95e9121e7",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается из `generateFileGroup` после сборки файлов и секций; результат передаётся в `generateChunk`."
+          },
+          "language": "ru"
+        },
+        "limitations": {
+          "body": "- При разбиении файла содержимое заголовка (до первой top-level сущности) дублируется во все результирующие чанки из-за передачи `header` в `draftFromSegments` в функции `splitFile`.\n- Если файл не содержит top-level сущностей, `topLevelStarts` возвращает пустой массив, и `splitFile` возвращает единственный чанк через `wholeFileDraft`, который может превысить `maxSourceChars`.\n- Упаковка сегментов в чанки использует жадный алгоритм (цикл в `splitFile` с `flush()`), который не минимизирует число чанков.",
+          "rendered": true,
+          "fingerprint": "body=36900d327a37a05a8752181c5bc6567821c61147e8d5471da10d91e166b3b7a8",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 0.75,
+            "novelFact": "При разбиении файла содержимое заголовка дублируется во все чанки, увеличивая их объём."
+          },
+          "language": "ru"
+        },
+        "changeGuide": {
+          "body": "1. Изменение константы `maxSourceChars` (вычисляется как `Math.max(0, input.budget.maxPromptTokens * input.budget.charsPerToken - input.overheadChars)`) может нарушить предположения `generateChunk` о размере контекста — проверить тесты в `file-chunks.test.ts`.",
+          "rendered": true,
+          "fingerprint": "body=36900d327a37a05a8752181c5bc6567821c61147e8d5471da10d91e166b3b7a8,deps=d9fedbcc2243d91865d2539a2e2e95a66f571dff9bb45084193361d95e9121e7,usage=527e4d82edcb39923a87cf15463d867061fdd2fb0ea5fb32cc37798a45d0237f,placement=73730f7de9bf94d627dc9b9802016bf6db3c0b238379c597dbf29720a6e81018",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Изменение `maxSourceChars` может нарушить контракты с `generateChunk`."
+          },
+          "language": "ru"
+        }
+      },
+      "depDocsFingerprint": "c4f5f4210e81ff218445b3de78d6bf38aa752b0b70b31ae618145a3670ddc1e2",
+      "generationHistory": [
+        {
+          "runId": "8306bc06-7ca0-40d1-8f15-9cf8eb0cbd46",
+          "timestamp": "2026-06-11T14:28:21.858Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "74780818-2bcb-467b-a4ba-ae5bbf256e9a",
+          "timestamp": "2026-06-11T21:18:17.173Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "ea3df4eb-2d04-4e4c-a68a-273c075c8aa6",
+          "timestamp": "2026-06-13T20:47:08.305Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "ea3df4eb-2d04-4e4c-a68a-273c075c8aa6",
+          "timestamp": "2026-06-13T20:48:59.342Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:19:56.862Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:25:43.525Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "changeGuide"
+          ],
+          "manualReviewNeeded": true
+        },
+        {
+          "runId": "b9d7b27d-7af9-43fb-886d-bba0617cfba4",
+          "timestamp": "2026-07-03T17:36:25.774Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "limitations"
+          ]
+        }
+      ]
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

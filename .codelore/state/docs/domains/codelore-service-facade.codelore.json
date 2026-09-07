@@ -1,0 +1,122 @@
+{
+  "version": 4,
+  "docPath": "docs/domains/codelore-service-facade.codelore.md",
+  "generatedAt": "2026-07-08T07:59:27.227Z",
+  "sectionOrder": [
+    "domain:codelore-service-facade"
+  ],
+  "sections": {
+    "domain:codelore-service-facade": {
+      "heading": "Фасад сервиса Codelore",
+      "depth": 1,
+      "anchor": "фасад-сервиса-codelore",
+      "owns": [
+        "domain:codelore-service-facade"
+      ],
+      "depends": [
+        "file:src/service/codelore-service.ts",
+        "domain:block-fingerprinting",
+        "domain:change-impact-graph",
+        "domain:code-doc-indexing",
+        "domain:doc-state-consistency",
+        "domain:doc-state-storage",
+        "domain:doc-translation",
+        "domain:error-handling",
+        "domain:initial-docs-preparation",
+        "domain:json-storage",
+        "domain:llm-generation-pipeline",
+        "domain:llm-provider-factory",
+        "domain:markdown-rendering",
+        "domain:project-config",
+        "domain:project-index-manager",
+        "domain:section-rewrite-application",
+        "domain:service-helpers",
+        "domain:stale-blocks-detection"
+      ],
+      "usedBy": [
+        "domain:cli-entrypoint",
+        "domain:llm-generation-pipeline",
+        "domain:mcp-server"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Фасад CodeloreService — единая точка входа для всех операций с документацией Codelore. Он даёт остальной системе сквозной API, чтобы не работать с внутренними подсистемами напрямую, а клиентам — единообразно строить индексы, генерировать и обновлять Markdown-документы, анализировать изменения и выполнять валидацию.",
+          "rendered": true,
+          "fingerprint": "signature=d1d322dd7c28f1fae46494f9044a29520d7086325038e7d917a23ddd890c95d9,placement=159f27f335f9fd619e61e2f09e5fd8991b8925d6ff8461774600afef8e7b58c4",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Фасад CodeloreService — единая точка входа для всех операций с документацией Codelore."
+          }
+        },
+        "responsibility": {
+          "body": "Сервис оркестрирует полный жизненный цикл документации: инициирует построение индексов через IndexManager, подготавливает скелеты новых секций через prepareInitialDocs, управляет обнаружением устаревших блоков через refreshStaleDocs, вызывает двухфазный LLM-пайплайн через runPipelineForSections и применяет перезаписи через rewriteSections. Кэширует проектный контекст в projectContextCache и сбрасывает его при перестроении индекса. Предоставляет методы чтения: readDocSection рендерит секцию в Markdown, readCodeEntity добавляет исходный код сущности, readImpact возвращает влияние на другие сущности, readDocFile отдаёт сырое содержимое файла. Выполняет валидацию через validateDocs, которая перестраивает индекс и для каждой секции вызывает проверки владеемых сущностей, зависимостей, устаревших блоков и качества. translateScope обновляет переводы для всех настроенных языков, удаляя переводы для исключённых из конфигурации языков. Всю низкоуровневую работу — индексацию, хеширование, работу с диффами, запись на диск и форматирование Markdown — делегирует подсистемам.",
+          "rendered": true,
+          "fingerprint": "signature=d1d322dd7c28f1fae46494f9044a29520d7086325038e7d917a23ddd890c95d9,deps=4865ee80696fdd2ab822f5747cee1703584cfc4999093c13a475b98c1a4830da,usage=f05dc08c61e41cc2c8f00f5cbb77152969a704075dc15d5bacdf7d7aea8bbe49",
+          "language": "ru",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Сервис оркестрирует полный жизненный цикл документации: от построения индексов до применения перезаписей и переводов, делегируя низкоуровневую работу подсистемам."
+          }
+        },
+        "dependencies": {
+          "body": "Фасад опирается на IndexManager для построения и загрузки индексов, JsonStorage и DocStateStorage для персистентности. Для анализа изменений использует граф зависимостей: changedEntitiesFromDiff и changedEntitiesFromFiles определяют изменённые сущности, getAffectedSectionsForEntities вычисляет затронутые секции. Подготовку скелетов делегирует planFileLayout и docStateSectionForPlannedEntity, обнаружение устаревших блоков — buildRewriteContextBundle и applyTombstones, генерацию — createConfiguredProvider и generateFileGroup, применение перезаписей — groupRewritesByDoc и applyRewritesToDoc. Рендеринг Markdown выполняет renderSection, переводы — подсистема перевода, валидацию — validateOwnedEntities, validateDependencies, detectStaleBlocks и validateBlockQuality. Сам фасад не реализует логику индексации, вычисления отпечатков, построения графа зависимостей, трансляции диффов, атомарной записи на диск или форматирования Markdown — всё это остаётся за перечисленными подсистемами.",
+          "rendered": true,
+          "fingerprint": "deps=4865ee80696fdd2ab822f5747cee1703584cfc4999093c13a475b98c1a4830da",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Фасад делегирует индексацию, хеширование, работу с диффами, запись на диск и форматирование Markdown подсистемам, не реализуя эту логику самостоятельно."
+          }
+        },
+        "workflows": {
+          "body": "Генерация документации для области: generateDocsForScope нормализует скоуп, через prepareInitialDocs создаёт скелетные секции для сущностей без документации, согласовывает состояния через reconcileScopedDocStates, запускает refreshStaleDocs в режиме tombstone для пометки устаревших блоков, собирает целевые блоки и передаёт их в runPipelineForSections. Пайплайн фильтрует секции по наличию в индексе, проверяет допустимость целевых блоков через collectAllowedBlocksForSection, запускает фазы propagating и terminal с ограничением параллелизма из config.llm.concurrency, собирает updatedSections, skipped и failed. rewriteSections группирует перезаписи по doc-файлу через groupRewritesByDoc, для каждого вызывает applyRewritesToDoc, затем обновляет doc-индекс через patchDocIndexForDocs. translateScope завершает цикл: фильтрует секции по скоупу, собирает уникальные пути документов, удаляет переводы для исключённых языков и переводит блоки для каждого настроенного языка. Анализ изменений: analyzeChange при отсутствии diff и changedFiles читает git-diff, определяет изменённые сущности, вычисляет затронутые секции и сохраняет результат; readChange извлекает запись по идентификатору. Чтение: readDocSection разрешает секцию, загружает состояние и рендерит в Markdown; readCodeEntity ищет сущность в индексе и добавляет исходный код через readEntityCode; readImpact вызывает getImpactForEntity; readDocFile читает файл относительно config.rootDir.",
+          "rendered": true,
+          "fingerprint": "body=d1d322dd7c28f1fae46494f9044a29520d7086325038e7d917a23ddd890c95d9,deps=4865ee80696fdd2ab822f5747cee1703584cfc4999093c13a475b98c1a4830da",
+          "language": "ru",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "generateDocsForScope проводит документацию от создания скелетов через двухфазную LLM-генерацию до применения перезаписей и перевода, а analyzeChange определяет затронутые секции из diff или списка файлов."
+          }
+        },
+        "limitations": {
+          "body": "Фасад не валидирует конфигурацию проекта и не разрешает относительные пути — это зона конфигурационной подсистемы. readDocFile и readCodeEntity не проверяют принадлежность файла документированному проекту: readDocFile читает произвольный текст по пути относительно config.rootDir, readCodeEntity ищет сущность только в индексе. translateScope немедленно завершается, если config.docs.translations пуст. Кэш проектного контекста сбрасывается только при перестроении индекса через колбэк в IndexManager, поэтому изменения внешних файлов не будут замечены без явного вызова rebuildIndexes. Сервис не гарантирует атомарность записи — она обеспечивается DocStateStorage. readChange не валидирует содержимое записи ChangeAnalysis, доверяя хранилищу. rewriteSections выбрасывает ошибку при дубликатах секций во входных данных.",
+          "rendered": true,
+          "fingerprint": "body=d1d322dd7c28f1fae46494f9044a29520d7086325038e7d917a23ddd890c95d9",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Кэш проектного контекста сбрасывается только при перестроении индекса, поэтому изменения внешних файлов требуют явного вызова rebuildIndexes."
+          }
+        }
+      },
+      "memberDocsFingerprint": "65a7c2c5c74afff0462f0b8dd261145272256ac92bee9be24a728207780ca144"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

@@ -1,0 +1,43 @@
+{
+  "docs": {
+    "language": "ru",
+    "writingRules": [
+      "Use plain explanatory engineering prose: direct, concrete, and reader-oriented.",
+      "Build a mental model of behavior: what input is recognized, what output is produced, what is ignored, and why callers care.",
+      "Русская проза без канцелярита: активные глаголы вместо отглагольных существительных («сохраняет», не «обеспечивает сохранение»); называй действующее лицо вместо возвратного пассива («метод создаёт директорию», не «создаётся директория»).",
+      "Пиши как объясняют коллеге. Плохо: «Обеспечивает сохранение индекса в виде JSON-файлов». Хорошо: «Сохраняет индекс проекта на диск как JSON; если при загрузке версия не совпала — вернёт undefined, и индекс придётся строить заново»."
+    ]
+  },
+  "llm": {
+    "provider": "aitunnel",
+    "verifyProvider": "aitunnel-verify",
+    "partitionProvider": "aitunnel-sonnet",
+    "concurrency": 100,
+    "providers": {
+      "aitunnel-sonnet": {
+        "type": "openai-compatible",
+        "baseUrl": "https://api.aitunnel.ru/v1/",
+        "model": "claude-sonnet-5",
+        "apiKeyEnv": "AI_API_KEY",
+        "temperature": 0.2,
+        "responseFormat": "json_schema"
+      },
+      "aitunnel": {
+        "type": "openai-compatible",
+        "baseUrl": "https://api.aitunnel.ru/v1/",
+        "model": "deepseek-v4-pro",
+        "apiKeyEnv": "AI_API_KEY",
+        "temperature": 0.2,
+        "responseFormat": "json_object"
+      },
+      "aitunnel-verify": {
+        "type": "openai-compatible",
+        "baseUrl": "https://api.aitunnel.ru/v1/",
+        "model": "deepseek-v4-flash",
+        "apiKeyEnv": "AI_API_KEY",
+        "temperature": 0.2,
+        "responseFormat": "json_schema"
+      }
+    }
+  }
+}

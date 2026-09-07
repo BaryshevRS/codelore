@@ -1,0 +1,106 @@
+{
+  "version": 4,
+  "docPath": "docs/domains/llm-doc-validation.codelore.md",
+  "generatedAt": "2026-07-08T07:59:27.227Z",
+  "sectionOrder": [
+    "domain:llm-doc-validation"
+  ],
+  "sections": {
+    "domain:llm-doc-validation": {
+      "heading": "Валидация и факт-чекинг сгенерированной документации",
+      "depth": 1,
+      "anchor": "валидация-и-факт-чекинг-сгенерированной-документации",
+      "owns": [
+        "domain:llm-doc-validation"
+      ],
+      "depends": [
+        "file:src/llm/doc-validator.ts",
+        "file:src/llm/doc-verifier.ts",
+        "domain:error-handling",
+        "domain:llm-json-response-parsing"
+      ],
+      "usedBy": [
+        "domain:llm-generation-pipeline"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Подсистема проверяет сгенерированную документацию в два этапа: структурная валидация отсеивает формальные нарушения вроде битых ссылок и превышения длины, а LLM-факт-чекинг сверяет утверждения в блоках с исходным кодом и документацией зависимостей. Остальная система получает от неё список нарушений и противоречий, не вникая в детали промптов и парсинга ответов модели.",
+          "rendered": true,
+          "fingerprint": "signature=019989672ea3233da14cdaf947bcbf43a67269f7e5c82ca09adeb1631f7a95e8,placement=7573f530a2aca0dcf880c2a7d2c316d00e2b0de1ecd89cb72ae5ed18fa8c8fbf",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Подсистема проверяет сгенерированную документацию в два этапа: структурная валидация и LLM-факт-чекинг."
+          }
+        },
+        "responsibility": {
+          "body": "Подсистема владеет полным циклом проверки документации. На этапе структурной валидации она вычисляет множество разрешённых ссылок для секции через `allowedRefsForSection`, строит обратный индекс имён сущностей через `buildEntityNameToIds` и проверяет блоки на соответствие правилам: корректность refs, длину текста, существование упомянутых файловых путей. На этапе факт-чекинга она собирает промпт с исходным кодом и документацией зависимостей через `buildVerifyRequest`, отправляет его в LLM и разбирает ответ через `parseVerifyResponse`, отфильтровывая записи, не относящиеся к проверяемым секциям. Оба этапа только выявляют проблемы — подсистема ничего не исправляет.",
+          "rendered": true,
+          "fingerprint": "signature=019989672ea3233da14cdaf947bcbf43a67269f7e5c82ca09adeb1631f7a95e8,deps=62f0ab3c4e21d32c68511da989f2446021881f57852088958ceb755a0fc50259,usage=733e6486feb39384627a5b00c1dae4ee28d3ac1e222d5cde981f78b809e91335",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Подсистема владеет полным циклом проверки документации: структурная валидация и LLM-факт-чекинг, но ничего не исправляет."
+          }
+        },
+        "dependencies": {
+          "body": "Подсистема намеренно не выполняет семантический анализ сама — он делегирован LLM. Для обработки ответов модели она полагается на подсистему разбора JSON-ответов LLM, которая превращает сырой текст в валидный JSON-объект или возвращает ошибку; без неё пришлось бы повторять запросы и чинить артефакты вручную. От единого формата ошибок подсистема использует `CodeloreError` с кодом `INVALID_LLM_RESPONSE`, когда метод `parseVerifyResponse` обнаруживает, что поле `contradictions` не является массивом.",
+          "rendered": true,
+          "fingerprint": "deps=62f0ab3c4e21d32c68511da989f2446021881f57852088958ceb755a0fc50259",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Подсистема использует `CodeloreError` с кодом `INVALID_LLM_RESPONSE`, когда `parseVerifyResponse` обнаруживает, что `contradictions` не является массивом."
+          }
+        },
+        "workflows": {
+          "body": "Вызывающий передаёт в `validateFileWrite` секцию документации со сгенерированными блоками и колбэк `fileExists`. Валидатор вычисляет разрешённые ссылки через `allowedRefsForSection`, строит индекс имён через `buildEntityNameToIds` и проверяет каждый блок: корректность refs, длину текста, существование упомянутых путей. Найденные нарушения возвращаются как массив `DocViolation`. Параллельно или следом вызывающий передаёт секции и документацию зависимостей в `buildVerifyRequest`, который собирает промпт с исходным кодом и зависимостями, добавляя `typeContext` при его наличии. LLM получает промпт, а её ответ проходит через `parseVerifyResponse`: метод извлекает массив противоречий, отбрасывает записи с `sectionId` или `blockId`, не входящими в переданные секции, и выбрасывает `CodeloreError` с кодом `INVALID_LLM_RESPONSE`, если `contradictions` — не массив.",
+          "rendered": true,
+          "fingerprint": "body=019989672ea3233da14cdaf947bcbf43a67269f7e5c82ca09adeb1631f7a95e8,deps=62f0ab3c4e21d32c68511da989f2446021881f57852088958ceb755a0fc50259",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Валидатор проверяет блоки на корректность refs, длину текста и существование путей, а верификатор собирает промпт, отправляет LLM и фильтрует ответ."
+          }
+        },
+        "limitations": {
+          "body": "Подсистема не проверяет семантическую корректность текста без запуска LLM — структурная валидация касается только формальных правил. Она не исправляет нарушения — только сообщает о них. Проверка существования путей в файловой системе делегирована внешнему колбэку `fileExists`, подсистема не обращается к диску напрямую. Пути, не соответствующие шаблону `MENTIONED_PATH_PATTERN`, игнорируются. Факт-чекинг зависит от полноты и точности ответа LLM: модель может пропустить часть блоков или выдать ложные срабатывания. Подсистема не фильтрует документацию зависимостей по релевантности — всё передаётся в промпт, что может снижать точность при большом объёме. `parseVerifyResponse` не проверяет полноту охвата и не валидирует поле `evidence` — только извлекает его как строку.",
+          "rendered": true,
+          "fingerprint": "body=019989672ea3233da14cdaf947bcbf43a67269f7e5c82ca09adeb1631f7a95e8",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Подсистема не исправляет нарушения, не обращается к диску напрямую и не фильтрует документацию зависимостей по релевантности."
+          }
+        }
+      },
+      "memberDocsFingerprint": "66b6446bb2d014ad19d750a9600c5ab19a598bfad3d8d874e299c96fbfbd7878"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

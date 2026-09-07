@@ -1,0 +1,144 @@
+{
+  "version": 4,
+  "docPath": "src/context/runtime-context-builder.codelore.md",
+  "generatedAt": "2026-06-10T12:37:54.574Z",
+  "sectionOrder": [
+    "symbol:src/context/runtime-context-builder.ts#buildRuntimeContext"
+  ],
+  "sections": {
+    "symbol:src/context/runtime-context-builder.ts#buildRuntimeContext": {
+      "heading": "buildRuntimeContext",
+      "depth": 1,
+      "anchor": "buildruntimecontext",
+      "owns": [
+        "symbol:src/context/runtime-context-builder.ts#buildRuntimeContext"
+      ],
+      "depends": [
+        "symbol:src/context/ast-hit-filter.ts#AstHitFilter",
+        "symbol:src/context/literal-extractor.ts#extractLiterals",
+        "symbol:src/context/ripgrep-runner.ts#searchLiteral"
+      ],
+      "usedBy": [
+        "file:src/cli/run-cli.ts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Собирает runtime-контекст для сущности кода: находит все вхождения строковых литералов из её исходного кода в проекте и возвращает структурированные попадания.",
+          "rendered": true,
+          "fingerprint": "signature=cc4304c9149e1a2636bd29dd93e709678e8110cc254e57b3dc17da4cb528183e,placement=6fc7a014ab0db7cea89d35f00a37c49c1aa953e211729f6b44a401d04a50bd20",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция orchestriрует полный пайплайн поиска: от извлечения литералов до разрешения контекста попаданий."
+          }
+        },
+        "responsibility": {
+          "body": "- Загружает исходный файл целевой сущности и извлекает строковые литералы через extractLiterals.\n- Делегирует поиск литералов в проекте searchLiteral, фильтрацию попаданий — AstHitFilter, разрешение контекста — resolveEnclosing.\n- Исключает из поиска исходный файл целевой сущности.\n- Возвращает список неразрешённых литералов, для которых не найдено ни одного валидного попадания.",
+          "rendered": true,
+          "fingerprint": "signature=cc4304c9149e1a2636bd29dd93e709678e8110cc254e57b3dc17da4cb528183e,deps=482ecc49d352b7e900add94844981ace7ed17959b3ea3ccaf0ee0ef15eb96ed1,usage=6408e163a1204e14f4f8fa527fddb501b00a844be67fbed48856d47ca68745e7",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не обрабатывает самоссылки — попадания, где resolved entity совпадает с целевой сущностью, отбрасываются."
+          }
+        },
+        "invariants": {
+          "body": "- Если целевая сущность не найдена в codeIndex, функция возвращает пустой результат без ошибки.\n- Если исходный файл не удалось загрузить (loadSource вернул null), функция возвращает пустой результат без ошибки.\n- Если extractLiterals не вернул ни одного литерала, функция возвращает пустой результат без ошибки.\n- Поиск литералов выполняется по уникальным значениям: дубликаты по значению исключаются перед вызовом searchLiteral.\n- Для каждого литерала, не давшего ни одного валидного попадания, литерал заносится в unresolvedLiterals.\n- resolveSingleHit возвращает null, если разрешённая сущность совпадает с целевой (самоссылка).",
+          "rendered": true,
+          "fingerprint": "signature=cc4304c9149e1a2636bd29dd93e709678e8110cc254e57b3dc17da4cb528183e,body=c417d60336ce1c4717f95105fe12c31e1f0f3842675a1e9a80b30d296732c970",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "resolveSingleHit также возвращает null, если исходный файл попадания не загружен — так обеспечивается отказоустойчивость."
+          }
+        },
+        "dependencies": {
+          "body": "- extractLiterals (src/context/literal-extractor.ts) — извлечение строковых литералов из исходного файла.\n- searchLiteral (src/context/ripgrep-runner.ts) — поиск литералов в проекте через ripgrep.\n- AstHitFilter (src/context/ast-hit-filter.ts) — верификация, что найденное ripgrep-совпадение является реальным строковым литералом в AST.\n- resolveEnclosing (src/context/enclosing-resolver.ts) — преобразование отфильтрованного хита в RuntimeHit с идентификатором сущности-контейнера.",
+          "rendered": true,
+          "fingerprint": "deps=482ecc49d352b7e900add94844981ace7ed17959b3ea3ccaf0ee0ef15eb96ed1",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Все четыре зависимости используются последовательно в пайплайне buildRuntimeContext."
+          }
+        },
+        "workflows": {
+          "body": "1. Извлечь уникальные строковые литералы из целевой сущности с помощью extractLiterals.\n2. Для каждого уникального литерала выполнить поиск в проекте через searchLiteral (ripgrep), исключив исходный файл целевой сущности.\n3. Отфильтровать найденные ripgrep-попадания через AstHitFilter, чтобы подтвердить, что они являются реальными вхождениями литерала.\n4. Для прошедших фильтр разрешить контекст через resolveEnclosing — получить идентификатор сущности, содержащей литерал.\n5. Собрать результат: структурированные попадания и список литералов, для которых не найдено ни одного валидного попадания.\n\n**Контекст вызова**: функция вызывается из `src/llm/file-pipeline.ts` при генерации документации для обогащения контекста runtime-попаданиями.",
+          "rendered": true,
+          "fingerprint": "body=c417d60336ce1c4717f95105fe12c31e1f0f3842675a1e9a80b30d296732c970,deps=482ecc49d352b7e900add94844981ace7ed17959b3ea3ccaf0ee0ef15eb96ed1",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Поиск выполняется для каждого литерала отдельно — это позволяет распараллеливание в будущем."
+          }
+        },
+        "limitations": {
+          "body": "- searchLiteral исключает `node_modules`, `dist`, `build`, `.codelore`, `coverage`. Литералы в этих директориях не будут найдены.\n- AstHitFilter кэширует SourceFile и не обновляет при изменениях на диске — результаты могут быть устаревшими, если файл изменился после загрузки.\n- resolveEnclosing возвращает null для самоссылок — если литерал используется в той же сущности, он не попадёт в hits, а попадёт в unresolvedLiterals.\n- extractLiterals фильтрует литералы короче 4 символов — короткие литералы (например, `id`, `ok`) не будут обработаны.",
+          "rendered": true,
+          "fingerprint": "body=c417d60336ce1c4717f95105fe12c31e1f0f3842675a1e9a80b30d296732c970",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция не бросает исключения при проблемах с загрузкой файла или отсутствии сущности — возвращает пустой результат."
+          }
+        },
+        "changeGuide": {
+          "body": "- Если меняется фильтрация литералов в extractLiterals (например, изменяется MIN_LITERAL_LENGTH), проверьте, что набор литералов, передаваемых в searchLiteral, соответствует ожиданиям. Убедитесь, что unresolvedLiterals корректно обновляется.\n- Если меняется логика resolveEnclosing (например, прекращается возврат null для самоссылок), это приведёт к включению самоссылок в hits, что нарушит контракт buildRuntimeContext. Проверьте downstream, ожидающие отсутствия самоссылок.",
+          "rendered": true,
+          "fingerprint": "body=c417d60336ce1c4717f95105fe12c31e1f0f3842675a1e9a80b30d296732c970,deps=482ecc49d352b7e900add94844981ace7ed17959b3ea3ccaf0ee0ef15eb96ed1,usage=6408e163a1204e14f4f8fa527fddb501b00a844be67fbed48856d47ca68745e7,placement=6fc7a014ab0db7cea89d35f00a37c49c1aa953e211729f6b44a401d04a50bd20",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Изменение AstHitFilter (например, ослабление условий фильтрации) также может радикально изменить количество попаданий, хотя это менее заметно на контракте."
+          }
+        }
+      },
+      "depDocsFingerprint": "d5034a205667db2abdd02e4d89412ad699313f0b56e81268962efd6d75a9e4c2",
+      "generationHistory": [
+        {
+          "runId": "4d8c9311-178a-4cf1-9357-692225f67b1a",
+          "timestamp": "2026-06-10T12:37:54.573Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

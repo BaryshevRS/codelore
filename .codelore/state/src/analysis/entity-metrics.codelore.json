@@ -1,0 +1,590 @@
+{
+  "version": 4,
+  "docPath": "src/analysis/entity-metrics.codelore.md",
+  "generatedAt": "2026-07-03T16:25:43.590Z",
+  "sectionOrder": [
+    "symbol:src/analysis/entity-metrics.ts#computeEntityMetrics",
+    "symbol:src/analysis/entity-metrics.ts#effectiveDirectUsages",
+    "symbol:src/analysis/entity-metrics.ts#countStatements",
+    "symbol:src/analysis/entity-metrics.ts#hasSideEffects"
+  ],
+  "sections": {
+    "symbol:src/analysis/entity-metrics.ts#computeEntityMetrics": {
+      "heading": "computeEntityMetrics",
+      "depth": 1,
+      "anchor": "computeentitymetrics",
+      "owns": [
+        "symbol:src/analysis/entity-metrics.ts#computeEntityMetrics"
+      ],
+      "depends": [
+        "symbol:src/analysis/entity-metrics.ts#countStatements",
+        "symbol:src/analysis/entity-metrics.ts#effectiveDirectUsages",
+        "symbol:src/analysis/entity-metrics.ts#hasSideEffects"
+      ],
+      "usedBy": [
+        "file:src/indexer/code-indexer.ts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Точка входа для расчёта метрик всех сущностей код-индекса.",
+          "rendered": true,
+          "fingerprint": "signature=5f368138d39ce72d823df9e930a03591b5ba3434804a634fdfef1b7a8cb05af5,placement=cca83091cb9a17b95c6ab9f6d9bc4804e07cd62a39d63ed0ab5edb096688bcb4",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Основная функция модуля entity-metrics, вызывается из buildCodeIndex."
+          }
+        },
+        "responsibility": {
+          "body": "- Не вычисляет метрики напрямую — делегирует `countStatements`, `effectiveDirectUsages`, `hasSideEffects`.\n- Не модифицирует переданные `records` или `entities`.\n- Не определяет, какие блоки документации включать — это задача `determineBlockInclusion`.",
+          "rendered": true,
+          "fingerprint": "signature=5f368138d39ce72d823df9e930a03591b5ba3434804a634fdfef1b7a8cb05af5,deps=5c003e1412b06e7bfcfd12ebaf17893cf3cbf9a99d027f41bcfe2ca8332f4dc6,usage=c92c05c22aabbe6cae79c3b9b83ac47a381fe6c1afba6ca49155560c412d5637",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Делегирует вычисление трём вспомогательным функциям."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращает `Map` с ровно одной записью на каждый элемент `records`.\n- Поля `statementCount`, `inDegree`, `hasSideEffects`, `isEntryPoint` вычисляются детерминированно.\n- Порядок записей в `Map` не гарантирован.",
+          "rendered": true,
+          "fingerprint": "signature=5f368138d39ce72d823df9e930a03591b5ba3434804a634fdfef1b7a8cb05af5,body=2413396c953a85a667c7c6541125cb1c4057b3b39a20921c84c5cd598f323d3e",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Гарантирует детерминированность и соответствие records."
+          }
+        },
+        "dependencies": {
+          "body": "Вызывает функции: countStatements, effectiveDirectUsages, hasSideEffects — все из того же файла. Использует аргументы records, entities, config.",
+          "rendered": true,
+          "fingerprint": "deps=5c003e1412b06e7bfcfd12ebaf17893cf3cbf9a99d027f41bcfe2ca8332f4dc6",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Делегирует все вычисления метрик специализированным функциям, агрегируя результаты в Map."
+          },
+          "language": "ru"
+        },
+        "workflows": {
+          "body": "Вызывается из buildCodeIndex (src/indexer/code-indexer.ts) при построении CodeIndex. Возвращаемый Map используется в populateDocumentationMetadata для наполнения метаданных каждой сущности.",
+          "rendered": true,
+          "fingerprint": "body=2413396c953a85a667c7c6541125cb1c4057b3b39a20921c84c5cd598f323d3e,deps=5c003e1412b06e7bfcfd12ebaf17893cf3cbf9a99d027f41bcfe2ca8332f4dc6",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Единственный прямой вызов — из code-indexer.ts, где результат идёт в populateDocumentationMetadata."
+          },
+          "language": "ru"
+        },
+        "limitations": {
+          "body": "Не обрабатывает динамические импорты и рефлексию — статический анализ ts-morph ограничен синтаксическим деревом. Не проверяет корректность переданных records или entities.",
+          "rendered": true,
+          "fingerprint": "body=2413396c953a85a667c7c6541125cb1c4057b3b39a20921c84c5cd598f323d3e",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Статический анализ не обнаруживает динамические импорты."
+          },
+          "language": "ru"
+        },
+        "changeGuide": {
+          "body": "- Каждый элемент records даёт ровно одну запись в возвращаемом Map — это обеспечивается циклом `for (const record of records) { metrics.set(record.entity.id, …) }`.\n- inDegree вычисляется как длина массива, возвращённого effectiveDirectUsages — это зафиксировано выражением `inDegree: effectiveDirectUsages(record.entity, entities).length`.",
+          "rendered": true,
+          "fingerprint": "body=2413396c953a85a667c7c6541125cb1c4057b3b39a20921c84c5cd598f323d3e,deps=5c003e1412b06e7bfcfd12ebaf17893cf3cbf9a99d027f41bcfe2ca8332f4dc6,usage=c92c05c22aabbe6cae79c3b9b83ac47a381fe6c1afba6ca49155560c412d5637,placement=cca83091cb9a17b95c6ab9f6d9bc4804e07cd62a39d63ed0ab5edb096688bcb4",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Цикл гарантирует однонаправленное соответствие records→metrics."
+          },
+          "language": "ru"
+        }
+      },
+      "depDocsFingerprint": "a6a067176828f79239e02dfb5e50752060507aa5d46dd280f3e2810e9418bbee",
+      "generationHistory": [
+        {
+          "runId": "a7046937-2e94-4ccf-94da-48f19ec4f9cc",
+          "timestamp": "2026-06-10T21:16:13.947Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:25:43.586Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    },
+    "symbol:src/analysis/entity-metrics.ts#effectiveDirectUsages": {
+      "heading": "effectiveDirectUsages",
+      "depth": 1,
+      "anchor": "effectivedirectusages",
+      "owns": [
+        "symbol:src/analysis/entity-metrics.ts#effectiveDirectUsages"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/analysis/decision-pass.ts",
+        "file:src/analysis/wrapper-detector.ts",
+        "symbol:src/analysis/entity-metrics.ts#computeEntityMetrics"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Фильтрация списка прямых использований сущности для расчёта in-degree.",
+          "rendered": true,
+          "fingerprint": "signature=3db8e6fa3c1dd93cfbbdf5d80331abef7aa094dd34aeba3f99da1002a8509f8b,placement=829fd39624d6bf07486a1c9615fe93c6ba7c764812533ab2a89eb082b5b8ec26",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Утилита для получения внешних использований."
+          }
+        },
+        "responsibility": {
+          "body": "- Не модифицирует `entity.directUsages`.\n- Не проверяет, что переданные `entities` содержат все id из `directUsages`.\n- Не учитывает транзитивные использования.",
+          "rendered": true,
+          "fingerprint": "signature=3db8e6fa3c1dd93cfbbdf5d80331abef7aa094dd34aeba3f99da1002a8509f8b,deps=562fa381eddad658f6fd4243a0f49d0a3193c571cb1b22d5a2497a28070df4bd,usage=24679f36d787726d2e12d73ac3ca9da5a41a44c02e7c841b99e86d5280f34675",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Границы: только фильтрация, без модификации."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращает только те id, которые присутствуют в `entities`.\n- Всегда исключает id файла сущности и id класса-владельца (для методов).\n- Не возвращает дубликаты — исходный массив может содержать дубли, но фильтр их не удаляет.",
+          "rendered": true,
+          "fingerprint": "signature=3db8e6fa3c1dd93cfbbdf5d80331abef7aa094dd34aeba3f99da1002a8509f8b,body=3ba2a387c4f0ce51492ea2d1815e40d0b36bb9297a8f5175f3de62ee5b1aa00e",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Гарантии фильтрации."
+          }
+        },
+        "dependencies": {
+          "body": "Фильтрация зависит от функции owningClassEntityId.",
+          "rendered": true,
+          "fingerprint": "deps=562fa381eddad658f6fd4243a0f49d0a3193c571cb1b22d5a2497a28070df4bd",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Фильтрация зависит от функции owningClassEntityId."
+          },
+          "language": "ru"
+        },
+        "workflows": {
+          "body": "Вызывается из computeEntityMetrics для вычисления inDegree (как .length возвращаемого массива). Также вызывается из decision-pass.ts и wrapper-detector.ts для проверки единственности использования в логике поглощения.",
+          "rendered": true,
+          "fingerprint": "body=3ba2a387c4f0ce51492ea2d1815e40d0b36bb9297a8f5175f3de62ee5b1aa00e,deps=562fa381eddad658f6fd4243a0f49d0a3193c571cb1b22d5a2497a28070df4bd",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Используется в decision-pass.ts для определения поглощённых сущностей."
+          },
+          "language": "ru"
+        },
+        "limitations": {
+          "body": "Полагается на корректность поля directUsages — ошибки в индексе не выявляются. Не проверяет, что directUsages не содержит дубликатов.",
+          "rendered": true,
+          "fingerprint": "body=3ba2a387c4f0ce51492ea2d1815e40d0b36bb9297a8f5175f3de62ee5b1aa00e",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Не валидирует исходные данные directUsages."
+          },
+          "language": "ru"
+        }
+      },
+      "depDocsFingerprint": "a6a067176828f79239e02dfb5e50752060507aa5d46dd280f3e2810e9418bbee",
+      "generationHistory": [
+        {
+          "runId": "a7046937-2e94-4ccf-94da-48f19ec4f9cc",
+          "timestamp": "2026-06-10T21:16:13.948Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:25:43.587Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        }
+      ]
+    },
+    "symbol:src/analysis/entity-metrics.ts#countStatements": {
+      "heading": "countStatements",
+      "depth": 1,
+      "anchor": "countstatements",
+      "owns": [
+        "symbol:src/analysis/entity-metrics.ts#countStatements"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/analysis/wrapper-detector.ts",
+        "symbol:src/analysis/entity-metrics.ts#computeEntityMetrics"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Подсчёт количества операторов в узле AST для оценки размера сущности.",
+          "rendered": true,
+          "fingerprint": "signature=ccd9a66b3734573ec16ca757a5f80569974a4efdd0341c0f28c7e29eff763290,placement=f1ff97134dfaf000f34e819d3d151db68c0e864ab03d73166f9535befef0db7c",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Мера размера для веса документации."
+          }
+        },
+        "responsibility": {
+          "body": "- Не различает типы операторов — считает все, перечисленные в `isStatementSignal`.\n- Не считает операторы вложенных функций отдельно — использует `getDescendants`.\n- Для класса суммирует операторы всех методов.",
+          "rendered": true,
+          "fingerprint": "signature=ccd9a66b3734573ec16ca757a5f80569974a4efdd0341c0f28c7e29eff763290,deps=8de04e057ad44ca034e72acff87a6e58159425c9ca79438768af460912a16882,usage=3590d5a92aecef62beaf43a93edc6861f6fff3bd14441787218ed99939ad096d",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Особенности подсчёта: все операторы, включая вложенные."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращает `number ≥ 0`.\n- Для `SourceFile` считает только корневые операторы (не рекурсивно в функции).\n- Для `ClassDeclaration` рекурсивно считает операторы методов.",
+          "rendered": true,
+          "fingerprint": "signature=ccd9a66b3734573ec16ca757a5f80569974a4efdd0341c0f28c7e29eff763290,body=c024a769046947d30f46d4537f060fb78396e6a1def233147d1cf355a35516b3",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Два режима: файл (только корневые) и класс (рекурсивно)."
+          }
+        },
+        "dependencies": {
+          "body": "Использует isStatementSignal для определения, что считать оператором.",
+          "rendered": true,
+          "fingerprint": "deps=8de04e057ad44ca034e72acff87a6e58159425c9ca79438768af460912a16882",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Использует isStatementSignal для определения, что считать оператором."
+          },
+          "language": "ru"
+        },
+        "workflows": {
+          "body": "Вызывается из computeEntityMetrics для statementCount и из wrapper-detector.ts при детекции обёрток (recordPublicWrapper, isAnchorPrivate).",
+          "rendered": true,
+          "fingerprint": "body=c024a769046947d30f46d4537f060fb78396e6a1def233147d1cf355a35516b3,deps=8de04e057ad44ca034e72acff87a6e58159425c9ca79438768af460912a16882",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Участвует в логике детекции обёрток в wrapper-detector.ts."
+          },
+          "language": "ru"
+        },
+        "limitations": {
+          "body": "Не различает пустые операторы (например, точка с запятой может быть учтена как ExpressionStatement). Не учитывает комментарии и пробелы.",
+          "rendered": true,
+          "fingerprint": "body=c024a769046947d30f46d4537f060fb78396e6a1def233147d1cf355a35516b3",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Пустые операторы могут учитываться как значимые."
+          },
+          "language": "ru"
+        },
+        "changeGuide": {
+          "body": "- Для SourceFile операторы считаются рекурсивно: каждый корневой оператор, не являющийся сигналом (например, класс или функция), обрабатывается рекурсивно для подсчёта вложенных операторов — это обеспечивается условием `if (Node.isSourceFile(node)) { return node.getStatements().reduce(…) }`.\n- Для ClassDeclaration суммируются операторы всех методов — это обеспечивается условием `if (Node.isClassDeclaration(node)) { return node.getMethods().reduce(…) }`.",
+          "rendered": true,
+          "fingerprint": "body=c024a769046947d30f46d4537f060fb78396e6a1def233147d1cf355a35516b3,deps=8de04e057ad44ca034e72acff87a6e58159425c9ca79438768af460912a16882,usage=3590d5a92aecef62beaf43a93edc6861f6fff3bd14441787218ed99939ad096d,placement=f1ff97134dfaf000f34e819d3d151db68c0e864ab03d73166f9535befef0db7c",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "SourceFile и ClassDeclaration обрабатываются специальными ветками."
+          },
+          "language": "ru"
+        }
+      },
+      "depDocsFingerprint": "a6a067176828f79239e02dfb5e50752060507aa5d46dd280f3e2810e9418bbee",
+      "generationHistory": [
+        {
+          "runId": "a7046937-2e94-4ccf-94da-48f19ec4f9cc",
+          "timestamp": "2026-06-10T21:16:13.948Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:25:43.588Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    },
+    "symbol:src/analysis/entity-metrics.ts#hasSideEffects": {
+      "heading": "hasSideEffects",
+      "depth": 1,
+      "anchor": "hassideeffects",
+      "owns": [
+        "symbol:src/analysis/entity-metrics.ts#hasSideEffects"
+      ],
+      "depends": [],
+      "usedBy": [
+        "symbol:src/analysis/entity-metrics.ts#computeEntityMetrics"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Статическое определение наличия побочных эффектов в узле AST.",
+          "rendered": true,
+          "fingerprint": "signature=210584753eec8bf8a745bf09ff211561f970c44a50ed766262fb3b80aa938a99,placement=24e0cbe66f6531049282dff948de735eacb824d80337ce92bf69deb278e469c8",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Флаг для взвешивания важности документации."
+          }
+        },
+        "responsibility": {
+          "body": "- Не выполняет код — только статический анализ.\n- Не проверяет динамические вызовы (через `eval`, `new Function`).\n- Не учитывает побочные эффекты через присваивания свойств объектов (кроме `process.env`).",
+          "rendered": true,
+          "fingerprint": "signature=210584753eec8bf8a745bf09ff211561f970c44a50ed766262fb3b80aa938a99,deps=3103b48c6f25bc51900f42a5db1542ad3a5bdb98e4fda9e9e10125a30a2b89b1,usage=3d8345471c3547988d8af653df5425bf4d00ba375c81fd4d12e438ed7740d17a",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Границы: только статический анализ, ограниченный набор паттернов."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращает `true`, если обнаружен вызов из `DEFAULT_SIDE_EFFECT_CALLS` или импорт из `DEFAULT_SIDE_EFFECT_MODULES`.\n- Возвращает `true` при присваивании `process.env.*`.\n- Учитывает дополнительные паттерны из `config.sideEffectPatterns`.",
+          "rendered": true,
+          "fingerprint": "signature=210584753eec8bf8a745bf09ff211561f970c44a50ed766262fb3b80aa938a99,body=91959992b55e3d500ad68c7fdcc9dd7568f1aeafbe4157060512dec1d3e5ed2a",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Три источника: стандартные вызовы, модули, конфигурация."
+          }
+        },
+        "dependencies": {
+          "body": "Полагается на sideEffectImportNames для детекции импортов.",
+          "rendered": true,
+          "fingerprint": "deps=3103b48c6f25bc51900f42a5db1542ad3a5bdb98e4fda9e9e10125a30a2b89b1",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Полагается на sideEffectImportNames для детекции импортов."
+          },
+          "language": "ru"
+        },
+        "workflows": {
+          "body": "Вызывается из computeEntityMetrics для заполнения поля hasSideEffects.",
+          "rendered": true,
+          "fingerprint": "body=91959992b55e3d500ad68c7fdcc9dd7568f1aeafbe4157060512dec1d3e5ed2a,deps=3103b48c6f25bc51900f42a5db1542ad3a5bdb98e4fda9e9e10125a30a2b89b1",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Единственный вызов — из computeEntityMetrics."
+          },
+          "language": "ru"
+        },
+        "limitations": {
+          "body": "Ложные отрицания для вызовов через переменные (const fn = fetch; fn()). Не обнаруживает побочные эффекты через Proxy или дескрипторы свойств.",
+          "rendered": true,
+          "fingerprint": "body=91959992b55e3d500ad68c7fdcc9dd7568f1aeafbe4157060512dec1d3e5ed2a",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Вызовы через переменные не распознаются."
+          },
+          "language": "ru"
+        },
+        "changeGuide": {
+          "body": "- Возвращает true при совпадении имени вызываемой функции с DEFAULT_SIDE_EFFECT_CALLS — проверка в `if (DEFAULT_SIDE_EFFECT_CALLS.has(expressionText) || DEFAULT_SIDE_EFFECT_CALLS.has(propertyName))`.\n- Обнаруживает присваивания process.env через BinaryExpression с оператором, содержащим `=`, и левой частью, начинающейся с `process.env` — проверка в `binary.getOperatorToken().getText().includes('=') && binary.getLeft().getText().startsWith('process.env')`.",
+          "rendered": true,
+          "fingerprint": "body=91959992b55e3d500ad68c7fdcc9dd7568f1aeafbe4157060512dec1d3e5ed2a,deps=3103b48c6f25bc51900f42a5db1542ad3a5bdb98e4fda9e9e10125a30a2b89b1,usage=3d8345471c3547988d8af653df5425bf4d00ba375c81fd4d12e438ed7740d17a,placement=24e0cbe66f6531049282dff948de735eacb824d80337ce92bf69deb278e469c8",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Детекция присваиваний process.env специфична для этого файла."
+          },
+          "language": "ru"
+        }
+      },
+      "depDocsFingerprint": "a6a067176828f79239e02dfb5e50752060507aa5d46dd280f3e2810e9418bbee",
+      "generationHistory": [
+        {
+          "runId": "a7046937-2e94-4ccf-94da-48f19ec4f9cc",
+          "timestamp": "2026-06-10T21:16:13.950Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:25:43.590Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

@@ -1,0 +1,1227 @@
+{
+  "version": 4,
+  "docPath": "src/service/helpers.codelore.md",
+  "generatedAt": "2026-07-03T16:19:56.884Z",
+  "sectionOrder": [
+    "symbol:src/service/helpers.ts#rangesOverlap",
+    "symbol:src/service/helpers.ts#uniqueSorted",
+    "symbol:src/service/helpers.ts#uniqueEntities",
+    "symbol:src/service/helpers.ts#firstDuplicate",
+    "symbol:src/service/helpers.ts#summarizeCodeEntity",
+    "symbol:src/service/helpers.ts#summarizeDocSection",
+    "symbol:src/service/helpers.ts#groupBy",
+    "symbol:src/service/helpers.ts#isKnownBlockId",
+    "symbol:src/service/helpers.ts#describeError"
+  ],
+  "sections": {
+    "symbol:src/service/helpers.ts#rangesOverlap": {
+      "heading": "rangesOverlap",
+      "depth": 1,
+      "anchor": "rangesoverlap",
+      "owns": [
+        "symbol:src/service/helpers.ts#rangesOverlap"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.changedEntitiesFromDiff"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Проверяет пересечение двух отрезков на числовой оси.",
+          "rendered": true,
+          "fingerprint": "signature=2f258efd79627df87a561d3700e0c8fb1e85c4940579bcab5da42116843536b7,placement=c0ac6374c6c2326c02521d846b4b74366a8f4dad0ac29fbfdde8e6cb4d452d81",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Проверяет пересечение двух отрезков на числовой оси."
+          }
+        },
+        "responsibility": {
+          "body": "- Принимает четыре числа: начало и конец каждого отрезка.\n- Возвращает `true`, если отрезки пересекаются хотя бы в одной точке.\n- Не проверяет корректность порядка (может работать с `leftStart > leftEnd`).",
+          "rendered": true,
+          "fingerprint": "signature=2f258efd79627df87a561d3700e0c8fb1e85c4940579bcab5da42116843536b7,deps=a3f4769d3c89baa59ec7961bbbf3e2255b83cb2ecd9203f979b5f47641338a76,usage=02a45de63cd4de41cc3aa13393ae30f211d609f63c81fe6c7401493551edc08a",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Принимает четыре числа: начало и конец каждого отрезка."
+          }
+        },
+        "invariants": {
+          "body": "Возвращает `true` при касании отрезков в точке (включительно).",
+          "rendered": true,
+          "fingerprint": "signature=2f258efd79627df87a561d3700e0c8fb1e85c4940579bcab5da42116843536b7,body=57d73b143e59cc0d34d179f107885ce947f1576eceb218c02e0966748c1617a6",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Возвращает `true` при касании отрезков в точке (включительно)."
+          }
+        },
+        "dependencies": {
+          "body": "Нет внешних зависимостей — использует только встроенные типы `number`.",
+          "rendered": false,
+          "fingerprint": "deps=a3f4769d3c89baa59ec7961bbbf3e2255b83cb2ecd9203f979b5f47641338a76",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Функция не импортирует ничего из проекта."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается в `CodeloreService.changedEntitiesFromDiff` для каждого файла из `parseUnifiedDiff(diff)`. Для каждой сущности в файле проверяет, пересекается ли диапазон строк изменений (`range.startLine`, `range.endLine`) с диапазоном сущности (`entity.range.startLine`, `entity.range.endLine`). Если `rangesOverlap` возвращает `true`, идентификатор сущности добавляется в набор изменённых.",
+          "rendered": true,
+          "fingerprint": "body=57d73b143e59cc0d34d179f107885ce947f1576eceb218c02e0966748c1617a6,deps=a3f4769d3c89baa59ec7961bbbf3e2255b83cb2ecd9203f979b5f47641338a76",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Единственный вызывающий — `CodeloreService.changedEntitiesFromDiff`."
+          }
+        },
+        "limitations": {
+          "body": "Не проверяет корректность порядка аргументов: отрезок может быть задан с `leftStart > leftEnd`, что даёт неверный результат пересечения.",
+          "rendered": true,
+          "fingerprint": "body=57d73b143e59cc0d34d179f107885ce947f1576eceb218c02e0966748c1617a6",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Функция не валидирует, что начало отрезка меньше конца."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.744Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:27.972Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "7fbb17d4cf1572f5ca13228df1b2f3c8edbd85bcf98db235e3fce2356ead88be"
+    },
+    "symbol:src/service/helpers.ts#uniqueSorted": {
+      "heading": "uniqueSorted",
+      "depth": 1,
+      "anchor": "uniquesorted",
+      "owns": [
+        "symbol:src/service/helpers.ts#uniqueSorted"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "file:src/service/prepare-docs.ts",
+        "file:src/service/section-rewrite.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.analyzeChange",
+        "symbol:src/service/codelore-service.ts#CodeloreService.changedEntitiesFromFiles",
+        "symbol:src/service/prepare-docs.ts#docStateSectionForPlannedEntity",
+        "symbol:src/service/prepare-docs.ts#normalizePrepareScope",
+        "symbol:src/service/prepare-docs.ts#skippedPreparedDocSection",
+        "symbol:src/service/section-rewrite.ts#mergeGeneratedBlocksIntoSection"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Удаляет дубликаты из массива строк и сортирует результат.",
+          "rendered": true,
+          "fingerprint": "signature=471729f586edb78c8944cd2b27a5fc44414f13e803ec9f508e4344a721aeef48,placement=e3c8e04d81ebc8abf202a5a39c96531e66c8bd410601f6bf24e6da49fedb50c2",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Удаляет дубликаты из массива строк и сортирует результат."
+          }
+        },
+        "responsibility": {
+          "body": "- Принимает массив строк.\n- Возвращает новый массив без дубликатов, отсортированный по алфавиту.\n- Не изменяет исходный массив.",
+          "rendered": true,
+          "fingerprint": "signature=471729f586edb78c8944cd2b27a5fc44414f13e803ec9f508e4344a721aeef48,deps=3a26923e5a923cb0ddf81aa834db28b7c05d52c616c75431a595bf81983c26c4,usage=d0dd15db64cfe3fec1b75b22e7e873d6ba509649e186c90a461116d813027838",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Принимает массив строк."
+          }
+        },
+        "invariants": {
+          "body": "Результат отсортирован через `Array.sort()` (лексикографически).",
+          "rendered": true,
+          "fingerprint": "signature=471729f586edb78c8944cd2b27a5fc44414f13e803ec9f508e4344a721aeef48,body=8d13b7c7bae28971b0df5f551d2ca76484fbb4452ccb849593540ac1b3a653d4",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Результат отсортирован через `Array.sort()` (лексикографически)."
+          }
+        },
+        "dependencies": {
+          "body": "Нет внешних зависимостей — использует только встроенные `Set` и `Array.sort()`.",
+          "rendered": false,
+          "fingerprint": "deps=3a26923e5a923cb0ddf81aa834db28b7c05d52c616c75431a595bf81983c26c4",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Функция не импортирует ничего из проекта."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается в шести местах:\n1. `CodeloreService.analyzeChange` — для объединения `input.changedFiles` с путями из `parseUnifiedDiff(diff)`.\n2. `CodeloreService.changedEntitiesFromFiles` — для дедупликации и сортировки идентификаторов сущностей из `index.code.fileToEntities`.\n3. `docStateSectionForPlannedEntity` — для сортировки `entity.directDeps` и `entity.directUsages`.\n4. `normalizePrepareScope` — для дедупликации и сортировки `paths`, `files` и `entityIds`.\n5. `skippedPreparedDocSection` — для сортировки `docPaths`.\n6. `mergeGeneratedBlocksIntoSection` — для сортировки `owner.directDeps` и `owner.directUsages`.",
+          "rendered": true,
+          "fingerprint": "body=8d13b7c7bae28971b0df5f551d2ca76484fbb4452ccb849593540ac1b3a653d4,deps=3a26923e5a923cb0ddf81aa834db28b7c05d52c616c75431a595bf81983c26c4",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Используется в шести различных вызывающих для дедупликации и сортировки строковых массивов."
+          }
+        },
+        "limitations": {
+          "body": "Работает только с массивами строк — тип `string[]` задан сигнатурой. Сортировка выполняется через `Array.sort()` без компаратора, что даёт лексикографический порядок, не подходящий для чисел.",
+          "rendered": true,
+          "fingerprint": "body=8d13b7c7bae28971b0df5f551d2ca76484fbb4452ccb849593540ac1b3a653d4",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Функция не принимает компаратор для кастомной сортировки."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.746Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:27.974Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "7fbb17d4cf1572f5ca13228df1b2f3c8edbd85bcf98db235e3fce2356ead88be"
+    },
+    "symbol:src/service/helpers.ts#uniqueEntities": {
+      "heading": "uniqueEntities",
+      "depth": 1,
+      "anchor": "uniqueentities",
+      "owns": [
+        "symbol:src/service/helpers.ts#uniqueEntities"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.getSectionContext"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Удаляет дубликаты сущностей по их идентификатору и сортирует результат.",
+          "rendered": true,
+          "fingerprint": "signature=7ab074b3b3b371457dbdbc36b8222a79b8658bed663edbcf47f08f17805845be,placement=47c4c6567b5ce4ee98148b3afde0fec080373357956f9d1afd29726b1398fcbe",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Удаляет дубликаты сущностей по их идентификатору и сортирует результат."
+          }
+        },
+        "responsibility": {
+          "body": "- Принимает массив `CodeEntity`.\n- Возвращает новый массив без дубликатов, отсортированный по `entity.id`.\n- Не изменяет исходный массив.",
+          "rendered": true,
+          "fingerprint": "signature=7ab074b3b3b371457dbdbc36b8222a79b8658bed663edbcf47f08f17805845be,deps=a3e7e9a8074165a5fa28820126f6a926e61da623ebfd6944e62ce29ed0499930,usage=5ba8ecac3a389f4b1a2c9cc51b268cb68d5bac24a5cbf1fcbbf3c126e186311c",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Принимает массив `CodeEntity`."
+          }
+        },
+        "invariants": {
+          "body": "Результат отсортирован через `left.id.localeCompare(right.id)`.",
+          "rendered": true,
+          "fingerprint": "signature=7ab074b3b3b371457dbdbc36b8222a79b8658bed663edbcf47f08f17805845be,body=105714dbd7bf74c7f5da7011f9ad236983c05a342c8050282ec0912692f8fbc2",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Результат отсортирован через `left.id.localeCompare(right.id)`."
+          }
+        },
+        "dependencies": {
+          "body": "Нет внешних зависимостей — использует только встроенные `Set` и `Array.sort()`.",
+          "rendered": false,
+          "fingerprint": "deps=a3e7e9a8074165a5fa28820126f6a926e61da623ebfd6944e62ce29ed0499930",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Функция не импортирует ничего из проекта."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается в `CodeloreService.getSectionContext` для дедупликации и сортировки массива `directUsages`. Для каждой сущности из `owns` собираются идентификаторы использований, затем по ним извлекаются объекты `CodeEntity` из `index.code.entities`, и результат передаётся в `uniqueEntities`.",
+          "rendered": true,
+          "fingerprint": "body=105714dbd7bf74c7f5da7011f9ad236983c05a342c8050282ec0912692f8fbc2,deps=a3e7e9a8074165a5fa28820126f6a926e61da623ebfd6944e62ce29ed0499930",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Единственный вызывающий — `CodeloreService.getSectionContext`."
+          }
+        },
+        "limitations": {
+          "body": "Сортировка выполняется через `left.id.localeCompare(right.id)` — только по идентификатору, не по другим полям `CodeEntity`.",
+          "rendered": true,
+          "fingerprint": "body=105714dbd7bf74c7f5da7011f9ad236983c05a342c8050282ec0912692f8fbc2",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Сортировка только по `entity.id`, не по имени или пути."
+          }
+        },
+        "changeGuide": {
+          "body": "- Дедупликация использует `seen.has(entity.id)` — идентификатор считается уникальным ключом. Если две сущности имеют одинаковый `id`, но разные другие поля, вторая будет отброшена. Тест: не указан.\n- Сортировка выполняется через `left.id.localeCompare(right.id)` — порядок зависит от локали. Если требуется стабильный порядок по другому полю (например, `name`), нужно заменить компаратор. Тест: не указан.",
+          "rendered": true,
+          "fingerprint": "body=105714dbd7bf74c7f5da7011f9ad236983c05a342c8050282ec0912692f8fbc2,deps=a3e7e9a8074165a5fa28820126f6a926e61da623ebfd6944e62ce29ed0499930,usage=5ba8ecac3a389f4b1a2c9cc51b268cb68d5bac24a5cbf1fcbbf3c126e186311c,placement=47c4c6567b5ce4ee98148b3afde0fec080373357956f9d1afd29726b1398fcbe",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Два контракта: дедупликация по `id` и сортировка через `localeCompare`."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.748Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:27.976Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "7fbb17d4cf1572f5ca13228df1b2f3c8edbd85bcf98db235e3fce2356ead88be"
+    },
+    "symbol:src/service/helpers.ts#firstDuplicate": {
+      "heading": "firstDuplicate",
+      "depth": 1,
+      "anchor": "firstduplicate",
+      "owns": [
+        "symbol:src/service/helpers.ts#firstDuplicate"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.rewriteSections"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Находит первое повторяющееся значение в массиве строк.",
+          "rendered": true,
+          "fingerprint": "signature=37ba860f259993cba2d3ff34dc40b9f4368b724e240f4ffbc4079fcff5b70f19,placement=38a76879dfb5b37c3650ddc0930b3e3dcea3b6bdded5cab367ebc307353465e6",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Находит первое повторяющееся значение в массиве строк."
+          }
+        },
+        "responsibility": {
+          "body": "- Принимает массив строк.\n- Возвращает первую строку, которая встречается во второй раз, или `undefined` при отсутствии дубликатов.\n- Не изменяет исходный массив.",
+          "rendered": true,
+          "fingerprint": "signature=37ba860f259993cba2d3ff34dc40b9f4368b724e240f4ffbc4079fcff5b70f19,deps=4ee60a994b5cc4bf06a584b6027b3d9f1587c166000ba7ab466f7a12705674e3,usage=a22b96f9279ac7350e12d0e6e58df3bf0d77a9155ff54f5a0f13ee54a4f1a9a5",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Принимает массив строк."
+          }
+        },
+        "invariants": {
+          "body": "Возвращает `undefined` для пустого массива или массива без дубликатов.",
+          "rendered": true,
+          "fingerprint": "signature=37ba860f259993cba2d3ff34dc40b9f4368b724e240f4ffbc4079fcff5b70f19,body=935434530b1a45732cf54a4ba52d2900875ed03e093b1115ee52f54c4ee33f37",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Возвращает `undefined` для пустого массива или массива без дубликатов."
+          }
+        },
+        "dependencies": {
+          "body": "Нет внешних зависимостей — использует только встроенный `Set`.",
+          "rendered": false,
+          "fingerprint": "deps=4ee60a994b5cc4bf06a584b6027b3d9f1587c166000ba7ab466f7a12705674e3",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Функция не импортирует ничего из проекта."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается в `CodeloreService.rewriteSections` для проверки дубликатов `sectionId` во входном массиве. Если `firstDuplicate` возвращает строку, выбрасывается ошибка с кодом `DUPLICATE_SECTION`.",
+          "rendered": true,
+          "fingerprint": "body=935434530b1a45732cf54a4ba52d2900875ed03e093b1115ee52f54c4ee33f37,deps=4ee60a994b5cc4bf06a584b6027b3d9f1587c166000ba7ab466f7a12705674e3",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Единственный вызывающий — `CodeloreService.rewriteSections`."
+          }
+        },
+        "limitations": {
+          "body": "Работает только с массивами строк — тип `string[]` задан сигнатурой. Не различает `undefined` и отсутствие дубликатов: возвращает `undefined` в обоих случаях.",
+          "rendered": true,
+          "fingerprint": "body=935434530b1a45732cf54a4ba52d2900875ed03e093b1115ee52f54c4ee33f37",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Возвращает `undefined` и для пустого массива, и для массива без дубликатов."
+          }
+        },
+        "changeGuide": {
+          "body": "- Поиск дубликата останавливается на первом повторении через `seen.has(value)` — если нужно найти все дубликаты, потребуется другой алгоритм. Тест: не указан.\n- Функция возвращает `undefined` при отсутствии дубликатов — вызывающий (`CodeloreService.rewriteSections`) проверяет результат через `if (duplicateSectionId)`, что корректно обрабатывает `undefined`. Тест: не указан.",
+          "rendered": true,
+          "fingerprint": "body=935434530b1a45732cf54a4ba52d2900875ed03e093b1115ee52f54c4ee33f37,deps=4ee60a994b5cc4bf06a584b6027b3d9f1587c166000ba7ab466f7a12705674e3,usage=a22b96f9279ac7350e12d0e6e58df3bf0d77a9155ff54f5a0f13ee54a4f1a9a5,placement=38a76879dfb5b37c3650ddc0930b3e3dcea3b6bdded5cab367ebc307353465e6",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Два контракта: остановка на первом дубликате и возврат `undefined` при отсутствии."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.750Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:27.978Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "7fbb17d4cf1572f5ca13228df1b2f3c8edbd85bcf98db235e3fce2356ead88be"
+    },
+    "symbol:src/service/helpers.ts#summarizeCodeEntity": {
+      "heading": "summarizeCodeEntity",
+      "depth": 1,
+      "anchor": "summarizecodeentity",
+      "owns": [
+        "symbol:src/service/helpers.ts#summarizeCodeEntity"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "file:src/service/stale-detection.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.getSectionContext",
+        "symbol:src/service/stale-detection.ts#buildRewriteContextBundle"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Преобразует полную сущность кода в краткое представление для контекста секции.",
+          "rendered": true,
+          "fingerprint": "signature=771472bc7f9e0a5e2d98773b0fe60681a0a47104ecf68a47052121bc591c8c8b,placement=9ff10df1f4846c0f6fd5a44295e92d55bde10559ead97f6b15dd7ec6eb05f75b",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Преобразует полную сущность кода в краткое представление для контекста секции."
+          }
+        },
+        "responsibility": {
+          "body": "- Принимает `CodeEntity`.\n- Возвращает `CodeEntitySummary` с выбранными полями.\n- Вычисляет `directDepCount` и `directUsageCount` как длины массивов зависимостей и использований.",
+          "rendered": true,
+          "fingerprint": "signature=771472bc7f9e0a5e2d98773b0fe60681a0a47104ecf68a47052121bc591c8c8b,deps=3b640536360d06534d4a544195ecbe2a10884c5b806f7e4aeabf3f337a559d1f,usage=d4713e2fee28f3a378e6195a04233fa8fd3c1dce5d668b92b5b29138ce20a966",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Принимает `CodeEntity`."
+          }
+        },
+        "invariants": {
+          "body": "Всегда возвращает объект с теми же ключами, что и `CodeEntitySummary`.",
+          "rendered": true,
+          "fingerprint": "signature=771472bc7f9e0a5e2d98773b0fe60681a0a47104ecf68a47052121bc591c8c8b,body=519898088715b6c026329714ce37cad96fb68a6064b523602fbb56be065b5d42",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Всегда возвращает объект с теми же ключами, что и `CodeEntitySummary`."
+          }
+        },
+        "dependencies": {
+          "body": "Нет внешних зависимостей — использует только поля входного `CodeEntity`.",
+          "rendered": false,
+          "fingerprint": "deps=3b640536360d06534d4a544195ecbe2a10884c5b806f7e4aeabf3f337a559d1f",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Функция не импортирует ничего из проекта."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается в двух местах:\n1. `CodeloreService.getSectionContext` — для преобразования сущностей `owns`, `depends` и `directUsages` в краткое представление.\n2. `buildRewriteContextBundle` — для преобразования сущностей `owns` в контекст для перезаписи.",
+          "rendered": true,
+          "fingerprint": "body=519898088715b6c026329714ce37cad96fb68a6064b523602fbb56be065b5d42,deps=3b640536360d06534d4a544195ecbe2a10884c5b806f7e4aeabf3f337a559d1f",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Используется в двух вызывающих для создания краткого представления сущностей."
+          }
+        },
+        "limitations": {
+          "body": "Не копирует поля `directDeps` и `directUsages` — вместо этого вычисляет их длины (`entity.directDeps.length`, `entity.directUsages.length`).",
+          "rendered": true,
+          "fingerprint": "body=519898088715b6c026329714ce37cad96fb68a6064b523602fbb56be065b5d42",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Функция не включает массивы зависимостей и использований, только их количество."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.752Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:27.980Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "7fbb17d4cf1572f5ca13228df1b2f3c8edbd85bcf98db235e3fce2356ead88be"
+    },
+    "symbol:src/service/helpers.ts#summarizeDocSection": {
+      "heading": "summarizeDocSection",
+      "depth": 1,
+      "anchor": "summarizedocsection",
+      "owns": [
+        "symbol:src/service/helpers.ts#summarizeDocSection"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.getSectionContext"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Преобразует полную секцию документации в краткое представление для контекста.",
+          "rendered": true,
+          "fingerprint": "signature=bdfc643d09d60874325ac52b3266b0fc884522d7b042307ad84e7f2ec6660345,placement=da45fd6856767ee52edf8899bb3706afde663c9ff24826bcd99eb5a06b09d16d",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Преобразует полную секцию документации в краткое представление для контекста."
+          }
+        },
+        "responsibility": {
+          "body": "- Принимает `DocSection`.\n- Возвращает объект с типом `SectionContext[\"section\"]`.\n- Трансформирует каждый блок секции, сохраняя все его поля.",
+          "rendered": true,
+          "fingerprint": "signature=bdfc643d09d60874325ac52b3266b0fc884522d7b042307ad84e7f2ec6660345,deps=060af53343d8d4130f8f7368905cea83e14492840bab0696780066f0674e6c2f,usage=b1a1b53e431c1b6854872da2f6b4a55e73418687ba74720c14e0a70f16cae140",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Принимает `DocSection`."
+          }
+        },
+        "invariants": {
+          "body": "Количество блоков в результате совпадает с количеством блоков во входной секции.",
+          "rendered": true,
+          "fingerprint": "signature=bdfc643d09d60874325ac52b3266b0fc884522d7b042307ad84e7f2ec6660345,body=766bcefda7204f299309c16a8c2587edd8f9fea9704ab02933e4ddcbe60dfe8c",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Количество блоков в результате совпадает с количеством блоков во входной секции."
+          }
+        },
+        "dependencies": {
+          "body": "Нет внешних зависимостей — использует только поля входного `DocSection`.",
+          "rendered": false,
+          "fingerprint": "deps=060af53343d8d4130f8f7368905cea83e14492840bab0696780066f0674e6c2f",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Функция не импортирует ничего из проекта."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается в `CodeloreService.getSectionContext` для преобразования полной секции документации в краткое представление, которое включается в возвращаемый `SectionContext`.",
+          "rendered": true,
+          "fingerprint": "body=766bcefda7204f299309c16a8c2587edd8f9fea9704ab02933e4ddcbe60dfe8c,deps=060af53343d8d4130f8f7368905cea83e14492840bab0696780066f0674e6c2f",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Единственный вызывающий — `CodeloreService.getSectionContext`."
+          }
+        },
+        "limitations": {
+          "body": "Не фильтрует и не трансформирует содержимое блоков — копирует все поля каждого блока, включая `staleSince`, `staleReason`, `staleFacets`.",
+          "rendered": true,
+          "fingerprint": "body=766bcefda7204f299309c16a8c2587edd8f9fea9704ab02933e4ddcbe60dfe8c",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Функция не скрывает устаревшие блоки — они передаются как есть."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.753Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:27.982Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "7fbb17d4cf1572f5ca13228df1b2f3c8edbd85bcf98db235e3fce2356ead88be"
+    },
+    "symbol:src/service/helpers.ts#groupBy": {
+      "heading": "groupBy",
+      "depth": 1,
+      "anchor": "groupby",
+      "owns": [
+        "symbol:src/service/helpers.ts#groupBy"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.applyTombstones",
+        "symbol:src/service/codelore-service.ts#CodeloreService.prepareInitialDocs",
+        "symbol:src/service/codelore-service.ts#CodeloreService.recordDepDocsFingerprints"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Группирует элементы массива по строковому ключу, возвращая Map с группами.",
+          "rendered": true,
+          "fingerprint": "signature=4c1c1fe141882ffb8b8e3f3579333be4e8858d00a8e62c75e30362c1b2f9994c,placement=3fa5c1cecf13144cb736f81ce18036af81c93c6983749a7c3cb763485bab43fb",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Группирует элементы по ключу."
+          }
+        },
+        "responsibility": {
+          "body": "- Не изменяет исходный массив.\n- Не обрабатывает null/undefined ключи — keyForItem должна возвращать строку.",
+          "rendered": true,
+          "fingerprint": "signature=4c1c1fe141882ffb8b8e3f3579333be4e8858d00a8e62c75e30362c1b2f9994c,deps=c40d4ac6bcc27bc244e3af7e5ebc4fcfdb59c16ca567d02c8d297b11145ece7b,usage=9c7716494fcb096482c159b975cef9ccafef1ab69788dc8abcfdb9fb12404e5e",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не изменяет массив, не обрабатывает null ключи."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращает Map с ключами в порядке первого появления.\n- Пробрасывает исключения из keyForItem.",
+          "rendered": true,
+          "fingerprint": "signature=4c1c1fe141882ffb8b8e3f3579333be4e8858d00a8e62c75e30362c1b2f9994c,body=72a9ed3c5049a2f8d6e2028ddd2c846160a7703cadb81b29ad393eb4e9d0b8c0",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Порядок ключей по первому вхождению, пробрасывает исключения."
+          }
+        },
+        "dependencies": {
+          "body": "Нет импортов — функция использует только встроенные типы и методы JavaScript.",
+          "rendered": false,
+          "fingerprint": "deps=c40d4ac6bcc27bc244e3af7e5ebc4fcfdb59c16ca567d02c8d297b11145ece7b",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.25,
+            "specificity": 1,
+            "novelFact": "Функция не имеет зависимостей, использует только встроенные средства JS."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается в `CodeloreService.applyTombstones` для группировки записей `StaleBlockInfo` по `docPath` перед итерацией по файлам. Вызывается в `CodeloreService.prepareInitialDocs` для группировки сущностей по `entity.path` перед созданием секций для каждого файла. Вызывается в `CodeloreService.recordDepDocsFingerprints` для группировки записей о записанных секциях по `docPath` перед обновлением отпечатков зависимостей.",
+          "rendered": true,
+          "fingerprint": "body=72a9ed3c5049a2f8d6e2028ddd2c846160a7703cadb81b29ad393eb4e9d0b8c0,deps=c40d4ac6bcc27bc244e3af7e5ebc4fcfdb59c16ca567d02c8d297b11145ece7b",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Три вызывающих метода CodeloreService используют groupBy для группировки по docPath или entity.path."
+          }
+        },
+        "limitations": {
+          "body": "Не обрабатывает `null` или `undefined` ключи — `keyForItem` должна возвращать строку. Порядок элементов внутри групп соответствует исходному порядку элементов массива.",
+          "rendered": true,
+          "fingerprint": "body=72a9ed3c5049a2f8d6e2028ddd2c846160a7703cadb81b29ad393eb4e9d0b8c0",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 1,
+            "novelFact": "Функция не проверяет ключи на null/undefined."
+          }
+        },
+        "changeGuide": {
+          "body": "1. Порядок ключей в возвращаемой `Map` соответствует порядку первого появления в массиве — это обеспечивается итерацией `for (const item of items)` и проверкой `groups.get(key) ?? []`. Тест: не указан.\n2. Функция не мутирует исходный массив — она только читает его через `for (const item of items)`. Тест: не указан.",
+          "rendered": true,
+          "fingerprint": "body=72a9ed3c5049a2f8d6e2028ddd2c846160a7703cadb81b29ad393eb4e9d0b8c0,deps=c40d4ac6bcc27bc244e3af7e5ebc4fcfdb59c16ca567d02c8d297b11145ece7b,usage=9c7716494fcb096482c159b975cef9ccafef1ab69788dc8abcfdb9fb12404e5e,placement=3fa5c1cecf13144cb736f81ce18036af81c93c6983749a7c3cb763485bab43fb",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Порядок ключей сохраняется при первом появлении, исходный массив не изменяется."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.755Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:27.983Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "7fbb17d4cf1572f5ca13228df1b2f3c8edbd85bcf98db235e3fce2356ead88be"
+    },
+    "symbol:src/service/helpers.ts#isKnownBlockId": {
+      "heading": "isKnownBlockId",
+      "depth": 1,
+      "anchor": "isknownblockid",
+      "owns": [
+        "symbol:src/service/helpers.ts#isKnownBlockId"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/doc-validation.ts",
+        "file:src/service/stale-detection.ts",
+        "symbol:src/service/doc-validation.ts#detectStaleBlocks",
+        "symbol:src/service/stale-detection.ts#addTargetBlock",
+        "symbol:src/service/stale-detection.ts#collectDepDocStaleBlocks",
+        "symbol:src/service/stale-detection.ts#collectLanguageStaleBlocks",
+        "symbol:src/service/stale-detection.ts#deletedOwnedEntityBlocks",
+        "symbol:src/service/stale-detection.ts#staleBlockInfoFor",
+        "symbol:src/service/stale-detection.ts#tombstonedBlockInfoFor"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Проверяет, является ли строка известным идентификатором блока документации.",
+          "rendered": true,
+          "fingerprint": "signature=ae68bae0e9a51ae4dea2c5ba5c55488f9a2e124f5c141252e96d1c0ee899a513,placement=e6fbaff2a6cc6cc48e386600efa0ae452157fe92bcafa65ce6580c8802979b52",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Тип-гард для BlockId."
+          }
+        },
+        "responsibility": {
+          "body": "- Возвращает `true` только для значений, присутствующих в константном массиве `BLOCK_IDS`.\n- При возврате `true` сужает тип аргумента до `BlockId` (type predicate).\n- Не имеет побочных эффектов и не выбрасывает исключений.",
+          "rendered": true,
+          "fingerprint": "signature=ae68bae0e9a51ae4dea2c5ba5c55488f9a2e124f5c141252e96d1c0ee899a513,deps=c255f87ce2f95f91d781c3065bbacf56d2ab581d6f78ba6323217b09c268449c,usage=54fff03f712ea307407c0c292668945bf3abc32fe373f71d0a37c296eeb84996",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 0.75,
+            "novelFact": "Функция является type predicate, сужающим тип строки до `BlockId` при успешной проверке."
+          },
+          "language": "ru"
+        },
+        "invariants": {
+          "body": "- Результат зависит только от значения value и константы BLOCK_IDS.\n- Не имеет побочных эффектов.",
+          "rendered": true,
+          "fingerprint": "signature=ae68bae0e9a51ae4dea2c5ba5c55488f9a2e124f5c141252e96d1c0ee899a513,body=0811982baf58702621a3fc52960630922b3d3ab13863235f0f86bb3f8385bea0",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Чистая функция, зависит только от BLOCK_IDS."
+          }
+        },
+        "dependencies": {
+          "body": "`BLOCK_IDS` (`../markdown/block-ids.js`) — константный массив всех допустимых идентификаторов блоков документации.",
+          "rendered": true,
+          "fingerprint": "deps=c255f87ce2f95f91d781c3065bbacf56d2ab581d6f78ba6323217b09c268449c",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 1,
+            "novelFact": "Зависит от константного массива BLOCK_IDS для проверки."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается в `detectStaleBlocks` для фильтрации блоков секции перед проверкой на устаревание. Вызывается в `addTargetBlock` для проверки валидности идентификатора блока перед добавлением в карту целей. Вызывается в `collectDepDocStaleBlocks` для фильтрации блоков при обнаружении устаревших из-за изменений в документации зависимостей. Вызывается в `deletedOwnedEntityBlocks` для фильтрации блоков при обнаружении удалённых сущностей. Вызывается в `staleBlockInfoFor` для проверки идентификатора блока перед вычислением отпечатка. Вызывается в `tombstonedBlockInfoFor` для проверки идентификатора блока перед формированием информации о захороненном блоке.",
+          "rendered": true,
+          "fingerprint": "body=0811982baf58702621a3fc52960630922b3d3ab13863235f0f86bb3f8385bea0,deps=c255f87ce2f95f91d781c3065bbacf56d2ab581d6f78ba6323217b09c268449c",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Шесть различных вызывающих функций в doc-validation и stale-detection используют isKnownBlockId для валидации блока."
+          }
+        },
+        "limitations": {
+          "body": "Не проверяет, что значение является строкой — TypeScript гарантирует тип на этапе компиляции. Не проверяет регистр — сравнение чувствительно к регистру, так как `BLOCK_IDS` содержит точные значения.",
+          "rendered": true,
+          "fingerprint": "body=0811982baf58702621a3fc52960630922b3d3ab13863235f0f86bb3f8385bea0",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 1,
+            "novelFact": "Типовая безопасность полагается на TypeScript, проверка регистра не выполняется."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.757Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:27.985Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:19:56.884Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "7fbb17d4cf1572f5ca13228df1b2f3c8edbd85bcf98db235e3fce2356ead88be"
+    },
+    "symbol:src/service/helpers.ts#describeError": {
+      "heading": "describeError",
+      "depth": 1,
+      "anchor": "describeerror",
+      "owns": [
+        "symbol:src/service/helpers.ts#describeError"
+      ],
+      "depends": [
+        "symbol:src/errors.ts#CodeloreError"
+      ],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.runPipelineForSections"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Нормализует неизвестное значение ошибки в структурированный объект с сообщением и опциональным кодом.",
+          "rendered": true,
+          "fingerprint": "signature=26007b9a3fc2676402eed48a29d9bf2f6c0fb87df6af8e7e6de58f136813ba42,placement=0d525dbf9546c1325875df12b62c0a5a435fac99071b5d725c6a362d07166f21",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Нормализует ошибку в {error, code?}."
+          }
+        },
+        "responsibility": {
+          "body": "- Для CodeloreError извлекает message и code.\n- Для остальных Error возвращает message; для не-Error — String(error).\n- Не бросает исключений.",
+          "rendered": true,
+          "fingerprint": "signature=26007b9a3fc2676402eed48a29d9bf2f6c0fb87df6af8e7e6de58f136813ba42,deps=4998bf465785ae71addfd291259ad65d60c6ae6b6b57f85a14c56764982ec0cf,usage=54be8e285254328be3ab723ca4fc9a398c317be9cf5ae8d054203a8103bf3aaa",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Обрабатывает CodeloreError отдельно."
+          }
+        },
+        "invariants": {
+          "body": "- Всегда возвращает объект с полем error типа string.\n- Поле code присутствует только если error является CodeloreError.",
+          "rendered": true,
+          "fingerprint": "signature=26007b9a3fc2676402eed48a29d9bf2f6c0fb87df6af8e7e6de58f136813ba42,body=0382d32d527426e5a1f351e93d907daac8f1e398669630e229757578ee8d3b38",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Гарантирует наличие error, code только для CodeloreError."
+          }
+        },
+        "dependencies": {
+          "body": "`CodeloreError` (`../errors.js`) — класс ошибки с машинно-читаемым кодом, используется для извлечения `message` и `code`.",
+          "rendered": false,
+          "fingerprint": "deps=4998bf465785ae71addfd291259ad65d60c6ae6b6b57f85a14c56764982ec0cf",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.25,
+            "specificity": 1,
+            "novelFact": "Единственная зависимость — класс CodeloreError из errors.js."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается в `CodeloreService.runPipelineForSections` при обработке отклонённых промисов и исключений в фазе `apply` — результат добавляется в массив `failed` с полями `error` и `code`.",
+          "rendered": true,
+          "fingerprint": "body=0382d32d527426e5a1f351e93d907daac8f1e398669630e229757578ee8d3b38,deps=4998bf465785ae71addfd291259ad65d60c6ae6b6b57f85a14c56764982ec0cf",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Используется в runPipelineForSections для нормализации ошибок в отчёт о неудачных секциях."
+          }
+        },
+        "limitations": {
+          "body": "Не извлекает `stack` — возвращает только сообщение и опциональный код. Для не-`Error` значений использует `String(error)`, что может дать неинформативное сообщение (например, `[object Object]`).",
+          "rendered": true,
+          "fingerprint": "body=0382d32d527426e5a1f351e93d907daac8f1e398669630e229757578ee8d3b38",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Стек ошибки не включается, не-Error значения преобразуются через String."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.758Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:27.987Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "7fbb17d4cf1572f5ca13228df1b2f3c8edbd85bcf98db235e3fce2356ead88be"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

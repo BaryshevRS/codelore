@@ -1,0 +1,104 @@
+{
+  "version": 4,
+  "docPath": "docs/domains/llm-provider-factory.codelore.md",
+  "generatedAt": "2026-07-08T07:59:27.227Z",
+  "sectionOrder": [
+    "domain:llm-provider-factory"
+  ],
+  "sections": {
+    "domain:llm-provider-factory": {
+      "heading": "Фабрика LLM-провайдера",
+      "depth": 1,
+      "anchor": "фабрика-llm-провайдера",
+      "owns": [
+        "domain:llm-provider-factory"
+      ],
+      "depends": [
+        "file:src/llm/provider.ts",
+        "domain:error-handling"
+      ],
+      "usedBy": [
+        "domain:codelore-service-facade"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Фабрика создаёт настроенный ChatCompletionProvider: разрешает имя провайдера (по умолчанию из config.llm.provider), проверяет наличие конфигурации в config.llm.providers и при отсутствии выбрасывает CodeloreError с кодом UNKNOWN_LLM_PROVIDER. Это даёт остальной системе единую точку инициализации провайдера, избавляя от повторения логики выбора имени и валидации.",
+          "rendered": true,
+          "fingerprint": "signature=44f3c9f8d68631dbc0975d1863ebf42260cc84d610c56e2c4aebd091d53398b6,placement=e49f915229825302783de3ec1b380cbdab8058e6adfd2e627776e347e5feeff6",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Фабрика создаёт настроенный ChatCompletionProvider, разрешая имя провайдера через config.llm.provider по умолчанию и проверяя его наличие в конфигурации."
+          }
+        },
+        "responsibility": {
+          "body": "Разрешает имя провайдера через providerName ?? config.llm.provider и валидирует наличие конфигурации: если для разрешённого имени нет записи в config.llm.providers, выбрасывает CodeloreError(UNKNOWN_LLM_PROVIDER). После проверки делегирует создание внутренней функции createProvider, передавая имя, полную конфигурацию и runtime, и возвращает полученный ChatCompletionProvider. Жизненным циклом провайдера и обработкой ошибок вызовов LLM не управляет.",
+          "rendered": true,
+          "fingerprint": "signature=44f3c9f8d68631dbc0975d1863ebf42260cc84d610c56e2c4aebd091d53398b6,deps=398d48210869b9b395e469caf736ee0182eb79d6d8034a1c6d3b9c65a0c1dbc8,usage=4984c5c61a9fb0d4c87d691e4e9bb7970a8bf5e5b9159d1cdfaf10b1d88af0f9",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "При отсутствии конфигурации выбрасывает CodeloreError с кодом UNKNOWN_LLM_PROVIDER."
+          }
+        },
+        "dependencies": {
+          "body": "Опирается на подсистему «Единый формат ошибок»: использует класс CodeloreError для генерации структурированной ошибки с кодом UNKNOWN_LLM_PROVIDER. Сама фабрика не создаёт конфигурацию и не управляет подключением к провайдеру — только проверяет наличие и создаёт экземпляр. Также зависит от конфигурации (config.llm) и runtime, переданных вызывающей стороной.",
+          "rendered": true,
+          "fingerprint": "deps=398d48210869b9b395e469caf736ee0182eb79d6d8034a1c6d3b9c65a0c1dbc8",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Использует класс CodeloreError из подсистемы «Единый формат ошибок» для структурированной ошибки."
+          }
+        },
+        "workflows": {
+          "body": "Вызывающий передаёт опциональное имя провайдера и runtime. Фабрика вычисляет итоговое имя: если providerName не задан, берёт config.llm.provider. Затем ищет в config.llm.providers запись с этим именем. Если запись отсутствует, немедленно выбрасывает CodeloreError(UNKNOWN_LLM_PROVIDER). Иначе вызывает createProvider(name, config, runtime) и возвращает результат — настроенный ChatCompletionProvider. Весь workflow линеен и не содержит промежуточных состояний.",
+          "rendered": true,
+          "fingerprint": "body=44f3c9f8d68631dbc0975d1863ebf42260cc84d610c56e2c4aebd091d53398b6,deps=398d48210869b9b395e469caf736ee0182eb79d6d8034a1c6d3b9c65a0c1dbc8",
+          "language": "ru",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Вычисляет итоговое имя как providerName ?? config.llm.provider, затем ищет в config.llm.providers."
+          }
+        },
+        "limitations": {
+          "body": "Фабрика не обрабатывает ситуацию, когда и providerName, и config.llm.provider не заданы — в этом случае разрешённое имя будет undefined, что приведёт к ошибке UNKNOWN_LLM_PROVIDER при проверке config.llm.providers[undefined]. Она не валидирует структуру конфигурации провайдера (например, наличие ключей, ключа API), а полагается на то, что конфигурация корректна. Также не управляет повторным созданием или кэшированием провайдеров — каждый вызов создаёт новый экземпляр. Ошибки, возникающие внутри createProvider, не перехватываются и передаются вызывающему как есть.",
+          "rendered": true,
+          "fingerprint": "body=44f3c9f8d68631dbc0975d1863ebf42260cc84d610c56e2c4aebd091d53398b6",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не обрабатывает случай, когда и providerName, и config.llm.provider не заданы — разрешённое имя будет undefined, что приведёт к ошибке."
+          }
+        }
+      },
+      "memberDocsFingerprint": "70cd9a3e3ea7473fc721749f906fe445ae39a28992b73daa706ebf0e145f8b07"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

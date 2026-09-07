@@ -1,0 +1,692 @@
+{
+  "version": 4,
+  "docPath": "src/service/doc-validation.codelore.md",
+  "generatedAt": "2026-06-20T13:35:27.964Z",
+  "sectionOrder": [
+    "symbol:src/service/doc-validation.ts#validateOwnedEntities",
+    "symbol:src/service/doc-validation.ts#detectStaleBlocks",
+    "symbol:src/service/doc-validation.ts#staleValidationIssue",
+    "symbol:src/service/doc-validation.ts#validateDependencies",
+    "symbol:src/service/doc-validation.ts#validateBlockQuality"
+  ],
+  "sections": {
+    "symbol:src/service/doc-validation.ts#validateOwnedEntities": {
+      "heading": "validateOwnedEntities",
+      "depth": 1,
+      "anchor": "validateownedentities",
+      "owns": [
+        "symbol:src/service/doc-validation.ts#validateOwnedEntities"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.validateDocs"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Сигнализирует о секциях, которые ссылаются на несуществующие сущности в поле `owns`.",
+          "rendered": true,
+          "fingerprint": "signature=a8759250d8beab56797003206ad21692591ca9d9231fc0e402095c7c7577083a,placement=037f70f1728d98507ce310fef50341bd1c876275c7d823cde16d920c39cdf5b5",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Проверяет только наличие ключа в `codeEntities`, не проверяет тип."
+          }
+        },
+        "responsibility": {
+          "body": "- Итерирует по `section.owns` и проверяет присутствие каждого идентификатора в `codeEntities`.\n- Для каждого отсутствующего идентификатора возвращает `DocValidationIssue` с кодом `stale_owned_entity` и уровнем `error`.\n- Не проверяет, является ли секция владельцем сущности по другим критериям (например, типу).",
+          "rendered": true,
+          "fingerprint": "signature=a8759250d8beab56797003206ad21692591ca9d9231fc0e402095c7c7577083a,deps=71e73e05cabf9458e34c6b6d1d84d7d287543b0b192604f6a9be97e06d56f661,usage=067a62bb3797481992a4cae543c99d229529074ca9ddcbbe698ef4db7a55f5c9",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не проверяет избыточные владения."
+          }
+        },
+        "invariants": {
+          "body": "Возвращает пустой массив, если все `section.owns` присутствуют в `codeEntities`. Не изменяет переданные объекты.",
+          "rendered": true,
+          "fingerprint": "signature=a8759250d8beab56797003206ad21692591ca9d9231fc0e402095c7c7577083a,body=6eb832bc8fae75337d87909353508df36d1f346284eaa2e0518664167be3c15f",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Гарантирует неизменяемость входных данных."
+          }
+        },
+        "dependencies": {
+          "body": "Не импортирует утилит из других модулей; использует только типы `DocSection`, `CodeEntity`, `DocValidationIssue` из `../types`.",
+          "rendered": true,
+          "fingerprint": "deps=71e73e05cabf9458e34c6b6d1d84d7d287543b0b192604f6a9be97e06d56f661",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Не импортирует утилит из других модулей; использует только типы `DocSection`, `CodeEntity`, `DocValidationIssue` из `../types`."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `CodeloreService.validateDocs`. Метод перестраивает индексы, затем для каждой секции вызывает `validateOwnedEntities`, передавая секцию и словарь code-сущностей. Функция итерирует по `section.owns` и при отсутствии сущности в `codeEntities` формирует `DocValidationIssue` с кодом `stale_owned_entity` и уровнем `error`.",
+          "rendered": true,
+          "fingerprint": "body=6eb832bc8fae75337d87909353508df36d1f346284eaa2e0518664167be3c15f,deps=71e73e05cabf9458e34c6b6d1d84d7d287543b0b192604f6a9be97e06d56f661",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Вызывается из `CodeloreService.validateDocs`."
+          }
+        },
+        "limitations": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=6eb832bc8fae75337d87909353508df36d1f346284eaa2e0518664167be3c15f"
+        },
+        "changeGuide": {
+          "body": "1. Всегда возвращает пустой массив, если все `section.owns` присутствуют в `codeEntities` — конструкция: `if (!codeEntities[ownedEntityId])` добавляет issue только при отсутствии.\n2. Не изменяет переданные объекты — единственная запись — `issues.push(...)`, цикл `for (const ownedEntityId of section.owns)` только читает поля.",
+          "rendered": true,
+          "fingerprint": "body=6eb832bc8fae75337d87909353508df36d1f346284eaa2e0518664167be3c15f,deps=71e73e05cabf9458e34c6b6d1d84d7d287543b0b192604f6a9be97e06d56f661,usage=067a62bb3797481992a4cae543c99d229529074ca9ddcbbe698ef4db7a55f5c9,placement=037f70f1728d98507ce310fef50341bd1c876275c7d823cde16d920c39cdf5b5",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "1."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.730Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:27.956Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "688e62705455635cc6f042d0e1378dc6c22da9cddbd44fd74f3ae5e3f97d99e6"
+    },
+    "symbol:src/service/doc-validation.ts#detectStaleBlocks": {
+      "heading": "detectStaleBlocks",
+      "depth": 1,
+      "anchor": "detectstaleblocks",
+      "owns": [
+        "symbol:src/service/doc-validation.ts#detectStaleBlocks"
+      ],
+      "depends": [
+        "symbol:src/service/doc-validation.ts#staleValidationIssue",
+        "symbol:src/service/helpers.ts#isKnownBlockId"
+      ],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.validateDocs"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Возвращает предупреждения о блоках, содержимое которых расходится с текущим кодом, на основе сохранённых отпечатков.",
+          "rendered": true,
+          "fingerprint": "signature=7dcd575b9a730665fa0695906378f495de3dc6c7030d2dd867951d1d1919ee54,placement=11d41550d938b9eebcf60aecf5f5bebc9421b00c3b114c8c45959c4892c5265b",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Работает только с известными идентификаторами блоков (`isKnownBlockId`)."
+          }
+        },
+        "responsibility": {
+          "body": "- Пропускает секции без owned-сущностей в `section.owns`.\n- Для каждого блока с известным `block.id` делегирует проверку в `staleValidationIssue`.\n- Не проверяет блоки, чей идентификатор не распознан `isKnownBlockId`.",
+          "rendered": true,
+          "fingerprint": "signature=7dcd575b9a730665fa0695906378f495de3dc6c7030d2dd867951d1d1919ee54,deps=a63c90995ff8a30134a3ed63778dbd3c048924ade42ac2077fffc6c6fc791bf0,usage=809cc189c9b84b7b2c7541e17f282e17b85ee228aea4cdfcad9cb3d8fa417d8f",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Игнорирует секции без живых owned-сущностей, а также блоки с неизвестными ID."
+          }
+        },
+        "invariants": {
+          "body": "Возвращает пустой массив, если `section.owns` пуст или ни одна owned-сущность не найдена в `codeEntities`. Порядок элементов в результате соответствует порядку блоков в секции.",
+          "rendered": true,
+          "fingerprint": "signature=7dcd575b9a730665fa0695906378f495de3dc6c7030d2dd867951d1d1919ee54,body=8bedd13dd74c9ccb8f54c5a5668bbf7fe3e6257b3430972e2cb998751ad43763",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Гарантирует пустой результат при отсутствии owned-сущностей."
+          }
+        },
+        "dependencies": {
+          "body": "- `isKnownBlockId` (`src/service/helpers.ts`) — проверяет, распознан ли идентификатор блока.\n- `staleValidationIssue` (`src/service/doc-validation.ts`) — формирует issue для одного блока.",
+          "rendered": true,
+          "fingerprint": "deps=a63c90995ff8a30134a3ed63778dbd3c048924ade42ac2077fffc6c6fc791bf0",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "- `isKnownBlockId` (`src/service/helpers.ts`) — проверяет, распознан ли идентификатор блока."
+          }
+        },
+        "workflows": {
+          "body": "Функция проверяет наличие owned-сущностей; при отсутствии возвращает пустой массив. Для каждого блока секции с известным `block.id` (проверка через `isKnownBlockId`) делегирует проверку устаревания в `staleValidationIssue`.",
+          "rendered": true,
+          "fingerprint": "body=8bedd13dd74c9ccb8f54c5a5668bbf7fe3e6257b3430972e2cb998751ad43763,deps=a63c90995ff8a30134a3ed63778dbd3c048924ade42ac2077fffc6c6fc791bf0",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Функция проверяет наличие owned-сущностей; при отсутствии возвращает пустой массив."
+          }
+        },
+        "limitations": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=8bedd13dd74c9ccb8f54c5a5668bbf7fe3e6257b3430972e2cb998751ad43763"
+        },
+        "changeGuide": {
+          "body": "1. При пустом `section.owns` или отсутствии owned-сущностей в `codeEntities` возвращает пустой массив — конструкция: `if (section.owns.length === 0) { return issues; }` и `if (presentOwns.length === 0) { return issues; }`.\n2. Порядок issues соответствует порядку блоков — блоки обрабатываются в цикле `for (const block of section.blocks)`, issue добавляются в том же порядке.",
+          "rendered": true,
+          "fingerprint": "body=8bedd13dd74c9ccb8f54c5a5668bbf7fe3e6257b3430972e2cb998751ad43763,deps=a63c90995ff8a30134a3ed63778dbd3c048924ade42ac2077fffc6c6fc791bf0,usage=809cc189c9b84b7b2c7541e17f282e17b85ee228aea4cdfcad9cb3d8fa417d8f,placement=11d41550d938b9eebcf60aecf5f5bebc9421b00c3b114c8c45959c4892c5265b",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "1."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.733Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:27.958Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "688e62705455635cc6f042d0e1378dc6c22da9cddbd44fd74f3ae5e3f97d99e6"
+    },
+    "symbol:src/service/doc-validation.ts#staleValidationIssue": {
+      "heading": "staleValidationIssue",
+      "depth": 1,
+      "anchor": "stalevalidationissue",
+      "owns": [
+        "symbol:src/service/doc-validation.ts#staleValidationIssue"
+      ],
+      "depends": [
+        "symbol:src/markdown/block-facets.ts#computeBlockFingerprint",
+        "symbol:src/markdown/block-facets.ts#diffFacetHashes",
+        "symbol:src/markdown/block-facets.ts#parseBlockFingerprintValue"
+      ],
+      "usedBy": [
+        "symbol:src/service/doc-validation.ts#detectStaleBlocks"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Определяет, является ли один блок документации устаревшим, сравнивая текущий отпечаток с сохранённым.",
+          "rendered": true,
+          "fingerprint": "signature=14cd0edcbbfbfcb2477acc47de9d7fc7d7171e40804004bd94a80a1045d709e6,placement=be79a70fc16bff30f28d3fca8a738e6477c4ced12839eee1ee3eef972d29d1d3",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Учитывает состояние `staleSince` для возврата tombstoned-проблемы."
+          }
+        },
+        "responsibility": {
+          "body": "- Вычисляет текущий отпечаток блока через `computeBlockFingerprint`.\n- Если блок помечен как удалённый (`staleSince`), возвращает issue с `drift: \"tombstoned\"`.\n- Иначе сравнивает `storedValue` и `currentValue`; при расхождении определяет изменившиеся фасеты через `diffFacetHashes`.\n- Возвращает `undefined`, если отпечаток вычислить не удалось или значения совпадают.",
+          "rendered": true,
+          "fingerprint": "signature=14cd0edcbbfbfcb2477acc47de9d7fc7d7171e40804004bd94a80a1045d709e6,deps=13ce86bd942246fdbf29259fc73c46e330bbe376250d87c2eec84bc238e47d8c,usage=f8d90d89db5f3921228a05cd8618dcae0ac18dd69af5fba085cc5bf713ccb288",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не возвращает issue для блоков с невычислимым отпечатком."
+          }
+        },
+        "invariants": {
+          "body": "Не изменяет переданные объекты. Возвращает issue с кодом `stale_block` и уровнем `warning` при расхождении; `undefined` при совпадении.",
+          "rendered": true,
+          "fingerprint": "signature=14cd0edcbbfbfcb2477acc47de9d7fc7d7171e40804004bd94a80a1045d709e6,body=6700b5777343d07297f12a26cd271aeede8857fb8560f6438931645da28e5885",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Гарантирует неизменяемость входных данных."
+          }
+        },
+        "dependencies": {
+          "body": "- `computeBlockFingerprint` (`src/markdown/block-facets.ts`) — вычисляет текущий отпечаток блока.\n- `diffFacetHashes` (`src/markdown/block-facets.ts`) — определяет изменившиеся фасеты.\n- `parseBlockFingerprintValue` (`src/markdown/block-facets.ts`) — парсит сохранённую строку отпечатка.",
+          "rendered": true,
+          "fingerprint": "deps=13ce86bd942246fdbf29259fc73c46e330bbe376250d87c2eec84bc238e47d8c",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "- `computeBlockFingerprint` (`src/markdown/block-facets.ts`) — вычисляет текущий отпечаток блока."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `detectStaleBlocks` для каждого блока секции. Функция сначала пытается вычислить текущий отпечаток через `computeBlockFingerprint`. Если он не вычислен, возвращает `undefined`. Иначе, если блок помечен как удалённый (`staleSince`), возвращает issue с типом `tombstoned`. В противном случае сравнивает сохранённый и текущий отпечатки; при расхождении вызывает `diffFacetHashes` для определения изменившихся фасетов и формирует issue.",
+          "rendered": true,
+          "fingerprint": "body=6700b5777343d07297f12a26cd271aeede8857fb8560f6438931645da28e5885,deps=13ce86bd942246fdbf29259fc73c46e330bbe376250d87c2eec84bc238e47d8c",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Вызывается из `detectStaleBlocks` для каждого блока секции."
+          }
+        },
+        "limitations": {
+          "body": "- Не проверяет блоки, у которых отсутствует сохранённый отпечаток (`storedValue === undefined`): возвращает `undefined`, а не issue.\n- Не вычисляет отпечаток, если `presentOwns` не содержит owned-сущностей (`currentValue === undefined`): возвращает `undefined`.",
+          "rendered": true,
+          "fingerprint": "body=6700b5777343d07297f12a26cd271aeede8857fb8560f6438931645da28e5885",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "- Не проверяет блоки, у которых отсутствует сохранённый отпечаток (`storedValue === undefined`): возвращает `undefined`, а не issue."
+          }
+        },
+        "changeGuide": {
+          "body": "1. При `currentValue === undefined` возвращает `undefined` — конструкция: `if (currentValue === undefined) { return undefined; }`.\n2. При совпадении отпечатков возвращает `undefined` — конструкция: `if (storedValue === undefined || storedValue === currentValue) { return undefined; }`.",
+          "rendered": true,
+          "fingerprint": "body=6700b5777343d07297f12a26cd271aeede8857fb8560f6438931645da28e5885,deps=13ce86bd942246fdbf29259fc73c46e330bbe376250d87c2eec84bc238e47d8c,usage=f8d90d89db5f3921228a05cd8618dcae0ac18dd69af5fba085cc5bf713ccb288,placement=be79a70fc16bff30f28d3fca8a738e6477c4ced12839eee1ee3eef972d29d1d3",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "1."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.735Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:27.960Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "688e62705455635cc6f042d0e1378dc6c22da9cddbd44fd74f3ae5e3f97d99e6"
+    },
+    "symbol:src/service/doc-validation.ts#validateDependencies": {
+      "heading": "validateDependencies",
+      "depth": 1,
+      "anchor": "validatedependencies",
+      "owns": [
+        "symbol:src/service/doc-validation.ts#validateDependencies"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.validateDocs"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Сигнализирует о секциях, которые ссылаются на несуществующие сущности или другие секции в поле `depends`.",
+          "rendered": true,
+          "fingerprint": "signature=519b875f94af26d29ae73f9bb1891648a8eba618892657b71670fb4feeadfa14,placement=d005f7bd34b29a1c79bd6b427d8470b3031bea11a1f6eb7bed06d86c7f45dd7d",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Обрабатывает префикс `section:` для поиска по `docSections`."
+          }
+        },
+        "responsibility": {
+          "body": "- Итерирует по `section.depends` и проверяет наличие идентификатора в `codeEntities` или `docSections` (с учётом префикса `section:`).\n- Для каждого отсутствующего идентификатора возвращает `DocValidationIssue` с кодом `broken_dependency` и уровнем `error`.\n- Не проверяет транзитивные зависимости.",
+          "rendered": true,
+          "fingerprint": "signature=519b875f94af26d29ae73f9bb1891648a8eba618892657b71670fb4feeadfa14,deps=0b147c4c0d5433e90ce9b77ba885cf3d6d2fafa15cb3a22d364a57cb5966d00b,usage=1fb6e924dc352594f6224de13face48625428e13322931814191e067554426c6",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Проверяет только прямые зависимости, не транзитивные."
+          }
+        },
+        "invariants": {
+          "body": "Возвращает пустой массив, если все зависимости разрешены. Не изменяет переданные объекты.",
+          "rendered": true,
+          "fingerprint": "signature=519b875f94af26d29ae73f9bb1891648a8eba618892657b71670fb4feeadfa14,body=e544e462dbf7ba82eaea9e2bb7c57a6fe4bc6e88ebf0481d7f8a5743a6727295",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Гарантирует неизменяемость входных данных."
+          }
+        },
+        "dependencies": {
+          "body": "Не импортирует утилит из других модулей; использует только типы `DocSection`, `CodeEntity`, `DocValidationIssue` из `../types`.",
+          "rendered": true,
+          "fingerprint": "deps=0b147c4c0d5433e90ce9b77ba885cf3d6d2fafa15cb3a22d364a57cb5966d00b",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Не импортирует утилит из других модулей; использует только типы `DocSection`, `CodeEntity`, `DocValidationIssue` из `../types`."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `CodeloreService.validateDocs` для каждой секции. Функция итерирует по `section.depends`, нормализуя идентификаторы (убирая префикс `section:`), и проверяет их наличие в `codeEntities` или `docSections`. При отсутствии формирует `DocValidationIssue` с кодом `broken_dependency` и уровнем `error`.",
+          "rendered": true,
+          "fingerprint": "body=e544e462dbf7ba82eaea9e2bb7c57a6fe4bc6e88ebf0481d7f8a5743a6727295,deps=0b147c4c0d5433e90ce9b77ba885cf3d6d2fafa15cb3a22d364a57cb5966d00b",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Вызывается из `CodeloreService.validateDocs` для каждой секции."
+          }
+        },
+        "limitations": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=e544e462dbf7ba82eaea9e2bb7c57a6fe4bc6e88ebf0481d7f8a5743a6727295"
+        },
+        "changeGuide": {
+          "body": "1. Всегда возвращает пустой массив, если все зависимости разрешены — конструкция: `if (!codeEntities[dependencyId] && !docSections[dependencyId] && !docSections[normalizedSectionId])` добавляет issue только при отсутствии во всех трёх источниках.\n2. Не изменяет переданные объекты — функция только читает `section.depends` и словари, не присваивает их полям.",
+          "rendered": true,
+          "fingerprint": "body=e544e462dbf7ba82eaea9e2bb7c57a6fe4bc6e88ebf0481d7f8a5743a6727295,deps=0b147c4c0d5433e90ce9b77ba885cf3d6d2fafa15cb3a22d364a57cb5966d00b,usage=1fb6e924dc352594f6224de13face48625428e13322931814191e067554426c6,placement=d005f7bd34b29a1c79bd6b427d8470b3031bea11a1f6eb7bed06d86c7f45dd7d",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "1."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.737Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:27.962Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "688e62705455635cc6f042d0e1378dc6c22da9cddbd44fd74f3ae5e3f97d99e6"
+    },
+    "symbol:src/service/doc-validation.ts#validateBlockQuality": {
+      "heading": "validateBlockQuality",
+      "depth": 1,
+      "anchor": "validateblockquality",
+      "owns": [
+        "symbol:src/service/doc-validation.ts#validateBlockQuality"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.validateDocs"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Проверяет, что каждый блок документации содержит непустое тело, не являющееся заглушкой.",
+          "rendered": true,
+          "fingerprint": "signature=772863d53c21511c3a8b82a3711c096b478bb220a9787695ca5fbc02a7dd321c,placement=20c0d7a56df73506bdcccd09b1b65b22f5e953080fd3d11643dc74a45fe67faa",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Проверяет как пустую строку, так и строку \"TODO\"."
+          }
+        },
+        "responsibility": {
+          "body": "- Итерирует по всем блокам секции.\n- Для каждого блока проверяет наличие свойства `rendered` и непустоту тела после обрезки.\n- Если блок не отрисован или его тело пустое либо равно \"TODO\", возвращает issue с кодом `empty_required_block` и уровнем `warning`.",
+          "rendered": true,
+          "fingerprint": "signature=772863d53c21511c3a8b82a3711c096b478bb220a9787695ca5fbc02a7dd321c,deps=5f2d26c3281574aade452c0ec5ea3722e48547748c68a07498e94ebd10a22bd7,usage=e8ed1f94dac629b43bd051c4cced4157832438602728017e02403f41979b2c13",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Считает \"TODO\" таким же пустым, как и пустую строку."
+          }
+        },
+        "invariants": {
+          "body": "Не изменяет переданные объекты. Возвращает issue для каждого проблемного блока; пустой массив, если все блоки корректны.",
+          "rendered": true,
+          "fingerprint": "signature=772863d53c21511c3a8b82a3711c096b478bb220a9787695ca5fbc02a7dd321c,body=98f667c414bbd3f35275daad4d1f5c548c3e97c221e2717dc4ed61d948782222",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Гарантирует неизменяемость входных данных."
+          }
+        },
+        "dependencies": {
+          "body": "Не импортирует утилит из других модулей; использует только типы `DocSection`, `DocValidationIssue` из `../types`.",
+          "rendered": true,
+          "fingerprint": "deps=5f2d26c3281574aade452c0ec5ea3722e48547748c68a07498e94ebd10a22bd7",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Не импортирует утилит из других модулей; использует только типы `DocSection`, `DocValidationIssue` из `../types`."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `CodeloreService.validateDocs` только при `includeQuality: true`. Для каждого блока секции проверяет наличие свойства `rendered` и непустоту тела после обрезки (исключая заглушку \"TODO\"). При проблеме формирует `DocValidationIssue` с кодом `empty_required_block` и уровнем `warning`.",
+          "rendered": true,
+          "fingerprint": "body=98f667c414bbd3f35275daad4d1f5c548c3e97c221e2717dc4ed61d948782222,deps=5f2d26c3281574aade452c0ec5ea3722e48547748c68a07498e94ebd10a22bd7",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Вызывается из `CodeloreService.validateDocs` только при `includeQuality: true`."
+          }
+        },
+        "limitations": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=98f667c414bbd3f35275daad4d1f5c548c3e97c221e2717dc4ed61d948782222"
+        },
+        "changeGuide": {
+          "body": "1. Возвращает issue для каждого блока без `rendered` — конструкция: `if (!block.rendered)`.\n2. Возвращает issue для каждого блока с пустым или \"TODO\" телом — конструкция: `if (body.length === 0 || body === \"TODO\")`.",
+          "rendered": true,
+          "fingerprint": "body=98f667c414bbd3f35275daad4d1f5c548c3e97c221e2717dc4ed61d948782222,deps=5f2d26c3281574aade452c0ec5ea3722e48547748c68a07498e94ebd10a22bd7,usage=e8ed1f94dac629b43bd051c4cced4157832438602728017e02403f41979b2c13,placement=20c0d7a56df73506bdcccd09b1b65b22f5e953080fd3d11643dc74a45fe67faa",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "1."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.739Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:27.964Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "688e62705455635cc6f042d0e1378dc6c22da9cddbd44fd74f3ae5e3f97d99e6"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

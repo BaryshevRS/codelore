@@ -1,0 +1,113 @@
+{
+  "version": 4,
+  "docPath": "docs/domains/error-handling.codelore.md",
+  "generatedAt": "2026-07-08T07:59:27.227Z",
+  "sectionOrder": [
+    "domain:error-handling"
+  ],
+  "sections": {
+    "domain:error-handling": {
+      "heading": "Единый формат ошибок",
+      "depth": 1,
+      "anchor": "единый-формат-ошибок",
+      "owns": [
+        "domain:error-handling"
+      ],
+      "depends": [
+        "file:src/errors.ts"
+      ],
+      "usedBy": [
+        "domain:cli-entrypoint",
+        "domain:code-doc-indexing",
+        "domain:codelore-service-facade",
+        "domain:doc-translation",
+        "domain:llm-doc-validation",
+        "domain:llm-generation-pipeline",
+        "domain:llm-json-response-parsing",
+        "domain:llm-provider-factory",
+        "domain:mcp-server",
+        "domain:section-rewrite-application",
+        "domain:service-helpers"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Предоставляет единый формат ошибок с машинно-читаемым кодом, на который опираются остальные подсистемы при взаимодействии с API-клиентами и UI. Класс CodeloreError фиксирует поля code (тип CodeloreErrorCode) и details, а функция toCodeloreErrorPayload превращает любое исключение в сериализуемый объект CodeloreErrorPayload — это гарантирует, что наружу уходит предсказуемая структура.",
+          "rendered": true,
+          "fingerprint": "signature=d2535947774b81dd2e84b82b14370eeb2b8c813a536091f3880250ef7f1ac414,placement=6c1a7917517398767296359e49e6dff5db706dc743c8e57802d860bee57ba038",
+          "language": "ru",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Функция toCodeloreErrorPayload превращает любое исключение в сериализуемый объект CodeloreErrorPayload."
+          }
+        },
+        "responsibility": {
+          "body": "Определяет тип ошибки CodeloreError с публичными полями code (из перечисления CodeloreErrorCode) и details. Предоставляет утилиту toCodeloreErrorPayload, которая не модифицирует исходную ошибку и не выполняет логирование, а только возвращает готовый payload. Позволяет другому коду выбрасывать ошибки с осмысленным кодом, не думая о формате сериализации.",
+          "rendered": true,
+          "fingerprint": "signature=d2535947774b81dd2e84b82b14370eeb2b8c813a536091f3880250ef7f1ac414,deps=9d98993a36859997790059d1f9351718a2858aa274ba25b7d147820605bef61a,usage=70939ef1c74d694258827634486bcfcd4dc02fc54397f5a4d250146bd593db4a",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "toCodeloreErrorPayload не модифицирует исходную ошибку и не выполняет логирование."
+          }
+        },
+        "dependencies": {
+          "body": "Не зависит от внешних библиотек — использует только стандартный класс Error. Осознанно не берёт на себя сериализацию, логирование и форматирование сообщений для конечного пользователя; эти задачи возложены на потребителей payload'а.",
+          "rendered": true,
+          "fingerprint": "deps=9d98993a36859997790059d1f9351718a2858aa274ba25b7d147820605bef61a",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Не зависит от внешних библиотек — использует только стандартный класс Error."
+          }
+        },
+        "workflows": {
+          "body": "Любое исключение передаётся в toCodeloreErrorPayload. Если ошибка — экземпляр CodeloreError, извлекаются поля code и details. Иначе функция формирует payload с code = INTERNAL_ERROR и сообщением из error.message. Возвращаемый объект CodeloreErrorPayload готов к JSON-сериализации.",
+          "rendered": true,
+          "fingerprint": "body=d2535947774b81dd2e84b82b14370eeb2b8c813a536091f3880250ef7f1ac414,deps=9d98993a36859997790059d1f9351718a2858aa274ba25b7d147820605bef61a",
+          "language": "ru",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Для ошибок не-CodeloreError всегда возвращается code = INTERNAL_ERROR."
+          }
+        },
+        "limitations": {
+          "body": "Не управляет HTTP-статусами, локализацией сообщений и фильтрацией чувствительных деталей — это зона ответственности вызывающего кода. Ошибки, не являющиеся CodeloreError, всегда получают код INTERNAL_ERROR; чтобы получить другой код, необходимо выбросить экземпляр CodeloreError с нужным значением.",
+          "rendered": true,
+          "fingerprint": "body=d2535947774b81dd2e84b82b14370eeb2b8c813a536091f3880250ef7f1ac414",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Ошибки, не являющиеся CodeloreError, всегда получают код INTERNAL_ERROR."
+          }
+        }
+      },
+      "memberDocsFingerprint": "eb4996e3bea30fdaa4d0627babf5a73a552b75e68aa0a8049affc176d052d456"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

@@ -1,0 +1,167 @@
+{
+  "version": 4,
+  "docPath": "src/analysis/decision-pass.codelore.md",
+  "generatedAt": "2026-06-05T19:28:31.529Z",
+  "sectionOrder": [
+    "symbol:src/analysis/decision-pass.ts#decideDocumentationRoles",
+    "symbol:src/analysis/decision-pass.ts#calculateWeight"
+  ],
+  "sections": {
+    "symbol:src/analysis/decision-pass.ts#decideDocumentationRoles": {
+      "heading": "decideDocumentationRoles",
+      "depth": 1,
+      "anchor": "decidedocumentationroles",
+      "owns": [
+        "symbol:src/analysis/decision-pass.ts#decideDocumentationRoles"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/indexer/code-indexer.ts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Определяет роль документации для каждой сущности кода на основе метрик, связности классов и обнаружения обёрток.",
+          "rendered": true,
+          "fingerprint": "signature=b38141f60764e56af9f9f21ae74e3d3f75d4bbcd84c425d302508bcacfc076f2,placement=04497c4623606a5567e4cd50420cd5b841f36efc2a17e2d481cd5e33de5ab8ac",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 0.75,
+            "novelFact": "Определяет роль документации для каждой сущности кода на основе метрик, связности классов и обнаружения обёрток."
+          }
+        },
+        "responsibility": {
+          "body": "- Принимает решение о роли документации для каждой сущности, делегируя вычисление роли вспомогательной функции decideEntityRole.\n- Не вычисляет метрики, связность или обёртки самостоятельно, а получает их как готовые входные данные.",
+          "rendered": true,
+          "fingerprint": "signature=b38141f60764e56af9f9f21ae74e3d3f75d4bbcd84c425d302508bcacfc076f2,deps=0e2961dd1fd22991357d8074876fd8a9b4129ddbed24b6c45cb2569f0eb36493,usage=e63a438f49446fb7dc3a06aaeb768eb2a6b874dd5c4a39456aff581225007392",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 0.75,
+            "novelFact": "Принимает решение о роли документации для каждой сущности, делегируя вычисление роли вспомогательной функции decideEntityRole. Не вычисляет метрики, связность или обёртки самостоятельно, а получает их как готовые входные данные."
+          }
+        },
+        "invariants": {
+          "body": "- Каждая сущность в переданном entities получает ровно одно решение в возвращаемой Map.\n- Порядок обработки сущностей детерминирован: сущности сортируются по пути и начальному смещению.",
+          "rendered": true,
+          "fingerprint": "signature=b38141f60764e56af9f9f21ae74e3d3f75d4bbcd84c425d302508bcacfc076f2,body=1d2f4e801c9dfd28008c5aa5e726a3f8bd23b10d1c5ee329da871da583821ca1",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 0.75,
+            "novelFact": "Каждая сущность в переданном entities получает ровно одно решение в возвращаемой Map. Порядок обработки сущностей детерминирован: сущности сортируются по пути и начальному смещению."
+          }
+        },
+        "dependencies": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "deps=0e2961dd1fd22991357d8074876fd8a9b4129ddbed24b6c45cb2569f0eb36493"
+        },
+        "workflows": {
+          "body": "1. Вызывается из populateDocumentationMetadata в src/indexer/code-indexer.ts после вычисления метрик, связности и обнаружения обёрток.\n2. Результат используется для определения набора разрешённых блоков документации через determineBlockInclusion.",
+          "rendered": true,
+          "fingerprint": "body=1d2f4e801c9dfd28008c5aa5e726a3f8bd23b10d1c5ee329da871da583821ca1,deps=0e2961dd1fd22991357d8074876fd8a9b4129ddbed24b6c45cb2569f0eb36493",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 0.75,
+            "novelFact": "Вызывается из populateDocumentationMetadata в src/indexer/code-indexer.ts после вычисления метрик, связности и обнаружения обёрток. Результат используется для определения набора разрешённых блоков документации через determineBlockInclusion."
+          }
+        },
+        "limitations": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=1d2f4e801c9dfd28008c5aa5e726a3f8bd23b10d1c5ee329da871da583821ca1"
+        }
+      }
+    },
+    "symbol:src/analysis/decision-pass.ts#calculateWeight": {
+      "heading": "calculateWeight",
+      "depth": 1,
+      "anchor": "calculateweight",
+      "owns": [
+        "symbol:src/analysis/decision-pass.ts#calculateWeight"
+      ],
+      "depends": [],
+      "usedBy": [],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Вычисляет вес сущности на основе её метрик и, при наличии, метрик приватной части якоря, используемый при принятии решений в анализе.",
+          "rendered": true,
+          "fingerprint": "signature=f8fd73021defb1d727eda29306d0d81b1757d7287fbb635f3858e834cb483081,placement=05de6af3d8ec7dcb57c36c2672be21d499b599627f95075cc33fb4efed63686c",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вычисляет вес сущности на основе её метрик и, при наличии, метрик приватной части якоря."
+          }
+        },
+        "responsibility": {
+          "body": "- Принимает два набора метрик и при необходимости объединяет их для расчёта.\n- Применяет логарифмическую формулу для получения веса.",
+          "rendered": true,
+          "fingerprint": "signature=f8fd73021defb1d727eda29306d0d81b1757d7287fbb635f3858e834cb483081,deps=ed03fc00039ec6e7919170ecc2cb4a8b311edc69e89fe8327653d4c8ad86bef0,usage=ed03fc00039ec6e7919170ecc2cb4a8b311edc69e89fe8327653d4c8ad86bef0",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Принимает два набора метрик и при необходимости объединяет их для расчёта; применяет логарифмическую формулу для получения веса."
+          }
+        },
+        "invariants": {
+          "body": "Функция не имеет побочных эффектов и является чистой.",
+          "rendered": true,
+          "fingerprint": "signature=f8fd73021defb1d727eda29306d0d81b1757d7287fbb635f3858e834cb483081,body=690ee94a76d8b9e1f153823cd63192f75bf1581d9ab37e53bb2da8685a598d1c",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция не имеет побочных эффектов и является чистой."
+          }
+        },
+        "dependencies": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "deps=ed03fc00039ec6e7919170ecc2cb4a8b311edc69e89fe8327653d4c8ad86bef0"
+        },
+        "limitations": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=690ee94a76d8b9e1f153823cd63192f75bf1581d9ab37e53bb2da8685a598d1c"
+        }
+      }
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

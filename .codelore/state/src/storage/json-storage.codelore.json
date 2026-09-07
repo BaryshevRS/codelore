@@ -1,0 +1,172 @@
+{
+  "version": 4,
+  "docPath": "src/storage/json-storage.codelore.md",
+  "generatedAt": "2026-06-20T13:35:28.112Z",
+  "sectionOrder": [
+    "symbol:src/storage/json-storage.ts#JsonStorage"
+  ],
+  "sections": {
+    "symbol:src/storage/json-storage.ts#JsonStorage": {
+      "heading": "JsonStorage",
+      "depth": 1,
+      "anchor": "jsonstorage",
+      "owns": [
+        "symbol:src/storage/json-storage.ts#JsonStorage"
+      ],
+      "depends": [
+        "symbol:src/storage/json-storage.ts#JsonStorage.changePath",
+        "symbol:src/storage/json-storage.ts#JsonStorage.indexPath",
+        "symbol:src/storage/json-storage.ts#JsonStorage.loadChangeAnalysis",
+        "symbol:src/storage/json-storage.ts#JsonStorage.loadProjectIndex",
+        "symbol:src/storage/json-storage.ts#JsonStorage.readJson",
+        "symbol:src/storage/json-storage.ts#JsonStorage.saveChangeAnalysis",
+        "symbol:src/storage/json-storage.ts#JsonStorage.saveProjectIndex",
+        "symbol:src/storage/json-storage.ts#JsonStorage.writeJson"
+      ],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "file:src/service/index-manager.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/index-manager.ts#IndexManager"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide",
+        "dependencies"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide",
+        "dependencies"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Сохранение и загрузка индексных данных и результатов анализа изменений в JSON-файлы.",
+          "rendered": true,
+          "fingerprint": "signature=b14b240663e8d46b68dfd35acef84bd41bfb36b59db16bcf64fb7abdb41884c5,placement=4cc5bb061a041daf2ed5de7f388e79dccb607ca13ddb853857799d98b2a034ff",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Сохранение и загрузка индексных данных и результатов анализа изменений в JSON-файлы."
+          }
+        },
+        "responsibility": {
+          "body": "- Создаёт директории при записи через `mkdir` с `recursive: true`.\n- При отсутствии файла чтение возвращает `undefined`, а не выбрасывает исключение — обработка `ENOENT` в `readJson`.\n- Пути к файлам вычисляются из конфигурации через `indexPath` и `changePath`.",
+          "rendered": true,
+          "fingerprint": "signature=b14b240663e8d46b68dfd35acef84bd41bfb36b59db16bcf64fb7abdb41884c5,deps=e077ccdd193a4dcdcd3d40c9c5f4654e598d84dda3f85c2b77e7d614040c4589,usage=f96577581e2cd7d4d9d01b3c32550ec60984f3fc63382a6b4ce9ef5816990be7",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Ответственность включает гарантию создания директорий и безопасное чтение отсутствующих файлов."
+          }
+        },
+        "invariants": {
+          "body": "- При отсутствии файла чтение возвращает `undefined`, а не выбрасывает исключение.\n- Запись всегда гарантирует существование целевой директории перед созданием файла.\n- Пути к файлам детерминировано вычисляются из конфигурации и не зависят от состояния.",
+          "rendered": true,
+          "fingerprint": "signature=b14b240663e8d46b68dfd35acef84bd41bfb36b59db16bcf64fb7abdb41884c5,body=e5078cf7d74e0baf122851992dd4b7b4cd7e53321e3334fe22a2e79fd8ce0968",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "При отсутствии файла чтение возвращает `undefined`, а не выбрасывает исключение. Запись всегда гарантирует существование целевой директории перед созданием файла. Пути к файлам детерминировано вычисляются из конфигурации и не зависят от состояния."
+          }
+        },
+        "workflows": {
+          "body": "1. `CodeloreService` вызывает `saveProjectIndex` после анализа кода для сохранения индекса проекта.\n2. `CodeloreService` вызывает `loadProjectIndex` при старте для загрузки индекса.\n3. `CodeloreService` вызывает `saveChangeAnalysis` для сохранения результатов анализа изменений и `loadChangeAnalysis` для их загрузки по идентификатору.",
+          "rendered": true,
+          "fingerprint": "body=e5078cf7d74e0baf122851992dd4b7b4cd7e53321e3334fe22a2e79fd8ce0968,deps=e077ccdd193a4dcdcd3d40c9c5f4654e598d84dda3f85c2b77e7d614040c4589",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "1. `CodeloreService` вызывает `saveProjectIndex` после анализа кода для сохранения индекса проекта. 2. `CodeloreService` вызывает `loadProjectIndex` при старте для загрузки индекса. 3. `CodeloreService` вызывает `saveChangeAnalysis` для сохранения результатов анализа изменений и `loadChangeAnalysis` для их загрузки по идентификатору."
+          }
+        },
+        "limitations": {
+          "body": "Нет дополнительных требований.",
+          "rendered": false,
+          "fingerprint": "body=e5078cf7d74e0baf122851992dd4b7b4cd7e53321e3334fe22a2e79fd8ce0968",
+          "scores": {
+            "informativeness": 0,
+            "novelty": 0,
+            "specificity": 0,
+            "novelFact": "Нет дополнительных требований."
+          }
+        },
+        "changeGuide": {
+          "body": "1. При чтении отсутствующего файла возвращается `undefined`, а не выбрасывается исключение — обеспечивается веткой `if (error instanceof Error && \"code\" in error && error.code === \"ENOENT\") { return undefined; }` в `readJson`.\n2. При записи гарантируется создание целевой директории — вызывается `await mkdir(dirname(path), { recursive: true })` перед `writeFile` в `writeJson`.\n3. `loadProjectIndex` возвращает `undefined` при несовпадении версии — проверяется выражением `loaded.version !== INDEX_VERSION` в `loadProjectIndex`.",
+          "rendered": true,
+          "fingerprint": "body=e5078cf7d74e0baf122851992dd4b7b4cd7e53321e3334fe22a2e79fd8ce0968,deps=e077ccdd193a4dcdcd3d40c9c5f4654e598d84dda3f85c2b77e7d614040c4589,usage=f96577581e2cd7d4d9d01b3c32550ec60984f3fc63382a6b4ce9ef5816990be7,placement=4cc5bb061a041daf2ed5de7f388e79dccb607ca13ddb853857799d98b2a034ff",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "1."
+          }
+        },
+        "dependencies": {
+          "body": "- `node:fs/promises` (`mkdir`, `readFile`, `writeFile`) — операции с файловой системой.\n- `node:path` (`dirname`, `join`) — манипуляции с путями.\n- `../types.js` (`ChangeAnalysis`, `CodeloreConfig`, `INDEX_VERSION`, `ProjectIndex`) — типы данных для сериализации.",
+          "rendered": true,
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Зависимости: `node:fs/promises` (`mkdir`, `readFile`, `writeFile`) — операции с файловой системой. `node:path` (`dirname`, `join`) — манипуляции с путями. `../types.js` (`ChangeAnalysis`, `CodeloreConfig`, `INDEX_VERSION`, `ProjectIndex`) — типы данных для сериализации."
+          },
+          "fingerprint": "deps=e077ccdd193a4dcdcd3d40c9c5f4654e598d84dda3f85c2b77e7d614040c4589"
+        }
+      },
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "generationHistory": [
+        {
+          "runId": "f1f97c08-f7a0-4c77-8cbb-deec36d86e92",
+          "timestamp": "2026-06-10T14:17:16.522Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.851Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.112Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "changeGuide"
+          ]
+        }
+      ]
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

@@ -1,0 +1,32 @@
+{
+  "headings": {
+    "purpose": "Зачем это нужно",
+    "responsibility": "Что делает",
+    "invariants": "На что можно положиться",
+    "dependencies": "От чего зависит",
+    "workflows": "Кто и как использует",
+    "limitations": "Чего не делает",
+    "changeGuide": "Как менять и что проверять"
+  },
+  "reasons": {
+    "signature_changed": "изменилась сигнатура",
+    "body_changed": "изменилось тело",
+    "deps_changed": "изменились зависимости",
+    "usage_changed": "изменились вызовы",
+    "placement_changed": "изменилось размещение",
+    "depDocs_changed": "изменились документы зависимостей",
+    "language_changed": "изменился язык",
+    "owned_changed": "изменилась сущность",
+    "code_changed": "изменился код",
+    "owned_entity_deleted": "сущность удалена"
+  },
+  "callouts": {
+    "stale": "⚠ Устарело ({reason}с {since}): {headings}. Обновите документацию.",
+    "translationPending": "⚠ Перевод готовится. Запустите update."
+  },
+  "nav": {
+    "members": "Состав",
+    "dependsOn": "Зависит от",
+    "usedBy": "Используется в"
+  }
+}

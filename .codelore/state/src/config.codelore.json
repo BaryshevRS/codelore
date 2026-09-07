@@ -1,0 +1,445 @@
+{
+  "version": 4,
+  "docPath": "src/config.codelore.md",
+  "generatedAt": "2026-07-03T16:25:43.443Z",
+  "sectionOrder": [
+    "symbol:src/config.ts#loadConfig",
+    "symbol:src/config.ts#loadDotEnv",
+    "symbol:src/config.ts#resolveTerms"
+  ],
+  "sections": {
+    "symbol:src/config.ts#loadConfig": {
+      "heading": "loadConfig",
+      "depth": 1,
+      "anchor": "loadconfig",
+      "owns": [
+        "symbol:src/config.ts#loadConfig"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Фабрика конфигурации, объединяющая настройки из `codelore.config.json` с дефолтами.",
+          "rendered": true,
+          "fingerprint": "signature=e968729146a858bd45d4686d3da2350422e6cd1f20ad012ebd6af677c06b314e,placement=894f6348e85fb7b485d1a480e2873696351fedb414efadd08ad0b74d3d57d4a1",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Создаёт полный объект `CodeloreConfig` для переданной корневой директории."
+          }
+        },
+        "responsibility": {
+          "body": "- Не валидирует схему JSON — `JSON.parse` может бросить синтаксическую ошибку, которая не перехватывается.\n- Не управляет временем жизни конфигурации — возвращает новый объект при каждом вызове.\n- Не разрешает относительные пути внутри конфига (например, `indexDir`) — оставляет как есть, разрешение на вызывающей стороне.",
+          "rendered": true,
+          "fingerprint": "signature=e968729146a858bd45d4686d3da2350422e6cd1f20ad012ebd6af677c06b314e,deps=925ecc9ce60c00472449c0398dff110df156a3bb69b6385f32ff7e704c46ab6d,usage=ec772e73f78d13f9c381840b2fe91995542ee7180fc424f7b833805550bd3bf1",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Явно указаны границы того, что функция не делает."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращаемый объект всегда содержит поле `rootDir`, равное переданному аргументу.\n- Все поля верхнего уровня (`sourceGlobs`, `docGlobs`, `excludeGlobs`, `indexDir`, `docs`, `thresholds`, `blockInclusion`, `llm`) гарантированно присутствуют в результате — при отсутствии в файле используются дефолтные значения.\n- Поле `docs.language` может отсутствовать (`undefined`), так как не имеет дефолтного значения.\n- Если ни один конфигурационный файл не существует, возвращается конфигурация с полными дефолтами без вызова валидации схемы.\n- Значение `concurrency` гарантированно является целым числом >= 1, если передан валидный number, иначе используется дефолтное значение 50.",
+          "rendered": true,
+          "fingerprint": "signature=e968729146a858bd45d4686d3da2350422e6cd1f20ad012ebd6af677c06b314e,body=a4bb9b26f0bfc5563ab545e380d9067a8cbcef5da4140658094580a1c6e16736",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "При отсутствии обоих конфигурационных файлов возвращает дефолтную конфигурацию без валидации."
+          },
+          "language": "ru"
+        },
+        "dependencies": {
+          "body": "- `existsSync`, `readFileSync` (`node:fs`) — синхронное чтение файла конфигурации.\n- `join` (`node:path`) — склеивание `rootDir` с именем файла.\n- `DEFAULT_BLOCK_HEADINGS_EN` (`src/markdown/block-ids.js`) — значения заголовков блоков по умолчанию для английского языка.\n- Типы: `BlockInclusionConfig`, `CodeloreConfig`, `DocsConfig`, `LlmConfig` (`src/types.js`) — структуры данных.",
+          "rendered": true,
+          "fingerprint": "deps=925ecc9ce60c00472449c0398dff110df156a3bb69b6385f32ff7e704c46ab6d",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Перечислены только прямые импорты, используемые в runtime."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается в конструкторе `CodeloreService` (`src/service/codelore-service.ts`) для инициализации поля `config`. При отсутствии обоих конфигурационных файлов возвращает полные дефолты без валидации схемы.",
+          "rendered": true,
+          "fingerprint": "body=a4bb9b26f0bfc5563ab545e380d9067a8cbcef5da4140658094580a1c6e16736,deps=925ecc9ce60c00472449c0398dff110df156a3bb69b6385f32ff7e704c46ab6d",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается в конструкторе `CodeloreService` для инициализации поля `config`."
+          },
+          "language": "ru"
+        },
+        "limitations": {
+          "body": "- Конфигурация загружается только из двух файлов: `codelore.config.json` и `<indexDir>/config.json`. Нет поддержки нескольких конфигов или наследования.\n- Синхронное чтение (`readFileSync`) — неблокирующие альтернативы не рассматриваются, что может повлиять на производительность при большом количестве вызовов.",
+          "rendered": true,
+          "fingerprint": "body=a4bb9b26f0bfc5563ab545e380d9067a8cbcef5da4140658094580a1c6e16736",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Конфигурация загружается только из двух файлов: `codelore.config.json` и `<indexDir>/config.json`."
+          },
+          "language": "ru"
+        },
+        "changeGuide": {
+          "body": "- При отсутствии обоих конфигурационных файлов возвращаются полные дефолты без вызова валидации схемы. Если требуется валидировать дефолты, нужно убрать этот ранний возврат.\n- Значение `concurrency` гарантированно является целым числом >= 1 благодаря проверке и `Math.floor`. Если требуется допускать дробные значения, нужно убрать `Math.floor`.",
+          "rendered": true,
+          "fingerprint": "body=a4bb9b26f0bfc5563ab545e380d9067a8cbcef5da4140658094580a1c6e16736,deps=925ecc9ce60c00472449c0398dff110df156a3bb69b6385f32ff7e704c46ab6d,usage=ec772e73f78d13f9c381840b2fe91995542ee7180fc424f7b833805550bd3bf1,placement=894f6348e85fb7b485d1a480e2873696351fedb414efadd08ad0b74d3d57d4a1",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "При отсутствии обоих конфигурационных файлов возвращаются полные дефолты без вызова валидации схемы."
+          },
+          "language": "ru"
+        }
+      },
+      "depDocsFingerprint": "687a21b97204e4d2cef21663d19a128e8aeff463a8572f83d76a25a507d94f82",
+      "generationHistory": [
+        {
+          "runId": "61372614-014e-462a-bae1-622628a3489c",
+          "timestamp": "2026-06-10T21:10:28.181Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:19:56.781Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:25:43.443Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    },
+    "symbol:src/config.ts#loadDotEnv": {
+      "heading": "loadDotEnv",
+      "depth": 1,
+      "anchor": "loaddotenv",
+      "owns": [
+        "symbol:src/config.ts#loadDotEnv"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/bin/codelore.ts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Загрузка переменных окружения из `.env`-файла для конфигурации проекта.",
+          "rendered": true,
+          "fingerprint": "signature=66abd9dbfa4047ee1ede5dcba5998d43d1aa64183334e515822dfc1b49a9995a,placement=66e49ffe2631fe4ba49d3fcf1624bf2340d8daece8678e1f5ea8193b91b10ace",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Загружает переменные окружения из `.env`-файла для конфигурации проекта."
+          }
+        },
+        "responsibility": {
+          "body": "- Проверяет существование `.env`-файла в корне проекта.\n- Если файл существует, загружает его с помощью `process.loadEnvFile`.\n- Не выполняет никаких действий при отсутствии файла.",
+          "rendered": true,
+          "fingerprint": "signature=66abd9dbfa4047ee1ede5dcba5998d43d1aa64183334e515822dfc1b49a9995a,deps=2c0b8f8ac30ceb1626104104f9bd9eb3926b4238857d0a9a9e9d59b3d6febb48,usage=2e1e90db625b3b88605526c20bc1f895e1fb1938aa9681aca2aa804eb4d8afb4",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Загрузка выполняется только при наличии файла; при отсутствии функция завершается без ошибки."
+          }
+        },
+        "invariants": {
+          "body": "- Вызов не бросает исключений, если `.env` отсутствует — функция выполняет ранний возврат.\n- Загружается только файл `.env` в переданной директории, без поиска по родительским директориям.",
+          "rendered": true,
+          "fingerprint": "signature=66abd9dbfa4047ee1ede5dcba5998d43d1aa64183334e515822dfc1b49a9995a,body=e009a82696a9d3fb04c3c0e0a4f0b6a8b428f54767630562bc3164f079ef7b61",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Вызов не бросает исключений при отсутствии `.env`."
+          }
+        },
+        "dependencies": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "deps=2c0b8f8ac30ceb1626104104f9bd9eb3926b4238857d0a9a9e9d59b3d6febb48"
+        },
+        "workflows": {
+          "body": "Вызывается однократно при старте CLI (`src/bin/codelore.ts`). Загружает переменные окружения из `.env`-файла в корне проекта, если он существует.",
+          "rendered": true,
+          "fingerprint": "body=e009a82696a9d3fb04c3c0e0a4f0b6a8b428f54767630562bc3164f079ef7b61,deps=2c0b8f8ac30ceb1626104104f9bd9eb3926b4238857d0a9a9e9d59b3d6febb48",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается однократно при старте CLI."
+          }
+        },
+        "limitations": {
+          "body": "Загружается только файл с именем `.env` в переданной директории — нет поддержки `.env.local`, `.env.production` или поиска по родительским директориям. Ограничение реализовано фиксированным именем файла `\".env\"` и использованием `join(rootDir, \".env\")`.",
+          "rendered": true,
+          "fingerprint": "body=e009a82696a9d3fb04c3c0e0a4f0b6a8b428f54767630562bc3164f079ef7b61",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Загружается только файл с именем `.env` в переданной директории — нет поддержки `.env.local`, `.env.production` или поиска по родительским директориям."
+          }
+        },
+        "changeGuide": {
+          "body": "- Имя загружаемого файла зафиксировано как `\".env\"` в вызове `join(rootDir, \".env\")`. Если потребуется поддержка других файлов (например, `.env.local`), потребуется изменить эту строку.\n- Ранний возврат при отсутствии файла реализован через `if (!existsSync(envPath)) { return; }`. Если требуется бросать исключение при отсутствии файла, этот guard нужно удалить.",
+          "rendered": true,
+          "fingerprint": "body=e009a82696a9d3fb04c3c0e0a4f0b6a8b428f54767630562bc3164f079ef7b61,deps=2c0b8f8ac30ceb1626104104f9bd9eb3926b4238857d0a9a9e9d59b3d6febb48,usage=2e1e90db625b3b88605526c20bc1f895e1fb1938aa9681aca2aa804eb4d8afb4,placement=66e49ffe2631fe4ba49d3fcf1624bf2340d8daece8678e1f5ea8193b91b10ace",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Имя загружаемого файла зафиксировано как `\".env\"` в вызове `join(rootDir, \".env\")`."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:19:56.777Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:25:43.439Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "687a21b97204e4d2cef21663d19a128e8aeff463a8572f83d76a25a507d94f82"
+    },
+    "symbol:src/config.ts#resolveTerms": {
+      "heading": "resolveTerms",
+      "depth": 1,
+      "anchor": "resolveterms",
+      "owns": [
+        "symbol:src/config.ts#resolveTerms"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/llm/file-pipeline.ts",
+        "file:src/service/codelore-service.ts",
+        "symbol:src/llm/file-pipeline.ts#generateFileGroup"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Выбор терминов для заданного языка из `docs.terms` с фильтрацией по matching-шаблонам путей файлов.",
+          "rendered": true,
+          "fingerprint": "signature=b27786bb4b0eedc4c2ffc40541157d00f81f3d7bc92f862ca8b56d0795d914e7,placement=6159da94568d58a7cf67d8c8e9f89b9a63a2d48daf36d805c7c380b15339d9f0",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Выбирает термины для заданного языка из `docs.terms`, отфильтровывая группы по matching-шаблонам путей файлов."
+          }
+        },
+        "responsibility": {
+          "body": "- Обходит группы терминов из `docs.terms` и пропускает группу, если её `match` задан и ни один из переданных путей не соответствует шаблону.\n- Собирает термины для указанного языка из каждой оставшейся группы, удаляет дубликаты и пустые строки, сохраняя порядок групп.",
+          "rendered": true,
+          "fingerprint": "signature=b27786bb4b0eedc4c2ffc40541157d00f81f3d7bc92f862ca8b56d0795d914e7,deps=0ec8755cc52895a5466c7a67e677473ffdfa6c993ef881f830e03d81fd8312b7,usage=5e5f17006449c64cc10ac49c234780a6db9703c992abf606419f2583ee249c25",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Фильтрация групп по `match` и сбор терминов без дубликатов с сохранением порядка."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращаемый массив не содержит дубликатов и пустых строк.\n- Порядок терминов соответствует порядку групп в конфигурации и порядку внутри каждой группы.",
+          "rendered": true,
+          "fingerprint": "signature=b27786bb4b0eedc4c2ffc40541157d00f81f3d7bc92f862ca8b56d0795d914e7,body=92849a7ca23e7bd0661439b2f5e0a2285c97f88c2336ec6678ef6e99e8042070",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Порядок терминов в результате соответствует порядку групп в `docs.terms`."
+          }
+        },
+        "dependencies": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "deps=0ec8755cc52895a5466c7a67e677473ffdfa6c993ef881f830e03d81fd8312b7"
+        },
+        "workflows": {
+          "body": "Вызывается из `generateFileGroup` (`src/llm/file-pipeline.ts`) для получения списка терминов, релевантных для набора файлов. Передаются пути файлов, для которых собираются термины.",
+          "rendered": true,
+          "fingerprint": "body=92849a7ca23e7bd0661439b2f5e0a2285c97f88c2336ec6678ef6e99e8042070,deps=0ec8755cc52895a5466c7a67e677473ffdfa6c993ef881f830e03d81fd8312b7",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается из `generateFileGroup` для получения терминов, релевантных для набора файлов."
+          }
+        },
+        "limitations": {
+          "body": "Не поддерживает отрицательные шаблоны `match` (например, `!**/test/**`), так как используемая функция не инвертирует результат.",
+          "rendered": true,
+          "fingerprint": "body=92849a7ca23e7bd0661439b2f5e0a2285c97f88c2336ec6678ef6e99e8042070",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не поддерживает отрицательные шаблоны `match`."
+          }
+        },
+        "changeGuide": {
+          "body": "- Дубликаты удаляются через `Set` (`seen`), что гарантирует уникальность терминов в возвращаемом массиве. Если требуется сохранить дубликаты, нужно удалить `seen` и связанную проверку `!seen.has(trimmed)`.\n- Пустые строки отфильтровываются условием `if (trimmed && ...)`. Если требуется включать пустые строки, нужно убрать проверку `trimmed`.",
+          "rendered": true,
+          "fingerprint": "body=92849a7ca23e7bd0661439b2f5e0a2285c97f88c2336ec6678ef6e99e8042070,deps=0ec8755cc52895a5466c7a67e677473ffdfa6c993ef881f830e03d81fd8312b7,usage=5e5f17006449c64cc10ac49c234780a6db9703c992abf606419f2583ee249c25,placement=6159da94568d58a7cf67d8c8e9f89b9a63a2d48daf36d805c7c380b15339d9f0",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Дубликаты удаляются через `Set` (`seen`), что гарантирует уникальность терминов в возвращаемом массиве."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:19:56.779Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:25:43.441Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "687a21b97204e4d2cef21663d19a128e8aeff463a8572f83d76a25a507d94f82"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

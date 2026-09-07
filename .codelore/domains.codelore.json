@@ -1,0 +1,246 @@
+{
+  "version": 1,
+  "generatedAt": "2026-07-07T18:02:20.533Z",
+  "domains": [
+    {
+      "slug": "block-fingerprinting",
+      "name": "Отпечатки блоков документации",
+      "files": [
+        "src/markdown/block-facets.ts"
+      ],
+      "rationale": "Вычисляет и сравнивает хеши фасетов блока, определяя, что именно изменилось в коде и устарел ли перевод."
+    },
+    {
+      "slug": "change-impact-graph",
+      "name": "Граф зависимостей и влияние изменений",
+      "files": [
+        "src/graph/diff.ts",
+        "src/graph/file-dag.ts",
+        "src/graph/impact.ts"
+      ],
+      "rationale": "Разбирает unified diff, строит файловый граф зависимостей с волнами генерации и вычисляет, какие секции документации затронуты изменением сущностей."
+    },
+    {
+      "slug": "cli-entrypoint",
+      "name": "Точка входа CLI",
+      "files": [
+        "src/cli/run-cli.ts"
+      ],
+      "rationale": "Парсит аргументы командной строки, диспетчеризует команды и обрабатывает ошибки, возвращая код выхода процесса."
+    },
+    {
+      "slug": "code-doc-indexing",
+      "name": "Индексация кода и документации",
+      "files": [
+        "src/indexer/code-indexer.ts",
+        "src/indexer/state-indexer.ts"
+      ],
+      "rationale": "Строит полный индекс сущностей проекта и индекс существующих секций документации для поиска по файлу, идентификатору и сущности."
+    },
+    {
+      "slug": "code-metrics-analysis",
+      "name": "Анализ метрик кода и решения о документировании",
+      "files": [
+        "src/analysis/block-inclusion.ts",
+        "src/analysis/class-cohesion.ts",
+        "src/analysis/decision-pass.ts",
+        "src/analysis/entity-metrics.ts",
+        "src/analysis/wrapper-detector.ts"
+      ],
+      "rationale": "Файлы вычисляют метрики сущностей (связность, размер, использование), обнаруживают тонкие обёртки и на основе этого решают, какие блоки и роли документации нужны каждой сущности."
+    },
+    {
+      "slug": "codelore-service-facade",
+      "name": "Фасад сервиса Codelore",
+      "files": [
+        "src/service/codelore-service.ts"
+      ],
+      "rationale": "Единая точка входа, объединяющая управление индексами, генерацию, перезапись и валидацию документации, анализ изменений и чтение сохранённых данных."
+    },
+    {
+      "slug": "common-utils",
+      "name": "Общие низкоуровневые утилиты",
+      "files": [
+        "src/utils/hash.ts",
+        "src/utils/path.ts"
+      ],
+      "rationale": "Хеширует строки по SHA-256 и нормализует, кодирует и распознает пути файлов для использования во всех остальных модулях."
+    },
+    {
+      "slug": "dag-visualization",
+      "name": "Визуализация графа файлов",
+      "files": [
+        "src/cli/render-graph.ts"
+      ],
+      "rationale": "Строит текстовое и HTML-представление DAG файлов с волнами генерации и статусом документирования."
+    },
+    {
+      "slug": "doc-state-consistency",
+      "name": "Согласование и валидация состояния документации",
+      "files": [
+        "src/service/doc-reconcile.ts",
+        "src/service/doc-validation.ts"
+      ],
+      "rationale": "Убирает из DocState секции и блоки, чьи сущности исчезли или недопустимы, и находит проблемы — несуществующие ссылки, устаревшие или пустые блоки."
+    },
+    {
+      "slug": "doc-state-storage",
+      "name": "Хранилище состояния документации",
+      "files": [
+        "src/storage/doc-state-storage.ts"
+      ],
+      "rationale": "Сохраняет JSON-состояние документа, рендерит его в Markdown-файлы вместе с переводами и удаляет устаревшие файлы, гарантируя атомарность записи."
+    },
+    {
+      "slug": "doc-translation",
+      "name": "Перевод документации",
+      "files": [
+        "src/llm/translator.ts"
+      ],
+      "rationale": "Переводит канонические тела блоков документации на другие языки через LLM, сохраняя кодовые вставки и отслеживая устаревшие переводы."
+    },
+    {
+      "slug": "error-handling",
+      "name": "Единый формат ошибок",
+      "files": [
+        "src/errors.ts"
+      ],
+      "rationale": "Определяет структурированный формат ошибок Codelore с машинно-читаемым кодом и превращает произвольные исключения в сериализуемый payload."
+    },
+    {
+      "slug": "initial-docs-preparation",
+      "name": "Подготовка первичной документации",
+      "files": [
+        "src/service/file-layout.ts",
+        "src/service/prepare-docs.ts"
+      ],
+      "rationale": "Раскладывает сущности файла на план секций и создаёт для них скелетные состояния документации с учётом области действия и уже готовых страниц."
+    },
+    {
+      "slug": "json-storage",
+      "name": "Хранилище индексов и анализа изменений",
+      "files": [
+        "src/storage/json-storage.ts"
+      ],
+      "rationale": "Читает и пишет индексные данные и результаты анализа изменений в JSON-файлы на диске."
+    },
+    {
+      "slug": "llm-doc-validation",
+      "name": "Валидация и факт-чекинг сгенерированной документации",
+      "files": [
+        "src/llm/doc-validator.ts",
+        "src/llm/doc-verifier.ts"
+      ],
+      "rationale": "Проверяет сгенерированные блоки на соответствие структурным правилам и запускает LLM-факт-чекинг против исходного кода и документации зависимостей."
+    },
+    {
+      "slug": "llm-generation-pipeline",
+      "name": "Пайплайн генерации документации файлов",
+      "files": [
+        "src/llm/file-chunks.ts",
+        "src/llm/file-pipeline.ts",
+        "src/llm/file-writer.ts",
+        "src/llm/generation-debug.ts"
+      ],
+      "rationale": "Разбивает файлы и секции на чанки под лимиты модели, собирает и парсит запросы на запись документации, оркестрирует генерацию и пишет отладочные снимки прогона."
+    },
+    {
+      "slug": "llm-json-response-parsing",
+      "name": "Разбор JSON-ответов LLM с повтором запроса",
+      "files": [
+        "src/llm/complete-and-parse.ts",
+        "src/llm/json.ts"
+      ],
+      "rationale": "Парсит JSON из ответа модели и, если разбор не удался, повторяет запрос с обратной связью до успеха или исчерпания попыток."
+    },
+    {
+      "slug": "llm-provider-factory",
+      "name": "Фабрика LLM-провайдера",
+      "files": [
+        "src/llm/provider.ts"
+      ],
+      "rationale": "Создаёт настроенный экземпляр LLM-провайдера по имени из конфигурации, разрешая имя по умолчанию и проверяя его существование."
+    },
+    {
+      "slug": "llm-source-context-prep",
+      "name": "Подготовка исходного контекста для LLM-верификации",
+      "files": [
+        "src/llm/strip-comments.ts",
+        "src/llm/type-context.ts"
+      ],
+      "rationale": "Очищает исходный код от комментариев и собирает объявления типов, чтобы передать их модели при генерации и проверке документации."
+    },
+    {
+      "slug": "markdown-rendering",
+      "name": "Рендеринг и локализация Markdown-документов",
+      "files": [
+        "src/markdown/callouts.ts",
+        "src/markdown/locales.ts",
+        "src/markdown/render-doc.ts"
+      ],
+      "rationale": "Собирает итоговый Markdown из секций и блоков, вставляя локализованные заголовки и цитаты об устаревших или ещё не переведённых блоках."
+    },
+    {
+      "slug": "mcp-server",
+      "name": "MCP-сервер Codelore",
+      "files": [
+        "src/server/create-server.ts",
+        "src/server/start-stdio-server.ts"
+      ],
+      "rationale": "Собирает MCP-сервер с ресурсами и инструментами документации и подключает его к stdio-транспорту."
+    },
+    {
+      "slug": "project-config",
+      "name": "Конфигурация проекта",
+      "files": [
+        "src/config.ts"
+      ],
+      "rationale": "Загружает и собирает конфигурацию Codelore из файла настроек и переменных окружения, включая выбор терминов для языка."
+    },
+    {
+      "slug": "project-index-manager",
+      "name": "Управление индексом проекта",
+      "files": [
+        "src/service/index-manager.ts"
+      ],
+      "rationale": "Собирает, кэширует и проверяет свежесть проектного индекса сущностей."
+    },
+    {
+      "slug": "runtime-context",
+      "name": "Построение runtime-контекста из литералов",
+      "files": [
+        "src/context/ast-helpers.ts",
+        "src/context/ast-hit-filter.ts",
+        "src/context/enclosing-resolver.ts",
+        "src/context/literal-extractor.ts",
+        "src/context/ripgrep-runner.ts",
+        "src/context/runtime-context-builder.ts"
+      ],
+      "rationale": "Находит строковые литералы в исходном коде, отфильтровывает ложные срабатывания (импорты, типы, JSDoc) и ищет их реальные вхождения по проекту через ripgrep."
+    },
+    {
+      "slug": "section-rewrite-application",
+      "name": "Применение перезаписей секций",
+      "files": [
+        "src/service/section-rewrite.ts"
+      ],
+      "rationale": "Группирует запросы на перезапись по документу и вливает сгенерированные блоки в состояние секций, обновляя фингерпринты и статусы устаревания."
+    },
+    {
+      "slug": "service-helpers",
+      "name": "Общие вспомогательные функции сервиса",
+      "files": [
+        "src/service/helpers.ts"
+      ],
+      "rationale": "Набор мелких утилит — сравнение диапазонов, дедупликация, группировка, свёртка сущностей и секций в краткие представления, нормализация ошибок — используемых по всему сервисному слою."
+    },
+    {
+      "slug": "stale-blocks-detection",
+      "name": "Обнаружение устаревших блоков документации",
+      "files": [
+        "src/service/stale-detection.ts"
+      ],
+      "rationale": "Сравнивает сохранённые отпечатки блоков с текущим кодом и документацией зависимостей, находя устаревшие, похороненные и не переведённые блоки для перезаписи."
+    }
+  ]
+}

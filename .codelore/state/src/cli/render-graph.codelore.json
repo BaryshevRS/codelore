@@ -1,0 +1,362 @@
+{
+  "version": 4,
+  "docPath": "src/cli/render-graph.codelore.md",
+  "generatedAt": "2026-06-19T16:25:57.051Z",
+  "sectionOrder": [
+    "symbol:src/cli/render-graph.ts#renderGraphTree",
+    "symbol:src/cli/render-graph.ts#renderGraphHtml"
+  ],
+  "sections": {
+    "symbol:src/cli/render-graph.ts#renderGraphTree": {
+      "heading": "renderGraphTree",
+      "depth": 1,
+      "anchor": "rendergraphtree",
+      "owns": [
+        "symbol:src/cli/render-graph.ts#renderGraphTree"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/cli/run-cli.ts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Генерирует текстовое ASCII-представление DAG файлов с разбивкой по волнам генерации, статусом документирования и стрелками зависимостей.",
+          "rendered": true,
+          "fingerprint": "signature=e06b71d10371029fa7bcbfde151cc0a88a0012a6c72c0fc88d37ec94db84009a,placement=43e23eccbdd921edd36f04a55fa39f38be5ee620e75605db02ebd2e40dfb28fc",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 0.75,
+            "novelFact": "Формирует вывод, пригодный для просмотра в терминале."
+          }
+        },
+        "responsibility": {
+          "body": "- Не генерирует HTML-страницу — эта задача передана другой функции.\n- Не управляет записью в файл или stdout — возвращает строку; вызывающий сам решает, куда её вывести.\n- Не выполняет фильтрацию файлов — делегирует её `collectNodes`, которая учитывает `input.paths` и транзитивные зависимости.\n- Не поддерживает интерактивность — только статическое текстовое дерево.",
+          "rendered": true,
+          "fingerprint": "signature=e06b71d10371029fa7bcbfde151cc0a88a0012a6c72c0fc88d37ec94db84009a,deps=2cdf8847a3ed4429bf6c1e1754b6752710088933814f24dadcde408bba463b2f,usage=f803951510a637b23797280edc8efe4d7e6025129eab8601cd754c334867d03e",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Делегирует вычисление волн и DAG функциям из file-dag.ts."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращает строку, начинающуюся с «Generation pyramid …».\n- Включает все файлы из видимого подмножества графа (scope + их зависимости).\n- Метки статуса строго «✓» (documented), «~» (stale), «!» (sections=0 но documentable), «∅» (sections=0 и не documentable); стрелки для зависимостей показывают ту же метку.\n- Волны сортируются по возрастанию номера; файлы внутри волны — лексикографически по пути.\n- Не бросает исключений для любого допустимого `GraphRenderInput`.",
+          "rendered": true,
+          "fingerprint": "signature=e06b71d10371029fa7bcbfde151cc0a88a0012a6c72c0fc88d37ec94db84009a,body=934faa0bfa39981eb1f69ed071560c38a682918ea1bb1f33fe563fb7fa58f2c1",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Гарантирует детерминированный порядок вывода."
+          }
+        },
+        "dependencies": {
+          "body": "- Строит DAG файлов по прямым зависимостям (из `src/graph/file-dag.ts`).\n- Разбивает файлы на волны генерации, учитывая SCC (из `src/graph/file-dag.ts`).",
+          "rendered": true,
+          "fingerprint": "deps=2cdf8847a3ed4429bf6c1e1754b6752710088933814f24dadcde408bba463b2f",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Зависимости описаны на основе обновлённых depDocs"
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `run-cli.ts` для построения текстового дерева зависимостей. `collectNodes` использует DAG и результаты разбиения на волны, затем результаты группируются по волнам и форматируются в ASCII-дерево. Возвращаемая строка выводится в stdout.",
+          "rendered": true,
+          "fingerprint": "body=934faa0bfa39981eb1f69ed071560c38a682918ea1bb1f33fe563fb7fa58f2c1,deps=2cdf8847a3ed4429bf6c1e1754b6752710088933814f24dadcde408bba463b2f",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Уточнено, что вызов происходит из `run-cli.ts`"
+          }
+        },
+        "limitations": {
+          "body": "- Выводит только прямые зависимости из DAG, полученные через `dag.get(file)`; транзитивные цепочки не отображаются.\n- Не реализована пагинация — при большом количестве файлов вывод может быть громоздким (нет ограничения размера).\n- Волны и состав групп зависят от логики разбиения на волны; изменение этого модуля может изменить отображение, но функция не проверяет согласованность.",
+          "rendered": true,
+          "fingerprint": "body=934faa0bfa39981eb1f69ed071560c38a682918ea1bb1f33fe563fb7fa58f2c1",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Каждое ограничение привязано к конкретному конструкту (dag.get, отсутствие пагинации, логика разбиения на волны)"
+          }
+        },
+        "changeGuide": {
+          "body": "- Изменение меток в `statusMark` (функция `statusMark(node: FileNode): string`) нарушит согласованность с `statusClass` и HTML-рендерингом; обе функции должны быть синхронизированы.\n- Изменение сортировки волн (`[...byWave.keys()].sort((left, right) => left - right)`) или файлов внутри волны (`node.deps.sort()`) изменит порядок вывода, что может нарушить тесты, ожидающие конкретный порядок.",
+          "rendered": true,
+          "fingerprint": "body=934faa0bfa39981eb1f69ed071560c38a682918ea1bb1f33fe563fb7fa58f2c1,deps=2cdf8847a3ed4429bf6c1e1754b6752710088933814f24dadcde408bba463b2f,usage=f803951510a637b23797280edc8efe4d7e6025129eab8601cd754c334867d03e,placement=43e23eccbdd921edd36f04a55fa39f38be5ee620e75605db02ebd2e40dfb28fc",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Указаны точные конструкции, которые нужно менять синхронно"
+          }
+        }
+      },
+      "depDocsFingerprint": "36d06796e2f33e090809a8b91b7c23b3db7e2719eb8e4aa027c3ad9d1029761b",
+      "generationHistory": [
+        {
+          "runId": "61372614-014e-462a-bae1-622628a3489c",
+          "timestamp": "2026-06-10T21:10:27.214Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "74780818-2bcb-467b-a4ba-ae5bbf256e9a",
+          "timestamp": "2026-06-11T21:18:14.441Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "ea3df4eb-2d04-4e4c-a68a-273c075c8aa6",
+          "timestamp": "2026-06-13T20:47:08.295Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "ea3df4eb-2d04-4e4c-a68a-273c075c8aa6",
+          "timestamp": "2026-06-13T20:48:59.328Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "25edcfe6-910c-4993-8cc6-4eabb2b2d4d5",
+          "timestamp": "2026-06-19T16:25:57.050Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    },
+    "symbol:src/cli/render-graph.ts#renderGraphHtml": {
+      "heading": "renderGraphHtml",
+      "depth": 1,
+      "anchor": "rendergraphhtml",
+      "owns": [
+        "symbol:src/cli/render-graph.ts#renderGraphHtml"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/cli/run-cli.ts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Генерирует интерактивную HTML-страницу с визуализацией DAG файлов с разбивкой по волнам генерации, цветовой индикацией статуса документирования и поддержкой кликов.",
+          "rendered": true,
+          "fingerprint": "signature=89b0f89065ba70b53de7c5b679483bb33a867585926a5d37e03c941637e38667,placement=e39b61e02c6261a2b7679368d8d553541910e0cbae9074898addb9242ed1bc5e",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 0.75,
+            "novelFact": "Создаёт самодостаточную страницу для визуального анализа графа."
+          }
+        },
+        "responsibility": {
+          "body": "- Не сохраняет страницу в файл — возвращает строку HTML; вызывающий отвечает за запись.\n- Не загружает Cytoscape локально — использует CDN `unpkg.com` с фиксированной версией `3.30.4`.\n- Не вычисляет DAG — делегирует `collectNodes`, а волны группирует вручную через `byWave`.\n- Не поддерживает поиск, фильтрацию или панорамирование за пределами встроенного зума Cytoscape.",
+          "rendered": true,
+          "fingerprint": "signature=89b0f89065ba70b53de7c5b679483bb33a867585926a5d37e03c941637e38667,deps=3b55ea180536ca3a8c23c787879d1549e979ea6e1df0867cf6c315c725b93341,usage=f898c7d245b7a6f0654f529233427a5642b4a901d51f5290eae6e785a282f60b",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Зависит от внешнего CDN для работы Cytoscape."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращает валидный HTML5 документ.\n- Cytoscape загружается по URL `https://unpkg.com/cytoscape@3.30.4/dist/cytoscape.min.js`.\n- Позиции узлов детерминированы: `x` вычисляется по индексу в строке волны, `y` — по номеру волны.\n- Рёбра направлены от файла к его зависимости (стрелка на конце).\n- Цвета фона узлов соответствуют статусу: `#d3f9d8` (documented), `#fff3bf` (stale), `#ffe3e3` (pending), `#f8f9fa` (excluded).\n- При клике на узел подсвечивается его соседство, остальные затемняются; повторный клик на фон возвращает исходное состояние.",
+          "rendered": true,
+          "fingerprint": "signature=89b0f89065ba70b53de7c5b679483bb33a867585926a5d37e03c941637e38667,body=1b7dd0e1b6806085aad8d44c22ed7c6932b542ecb1f7d37211126f4e46b8811d",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Взаимодействие с графом реализовано через Cytoscape events."
+          }
+        },
+        "dependencies": {
+          "body": "- Построение DAG файлов (из `src/graph/file-dag.ts`).\n- Разбиение файлов на волны для позиционирования узлов (из `src/graph/file-dag.ts`).\n- Cytoscape.js (внешний CDN) — рендеринг интерактивного графа.",
+          "rendered": true,
+          "fingerprint": "deps=3b55ea180536ca3a8c23c787879d1549e979ea6e1df0867cf6c315c725b93341",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Обновлены ссылки на depDocs и указан CDN"
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `run-cli.ts` для генерации HTML-страницы графа. `collectNodes` получает файлы и волны, затем `renderGraphHtml` вручную группирует по волнам, вычисляет позиции узлов и формирует JSON-данные, которые встраиваются в шаблон `htmlPage`. Возвращаемая строка может быть записана в файл или выведена на stdout.",
+          "rendered": true,
+          "fingerprint": "body=1b7dd0e1b6806085aad8d44c22ed7c6932b542ecb1f7d37211126f4e46b8811d,deps=3b55ea180536ca3a8c23c787879d1549e979ea6e1df0867cf6c315c725b93341",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Описан процесс ручного позиционирования и встраивания в шаблон"
+          }
+        },
+        "limitations": {
+          "body": "- Требует сетевого доступа для загрузки Cytoscape с CDN по фиксированному URL `https://unpkg.com/cytoscape@3.30.4/dist/cytoscape.min.js`; без сети страница не работает.\n- При большом количестве файлов узлы могут накладываться: расстояние по X фиксировано (`* 230`), не адаптируется под количество узлов в строке.\n- JSON-данные вставляются через строковую интерполяцию с заменой `</` на `<\\/`; это может сломаться при других специальных последовательностях.",
+          "rendered": true,
+          "fingerprint": "body=1b7dd0e1b6806085aad8d44c22ed7c6932b542ecb1f7d37211126f4e46b8811d",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Каждое ограничение привязано к конкретному конструкту (URL, формула позиционирования, replace)</</\\/>"
+          }
+        },
+        "changeGuide": {
+          "body": "- Изменение формулы позиционирования (`x: (column - (rowMates.length - 1) / 2) * 230`, `y: (maxWave - node.wave) * 170`) изменит расположение узлов; тесты, основанные на фиксированных положениях, сломаются.\n- Изменение цветов в объекте `colors` (константа в `htmlPage`) требует синхронизации с CSS-легендой в том же шаблоне; добавление нового статуса требует обновления обоих мест.",
+          "rendered": true,
+          "fingerprint": "body=1b7dd0e1b6806085aad8d44c22ed7c6932b542ecb1f7d37211126f4e46b8811d,deps=3b55ea180536ca3a8c23c787879d1549e979ea6e1df0867cf6c315c725b93341,usage=f898c7d245b7a6f0654f529233427a5642b4a901d51f5290eae6e785a282f60b,placement=e39b61e02c6261a2b7679368d8d553541910e0cbae9074898addb9242ed1bc5e",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Указаны точные конструкции с координатами и цветовой константой"
+          }
+        }
+      },
+      "depDocsFingerprint": "36d06796e2f33e090809a8b91b7c23b3db7e2719eb8e4aa027c3ad9d1029761b",
+      "generationHistory": [
+        {
+          "runId": "61372614-014e-462a-bae1-622628a3489c",
+          "timestamp": "2026-06-10T21:10:27.215Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "ea3df4eb-2d04-4e4c-a68a-273c075c8aa6",
+          "timestamp": "2026-06-13T20:47:08.297Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "ea3df4eb-2d04-4e4c-a68a-273c075c8aa6",
+          "timestamp": "2026-06-13T20:48:59.329Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "25edcfe6-910c-4993-8cc6-4eabb2b2d4d5",
+          "timestamp": "2026-06-19T16:25:57.051Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

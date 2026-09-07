@@ -1,0 +1,144 @@
+{
+  "version": 4,
+  "docPath": "src/context/ast-hit-filter.codelore.md",
+  "generatedAt": "2026-06-10T12:36:43.614Z",
+  "sectionOrder": [
+    "symbol:src/context/ast-hit-filter.ts#AstHitFilter"
+  ],
+  "sections": {
+    "symbol:src/context/ast-hit-filter.ts#AstHitFilter": {
+      "heading": "AstHitFilter",
+      "depth": 1,
+      "anchor": "asthitfilter",
+      "owns": [
+        "symbol:src/context/ast-hit-filter.ts#AstHitFilter"
+      ],
+      "depends": [
+        "symbol:src/context/ast-hit-filter.ts#AstHitFilter.filter",
+        "symbol:src/context/ast-hit-filter.ts#AstHitFilter.getSourceFile"
+      ],
+      "usedBy": [
+        "file:src/context/runtime-context-builder.ts",
+        "symbol:src/context/runtime-context-builder.ts#buildRuntimeContext"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Фильтрует результаты ripgrep-поиска, оставляя только те строковые литералы, которые являются реальными вызовами в коде, а не частью импортов, типов, JSDoc или контекстных типов.",
+          "rendered": true,
+          "fingerprint": "signature=5b0bc56b1186db6e95ac0788c98e0c4268baeaed61d327357fe953aa827ff5f1,placement=2993f8fda6d27316fea7c60f4cbd8839ffdc9870fe32367db5b27109b834f474",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Фильтр отсеивает ложные срабатывания ripgrep, которые не являются вызовами в runtime-коде."
+          }
+        },
+        "responsibility": {
+          "body": "- Не выполняет поиск — получает уже найденные ripgrep-совпадения от `searchLiteral`.\n- Не определяет синтаксическую роль литерала — делегирует `computeSyntaxRole`.\n- Не управляет кэшем SourceFile — кэширует только результат загрузки файла, не инвалидирует его при изменениях на диске.\n- Не обрабатывает ошибки парсинга файла — при неудаче возвращает `null` без логирования.",
+          "rendered": true,
+          "fingerprint": "signature=5b0bc56b1186db6e95ac0788c98e0c4268baeaed61d327357fe953aa827ff5f1,deps=7760bdbb9f271e41b9d92dcc57cec0b08deca8a93f2b11d67d0c70fd66f5d509,usage=ec224acf5a82496a5781ce072aea2abb1454e10c94ba48f526f3a1eadca7300b",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Фильтр не занимается поиском и не управляет инвалидацией кэша SourceFile."
+          }
+        },
+        "invariants": {
+          "body": "- Для каждого `RipgrepHit` возвращает либо `FilteredHit` с корректным `offset`, либо `null`.\n- `offset` в `FilteredHit` равен `node.getStart()` — началу узла в файле, а не позиции совпадения.\n- Кэш `sourceFiles` никогда не обновляется после первой загрузки файла — если файл изменился на диске, используется старая версия.\n- При отсутствии файла на диске или ошибке парсинга возвращает `null` без исключения.",
+          "rendered": true,
+          "fingerprint": "signature=5b0bc56b1186db6e95ac0788c98e0c4268baeaed61d327357fe953aa827ff5f1,body=2bda9ab561b02ab34d7b3e074558a8f8812c0d649947dfd1fad673115ae30a1a",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "offset в FilteredHit — это начало узла, а не позиция совпадения; кэш SourceFile не инвалидируется."
+          }
+        },
+        "dependencies": {
+          "body": "- `ts-morph` — парсинг TypeScript-файлов и навигация по AST.\n- `src/context/ast-helpers.ts` — вспомогательные функции для проверки контекста литерала (`isInsideImportExport`, `isInsideJsDoc`, `isInsideTypeNode`, `hasLiteralContextualType`).\n- `src/context/ripgrep-runner.ts` — тип `RipgrepHit`, результаты поиска.",
+          "rendered": true,
+          "fingerprint": "deps=7760bdbb9f271e41b9d92dcc57cec0b08deca8a93f2b11d67d0c70fd66f5d509",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Зависимости: ts-morph для парсинга, ast-helpers для проверок контекста, ripgrep-runner для типа RipgrepHit."
+          }
+        },
+        "workflows": {
+          "body": "1. `buildRuntimeContext` (`src/context/runtime-context-builder.ts`) создаёт экземпляр `AstHitFilter` с переданным `Project`.\n2. Для каждого уникального литерала, извлечённого из целевой сущности, вызывается `searchLiteral` (ripgrep).\n3. Каждый найденный `RipgrepHit` передаётся в `AstHitFilter.filter`.\n4. Если фильтр возвращает `FilteredHit` — он добавляется в итоговый массив `hits`. Если `null` — литерал считается неразрешённым.",
+          "rendered": true,
+          "fingerprint": "body=2bda9ab561b02ab34d7b3e074558a8f8812c0d649947dfd1fad673115ae30a1a,deps=7760bdbb9f271e41b9d92dcc57cec0b08deca8a93f2b11d67d0c70fd66f5d509",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "buildRuntimeContext создаёт AstHitFilter и передаёт каждый RipgrepHit в filter."
+          }
+        },
+        "limitations": {
+          "body": "- Кэш `sourceFiles` не инвалидируется — при изменении файла на диске между вызовами `filter` используется старая версия AST.\n- Не обрабатывает ошибки парсинга — при неудаче `getSourceFile` возвращает `null` без логирования, что может скрыть проблемы с файлом.\n- Не поддерживает другие типы литералов (числовые, шаблонные строки с выражениями) — фильтруются только строковые литералы и шаблонные литералы без подстановок.",
+          "rendered": true,
+          "fingerprint": "body=2bda9ab561b02ab34d7b3e074558a8f8812c0d649947dfd1fad673115ae30a1a",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Кэш SourceFile не инвалидируется; ошибки парсинга не логируются; поддерживаются только строковые и простые шаблонные литералы."
+          }
+        },
+        "changeGuide": {
+          "body": "1. Если добавляется новый тип литерала (например, числовые) — расширить `isAcceptedLiteralNode` и проверить, что `hasLiteralContextualType` корректно обрабатывает новый тип.\n2. Если меняется логика кэширования `sourceFiles` — убедиться, что `buildRuntimeContext` не теряет контекст между вызовами `filter`.\n3. Если добавляется новый критерий отсева — добавить соответствующую функцию в `src/context/ast-helpers.ts` и включить её в `isAcceptedLiteralNode`.\n4. Если меняется формат `RipgrepHit` — обновить `filter` и проверить, что `FilteredHit` всё ещё корректен.",
+          "rendered": true,
+          "fingerprint": "body=2bda9ab561b02ab34d7b3e074558a8f8812c0d649947dfd1fad673115ae30a1a,deps=7760bdbb9f271e41b9d92dcc57cec0b08deca8a93f2b11d67d0c70fd66f5d509,usage=ec224acf5a82496a5781ce072aea2abb1454e10c94ba48f526f3a1eadca7300b,placement=2993f8fda6d27316fea7c60f4cbd8839ffdc9870fe32367db5b27109b834f474",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Изменения в isAcceptedLiteralNode, кэшировании, критериях отсева или формате RipgrepHit требуют проверки downstream."
+          }
+        }
+      },
+      "depDocsFingerprint": "eeb51e6f063e67c3f15224632419a88c8fc4b17939d8bea2b4a445cc98635967",
+      "generationHistory": [
+        {
+          "runId": "4d8c9311-178a-4cf1-9357-692225f67b1a",
+          "timestamp": "2026-06-10T12:36:43.614Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

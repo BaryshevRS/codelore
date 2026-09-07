@@ -1,0 +1,143 @@
+{
+  "version": 4,
+  "docPath": "src/utils/hash.codelore.md",
+  "generatedAt": "2026-07-03T16:19:56.890Z",
+  "sectionOrder": [
+    "symbol:src/utils/hash.ts#sha256"
+  ],
+  "sections": {
+    "symbol:src/utils/hash.ts#sha256": {
+      "heading": "sha256",
+      "depth": 1,
+      "anchor": "sha256",
+      "owns": [
+        "symbol:src/utils/hash.ts#sha256"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/indexer/code-indexer.ts",
+        "file:src/llm/file-pipeline.ts",
+        "file:src/markdown/block-facets.ts",
+        "symbol:src/llm/file-pipeline.ts#dependencyDocsFingerprint",
+        "symbol:src/markdown/block-facets.ts#translationSourceFingerprint"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Хеширует строку алгоритмом SHA-256 и возвращает 64-символьное hex-представление.",
+          "rendered": true,
+          "fingerprint": "signature=663368dc8901a56350f70615ca13f98b4b041a900fde69709027a4d64a562659,placement=7e734dcd08870ec57fa707c01ebf64b727b964541ed96b9d57a61b9dcf29092a",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция — единственная точка хеширования для всех downstream-компонентов."
+          }
+        },
+        "responsibility": {
+          "body": "- Делегирует вычисление SHA-256 дайджеста встроенному модулю `node:crypto`, вызывая `createHash`, `update` и `digest` в фиксированном порядке.\n- Принимает произвольную строку без предварительной валидации или нормализации (вызывающий отвечает за корректность входных данных).",
+          "rendered": true,
+          "fingerprint": "signature=663368dc8901a56350f70615ca13f98b4b041a900fde69709027a4d64a562659,deps=41bc28493d395cd38336d099925f62edb706d7a98e117e3da8fbee14ef3128dd,usage=e94a4d5f3490e145dadf37299966f21227501f043240993976f93ef3e8d58d57",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Делегирует вычисление SHA-256 дайджеста встроенному модулю `node:crypto`."
+          },
+          "language": "ru"
+        },
+        "invariants": {
+          "body": "- Возвращает строку длиной ровно 64 символа в нижнем регистре (hex-кодировка).\n- Детерминирован: одинаковый `input` всегда даёт одинаковый результат.\n- Не имеет побочных эффектов.\n- Не выбрасывает исключений для любого строкового входа.",
+          "rendered": true,
+          "fingerprint": "signature=663368dc8901a56350f70615ca13f98b4b041a900fde69709027a4d64a562659,body=a0ff602c67c256eb918f6833af233a9fea7fb269b501a1c1560927f096239a7c",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Гарантирована стабильность хеша при одинаковом входе — критично для индексации и сравнения фасетов."
+          }
+        },
+        "workflows": {
+          "body": "- В `src/indexer/code-indexer.ts` — хеширует содержимое файлов и сигнатуры сущностей при построении индекса кода.\n- В `src/markdown/block-facets.ts` — вычисляет отпечатки блоков документации для детекции изменений.\n- В `src/llm/file-pipeline.ts` — формирует отпечаток массива `dependencyDocs` для проверки стабильности документации.",
+          "rendered": true,
+          "fingerprint": "body=a0ff602c67c256eb918f6833af233a9fea7fb269b501a1c1560927f096239a7c,deps=41bc28493d395cd38336d099925f62edb706d7a98e117e3da8fbee14ef3128dd",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Все вызовы полагаются на детерминизм и фиксированную длину хеша."
+          }
+        },
+        "limitations": {
+          "body": "- Не поддерживает алгоритмы хеширования, отличные от SHA-256.\n- Не принимает `Buffer`, `Uint8Array` или другие типы данных — только строку.\n- Не реализует HMAC, ключевые хеши или потоковое хеширование.",
+          "rendered": true,
+          "fingerprint": "body=a0ff602c67c256eb918f6833af233a9fea7fb269b501a1c1560927f096239a7c",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция намеренно минималистична — для других алгоритмов необходим отдельный модуль."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "3d47d4b6-1cd7-4a76-9381-1cb4f69ce401",
+          "timestamp": "2026-06-06T15:29:17.852Z",
+          "command": "generate",
+          "intent": "phase 2 smoke + validSnippetIds fix",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "workflows",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "f1f97c08-f7a0-4c77-8cbb-deec36d86e92",
+          "timestamp": "2026-06-10T14:17:17.379Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:19:56.889Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

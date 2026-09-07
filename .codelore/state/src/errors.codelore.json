@@ -1,0 +1,295 @@
+{
+  "version": 4,
+  "docPath": "src/errors.codelore.md",
+  "generatedAt": "2026-07-03T16:19:56.855Z",
+  "sectionOrder": [
+    "symbol:src/errors.ts#CodeloreError",
+    "symbol:src/errors.ts#toCodeloreErrorPayload"
+  ],
+  "sections": {
+    "symbol:src/errors.ts#CodeloreError": {
+      "heading": "CodeloreError",
+      "depth": 1,
+      "anchor": "codeloreerror",
+      "owns": [
+        "symbol:src/errors.ts#CodeloreError"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/cli/run-cli.ts",
+        "file:src/indexer/state-indexer.ts",
+        "file:src/llm/complete-and-parse.ts",
+        "file:src/llm/doc-verifier.ts",
+        "file:src/llm/file-writer.ts",
+        "file:src/llm/json.ts",
+        "file:src/llm/provider.ts",
+        "file:src/llm/translator.ts",
+        "file:src/service/codelore-service.ts",
+        "file:src/service/helpers.ts",
+        "file:src/service/section-rewrite.ts",
+        "symbol:src/errors.ts#toCodeloreErrorPayload",
+        "symbol:src/llm/doc-verifier.ts#parseVerifyResponse",
+        "symbol:src/llm/file-writer.ts#parseFileWriteResponse",
+        "symbol:src/llm/json.ts#parseJsonObject",
+        "symbol:src/llm/json.ts#readOptionalString",
+        "symbol:src/llm/provider.ts#createConfiguredProvider",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.assertKnownEntityIds",
+        "symbol:src/service/codelore-service.ts#CodeloreService.readChange",
+        "symbol:src/service/codelore-service.ts#CodeloreService.readCodeEntity",
+        "symbol:src/service/codelore-service.ts#CodeloreService.requireSectionState",
+        "symbol:src/service/codelore-service.ts#CodeloreService.resolveSection",
+        "symbol:src/service/codelore-service.ts#CodeloreService.resolveSectionsForId",
+        "symbol:src/service/codelore-service.ts#CodeloreService.rewriteSections",
+        "symbol:src/service/helpers.ts#describeError",
+        "symbol:src/service/section-rewrite.ts#applyRewritesToDoc",
+        "symbol:src/service/section-rewrite.ts#groupRewritesByDoc",
+        "symbol:src/service/section-rewrite.ts#normalizeGeneratedRewrite"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Единый формат ошибок с машинно-читаемым кодом для всех компонентов Codelore.",
+          "rendered": true,
+          "fingerprint": "signature=d6ac165641bdee7c306b70556db9f5c4897a48cfa0d431a34899a9131f77dd80,placement=db2664b7eba43d9867f9022b812f4583b52c7b89b0697cc16a7fd3de528fe364",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 1,
+            "novelFact": "CodeloreError — это класс ошибок с кодом и деталями."
+          }
+        },
+        "responsibility": {
+          "body": "- Предоставляет публичные поля `code` (тип `CodeloreErrorCode`) и `details` (опциональный объект) для машинно-читаемой обработки ошибок.\n- Не занимается сериализацией ошибки в JSON, логированием, форматированием сообщений для пользователя или фильтрацией кодов — эти задачи вынесены в `toCodeloreErrorPayload` и вызывающий код.\n- Позволяет другим модулям выбрасывать ошибки с фиксированным набором кодов, определённых в `CodeloreErrorCode`.",
+          "rendered": true,
+          "fingerprint": "signature=d6ac165641bdee7c306b70556db9f5c4897a48cfa0d431a34899a9131f77dd80,deps=ef6a69848b5ddc6e31650fa38db958128095fd67538a793ea8fbab41b57c04b8,usage=dd594f0322392d248e6e3abdb32ac0e9f72d4ad6cd363847a006c52d22efcbcf",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Публичные поля `code` (тип `CodeloreErrorCode`) и `details` позволяют вызывающему коду программно обрабатывать ошибки без разбора сообщения."
+          },
+          "language": "ru"
+        },
+        "invariants": {
+          "body": "- Всегда содержит валидный `code` из `CodeloreErrorCode`.\n- `details` — опциональный объект, может быть `undefined`.\n- Наследует `name`, `message`, `stack` от `Error`.",
+          "rendered": true,
+          "fingerprint": "signature=d6ac165641bdee7c306b70556db9f5c4897a48cfa0d431a34899a9131f77dd80,body=1b43993e0a44b833cae8b6359c196c9baf6dd7383debf1236dc0a842c5f6765e",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 1,
+            "novelFact": "CodeloreError всегда содержит валидный code из CodeloreErrorCode."
+          }
+        },
+        "workflows": {
+          "body": "1. Вызывающий код (например, `src/cli/run-cli.ts`, `src/indexer/state-indexer.ts`) создаёт `CodeloreError` с кодом и сообщением при обнаружении ошибочной ситуации.\n2. Верхний обработчик в `runCli` перехватывает ошибку и передаёт её в `toCodeloreErrorPayload` для сериализации в JSON-ответ.\n3. Другие компоненты (например, `src/llm/complete-and-parse.ts`, `src/service/codelore-service.ts`) также выбрасывают `CodeloreError` при невалидных входных данных или внутренних сбоях.",
+          "rendered": true,
+          "fingerprint": "body=1b43993e0a44b833cae8b6359c196c9baf6dd7383debf1236dc0a842c5f6765e,deps=ef6a69848b5ddc6e31650fa38db958128095fd67538a793ea8fbab41b57c04b8",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "CodeloreError создаётся в разных компонентах и сериализуется через toCodeloreErrorPayload."
+          }
+        },
+        "limitations": {
+          "body": "- Не сериализует `stack` в `CodeloreErrorPayload`.\n- Не поддерживает цепочку причин (chained errors) — `details` используется для дополнительных данных, не для вложенных ошибок.",
+          "rendered": true,
+          "fingerprint": "body=1b43993e0a44b833cae8b6359c196c9baf6dd7383debf1236dc0a842c5f6765e",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 1,
+            "novelFact": "CodeloreError не поддерживает цепочку причин."
+          }
+        }
+      },
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "generationHistory": [
+        {
+          "runId": "61372614-014e-462a-bae1-622628a3489c",
+          "timestamp": "2026-06-10T21:10:29.185Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "limitations"
+          ]
+        },
+        {
+          "runId": "74780818-2bcb-467b-a4ba-ae5bbf256e9a",
+          "timestamp": "2026-06-11T21:18:15.365Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "workflows",
+            "limitations"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.829Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:19:56.855Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        }
+      ]
+    },
+    "symbol:src/errors.ts#toCodeloreErrorPayload": {
+      "heading": "toCodeloreErrorPayload",
+      "depth": 1,
+      "anchor": "tocodeloreerrorpayload",
+      "owns": [
+        "symbol:src/errors.ts#toCodeloreErrorPayload"
+      ],
+      "depends": [
+        "symbol:src/errors.ts#CodeloreError"
+      ],
+      "usedBy": [
+        "file:src/cli/run-cli.ts",
+        "file:src/server/create-server.ts",
+        "symbol:src/cli/run-cli.ts#runCli"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Преобразует произвольную ошибку в структурированный `CodeloreErrorPayload` для сериализации в JSON.",
+          "rendered": true,
+          "fingerprint": "signature=51197d9470f64a43f9651d75abc8ec6ad6c763b84e17849e0bc7735f0e5e05e9,placement=cb0db76c9398036d39509f1b24ed8892ff36dd629ac1a6e6d6827d5dfc125622",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Преобразует произвольную ошибку в структурированный `CodeloreErrorPayload` для сериализации в JSON."
+          }
+        },
+        "responsibility": {
+          "body": "- Не модифицирует исходную ошибку.\n- Не логирует — только возвращает payload.\n- Для ошибок не-`CodeloreError` всегда возвращает код `INTERNAL_ERROR`.",
+          "rendered": true,
+          "fingerprint": "signature=51197d9470f64a43f9651d75abc8ec6ad6c763b84e17849e0bc7735f0e5e05e9,deps=b0daeb6b7e4e3401a49f80f7cc6ab8fd9b27c71c12cf51fc7e8b589d22e8d17d,usage=2247d0c01707929d2e310c5e7fd2841bf7151e63e5e00f00d5226e06e524c2b9",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Не модифицирует исходную ошибку."
+          }
+        },
+        "invariants": {
+          "body": "- Всегда возвращает объект с полями `code` и `message`.\n- Если `error` — `CodeloreError`, включает `details` из него.\n- Для всех остальных типов `code` равен `INTERNAL_ERROR`.",
+          "rendered": true,
+          "fingerprint": "signature=51197d9470f64a43f9651d75abc8ec6ad6c763b84e17849e0bc7735f0e5e05e9,body=1891f0f9bf3f9a938014d984bdb137c0c2cc37d6ea97b937b08191e9a3e55b29",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Всегда возвращает объект с полями `code` и `message`."
+          }
+        },
+        "dependencies": {
+          "body": "- `CodeloreError` (`src/errors.ts`) — проверка `instanceof` и доступ к `code` и `details`.",
+          "rendered": true,
+          "fingerprint": "deps=b0daeb6b7e4e3401a49f80f7cc6ab8fd9b27c71c12cf51fc7e8b589d22e8d17d",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- `CodeloreError` (`src/errors.ts`) — проверка `instanceof` и доступ к `code` и `details`."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается в `runCli` (`symbol:src/cli/run-cli.ts#runCli`) и `createCodeloreServer` (`file:src/server/create-server.ts`) в блоке `catch` для сериализации ошибки в JSON-ответ.",
+          "rendered": true,
+          "fingerprint": "body=1891f0f9bf3f9a938014d984bdb137c0c2cc37d6ea97b937b08191e9a3e55b29,deps=b0daeb6b7e4e3401a49f80f7cc6ab8fd9b27c71c12cf51fc7e8b589d22e8d17d",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается в `runCli` (`symbol:src/cli/run-cli.ts#runCli`) и `createCodeloreServer` (`file:src/server/create-server.ts`) в блоке `catch` для сериализации ошибки в JSON-ответ."
+          }
+        },
+        "limitations": {
+          "body": "- Не включает `stack` в payload.\n- Не обрабатывает циклические ссылки в `details` — при их наличии `JSON.stringify` может выбросить исключение.",
+          "rendered": true,
+          "fingerprint": "body=1891f0f9bf3f9a938014d984bdb137c0c2cc37d6ea97b937b08191e9a3e55b29",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Не включает `stack` в payload."
+          }
+        }
+      },
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "generationHistory": [
+        {
+          "runId": "61372614-014e-462a-bae1-622628a3489c",
+          "timestamp": "2026-06-10T21:10:29.186Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

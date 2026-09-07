@@ -1,0 +1,32 @@
+{
+  "headings": {
+    "purpose": "Purpose",
+    "responsibility": "Responsibility Boundaries",
+    "invariants": "Invariants and Contract",
+    "dependencies": "Key Dependencies",
+    "workflows": "Main Workflows",
+    "limitations": "Limitations and Tradeoffs",
+    "changeGuide": "Change Guide"
+  },
+  "reasons": {
+    "signature_changed": "signature changed",
+    "body_changed": "body changed",
+    "deps_changed": "dependencies changed",
+    "usage_changed": "callers changed",
+    "placement_changed": "placement changed",
+    "depDocs_changed": "dependency docs changed",
+    "language_changed": "language changed",
+    "owned_changed": "owned entity changed",
+    "code_changed": "code changed",
+    "owned_entity_deleted": "entity deleted"
+  },
+  "callouts": {
+    "stale": "⚠ Stale ({reason}since {since}): {headings}. Regenerate to refresh.",
+    "translationPending": "⚠ Translation pending. Run update to refresh."
+  },
+  "nav": {
+    "members": "Contents",
+    "dependsOn": "Depends on",
+    "usedBy": "Used by"
+  }
+}

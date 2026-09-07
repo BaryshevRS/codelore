@@ -1,0 +1,108 @@
+{
+  "version": 4,
+  "docPath": "docs/domains/runtime-context.codelore.md",
+  "generatedAt": "2026-07-08T07:59:27.228Z",
+  "sectionOrder": [
+    "domain:runtime-context"
+  ],
+  "sections": {
+    "domain:runtime-context": {
+      "heading": "Построение runtime-контекста из литералов",
+      "depth": 1,
+      "anchor": "построение-runtime-контекста-из-литералов",
+      "owns": [
+        "domain:runtime-context"
+      ],
+      "depends": [
+        "file:src/context/ast-helpers.ts",
+        "file:src/context/ast-hit-filter.ts",
+        "file:src/context/enclosing-resolver.ts",
+        "file:src/context/literal-extractor.ts",
+        "file:src/context/ripgrep-runner.ts",
+        "file:src/context/runtime-context-builder.ts"
+      ],
+      "usedBy": [
+        "domain:llm-generation-pipeline"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Строит для сущности кода карту всех вхождений её строковых литералов в других сущностях проекта, отсеивая технические использования. Каждый хит разрешается до содержащей его сущности. Карта позволяет системе анализировать неявные связи между сущностями через строковые константы, используемые в рантайме.",
+          "rendered": true,
+          "fingerprint": "signature=174f9431480aeecfe6b7e238bca2f1f897d5af347f9a736528a57c2bd977b847,placement=06b43f0bc20eb2c2f4d7919d04a21b955360eb69c13ca15d8dc029a81b72c3b3",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Каждый хит разрешается до содержащей его сущности."
+          }
+        },
+        "responsibility": {
+          "body": "Подсистема владеет полным циклом: извлекает строковые литералы и no-substitution template literals из исходного кода, отфильтровывает технические (импорты, типы, JSDoc, контекстные типы) с помощью функций из ast-helpers, запускает ripgrep для поиска по проекту, фильтрует найденные совпадения через AstHitFilter, разрешает их до содержащей сущности через resolveEnclosing и определяет синтаксическую роль. Возвращает массив RuntimeHit и список литералов без валидных вхождений.",
+          "rendered": true,
+          "fingerprint": "signature=174f9431480aeecfe6b7e238bca2f1f897d5af347f9a736528a57c2bd977b847,deps=b4cc7a0b685dd0b94c71ff20777a4e6a7bf31bce5361f62ef8c568ae4c4691da,usage=a8b00f4efec081d957335ae4d260c623974cfc7a13db3cee39cb73ffdd15ba69",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Запускает ripgrep для каждого уникального литерала."
+          }
+        },
+        "dependencies": {
+          "body": "Зависит от внешнего инструмента ripgrep (через searchLiteral) для точного поиска строковых совпадений. Использует TypeScript Compiler API для анализа AST, загрузки исходных файлов и определения контекстных типов. Не реализует собственный полнотекстовый поиск, не управляет конфигурацией TS-проекта и не инвалидирует кэш SourceFile при изменениях на диске.",
+          "rendered": true,
+          "fingerprint": "deps=b4cc7a0b685dd0b94c71ff20777a4e6a7bf31bce5361f62ef8c568ae4c4691da",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Не реализует собственный полнотекстовый поиск."
+          }
+        },
+        "workflows": {
+          "body": "Точка входа buildRuntimeContext получает сущность кода и её SourceFile. extractLiterals обходит AST и собирает строковые литералы и no-substitution template literals, отсеивая технические. Для каждого уникального литерала searchLiteral запускает ripgrep с --fixed-strings, исключая исходный файл. Каждый raw-хит обрабатывается AstHitFilter: загружает файл, парсит AST и отбрасывает вхождения внутри импортов, JSDoc, type-аннотаций или контекстных типов. Прошедшие фильтр хиты resolveEnclosing преобразует в RuntimeHit: находит ближайшую объемлющую сущность кода, вычисляет синтаксическую роль через computeSyntaxRole и отбрасывает самоссылки. Результат — массив RuntimeHit и список литералов без валидных вхождений.",
+          "rendered": true,
+          "fingerprint": "body=174f9431480aeecfe6b7e238bca2f1f897d5af347f9a736528a57c2bd977b847,deps=b4cc7a0b685dd0b94c71ff20777a4e6a7bf31bce5361f62ef8c568ae4c4691da",
+          "language": "ru",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Для каждого уникального литерала searchLiteral запускает ripgrep."
+          }
+        },
+        "limitations": {
+          "body": "Не фильтрует require() — проверяет только import/export декларации. Не обрабатывает однострочные и блочные комментарии — только JSDoc. Пропускает литералы внутри TypeReference и ArrayType, так как isInsideTypeNode проверяет только LiteralTypeNode. Контекстный тип не распознаётся в return и других неявных позициях. Определяет только синтаксическую роль, а не семантическое назначение. Не инвалидирует кэш SourceFile при изменениях на диске; ошибки парсинга файла глотаются без логирования. Ищет только строковые литералы и no-substitution template literals. Самоссылки отбрасываются. Поиск только точный — ripgrep запускается с --fixed-strings, регулярные выражения не поддерживаются.",
+          "rendered": true,
+          "fingerprint": "body=174f9431480aeecfe6b7e238bca2f1f897d5af347f9a736528a57c2bd977b847",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "isInsideTypeNode проверяет только LiteralTypeNode."
+          }
+        }
+      },
+      "memberDocsFingerprint": "bf70d1edc4e889b959980a7f80f3cc860234ee27e084a3089f611e8e8a376954"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

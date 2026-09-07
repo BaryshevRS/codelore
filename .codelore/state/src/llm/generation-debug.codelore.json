@@ -1,0 +1,466 @@
+{
+  "version": 4,
+  "docPath": "src/llm/generation-debug.codelore.md",
+  "generatedAt": "2026-06-13T20:32:16.446Z",
+  "sectionOrder": [
+    "symbol:src/llm/generation-debug.ts#writeGenerationDebug",
+    "symbol:src/llm/generation-debug.ts#generationDebugPathForStatePath",
+    "symbol:src/llm/generation-debug.ts#buildGenerationDebugEntry"
+  ],
+  "sections": {
+    "symbol:src/llm/generation-debug.ts#writeGenerationDebug": {
+      "heading": "writeGenerationDebug",
+      "depth": 1,
+      "anchor": "writegenerationdebug",
+      "owns": [
+        "symbol:src/llm/generation-debug.ts#writeGenerationDebug"
+      ],
+      "depends": [
+        "symbol:src/llm/generation-debug.ts#generationDebugPathForStatePath"
+      ],
+      "usedBy": [
+        "file:src/cli/run-cli.ts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Атомарная запись отладочного JSON-файла с данными о генерационном прогоне.",
+          "rendered": true,
+          "fingerprint": "signature=f739c7573d41fd2348772e7572949ee393e1abec8e1523e158772b79245ff63b,placement=8cc7697dd65050dfe5c825b267b87f730ff322976008cea0ba90e838750d5322",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Атомарная запись отладочного JSON-файла с данными о генерационном прогоне."
+          }
+        },
+        "responsibility": {
+          "body": "Не валидирует входные данные и не обрабатывает ошибки файловой системы — исключения пробрасываются вызывающему.\nВычисляет целевой путь отладочного файла на основе `statePath` и необязательной `phase`.\nСоздаёт родительскую директорию при необходимости.\nОсуществляет атомарную запись: сначала во временный файл с уникальным именем, затем переименовывает в целевой путь.",
+          "rendered": true,
+          "fingerprint": "signature=f739c7573d41fd2348772e7572949ee393e1abec8e1523e158772b79245ff63b,deps=0aa00e15254a91076593e5a2e8997ad69880a45be7512d483520e75d0e83e975,usage=fb92e18a38fdc1e9fb22a39f391eea6d6cccbb73a12d9cc02bf2c200fe635649",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не валидирует входные данные и не обрабатывает ошибки файловой системы — исключения пробрасываются вызывающему."
+          }
+        },
+        "invariants": {
+          "body": "Путь отладки вычисляется исключительно по `statePath` через `generationDebugPathForStatePath`.\nФайл записывается только после создания всех родительских директорий.\nЗапись выполняется атомарно: сначала во временный файл, затем переименование.\nСериализация: `JSON.stringify(entry, null, 2) + '\\n'`, кодировка UTF-8.\nВозвращаемый `debugPath` всегда совпадает с путём, вычисленным `generationDebugPathForStatePath`.",
+          "rendered": true,
+          "fingerprint": "signature=f739c7573d41fd2348772e7572949ee393e1abec8e1523e158772b79245ff63b,body=c40f94ba3d986da45d7eedffbdcbb7fd0ca6cef65f0ceb23ca9ac527a3e2022d",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Путь отладки вычисляется исключительно по `statePath` через `generationDebugPathForStatePath`."
+          }
+        },
+        "dependencies": {
+          "body": "`generationDebugPathForStatePath` (`src/llm/generation-debug.ts`) — вычисляет путь отладочного файла на основе `statePath` и необязательной `phase`.",
+          "rendered": true,
+          "fingerprint": "deps=0aa00e15254a91076593e5a2e8997ad69880a45be7512d483520e75d0e83e975",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 1,
+            "novelFact": "Единственная проект-зависимость — внутримодульная функция генерации пути."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `file-pipeline.ts` для сохранения отладочной записи генерационного прогона. Вычисляет целевой путь через `generationDebugPathForStatePath`, создаёт родительскую директорию, записывает сериализованный `GenerationDebugEntry` во временный файл с уникальным именем (PID + случайная строка), затем переименовывает для атомарности. Возвращает `{ debugPath }`.",
+          "rendered": true,
+          "fingerprint": "body=c40f94ba3d986da45d7eedffbdcbb7fd0ca6cef65f0ceb23ca9ac527a3e2022d,deps=0aa00e15254a91076593e5a2e8997ad69880a45be7512d483520e75d0e83e975",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Атомарная запись через временный файл предотвращает повреждение при крахе."
+          }
+        },
+        "limitations": {
+          "body": "Не обрабатывает ошибки ввода-вывода (диск заполнен, права доступа) — исключения пробрасываются вызывающему.\nПотокобезопасность не гарантируется: параллельные вызовы с одинаковым `statePath` приведут к гонке записи.\nФормат файла (JSON с отступом 2 и завершающим переводом строки) является контрактом для читающих инструментов.",
+          "rendered": true,
+          "fingerprint": "body=c40f94ba3d986da45d7eedffbdcbb7fd0ca6cef65f0ceb23ca9ac527a3e2022d",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не обрабатывает ошибки ввода-вывода и не гарантирует потокобезопасность."
+          }
+        },
+        "changeGuide": {
+          "body": "1. Удаление атомарной записи (прямая запись) приведёт к тому, что читатель может прочитать неполный файл — проверить всех потребителей в `file-pipeline.ts` и скрипты, читающие `.generation-debug.json`.\n2. Изменение форматирования JSON (отступы, trailing newline) сломает инструменты, которые парсят эти файлы по сигнатуре `JSON.parse`.\n3. Изменение пути через `generationDebugPathForStatePath` требует синхронизации с этой функцией — её документация описывает контракт преобразования.\n4. Если добавить обработку ошибок и изменить возвращаемый тип (например, `Promise<{ debugPath } | null>`), придётся обновить все места, где результат деструктурируется (см. `directUsages`).",
+          "rendered": true,
+          "fingerprint": "body=c40f94ba3d986da45d7eedffbdcbb7fd0ca6cef65f0ceb23ca9ac527a3e2022d,deps=0aa00e15254a91076593e5a2e8997ad69880a45be7512d483520e75d0e83e975,usage=fb92e18a38fdc1e9fb22a39f391eea6d6cccbb73a12d9cc02bf2c200fe635649,placement=8cc7697dd65050dfe5c825b267b87f730ff322976008cea0ba90e838750d5322",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Изменение формата JSON сломает инструменты, читающие отладочные файлы."
+          }
+        }
+      },
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "generationHistory": [
+        {
+          "runId": "f1f97c08-f7a0-4c77-8cbb-deec36d86e92",
+          "timestamp": "2026-06-10T14:17:15.651Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "74780818-2bcb-467b-a4ba-ae5bbf256e9a",
+          "timestamp": "2026-06-11T21:18:18.041Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "1372adf6-4062-4467-b8d3-6610906819f7",
+          "timestamp": "2026-06-13T20:26:07.277Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "1372adf6-4062-4467-b8d3-6610906819f7",
+          "timestamp": "2026-06-13T20:32:16.445Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    },
+    "symbol:src/llm/generation-debug.ts#generationDebugPathForStatePath": {
+      "heading": "generationDebugPathForStatePath",
+      "depth": 1,
+      "anchor": "generationdebugpathforstatepath",
+      "owns": [
+        "symbol:src/llm/generation-debug.ts#generationDebugPathForStatePath"
+      ],
+      "depends": [],
+      "usedBy": [
+        "symbol:src/llm/generation-debug.ts#writeGenerationDebug"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Преобразование пути состояния в путь отладочного файла с заменой расширения `.json` на отладочный суффикс с учётом фазы.",
+          "rendered": true,
+          "fingerprint": "signature=a25491bc3c9d500e05c6245e4196b8165a32a36506aeda549ad48d22ad5b68fc,placement=e38de180e451d191a13ddcc2b8120f1b43f4f562e966da5b859980fec7442789",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Преобразование пути состояния в путь отладочного файла с заменой расширения `.json` на отладочный суффикс с учётом фазы."
+          }
+        },
+        "responsibility": {
+          "body": "Не обращается к файловой системе.\nНе валидирует путь.\nЗаменяет только завершающий суффикс `.json` в конце строки.",
+          "rendered": true,
+          "fingerprint": "signature=a25491bc3c9d500e05c6245e4196b8165a32a36506aeda549ad48d22ad5b68fc,deps=8f11baefe4651a1708a3a9993416618fad31105a7a40a23f9cd43526d5dc9376,usage=3f45a22c7ac39c4b09ca3e7334104e500abe8d28d4363a9357f28916cfb66f79",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не обращается к файловой системе."
+          }
+        },
+        "invariants": {
+          "body": "Если `statePath` заканчивается на `.json`, возвращается строка с заменой `.json` на отладочный суффикс.\nЕсли не заканчивается, возвращается без изменений.\nФункция чистая — не зависит от глобального состояния и не мутирует входные данные.",
+          "rendered": true,
+          "fingerprint": "signature=a25491bc3c9d500e05c6245e4196b8165a32a36506aeda549ad48d22ad5b68fc,body=518d81613ef878d52a2fef9f537939aea1d69fa678d59cd8848866c6d0aa06e5",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Если `statePath` заканчивается на `.json`, возвращается строка с заменой `.json` на отладочный суффикс."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `writeGenerationDebug` (тот же файл) для вычисления целевого пути отладочного файла. Заменяет суффикс `.json` в конце `statePath` на отладочный суффикс (учитывая необязательную `phase`).",
+          "rendered": true,
+          "fingerprint": "body=518d81613ef878d52a2fef9f537939aea1d69fa678d59cd8848866c6d0aa06e5,deps=8f11baefe4651a1708a3a9993416618fad31105a7a40a23f9cd43526d5dc9376",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Единственный вызывающий — writeGenerationDebug."
+          }
+        },
+        "limitations": {
+          "body": "Не обрабатывает пути, не заканчивающиеся на `.json` — возвращает без изменений.\nЗамена только суффикса `.json` в конце строки, не заменяет `.json` в середине.\nРегистрозависима (не заменит `.JSON`).",
+          "rendered": true,
+          "fingerprint": "body=518d81613ef878d52a2fef9f537939aea1d69fa678d59cd8848866c6d0aa06e5",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не валидирует путь, регистрозависима."
+          }
+        }
+      },
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "generationHistory": [
+        {
+          "runId": "f1f97c08-f7a0-4c77-8cbb-deec36d86e92",
+          "timestamp": "2026-06-10T14:17:15.652Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "workflows",
+            "limitations"
+          ]
+        },
+        {
+          "runId": "1372adf6-4062-4467-b8d3-6610906819f7",
+          "timestamp": "2026-06-13T20:26:07.278Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "1372adf6-4062-4467-b8d3-6610906819f7",
+          "timestamp": "2026-06-13T20:32:16.445Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "limitations"
+          ]
+        }
+      ]
+    },
+    "symbol:src/llm/generation-debug.ts#buildGenerationDebugEntry": {
+      "heading": "buildGenerationDebugEntry",
+      "depth": 1,
+      "anchor": "buildgenerationdebugentry",
+      "owns": [
+        "symbol:src/llm/generation-debug.ts#buildGenerationDebugEntry"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/cli/run-cli.ts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Создание сжатого отладочного среза генерационного прогона для записи в `.generation-debug.json`.",
+          "rendered": true,
+          "fingerprint": "signature=6677e9f7a6ccd7d25787e2afae1d720b1a5e43db5d3aeeba12169f4b98584e14,placement=93318b9007383d95480bf7af4b9c13510d5164a760256056bfa91b27105449b9",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Снапшот включает только идентификаторы и размеры секций, не сохраняя содержимое."
+          }
+        },
+        "responsibility": {
+          "body": "- Копирует поля `runId`, `timestamp`, `command`, `provider`, `model`, `docPath`, `files` без изменений.\n- Преобразует `sections` и `dependencyDocs` в сокращённое представление (идентификаторы, размеры). Оригинальное содержимое не сохраняется.\n- Делегирует вычисление статистики текста LLM-этапов внутренней функции `mapLlmStages`.\n- Включает необязательные поля `violations`, `violationsAfterRepair`, `error` только при наличии непустых значений (для массивов — если длина > 0).",
+          "rendered": true,
+          "fingerprint": "signature=6677e9f7a6ccd7d25787e2afae1d720b1a5e43db5d3aeeba12169f4b98584e14,deps=889405f51a179a4d40037a7add10c663eebb50d00d65f25266c3f6f5b39fe033,usage=d9de0098a0680af74308482963368fe807582a3947fe27677dea891fc74a9c31",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Отсутствует проверка структуры входных `llmStages` — делегированная функция `mapLlmStages` работает без валидации."
+          }
+        },
+        "invariants": {
+          "body": "- Поле `version` всегда равно 4.\n- `writtenBlocks` и `keptBlocks` всегда присутствуют в результате (при отсутствии во входе — пустой объект и пустой массив).\n- `sections` и `dependencyDocs` всегда массив — даже если входные массивы пусты.\n- Все обязательные поля результата всегда присутствуют (перечислены в типе `GenerationDebugEntry`).",
+          "rendered": true,
+          "fingerprint": "signature=6677e9f7a6ccd7d25787e2afae1d720b1a5e43db5d3aeeba12169f4b98584e14,body=61e019ea4768ba76c8468a15c3483576b61b63e4da8f5c0e8e7934996380aad7",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Гарантируется, что опциональные поля исключаются при пустых массивах, а не по наличию свойства."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `generateFileGroup` (`src/llm/file-pipeline.ts`) после обработки всех чанков каждого файла. `llmStages` наполняется через `debugSink` в процессе генерации. Результат передаётся в `writeGenerationDebug` для сохранения в `.generation-debug.json`.",
+          "rendered": true,
+          "fingerprint": "body=61e019ea4768ba76c8468a15c3483576b61b63e4da8f5c0e8e7934996380aad7,deps=889405f51a179a4d40037a7add10c663eebb50d00d65f25266c3f6f5b39fe033",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Снапшот создаётся однократно на файл, а не на чанк, хотя `llmStages` собирается по чанкам."
+          }
+        },
+        "limitations": {
+          "body": "- Не проверяет структуру объектов в `llmStages` — пустая запись или отсутствие поля `messages` вызывает необработанное исключение в `mapLlmStages`.\n- Поля `dependencyDocs.chars` вычисляются через `JSON.stringify(doc.sections).length`, что может не соответствовать точному числу символов в исходных секциях (из-за сериализации).\n- Опциональные поля включаются по условию `length > 0`, а не по наличию свойства — пустой массив `[]` исключается, что может быть неочевидно для вызывающего (если требуется явно указать «без нарушений»).",
+          "rendered": true,
+          "fingerprint": "body=61e019ea4768ba76c8468a15c3483576b61b63e4da8f5c0e8e7934996380aad7",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Ошибки в `llmStages` (например, отсутствие `messages`) не перехватываются и приводят к падению процесса."
+          }
+        }
+      },
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "generationHistory": [
+        {
+          "runId": "f1f97c08-f7a0-4c77-8cbb-deec36d86e92",
+          "timestamp": "2026-06-10T14:17:15.653Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "workflows",
+            "limitations"
+          ]
+        },
+        {
+          "runId": "f567950f-269d-464c-bccb-1c1542a2d912",
+          "timestamp": "2026-06-10T16:00:53.414Z",
+          "command": "fix-stale",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "workflows",
+            "limitations"
+          ]
+        },
+        {
+          "runId": "5a04d910-3dbc-4e18-8358-162af1b32108",
+          "timestamp": "2026-06-10T16:04:21.211Z",
+          "command": "fix-stale",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "workflows",
+            "limitations"
+          ]
+        },
+        {
+          "runId": "4191d66e-aa96-4df7-9ef8-4c71b620d794",
+          "timestamp": "2026-06-10T16:10:02.493Z",
+          "command": "fix-stale",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "workflows",
+            "limitations"
+          ]
+        },
+        {
+          "runId": "6d5fdb26-8a22-48a2-b19d-1877883f51c8",
+          "timestamp": "2026-06-10T16:16:26.012Z",
+          "command": "fix-stale",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "workflows",
+            "limitations"
+          ]
+        }
+      ]
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

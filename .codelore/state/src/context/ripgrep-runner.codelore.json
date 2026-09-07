@@ -1,0 +1,141 @@
+{
+  "version": 4,
+  "docPath": "src/context/ripgrep-runner.codelore.md",
+  "generatedAt": "2026-06-10T12:33:56.567Z",
+  "sectionOrder": [
+    "symbol:src/context/ripgrep-runner.ts#searchLiteral"
+  ],
+  "sections": {
+    "symbol:src/context/ripgrep-runner.ts#searchLiteral": {
+      "heading": "searchLiteral",
+      "depth": 1,
+      "anchor": "searchliteral",
+      "owns": [
+        "symbol:src/context/ripgrep-runner.ts#searchLiteral"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/context/runtime-context-builder.ts",
+        "symbol:src/context/runtime-context-builder.ts#buildRuntimeContext"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Поиск точных вхождений строки в исходных файлах TypeScript/JavaScript проекта через ripgrep.",
+          "rendered": true,
+          "fingerprint": "signature=6f780d0935ff5e38d2b427860d13a5f147583fbf9689a873aa79e7b611a5b558,placement=4306defcd00926db8ad65dcf2f674c1db2a34f68e175e3222bc402ca2b6634cf",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вынесен в отдельную функцию для переиспользования в сборе рантайм-контекста."
+          }
+        },
+        "responsibility": {
+          "body": "- Не обрабатывает регулярные выражения — только точное совпадение (`--fixed-strings`).\n- Не выполняет AST-фильтрацию — возвращает все совпадения, найденные ripgrep.\n- Не определяет контекст использования строки — только факт совпадения.\n- Не изменяет файлы или проект.",
+          "rendered": true,
+          "fingerprint": "signature=6f780d0935ff5e38d2b427860d13a5f147583fbf9689a873aa79e7b611a5b558,deps=1763905a325bde990101447b7f5cea1c9ba6e208a7cc736206b5aa9249675e2b,usage=cac5cd623046ab58c4cef42b22fa6e7fd3432c44c761b4de064d7f93a9b69b6d",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Ограничивается запуском ripgrep и парсингом JSON-вывода, вся логика фильтрации — снаружи."
+          }
+        },
+        "invariants": {
+          "body": "- Для непустой строки всегда возвращает массив (может быть пустым), никогда не бросает исключение при коде завершения 0 или 1.\n- Возвращает только совпадения из файлов с расширениями `.ts` и `.js`, исключая `node_modules`, `dist`, `build`, `.codelore`, `coverage`.\n- Колонка в хите — 1-based (первый символ = 1).\n- Пустая строка возвращает пустой массив без запуска внешнего процесса.",
+          "rendered": true,
+          "fingerprint": "signature=6f780d0935ff5e38d2b427860d13a5f147583fbf9689a873aa79e7b611a5b558,body=c388c5d0bd827b38e8d869b272c00fad2d626211d05f0dfa71a243692ea457a6",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Контракт на обработку кода завершения ripgrep: 0 — успех, 1 — нет совпадений, остальные — ошибка."
+          }
+        },
+        "dependencies": {
+          "body": "- `@vscode/ripgrep` — предоставляет путь к исполняемому файлу ripgrep (`rgPath`).\n- `node:child_process` — запуск ripgrep как внешнего процесса.",
+          "rendered": true,
+          "fingerprint": "deps=1763905a325bde990101447b7f5cea1c9ba6e208a7cc736206b5aa9249675e2b",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Внутренние зависимости, невидимые для вызывающего."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `buildRuntimeContext` (`src/context/runtime-context-builder.ts`) для каждого уникального литерала, извлечённого из исходного кода целевой сущности. Передаёт `rootDir` проекта и исключает сам файл сущности из поиска. Возвращённые хиты далее обрабатываются `resolveHitsForLiteral`.",
+          "rendered": true,
+          "fingerprint": "body=c388c5d0bd827b38e8d869b272c00fad2d626211d05f0dfa71a243692ea457a6,deps=1763905a325bde990101447b7f5cea1c9ba6e208a7cc736206b5aa9249675e2b",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Единственный вызывающий — сборка рантайм-контекста для определения использования литералов."
+          }
+        },
+        "limitations": {
+          "body": "- Ищет только в `.ts` и `.js` — не покрывает `.tsx`, `.json`, `.md`.\n- Не поддерживает поиск без учёта регистра (по умолчанию регистрозависимый).\n- Не обрабатывает символические ссылки (поведение ripgrep по умолчанию).",
+          "rendered": true,
+          "fingerprint": "body=c388c5d0bd827b38e8d869b272c00fad2d626211d05f0dfa71a243692ea457a6",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Ограничение набора расширений — осознанный выбор для контекста, где используются только TypeScript/JavaScript."
+          }
+        },
+        "changeGuide": {
+          "body": "1. Если изменить `BASE_GLOBS` или `BASE_EXCLUDES`, может измениться покрытие поиска — проверить, что вызывающий (`buildRuntimeContext`) ожидает именно такой набор файлов.\n2. Если изменить парсинг JSON-вывода ripgrep (например, перестать обрабатывать `submatches`), сломается структура хитов — обновить типы `RipgrepHit` и все места, использующие эти поля.\n3. Если изменить обработку кода завершения (код 1 перестанет означать «нет совпадений»), сломается контракт — обновить `buildRuntimeContext` и его док-секцию.",
+          "rendered": true,
+          "fingerprint": "body=c388c5d0bd827b38e8d869b272c00fad2d626211d05f0dfa71a243692ea457a6,deps=1763905a325bde990101447b7f5cea1c9ba6e208a7cc736206b5aa9249675e2b,usage=cac5cd623046ab58c4cef42b22fa6e7fd3432c44c761b4de064d7f93a9b69b6d,placement=4306defcd00926db8ad65dcf2f674c1db2a34f68e175e3222bc402ca2b6634cf",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Три точки отказа: область поиска, формат результата, интерпретация кода завершения."
+          }
+        }
+      },
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "generationHistory": [
+        {
+          "runId": "4d8c9311-178a-4cf1-9357-692225f67b1a",
+          "timestamp": "2026-06-10T12:33:56.567Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

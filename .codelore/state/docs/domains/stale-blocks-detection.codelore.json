@@ -1,0 +1,106 @@
+{
+  "version": 4,
+  "docPath": "docs/domains/stale-blocks-detection.codelore.md",
+  "generatedAt": "2026-07-08T07:59:27.228Z",
+  "sectionOrder": [
+    "domain:stale-blocks-detection"
+  ],
+  "sections": {
+    "domain:stale-blocks-detection": {
+      "heading": "Обнаружение устаревших блоков документации",
+      "depth": 1,
+      "anchor": "обнаружение-устаревших-блоков-документации",
+      "owns": [
+        "domain:stale-blocks-detection"
+      ],
+      "depends": [
+        "file:src/service/stale-detection.ts",
+        "domain:block-fingerprinting",
+        "domain:llm-generation-pipeline",
+        "domain:service-helpers"
+      ],
+      "usedBy": [
+        "domain:codelore-service-facade"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Выявляет устаревшие блоки документации: сравнивает сохранённые отпечатки с актуальным кодом и документацией зависимостей, находит блоки с удалёнными сущностями, блоки на неверном языке и ранее «похороненные». Объединяет результаты разных проверок в единый список без дубликатов и готовит контекст для планировщика перезаписи.",
+          "rendered": true,
+          "fingerprint": "signature=84dd9b4adadb6fd3ebf79e9e92ba1fefebbd07f78679b7a0b236cfb2c52c9843,placement=43882b6e75467267623f592dbe1567d3848f7b8c4393d32c9f39de687782fe27",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Объединяет результаты разных проверок в единый список без дубликатов и готовит контекст для планировщика перезаписи."
+          }
+        },
+        "responsibility": {
+          "body": "Проверяет каждый блок документации: вычисляет текущий отпечаток через подсистему отпечатков и сравнивает с сохранённым, фиксируя изменившиеся фасеты (staleBlockInfoFor). Для секций, все принадлежащие сущности которых удалены, помечает все блоки как устаревшие с причиной owned_entity_deleted (deletedOwnedEntityBlocks). Анализирует отпечатки документации зависимостей и отбирает непропагирующие блоки, документация зависимостей которых изменилась (collectDepDocStaleBlocks). Отбирает блоки, чей язык отличается от канонического, если тот задан (collectLanguageStaleBlocks). Находит блоки, уже отмеченные как «похороненные», по наличию staleSince, не обращаясь к коду (collectTombstonedBlocks). На основе похороненных записей формирует карту целевых разделов для перезаписи (targetBlocksFromTombstones), убирая неизвестные и дублирующиеся идентификаторы. Для каждого устаревшего блока собирает RewritContextBundle с текущим текстом и сводками сущностей из индекса (buildRewriteContextBundle). Формирует итоговый результат с метриками и планом перезаписи (refreshStaleResult).",
+          "rendered": true,
+          "fingerprint": "signature=84dd9b4adadb6fd3ebf79e9e92ba1fefebbd07f78679b7a0b236cfb2c52c9843,deps=05500d96051739a638d0981394c19ec37150dfcacaa3df6c2a3fe702bcb1ab54,usage=9d4a217edf94bfb103bbabe094dae6c46336c0bd3dc8e6a8d59d8d36f7cbbd3d",
+          "language": "ru",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "При удалении всех принадлежащих сущностей секции блоки, ещё не отмеченные как устаревшие, получают drift: owned_entity_deleted и фасет owned."
+          }
+        },
+        "dependencies": {
+          "body": "Зависит от подсистемы «Отпечатки блоков документации» для получения актуальных отпечатков фасетов и документации зависимостей; сама отпечатки не вычисляет. Использует «Общие вспомогательные функции сервиса» для проверки идентификаторов блоков (isKnownBlockId) и других утилит. Оперирует проектным индексом (index.docs.sections, index.code.entities), который передаётся извне. Не выполняет перезапись блоков, не изменяет состояние индекса и не управляет хранилищем — только возвращает данные и контекст.",
+          "rendered": true,
+          "fingerprint": "deps=05500d96051739a638d0981394c19ec37150dfcacaa3df6c2a3fe702bcb1ab54",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Подсистема не выполняет перезапись блоков и не изменяет состояние индекса — только возвращает данные и контекст для планировщика."
+          }
+        },
+        "workflows": {
+          "body": "Основной сценарий начинается с вызова collectStaleBlocks: для каждой секции, имеющей принадлежащие сущности, staleBlockInfoFor запрашивает текущий отпечаток блока и сравнивает с сохранённым; при расхождении формируется StaleBlockInfo с diff-фасетами. Если секция потеряла все сущности, deletedOwnedEntityBlocks перебирает её блоки и для каждого создаёт запись с drift: owned_entity_deleted. Параллельно collectDepDocStaleBlocks проходит по секциям с depDocsFingerprint, сравнивает отпечатки зависимостей и включает только непропагирующие блоки, не пустые и ещё не устаревшие. collectLanguageStaleBlocks проверяет блоки с заданным canonicalLanguage и добавляет записи с фасетом language. collectTombstonedBlocks собирает блоки с установленным staleSince, не требуя вычисления отпечатков. Все полученные массивы устаревших блоков сливаются через mergeStaleBlocks: дедупликация по sectionId + \\0 + blockId, при повторах объединяются changedFacets. Далее buildRewriteContextBundle для каждой записи извлекает из индекса секцию, блок и сводки сущностей (summarizeCodeEntity), формируя RewritContextBundle с текущим текстом, принадлежащими сущностями и причинами. refreshStaleResult упаковывает итог: вычисляет метрики stale, tombstoned и, при режиме tombstone, appliedTombstones, а также включает план перезаписи, если он был передан.",
+          "rendered": true,
+          "fingerprint": "body=84dd9b4adadb6fd3ebf79e9e92ba1fefebbd07f78679b7a0b236cfb2c52c9843,deps=05500d96051739a638d0981394c19ec37150dfcacaa3df6c2a3fe702bcb1ab54",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Все полученные массивы устаревших блоков сливаются через mergeStaleBlocks с дедупликацией по составному ключу sectionId + \\0 + blockId и объединением changedFacets."
+          }
+        },
+        "limitations": {
+          "body": "Не проверяет пропагирующие блоки на устаревание из-за документации зависимостей (collectDepDocStaleBlocks). Пропускает блоки с неизвестным идентификатором во всех этапах: addTargetBlock, staleBlockInfoFor, tombstonedBlockInfoFor и collectLanguageStaleBlocks. Игнорирует блоки с пустым телом. Блоки, уже отмеченные как устаревшие (staleSince), не попадают в свежую проверку кодом, но собираются отдельно как «похороненные». Секции без depDocsFingerprint не участвуют в проверке документации зависимостей. Если canonicalLanguage не задан, collectLanguageStaleBlocks возвращает пустой массив. Подсистема не выполняет перезапись — только формирует RewritContextBundle. Не модифицирует хранилище или индекс, не управляет потоком обновления.",
+          "rendered": true,
+          "fingerprint": "body=84dd9b4adadb6fd3ebf79e9e92ba1fefebbd07f78679b7a0b236cfb2c52c9843",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Пропагирующие блоки исключаются из проверки устаревания по документации зависимостей."
+          }
+        }
+      },
+      "memberDocsFingerprint": "5c4323cfed88f29ead388c69acb838ae0c1f4efcb6487022a3ceea3221977017"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

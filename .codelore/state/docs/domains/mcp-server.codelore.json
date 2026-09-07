@@ -1,0 +1,107 @@
+{
+  "version": 4,
+  "docPath": "docs/domains/mcp-server.codelore.md",
+  "generatedAt": "2026-07-08T07:59:27.227Z",
+  "sectionOrder": [
+    "domain:mcp-server"
+  ],
+  "sections": {
+    "domain:mcp-server": {
+      "heading": "MCP-сервер Codelore",
+      "depth": 1,
+      "anchor": "mcp-сервер-codelore",
+      "owns": [
+        "domain:mcp-server"
+      ],
+      "depends": [
+        "file:src/server/create-server.ts",
+        "file:src/server/start-stdio-server.ts",
+        "domain:codelore-service-facade",
+        "domain:common-utils",
+        "domain:error-handling"
+      ],
+      "usedBy": [
+        "domain:cli-entrypoint"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Поднимает MCP-сервер, который подключается к StdioServerTransport и обрабатывает запросы через stdin/stdout, делая ресурсы и инструменты документации Codelore доступными для внешних MCP-клиентов.",
+          "rendered": true,
+          "fingerprint": "signature=e51969caa55426f8629709c1882b29535e4f4517c3a2e8f9f94fcb128ba5a392,placement=b42dd750a83dbbeb256aab3c3cbfb7a353aff1168c665868dfe47f892c89d2ed",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Поднимает MCP-сервер на stdio-транспорте, через который внешние клиенты получают доступ к ресурсам и инструментам документации Codelore."
+          }
+        },
+        "responsibility": {
+          "body": "Создаёт настроенный McpServer и регистрирует на нём ресурсы и инструменты документации, делегируя все операции фасаду CodeloreService. Если передан projectContext, дополнительно регистрирует ресурс context://project. Подключает готовый сервер к StdioServerTransport, после чего тот начинает принимать и обрабатывать MCP-запросы.",
+          "rendered": true,
+          "fingerprint": "signature=e51969caa55426f8629709c1882b29535e4f4517c3a2e8f9f94fcb128ba5a392,deps=e2fba3e467d1887c79b31046488986889f1e5c1109978ab27ed2605bec11e53e,usage=2108f11b9b70cc56637f1b2728a25e0d367c87e8bf1c0733c692cd88d6fc0cd9",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Регистрирует ресурсы и инструменты через локальные функции registerResources и registerTools, а при наличии projectContext добавляет ресурс context://project."
+          }
+        },
+        "dependencies": {
+          "body": "Опирается на фасад CodeloreService для всех операций с документацией. Использует общие утилиты для SHA-256-хеширования и нормализации путей, а также единый формат ошибок CodeloreError для сериализации исключений наружу. Не реализует собственных операций с документацией и не поддерживает транспортные протоколы кроме stdio.",
+          "rendered": true,
+          "fingerprint": "deps=e2fba3e467d1887c79b31046488986889f1e5c1109978ab27ed2605bec11e53e",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Сервер не выполняет операции с документацией самостоятельно — все вызовы делегируются фасаду CodeloreService."
+          }
+        },
+        "workflows": {
+          "body": "Вызов startStdioServer инициирует createCodeloreServer, которая через registerResources и registerTools настраивает обработчики ресурсов и инструментов на McpServer. При наличии projectContext добавляется ресурс context://project. Настроенный сервер подключается к StdioServerTransport. Клиент отправляет MCP-запрос через stdin — транспорт передаёт его зарегистрированному обработчику, тот вызывает соответствующий метод CodeloreService и возвращает результат через stdout.",
+          "rendered": true,
+          "fingerprint": "body=e51969caa55426f8629709c1882b29535e4f4517c3a2e8f9f94fcb128ba5a392,deps=e2fba3e467d1887c79b31046488986889f1e5c1109978ab27ed2605bec11e53e",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Входящие MCP-запросы обрабатываются зарегистрированными обработчиками, которые вызывают методы CodeloreService."
+          }
+        },
+        "limitations": {
+          "body": "Поддерживает только stdio-транспорт: вызов connect подключает сервер к StdioServerTransport, после чего тот обрабатывает сообщения через stdin/stdout до завершения процесса. Не управляет жизненным циклом после подключения — сервер остаётся активным, и вызывающий код должен сам корректно завершить процесс. Не выполняет операции с документацией самостоятельно, а делегирует их CodeloreService.",
+          "rendered": true,
+          "fingerprint": "body=e51969caa55426f8629709c1882b29535e4f4517c3a2e8f9f94fcb128ba5a392",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Поддерживает только stdio-транспорт — другие протоколы недоступны."
+          }
+        }
+      },
+      "memberDocsFingerprint": "9f0efde25be1b7d4a77e03a1f93195260104d981c4d47f561acca0ed8a6f2fb2"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

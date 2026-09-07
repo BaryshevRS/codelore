@@ -1,0 +1,372 @@
+{
+  "version": 4,
+  "docPath": "src/llm/json.codelore.md",
+  "generatedAt": "2026-07-03T16:25:43.567Z",
+  "sectionOrder": [
+    "symbol:src/llm/json.ts#parseJsonObject",
+    "symbol:src/llm/json.ts#readOptionalString"
+  ],
+  "sections": {
+    "symbol:src/llm/json.ts#parseJsonObject": {
+      "heading": "parseJsonObject",
+      "depth": 1,
+      "anchor": "parsejsonobject",
+      "owns": [
+        "symbol:src/llm/json.ts#parseJsonObject"
+      ],
+      "depends": [
+        "symbol:src/errors.ts#CodeloreError"
+      ],
+      "usedBy": [
+        "file:src/llm/doc-verifier.ts",
+        "file:src/llm/file-writer.ts",
+        "file:src/llm/translator.ts",
+        "symbol:src/llm/doc-verifier.ts#parseVerifyResponse",
+        "symbol:src/llm/file-writer.ts#parseFileWriteResponse"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Точка входа для парсинга JSON-ответа LLM.",
+          "rendered": true,
+          "fingerprint": "signature=e25b82972ad5046190a32f48ed13073a6738e4ec3135a2b594893c92e97f8e64,placement=9b3e9d410710a4e55cefb03a154011b0e9f1e62043f3743a5e64181f7b33d99b",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Парсинг выполняется в два прохода: первый — без исправлений, второй — с repair после неудачи."
+          }
+        },
+        "responsibility": {
+          "body": "- Предварительно удаляет внешний Markdown-фенс (`` ```json `` или `` ``` ``) с помощью `stripOuterFence`, затем пытается распарсить результат стандартным `JSON.parse`.\n- При неудаче первого парсинга повторяет попытку после применения `repairKnownLlmEscapes`, которая исправляет три известных LLM-артефакта (экранированные `` ` ``, `$` и `\\.`).\n- Гарантирует, что итоговый результат — объект (не null, не массив), делегируя проверку `asJsonObject`.\n- Если обе попытки парсинга завершаются ошибкой, выбрасывает `CodeloreError` с кодом `INVALID_LLM_RESPONSE`, оборачивая исходную ошибку и включая первые 1000 символов ответа.",
+          "rendered": true,
+          "fingerprint": "signature=e25b82972ad5046190a32f48ed13073a6738e4ec3135a2b594893c92e97f8e64,deps=d32447c520c4aba58eb01969fe8018724de9226a7f88e5a15fbde71c73bf2ca8,usage=325a3999b7187ddb1fde7179e4602a9ce2a0afc413ad2153c7d2753384e35de2",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "parseJsonObject выполняет парсинг в два этапа: сначала без исправлений, затем с исправлением трёх LLM-артефактов."
+          },
+          "language": "ru"
+        },
+        "invariants": {
+          "body": "- Всегда возвращает `Record<string, unknown>` (не массив, не null, не примитив).\n- При неудаче парсинга выбрасывает `CodeloreError` с кодом `INVALID_LLM_RESPONSE`.\n- Valid JSON никогда не проходит через `repairKnownLlmEscapes`.\n- Внутренняя проверка `asJsonObject` выбрасывает обычный `Error`, который перехватывается и оборачивается в CodeloreError.",
+          "rendered": true,
+          "fingerprint": "signature=e25b82972ad5046190a32f48ed13073a6738e4ec3135a2b594893c92e97f8e64,body=7a450d7cc11784327f5aec0e6686a11fd588878a14d0449e7e57829b302feb42",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Первый `JSON.parse` защищает от ложного repair: repair применяется только при ошибке."
+          }
+        },
+        "dependencies": {
+          "body": "CodeloreError (src/errors.ts) — единый формат ошибок с машинно-читаемым кодом для всех компонентов Codelore.",
+          "rendered": true,
+          "fingerprint": "deps=d32447c520c4aba58eb01969fe8018724de9226a7f88e5a15fbde71c73bf2ca8",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Зависимость единственная — CodeloreError."
+          },
+          "language": "ru"
+        },
+        "workflows": {
+          "body": "1. `parseVerifyResponse` (src/llm/doc-verifier.ts) вызывает `parseJsonObject` для парсинга ответа верификатора, затем извлекает поле `contradictions`.\n2. `parseFileWriteResponse` (src/llm/file-writer.ts) вызывает `parseJsonObject` для парсинга ответа записи файла, затем проверяет структуру `sections`.\n3. `src/llm/translator.ts` импортирует `parseJsonObject` для парсинга ответов переводчика.",
+          "rendered": true,
+          "fingerprint": "body=7a450d7cc11784327f5aec0e6686a11fd588878a14d0449e7e57829b302feb42,deps=d32447c520c4aba58eb01969fe8018724de9226a7f88e5a15fbde71c73bf2ca8",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается тремя модулями для парсинга JSON от LLM."
+          },
+          "language": "ru"
+        },
+        "limitations": {
+          "body": "repairKnownLlmEscapes заменяет только три паттерна (`` \\` ``, `\\$`, `\\.`). Если первый JSON.parse выбрасывает исключение, второй парсинг применяет repairKnownLlmEscapes, что может исказить корректные экранирования, не связанные с этими паттернами.",
+          "rendered": true,
+          "fingerprint": "body=7a450d7cc11784327f5aec0e6686a11fd588878a14d0449e7e57829b302feb42",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Только три паттерна исправляются, и repair применяется только при неудаче первого парсинга."
+          },
+          "language": "ru"
+        },
+        "changeGuide": {
+          "body": "1. Инвариант «Всегда возвращает Record<string, unknown>» enforce-ится выражением `throw new Error(\"not an object\")` в функции `asJsonObject`. Названных тестов не видно.\n2. Инвариант «При неудаче парсинга выбрасывает CodeloreError с кодом INVALID_LLM_RESPONSE» enforce-ится выражением `throw new CodeloreError(\"INVALID_LLM_RESPONSE\", message, { cause: error instanceof Error ? error.message : String(error), response: content.slice(0, 1000), })`. Названных тестов не видно.",
+          "rendered": true,
+          "fingerprint": "body=7a450d7cc11784327f5aec0e6686a11fd588878a14d0449e7e57829b302feb42,deps=d32447c520c4aba58eb01969fe8018724de9226a7f88e5a15fbde71c73bf2ca8,usage=325a3999b7187ddb1fde7179e4602a9ce2a0afc413ad2153c7d2753384e35de2,placement=9b3e9d410710a4e55cefb03a154011b0e9f1e62043f3743a5e64181f7b33d99b",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Два ключевых инварианта enforce-ятся конкретными throw-выражениями."
+          },
+          "language": "ru"
+        }
+      },
+      "depDocsFingerprint": "043766bbe87cafd90b69d5fa9b9aabcb58c88f75a234363cd593c50bdf52ab50",
+      "generationHistory": [
+        {
+          "runId": "f6a3f4ba-4e16-4227-9555-767c1c6e96a7",
+          "timestamp": "2026-06-10T19:55:19.012Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "a7046937-2e94-4ccf-94da-48f19ec4f9cc",
+          "timestamp": "2026-06-10T21:16:16.832Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "74780818-2bcb-467b-a4ba-ae5bbf256e9a",
+          "timestamp": "2026-06-11T21:22:29.199Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:19:56.870Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:25:43.566Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    },
+    "symbol:src/llm/json.ts#readOptionalString": {
+      "heading": "readOptionalString",
+      "depth": 1,
+      "anchor": "readoptionalstring",
+      "owns": [
+        "symbol:src/llm/json.ts#readOptionalString"
+      ],
+      "depends": [
+        "symbol:src/errors.ts#CodeloreError"
+      ],
+      "usedBy": [
+        "file:src/llm/file-writer.ts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Безопасное извлечение опциональных строковых полей из разобранного JSON-объекта с возвратом `undefined` при отсутствии или пустом значении.",
+          "rendered": true,
+          "fingerprint": "signature=394d5c78e872ca0bdce9894e5549c2d7e1205b8f5f1f0da2a7964b74af90847c,placement=08b43284e21b446d2fcaf9d57e81c143438635398bce09bfb626e93096250cdd",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Чтение строкового поля из разобранного JSON-объекта с безопасной обработкой отсутствия (null/undefined) и пустых строк."
+          }
+        },
+        "responsibility": {
+          "body": "- Не проверяет наличие поля — возвращает `undefined` при `undefined`/`null`.\n- Не преобразует типы — если значение присутствует, оно должно быть строкой, иначе выбрасывает `CodeloreError` с кодом `INVALID_LLM_RESPONSE`.\n- Не валидирует содержимое строки, кроме удаления пробелов с краёв.",
+          "rendered": true,
+          "fingerprint": "signature=394d5c78e872ca0bdce9894e5549c2d7e1205b8f5f1f0da2a7964b74af90847c,deps=e1ad117264ff599927dddd880d0b55cc4fa030b2c9ae4aa2fa0cce59c137f087,usage=ad2be478d8ec75ceaa1fa8461494b5c0230b72601e6d9cd222fab94bb3060fe9",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Границы: не проверяет наличие поля, не преобразует типы, не валидирует содержимое строки."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращает `undefined` только если поле отсутствует, равно `undefined`/`null`, или после `trim` пусто.\n- Возвращает строку (trimmed) с длиной > 0, если поле — строка.\n- Если значение не строка — выбрасывает `CodeloreError` с кодом `INVALID_LLM_RESPONSE`.",
+          "rendered": true,
+          "fingerprint": "signature=394d5c78e872ca0bdce9894e5549c2d7e1205b8f5f1f0da2a7964b74af90847c,body=1e2d032cbb535f161315452ae14f1d18a8ec09b4b237441e1e0372bd7b3f5cb5",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Гарантии: undefined при отсутствии/null/пустом, строка при наличии, ошибка при нестроковом типе."
+          }
+        },
+        "dependencies": {
+          "body": "CodeloreError (src/errors.ts) — единый формат ошибок с машинно-читаемым кодом для всех компонентов Codelore.",
+          "rendered": false,
+          "fingerprint": "deps=e1ad117264ff599927dddd880d0b55cc4fa030b2c9ae4aa2fa0cce59c137f087",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.25,
+            "specificity": 0.75,
+            "novelFact": "Зависимость единственная — CodeloreError."
+          },
+          "language": "ru"
+        },
+        "workflows": {
+          "body": "Вызывается в `src/llm/file-writer.ts` при разборе блоков секций для чтения опциональных строковых полей (например, метаданных). При отсутствии поля возвращается `undefined`, вызывающий решает, использовать значение по умолчанию или пропустить.",
+          "rendered": true,
+          "fingerprint": "body=1e2d032cbb535f161315452ae14f1d18a8ec09b4b237441e1e0372bd7b3f5cb5,deps=e1ad117264ff599927dddd880d0b55cc4fa030b2c9ae4aa2fa0cce59c137f087",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Используется в file-writer для опциональных полей."
+          },
+          "language": "ru"
+        },
+        "limitations": {
+          "body": "Не поддерживает вложенные поля — только прямой доступ `raw[field]`.",
+          "rendered": true,
+          "fingerprint": "body=1e2d032cbb535f161315452ae14f1d18a8ec09b4b237441e1e0372bd7b3f5cb5",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Поддерживает только прямой доступ, не рекурсивный."
+          },
+          "language": "ru"
+        }
+      },
+      "depDocsFingerprint": "043766bbe87cafd90b69d5fa9b9aabcb58c88f75a234363cd593c50bdf52ab50",
+      "generationHistory": [
+        {
+          "runId": "f6a3f4ba-4e16-4227-9555-767c1c6e96a7",
+          "timestamp": "2026-06-10T19:55:19.014Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "a7046937-2e94-4ccf-94da-48f19ec4f9cc",
+          "timestamp": "2026-06-10T21:16:16.833Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "c1327f82-e935-4ac7-9328-7b82bc1dfe0c",
+          "timestamp": "2026-06-11T21:27:34.489Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:25:43.567Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        }
+      ]
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

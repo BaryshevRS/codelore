@@ -1,0 +1,136 @@
+{
+  "version": 4,
+  "docPath": "src/graph/diff.codelore.md",
+  "generatedAt": "2026-07-03T19:06:58.745Z",
+  "sectionOrder": [
+    "symbol:src/graph/diff.ts#parseUnifiedDiff"
+  ],
+  "sections": {
+    "symbol:src/graph/diff.ts#parseUnifiedDiff": {
+      "heading": "parseUnifiedDiff",
+      "depth": 1,
+      "anchor": "parseunifieddiff",
+      "owns": [
+        "symbol:src/graph/diff.ts#parseUnifiedDiff"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.analyzeChange",
+        "symbol:src/service/codelore-service.ts#CodeloreService.changedEntitiesFromDiff"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Преобразует строку unified diff в структурированный список файлов с указанием затронутых диапазонов строк для последующего анализа изменений в проекте.",
+          "rendered": true,
+          "fingerprint": "signature=301fb3a984f39d2bc10fe0f9a66e6740cf573445c2b8d81f024414e0418bc66d,placement=4248713f9070b6f759be4e30d0e3e055b92cac6eef83695e585c3d993d4e1d6c",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Эта функция — единственный источник структурированного представления diff в проекте, используемый для определения изменённых файлов и затронутых сущностей."
+          }
+        },
+        "responsibility": {
+          "body": "- Парсит заголовки файлов (`diff --git`) и плюс-заголовки (`+++ b/...`), извлекая пути файлов.\n- Извлекает заголовки ханков (`@@ ... @@`) и вычисляет начальную строку и диапазон для каждого ханка.\n- Собирает результаты в массив объектов `DiffFileChange`, группируя ханки по файлу.",
+          "rendered": true,
+          "fingerprint": "signature=301fb3a984f39d2bc10fe0f9a66e6740cf573445c2b8d81f024414e0418bc66d,deps=7d60c1b9aed29edf5c9a79db5a7b3250806445a69b71bcc0ccc187a26eed0052,usage=d0f6ec9202a581d214ca166c18715f6916f176efb5e05e10ee985699ad963932",
+          "language": "ru",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 0.5,
+            "specificity": 1,
+            "novelFact": "Функция делегирует парсинг отдельных элементов трем вспомогательным функциям: parseDiffFileHeader, parsePlusHeader, parseHunkHeader."
+          }
+        },
+        "invariants": {
+          "body": "- Каждый элемент содержит path и массив ranges, где каждый range соответствует одному заголовку ханка, а его startLine и endLine вычислены согласно unified diff формату.\n- Функция игнорирует любые строки diff, не соответствующие трём известным паттернам (заголовок файла, заголовок +++, заголовок ханка), и продолжает обработку без ошибок.",
+          "rendered": true,
+          "fingerprint": "signature=301fb3a984f39d2bc10fe0f9a66e6740cf573445c2b8d81f024414e0418bc66d,body=94005c6baa6d5b0c383c80e3ff2a14e3a08ac125fdf50b0467de5bf26df81072",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция игнорирует любые строки diff, не соответствующие трём известным паттернам (заголовок файла, заголовок +++, заголовок ханка)."
+          }
+        },
+        "workflows": {
+          "body": "Функция вызывается из двух методов сервиса CodeloreService. В CodeloreService.analyzeChange она преобразует дифф-строку в список путей файлов, когда передан параметр diff, или когда diff прочитан через readGitDiff; полученные пути передаются в changedEntitiesFromDiff. В CodeloreService.changedEntitiesFromDiff она вызывается напрямую для итерации по структурированным изменениям и сопоставления диапазонов строк с сущностями кода.",
+          "rendered": true,
+          "fingerprint": "body=94005c6baa6d5b0c383c80e3ff2a14e3a08ac125fdf50b0467de5bf26df81072,deps=7d60c1b9aed29edf5c9a79db5a7b3250806445a69b71bcc0ccc187a26eed0052",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "parseUnifiedDiff служит первичным источником структурированных данных о файловых изменениях для двух методов CodeloreService, составляющих основу анализа влияния изменений."
+          }
+        },
+        "limitations": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=94005c6baa6d5b0c383c80e3ff2a14e3a08ac125fdf50b0467de5bf26df81072"
+        },
+        "changeGuide": {
+          "body": "Функция поддерживает два ключевых инварианта. 1. Каждый объект в массиве ranges соответствует ровно одному разобранному заголовку ханка. Это обеспечивается проверкой `if (hunk && current) { current.ranges.push(hunk); }`, которая выполняется только при успешном парсинге ханка и наличии текущего файла. Тест, проверяющий это поведение, не представлен в текущем контексте. 2. Строки, не соответствующие ни одному из трёх паттернов, игнорируются и не прерывают обработку. Это обеспечено последовательностью условных операторов `if (filePath)`, `if (plusPath)`, `if (hunk && current)` без ветки `else`, так что неподходящие строки не имеют эффекта. Тест не указан.",
+          "rendered": true,
+          "fingerprint": "body=94005c6baa6d5b0c383c80e3ff2a14e3a08ac125fdf50b0467de5bf26df81072,deps=7d60c1b9aed29edf5c9a79db5a7b3250806445a69b71bcc0ccc187a26eed0052,usage=d0f6ec9202a581d214ca166c18715f6916f176efb5e05e10ee985699ad963932,placement=4248713f9070b6f759be4e30d0e3e055b92cac6eef83695e585c3d993d4e1d6c",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Инварианты пропуска неизвестных строк и однозначного соответствия диапазонов ханкам зафиксированы конкретными условными конструкциями, что делает функцию устойчивой к нестандартному выводу diff."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "a3b9d6ac-7d72-44bb-9350-19df43e636e1",
+          "timestamp": "2026-07-03T19:05:12.307Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "a3b9d6ac-7d72-44bb-9350-19df43e636e1",
+          "timestamp": "2026-07-03T19:06:58.745Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

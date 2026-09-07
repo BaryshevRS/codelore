@@ -1,0 +1,104 @@
+{
+  "version": 4,
+  "docPath": "docs/domains/llm-source-context-prep.codelore.md",
+  "generatedAt": "2026-07-08T07:59:27.227Z",
+  "sectionOrder": [
+    "domain:llm-source-context-prep"
+  ],
+  "sections": {
+    "domain:llm-source-context-prep": {
+      "heading": "Подготовка исходного контекста для LLM-верификации",
+      "depth": 1,
+      "anchor": "подготовка-исходного-контекста-для-llm-верификации",
+      "owns": [
+        "domain:llm-source-context-prep"
+      ],
+      "depends": [
+        "file:src/llm/strip-comments.ts",
+        "file:src/llm/type-context.ts"
+      ],
+      "usedBy": [
+        "domain:llm-generation-pipeline"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Подсистема готовит для LLM очищенный от комментариев исходный код и контекст объявлений типов, прямо используемых в секциях документации. Результат — компактный синтаксический материал без шума, позволяющий модели сосредоточиться на верификации структуры и типов.",
+          "rendered": true,
+          "fingerprint": "signature=8150be0690e10dca7b90c3e823bd7915b9c75fd19e59ca77c3c294ead9f16ac2,placement=df1ae2ec4a336cdf1263674783afd09aae446a53cdec892e3faf293bf87175a0",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Подсистема готовит для LLM очищенный от комментариев исходный код и контекст объявлений типов, прямо используемых в секциях документации."
+          }
+        },
+        "responsibility": {
+          "body": "Подсистема удаляет из исходного кода все комментарии, разрешая неоднозначность между оператором деления и началом регулярного выражения на основе предыдущего значимого токена, и нормализует пустые строки (схлопывает три и более перевода строки в два). Затем она находит в файлах объявления типов, на которые прямо ссылаются документируемые секции, отбрасывает типы из внешних пакетов и стандартной библиотеки, удаляет из найденных объявлений комментарии и ограничивает размер каждого объявления и общего результата константами `TYPE_DECL_CAP` и `TYPE_CONTEXT_TOTAL_CAP`.",
+          "rendered": true,
+          "fingerprint": "signature=8150be0690e10dca7b90c3e823bd7915b9c75fd19e59ca77c3c294ead9f16ac2,deps=9a792e9a38aa7a422e2248bb08479383cc28f49655778e473d1eed21252d957a,usage=17fb979aeb429e758161000dca8ae0a676f3fe114824a75c1598c7edcb9bf48d",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Разрешает неоднозначность между оператором деления и началом регулярного выражения на основе предыдущего значимого токена."
+          }
+        },
+        "dependencies": {
+          "body": "Опирается на компилятор TypeScript: использует `ts.createScanner` для токенизации и разрешение модулей для фильтрации типов. Конфигурационные константы `TYPE_DECL_CAP` и `TYPE_CONTEXT_TOTAL_CAP` регулируют размер выдачи.",
+          "rendered": true,
+          "fingerprint": "deps=9a792e9a38aa7a422e2248bb08479383cc28f49655778e473d1eed21252d957a",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Опирается на `ts.createScanner` для токенизации и разрешение модулей TypeScript для фильтрации типов."
+          }
+        },
+        "workflows": {
+          "body": "Вызывающий код сперва передаёт исходный код в `stripComments` и получает очищенную версию. Затем он вызывает `collectTypeContext`, передавая очищенный код и массив ссылок на типы, извлечённых из документационных секций. `collectTypeContext` для каждой ссылки определяет файл объявления, вырезает фрагмент, отбрасывает внешние и стандартные типы, удаляет комментарии через `stripComments`, проверяет лимиты и накапливает результат. Пара «чистый код + типовой контекст» помещается в промпт LLM.",
+          "rendered": true,
+          "fingerprint": "body=8150be0690e10dca7b90c3e823bd7915b9c75fd19e59ca77c3c294ead9f16ac2,deps=9a792e9a38aa7a422e2248bb08479383cc28f49655778e473d1eed21252d957a",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Пара «чистый код + типовой контекст» помещается в промпт LLM."
+          }
+        },
+        "limitations": {
+          "body": "Не обрабатывает JSX (сканер работает в `LanguageVariant.Standard`). Не включает типы из внешних пакетов и стандартной библиотеки. Каждое объявление обрезается до `TYPE_DECL_CAP`, а общий размер результата не превышает `TYPE_CONTEXT_TOTAL_CAP`. Не читает файлы, в которых нет типов, упомянутых в документации. Не заменяет полноценный парсер/лексер — только токенизация через `ts.createScanner`.",
+          "rendered": true,
+          "fingerprint": "body=8150be0690e10dca7b90c3e823bd7915b9c75fd19e59ca77c3c294ead9f16ac2",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не обрабатывает JSX, ограничиваясь стандартным вариантом языка."
+          }
+        }
+      },
+      "memberDocsFingerprint": "c7dd7e9743634c1e6ec265a1116f6fc1fe008ffe94e6062d50bf9926a1fafb85"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

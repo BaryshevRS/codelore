@@ -1,0 +1,142 @@
+{
+  "version": 4,
+  "docPath": "src/context/enclosing-resolver.codelore.md",
+  "generatedAt": "2026-06-10T12:36:44.614Z",
+  "sectionOrder": [
+    "symbol:src/context/enclosing-resolver.ts#resolveEnclosing"
+  ],
+  "sections": {
+    "symbol:src/context/enclosing-resolver.ts#resolveEnclosing": {
+      "heading": "resolveEnclosing",
+      "depth": 1,
+      "anchor": "resolveenclosing",
+      "owns": [
+        "symbol:src/context/enclosing-resolver.ts#resolveEnclosing"
+      ],
+      "depends": [
+        "symbol:src/context/ast-helpers.ts#computeSyntaxRole"
+      ],
+      "usedBy": [
+        "file:src/context/runtime-context-builder.ts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Преобразует отфильтрованный ripgrep-хит в `RuntimeHit` с идентификатором сущности кода, в которой находится литерал.",
+          "rendered": true,
+          "fingerprint": "signature=f22c9e9cc3ba4cce859f12cc6f2a018bc9dd29ffc3164d07ae0504275f6f062d,placement=0ee407021bd4430ddf8abd69c1db71a5a3a40b562d5b645a48b1b18e1f53ff3c",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 0.75,
+            "novelFact": "Функция связывает сырой хит с конкретной сущностью (функцией, классом) через AST-обход."
+          }
+        },
+        "responsibility": {
+          "body": "- Не фильтрует хиты — этим занимается `AstHitFilter`.\n- Не ищет литералы в файлах — это делает `searchLiteral`.\n- Не обрабатывает самоссылки — возвращает `null`, если разрешённая сущность совпадает с целевой.\n- Делегирует вычисление синтаксической роли `computeSyntaxRole`.",
+          "rendered": true,
+          "fingerprint": "signature=f22c9e9cc3ba4cce859f12cc6f2a018bc9dd29ffc3164d07ae0504275f6f062d,deps=d6a52a0c6e3c6907f7058bfd6776f730ba8e9b66a8e4e2e4049f09fe5d5fe69a,usage=bf2b5a93f8d7516aff9d0f77ab92883a47197fda5f1a42116359c1a6810dc3e2",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 0.75,
+            "novelFact": "Границы ответственности чётко отделяют разрешение от фильтрации и поиска."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращает `null`, если узел литерала не найден по `hit.offset`.\n- Возвращает `null`, если `entityId` разрешённой сущности совпадает с `targetEntityId`.\n- Всегда возвращает `entityId` — либо из `codeIndex.fileToEntities`, либо `file:indexFileKey`.\n- Возвращаемая сущность — наименьшая по диапазону, полностью вмещающая контейнер литерала.",
+          "rendered": true,
+          "fingerprint": "signature=f22c9e9cc3ba4cce859f12cc6f2a018bc9dd29ffc3164d07ae0504275f6f062d,body=dc7a85fd0b5c6676ca2caca0058dd3e36623c150232c508858b0d81c79b974d7",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 0.75,
+            "novelFact": "Гарантируется, что возвращаемая сущность — минимальная по размеру среди всех, содержащих контейнер."
+          }
+        },
+        "dependencies": {
+          "body": "- `computeSyntaxRole` (`src/context/ast-helpers.ts`) — определяет синтаксическую роль литерала в AST.",
+          "rendered": true,
+          "fingerprint": "deps=d6a52a0c6e3c6907f7058bfd6776f730ba8e9b66a8e4e2e4049f09fe5d5fe69a",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 1,
+            "specificity": 0.75,
+            "novelFact": "Единственная внутренняя зависимость — функция определения синтаксической роли."
+          }
+        },
+        "workflows": {
+          "body": "1. `resolveSingleHit` в `runtime-context-builder.ts` вызывает `resolveEnclosing` после фильтрации хита через `AstHitFilter`.\n2. Функция находит узел литерала в AST по `hit.offset`.\n3. Обходит AST вверх до контейнера (функция, класс, декорированный класс) через `walkUpToContainer`.\n4. Ищет наименьшую сущность в `codeIndex.fileToEntities`, чей диапазон полностью покрывает контейнер.\n5. Возвращает `RuntimeHit` с `entityId`, `literalValue`, `syntaxRole` и позицией вызова.",
+          "rendered": true,
+          "fingerprint": "body=dc7a85fd0b5c6676ca2caca0058dd3e36623c150232c508858b0d81c79b974d7,deps=d6a52a0c6e3c6907f7058bfd6776f730ba8e9b66a8e4e2e4049f09fe5d5fe69a",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 0.75,
+            "novelFact": "Вызывается для каждого отфильтрованного ripgrep-хита в цикле по литералам."
+          }
+        },
+        "limitations": {
+          "body": "- Учитывает только сущности из `codeIndex.fileToEntities` для конкретного файла; если контейнер не попадает ни в одну индексированную сущность, возвращается `file:indexFileKey`.\n- Не обрабатывает вложенные контейнеры (например, стрелочную функцию внутри метода) — выбирается наименьшая сущность, содержащая весь контейнер.\n- Полагается на корректность позиций `ts-morph`; смещение на 1 может привести к пропуску узла.",
+          "rendered": true,
+          "fingerprint": "body=dc7a85fd0b5c6676ca2caca0058dd3e36623c150232c508858b0d81c79b974d7",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 0.75,
+            "novelFact": "Ограничения связаны с точностью AST-позиций и покрытием индекса."
+          }
+        },
+        "changeGuide": {
+          "body": "1. Если меняется логика `walkUpToContainer` (добавление новых типов контейнеров), проверить, что все существующие сценарии обхода по-прежнему находят корректный контейнер.\n2. Если меняется алгоритм `findSmallestContainingEntity` (например, с наименьшего на наибольший), сломается точность привязки хита к сущности — downstream-секции, ожидающие конкретную функцию, получат класс.\n3. Если меняется сигнатура `computeSyntaxRole`, обновить вызов и проверить, что возвращаемое значение корректно передаётся в `RuntimeHit`.",
+          "rendered": true,
+          "fingerprint": "body=dc7a85fd0b5c6676ca2caca0058dd3e36623c150232c508858b0d81c79b974d7,deps=d6a52a0c6e3c6907f7058bfd6776f730ba8e9b66a8e4e2e4049f09fe5d5fe69a,usage=bf2b5a93f8d7516aff9d0f77ab92883a47197fda5f1a42116359c1a6810dc3e2,placement=0ee407021bd4430ddf8abd69c1db71a5a3a40b562d5b645a48b1b18e1f53ff3c",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 0.75,
+            "novelFact": "Три конкретных угла поломки: обход контейнеров, алгоритм выбора сущности, зависимость от `computeSyntaxRole`."
+          }
+        }
+      },
+      "depDocsFingerprint": "eeb51e6f063e67c3f15224632419a88c8fc4b17939d8bea2b4a445cc98635967",
+      "generationHistory": [
+        {
+          "runId": "4d8c9311-178a-4cf1-9357-692225f67b1a",
+          "timestamp": "2026-06-10T12:36:44.614Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

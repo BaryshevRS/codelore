@@ -1,0 +1,143 @@
+{
+  "version": 4,
+  "docPath": "src/context/literal-extractor.codelore.md",
+  "generatedAt": "2026-06-10T12:36:46.745Z",
+  "sectionOrder": [
+    "symbol:src/context/literal-extractor.ts#extractLiterals"
+  ],
+  "sections": {
+    "symbol:src/context/literal-extractor.ts#extractLiterals": {
+      "heading": "extractLiterals",
+      "depth": 1,
+      "anchor": "extractliterals",
+      "owns": [
+        "symbol:src/context/literal-extractor.ts#extractLiterals"
+      ],
+      "depends": [
+        "symbol:src/context/ast-helpers.ts#computeSyntaxRole"
+      ],
+      "usedBy": [
+        "file:src/context/runtime-context-builder.ts",
+        "symbol:src/context/runtime-context-builder.ts#buildRuntimeContext"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Выделяет строковые литералы в заданном диапазоне исходного кода для последующего поиска по проекту в процессе построения runtime-контекста.",
+          "rendered": true,
+          "fingerprint": "signature=3a59bbaaa97b0ab78e5e7fb189f204b071706711c71690626529f412af3a3130,placement=e434cffb6865ecac5b3610eedba254de0f26c807a981d14f9724a899407cdace",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "This function is the initial extraction step for runtime context building, producing the atomic units of stringly-typed contracts."
+          }
+        },
+        "responsibility": {
+          "body": "- Не обрабатывает литералы внутри `import`, `export`, JSDoc, type-аннотаций и литералов с контекстным типом — делегирует фильтрацию функциям из `ast-helpers.ts`.\n- Не включает другие типы литералов (числа, булевы) — только строковые и no-substitution template literal.\n- Не пересекает границы файла — работает только в пределах переданного `SourceFile`.\n- Не ищет семантические совпадения — возвращает только значение, синтаксическую роль и позицию.",
+          "rendered": true,
+          "fingerprint": "signature=3a59bbaaa97b0ab78e5e7fb189f204b071706711c71690626529f412af3a3130,deps=8413bddcb2de990380450d786d0255d56e4113fb73d0fc573f1398dba63b0530,usage=4a2d9bb4fdf0de96ef793e863e7ad611c4e6260792f42ebf90bf8f113c0afcc6",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function delegates filtering to helpers in ast-helpers.ts, keeping its own logic focused on traversal and deduplication."
+          }
+        },
+        "invariants": {
+          "body": "- Длина каждого отфильтрованного литерала ≥ 4 символов (константа `MIN_LITERAL_LENGTH`).\n- Один литерал на одну позицию (дедупликация по комбинации `offset:value`).\n- Возвращает пустой массив, если в диапазоне нет подходящих литералов.\n- Порядок результатов — обход в глубину AST (`forEachDescendant`).",
+          "rendered": true,
+          "fingerprint": "signature=3a59bbaaa97b0ab78e5e7fb189f204b071706711c71690626529f412af3a3130,body=d007bc53bb2845d637bec4a629a7bb452e9f13c0d2bb929262829fd528dc607a",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The dedup key uses offset+value to treat identical values at different positions as separate entries."
+          }
+        },
+        "dependencies": {
+          "body": "- `computeSyntaxRole` (`src/context/ast-helpers.ts`) — определяет синтаксическую роль литерала (аргумент вызова, инициализатор свойства и т.д.).\n- Остальные вспомогательные функции фильтрации (проверка на импорты/экспорты, JSDoc, type-узлы, контекстный тип) — `src/context/ast-helpers.ts`.",
+          "rendered": true,
+          "fingerprint": "deps=8413bddcb2de990380450d786d0255d56e4113fb73d0fc573f1398dba63b0530",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "All filtering helpers live in the same module, which is the single dependency for AST-level decisions."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `buildRuntimeContext` с целевым `SourceFile` и `target.range`. Если `extractLiterals` возвращает пустой массив, `buildRuntimeContext` немедленно возвращает `{ hits: [], unresolvedLiterals: [] }`. В противном случае для каждого уникального значения (через `uniqueValues`) запускается поиск по проекту (`searchLiteral`) с исключением файла цели, а результаты фильтруются через `resolveHitsForLiteral`.",
+          "rendered": true,
+          "fingerprint": "body=d007bc53bb2845d637bec4a629a7bb452e9f13c0d2bb929262829fd528dc607a,deps=8413bddcb2de990380450d786d0255d56e4113fb73d0fc573f1398dba63b0530",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "When no literals are extracted, the entire runtime context build short-circuits, avoiding unnecessary search."
+          }
+        },
+        "limitations": {
+          "body": "- Фильтр `hasLiteralContextualType` работает только для выражений — литералы в позициях без контекстного типа (например, `return \"literal\"`) не отсеиваются.\n- Минимальная длина `MIN_LITERAL_LENGTH = 4` — короткие строки игнорируются, что может пропустить значимые контракты (например, `\"id\"`).\n- Дедупликация по `offset:value` — один и тот же литерал на разных позициях учитывается повторно, хотя значение уже обрабатывалось.",
+          "rendered": true,
+          "fingerprint": "body=d007bc53bb2845d637bec4a629a7bb452e9f13c0d2bb929262829fd528dc607a",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The contextual-type filter does not cover all positions (e.g. return statements), so some typed literals may still be extracted."
+          }
+        },
+        "changeGuide": {
+          "body": "1. Изменение `MIN_LITERAL_LENGTH` — повлияет на количество извлечённых литералов, а значит на число поисков по проекту. Проверить тюнинг производительности в тестах `buildRuntimeContext`.\n2. Добавление нового условия в `isAcceptableLiteral` — может скрыть литералы, которые ожидаются в `resolveHitsForLiteral`. Проверить итоговые `RuntimeHit` через прогон интеграционного теста (связка `extractLiterals` → `searchLiteral`).\n3. Изменение дедупликации (например, снятие `offset` из ключа) — приведёт к потере одного и того же значения на разных позициях. Проверить, что `directUsages` не потеряли срабатываний.",
+          "rendered": true,
+          "fingerprint": "body=d007bc53bb2845d637bec4a629a7bb452e9f13c0d2bb929262829fd528dc607a,deps=8413bddcb2de990380450d786d0255d56e4113fb73d0fc573f1398dba63b0530,usage=4a2d9bb4fdf0de96ef793e863e7ad611c4e6260792f42ebf90bf8f113c0afcc6,placement=e434cffb6865ecac5b3610eedba254de0f26c807a981d14f9724a899407cdace",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Each change in the filter or dedup logic directly affects the completeness of runtime context hits and can silently break downstream resolution."
+          }
+        }
+      },
+      "depDocsFingerprint": "eeb51e6f063e67c3f15224632419a88c8fc4b17939d8bea2b4a445cc98635967",
+      "generationHistory": [
+        {
+          "runId": "4d8c9311-178a-4cf1-9357-692225f67b1a",
+          "timestamp": "2026-06-10T12:36:46.745Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

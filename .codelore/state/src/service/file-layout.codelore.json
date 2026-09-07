@@ -1,0 +1,149 @@
+{
+  "version": 4,
+  "docPath": "src/service/file-layout.codelore.md",
+  "generatedAt": "2026-06-20T13:35:28.106Z",
+  "sectionOrder": [
+    "symbol:src/service/file-layout.ts#planFileLayout"
+  ],
+  "sections": {
+    "symbol:src/service/file-layout.ts#planFileLayout": {
+      "heading": "planFileLayout",
+      "depth": 1,
+      "anchor": "planfilelayout",
+      "owns": [
+        "symbol:src/service/file-layout.ts#planFileLayout"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "file:src/service/prepare-docs.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.prepareInitialDocs"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Преобразует список сущностей кода в структурированный план секций документации для одного файла.",
+          "rendered": true,
+          "fingerprint": "signature=c86e1177f61e5e5ecc94aabdab86d57853516a46607c7dec0bcf1b5302fc5404,placement=4146977b4f0ddd31a1edd4f1dd69aa7420e9a4c1d86ef63faa35a84fe1eab085",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "Функция определяет, какие сущности получат заголовки первого уровня, а какие — второго (методы классов)."
+          }
+        },
+        "responsibility": {
+          "body": "- Сортирует сущности по возрастанию `startOffset`.\n- Для всех остальных сущностей назначает заголовок первого уровня с полным именем.\n- Не генерирует содержимое документации и не сохраняет результат.",
+          "rendered": true,
+          "fingerprint": "signature=c86e1177f61e5e5ecc94aabdab86d57853516a46607c7dec0bcf1b5302fc5404,deps=f38e10a9fc461ed148ed8740d0753d07c351013a03392947816ec0eb496d1270,usage=cc1b27a34abdbf0cb431fa941a322c4f24f408be3380787274d675515d408739",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция не генерирует содержимое документации и не сохраняет результат — только возвращает массив `PlannedSection`."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращённые `PlannedSection` расположены в порядке возрастания `startOffset` исходных сущностей.\n- Для метода класса заголовком является только имя метода (без префикса класса), глубина 2.\n- Для всех прочих сущностей заголовком является полное имя сущности, глубина 1.\n- Результат не сохраняется и не сериализуется — только возвращается.",
+          "rendered": true,
+          "fingerprint": "signature=c86e1177f61e5e5ecc94aabdab86d57853516a46607c7dec0bcf1b5302fc5404,body=780ca3b11da23f093d1f2953fe56737bd69f09f4cb90e111c2282c666a229fa2",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "Контракты на порядок вывода и формат заголовка не упоминаются в других блоках."
+          }
+        },
+        "workflows": {
+          "body": "- Вызывается из `CodeloreService.prepareInitialDocs` для каждой группы сущностей, сгруппированных по исходному файлу.\n- Результат используется для заполнения `DocState.sectionOrder` и создания свежих `DocStateSection` для каждой запланированной сущности.\n- Если сущность уже существовала в состоянии, её блоки не перезаписываются — сохраняются через `withPreservedBlockBodies`.",
+          "rendered": true,
+          "fingerprint": "body=780ca3b11da23f093d1f2953fe56737bd69f09f4cb90e111c2282c666a229fa2,deps=f38e10a9fc461ed148ed8740d0753d07c351013a03392947816ec0eb496d1270",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "Раскрывает конкретный вызов и как результат используется в `DocState`."
+          }
+        },
+        "limitations": {
+          "body": "- Не обрабатывает сущности с именами, содержащими точку, если они не являются методами классов (например, вложенные сущности).\n- Определение владеющего класса основывается только на именах классов из того же набора `entities` — если метод относится к классу из другого файла, он не будет распознан.\n- Не поддерживает пользовательские заголовки или переопределение глубины.",
+          "rendered": true,
+          "fingerprint": "body=780ca3b11da23f093d1f2953fe56737bd69f09f4cb90e111c2282c666a229fa2",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "Ограничения на распознавание методов из других файлов и вложенных сущностей не упоминаются в других блоках."
+          }
+        },
+        "changeGuide": {
+          "body": "- Сортировка по `startOffset`: секции располагаются в порядке возрастания начального смещения. Конструкция: `[...entities].sort((left, right) => left.range.startOffset - right.range.startOffset)`. Тестовый файл: не указан.\n- Заголовок метода класса: для методов класса заголовком является только имя метода (без префикса класса). Конструкция: `entity.name.slice(lastDot + 1)` внутри условия `entity.type === \"method\" && hasOwningClassInBatch(entity, classNames)`. Тестовый файл: не указан.",
+          "rendered": true,
+          "fingerprint": "body=780ca3b11da23f093d1f2953fe56737bd69f09f4cb90e111c2282c666a229fa2,deps=f38e10a9fc461ed148ed8740d0753d07c351013a03392947816ec0eb496d1270,usage=cc1b27a34abdbf0cb431fa941a322c4f24f408be3380787274d675515d408739,placement=4146977b4f0ddd31a1edd4f1dd69aa7420e9a4c1d86ef63faa35a84fe1eab085",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "changeGuide заменяет устаревший блок с причиной usage_changed; оба инварианта подтверждены текущим кодом."
+          }
+        }
+      },
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "generationHistory": [
+        {
+          "runId": "73827264-087c-49a8-a0e1-24f71e3a61c0",
+          "timestamp": "2026-06-11T12:57:59.645Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.847Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.106Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "changeGuide"
+          ]
+        }
+      ]
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

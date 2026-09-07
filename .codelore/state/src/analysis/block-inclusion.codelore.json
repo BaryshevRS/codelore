@@ -1,0 +1,140 @@
+{
+  "version": 4,
+  "docPath": "src/analysis/block-inclusion.codelore.md",
+  "generatedAt": "2026-06-10T21:10:25.286Z",
+  "sectionOrder": [
+    "symbol:src/analysis/block-inclusion.ts#determineBlockInclusion"
+  ],
+  "sections": {
+    "symbol:src/analysis/block-inclusion.ts#determineBlockInclusion": {
+      "heading": "determineBlockInclusion",
+      "depth": 1,
+      "anchor": "determineblockinclusion",
+      "owns": [
+        "symbol:src/analysis/block-inclusion.ts#determineBlockInclusion"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/indexer/code-indexer.ts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Решает, какие блоки Markdown-секции включать в финальную документацию сущности, на основе метрик и конфигурации.",
+          "rendered": true,
+          "fingerprint": "signature=6e4b0aea63942422adb5a333a3387ea25d83cab97d34ed0d622a13336f1775fb,placement=36bd57dc0d34c139f2c68b76e3beab7470821e6f8bd5d09a50e1b8418c50cf99",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Является точкой принятия решения о составе секции на основе трёх предикатов (зависимости, сценарии, changeGuide)."
+          }
+        },
+        "responsibility": {
+          "body": "- Не управляет содержимым включаемых блоков — только решает, включать ли блок целиком.\n- Не определяет порядок блоков — он фиксирован в `BLOCK_IDS`.\n- Не учитывает историю или версию сущности — решение исключительно по наблюдаемым метрикам.",
+          "rendered": true,
+          "fingerprint": "signature=6e4b0aea63942422adb5a333a3387ea25d83cab97d34ed0d622a13336f1775fb,deps=eda4a6ce26d9c4cb508b5256614b46f6def6b48c1bef21487a8b10d45f9f4261,usage=2cf14d820a4203c771571536178154159a687b6065584c68c2bbc9b3f57b5cdb",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Отсутствие управления содержимым является намеренной границей ответственности."
+          }
+        },
+        "invariants": {
+          "body": "- Всегда включает `purpose`, `responsibility`, `invariants`, `limitations`.\n- При `config.blockInclusion.enabled === false` возвращает все блоки без пропусков.\n- Решение для `dependencies`, `workflows`, `changeGuide` принимается независимо и не отменяет ALWAYS_INCLUDED.",
+          "rendered": true,
+          "fingerprint": "signature=6e4b0aea63942422adb5a333a3387ea25d83cab97d34ed0d622a13336f1775fb,body=d07b314a5d4a1ac8d79838292fbee2beb3574a317f93785d178365ac99ce1a75",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Решение для каждого опционального блока принимается независимо, не влияя на ALWAYS_INCLUDED."
+          }
+        },
+        "dependencies": {
+          "body": "- `BLOCK_IDS` (`src/markdown/block-ids.ts`) — массив идентификаторов всех возможных блоков секции.\n- `shouldIncludeDependencies` (локальная) — предикат, проверяющий наличие внутренних зависимостей или значимых импортов.\n- `shouldIncludeWorkflows` (локальная) — предикат, проверяющий inDegree > 0 или статус entry point.\n- `shouldIncludeChangeGuide` (локальная) — предикат, проверяющий `decision.role === \"full_page\"`.",
+          "rendered": true,
+          "fingerprint": "deps=eda4a6ce26d9c4cb508b5256614b46f6def6b48c1bef21487a8b10d45f9f4261",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "перечислены все локальные предикаты с их сигнатурой принятия решения"
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `src/indexer/code-indexer.ts` в цикле формирования метаданных каждой сущности. Для каждой сущности вызывается ровно один раз за проход индексации. Результат (`allowedBlocks`, `skipped`) записывается в `entity.metadata` и используется при генерации документации.",
+          "rendered": true,
+          "fingerprint": "body=d07b314a5d4a1ac8d79838292fbee2beb3574a317f93785d178365ac99ce1a75,deps=eda4a6ce26d9c4cb508b5256614b46f6def6b48c1bef21487a8b10d45f9f4261",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается однократно за сущность на этапе индексации; результат сохраняется в entity.metadata."
+          }
+        },
+        "limitations": {
+          "body": "- Решение о включении `dependencies` принимается без анализа транзитивных зависимостей.\n- Решение о включении `workflows` не учитывает асинхронные вызовы или динамический импорт.\n- Решение о включении `changeGuide` жёстко привязано к роли `full_page`, что исключает включение для partial- или inline-сущностей.",
+          "rendered": true,
+          "fingerprint": "body=d07b314a5d4a1ac8d79838292fbee2beb3574a317f93785d178365ac99ce1a75",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Жёсткая привязка changeGuide к роли full_page — намеренное ограничение, не учитывающее частичную документацию."
+          }
+        },
+        "changeGuide": {
+          "body": "1. Добавление нового предиката — убедиться, что его результат не взаимоблокирует ALWAYS_INCLUDED.\n2. Изменение логики `shouldIncludeWorkflows` — проверить, что inDegree не учитывает циклические ссылки; может требоваться пересчёт индекса.\n3. Снятие блока из ALWAYS_INCLUDED — сломает контракт с `populateDocumentationMetadata` в `src/indexer/code-indexer.ts`, которая ожидает хотя бы эти 4 блока. Нарушение не будет обнаружено на уровне типов, только через интеграционные тесты.",
+          "rendered": true,
+          "fingerprint": "body=d07b314a5d4a1ac8d79838292fbee2beb3574a317f93785d178365ac99ce1a75,deps=eda4a6ce26d9c4cb508b5256614b46f6def6b48c1bef21487a8b10d45f9f4261,usage=2cf14d820a4203c771571536178154159a687b6065584c68c2bbc9b3f57b5cdb,placement=36bd57dc0d34c139f2c68b76e3beab7470821e6f8bd5d09a50e1b8418c50cf99",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Указаны конкретные риски: снятие ALWAYS_INCLUDED не ловится типами; inDegree может содержать циклы."
+          }
+        }
+      },
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "generationHistory": [
+        {
+          "runId": "61372614-014e-462a-bae1-622628a3489c",
+          "timestamp": "2026-06-10T21:10:25.286Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

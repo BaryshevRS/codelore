@@ -1,0 +1,108 @@
+{
+  "version": 4,
+  "docPath": "docs/domains/code-metrics-analysis.codelore.md",
+  "generatedAt": "2026-07-08T07:59:27.227Z",
+  "sectionOrder": [
+    "domain:code-metrics-analysis"
+  ],
+  "sections": {
+    "domain:code-metrics-analysis": {
+      "heading": "Анализ метрик кода и решения о документировании",
+      "depth": 1,
+      "anchor": "анализ-метрик-кода-и-решения-о-документировании",
+      "owns": [
+        "domain:code-metrics-analysis"
+      ],
+      "depends": [
+        "file:src/analysis/block-inclusion.ts",
+        "file:src/analysis/class-cohesion.ts",
+        "file:src/analysis/decision-pass.ts",
+        "file:src/analysis/entity-metrics.ts",
+        "file:src/analysis/wrapper-detector.ts",
+        "domain:common-utils"
+      ],
+      "usedBy": [
+        "domain:code-doc-indexing"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Подсистема вычисляет для каждой сущности метрики размера, связности и побочных эффектов, обнаруживает тонкие обёртки и на основе логарифмического веса определяет роль документации и перечень включаемых Markdown-блоков. Остальная система получает готовые решения о том, какую документацию генерировать для каждой сущности, без повторного анализа.",
+          "rendered": true,
+          "fingerprint": "signature=85f1ae388aea27f85049485966a0a546b5f340f9a0d0348d8c5c63bb03d74b0c,placement=5635347b285b0e68859bab88eefa92321467093664bd7467cf62b622d9b04272",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Подсистема вычисляет метрики сущностей и на их основе назначает документационную роль и перечень включаемых блоков"
+          }
+        },
+        "responsibility": {
+          "body": "Владеет полным конвейером от получения индекса кода до выдачи решений о блоках. computeEntityMetrics делегирует подсчёт операторов, фильтрацию прямых использований и статический поиск побочных эффектов утилитам countStatements, effectiveDirectUsages и hasSideEffects. analyzeClassCohesion измеряет связность классов через пересечение полей, detectPrivateWrappers находит приватные методы, которые являются тонкими обёртками. Затем decideDocumentationRoles, делегируя вычисление роли функции decideEntityRole, получает вес через calculateWeight по логарифмической формуле, назначает роль, а determineBlockInclusion выбирает блоки по метрикам и конфигурации.",
+          "rendered": true,
+          "fingerprint": "signature=85f1ae388aea27f85049485966a0a546b5f340f9a0d0348d8c5c63bb03d74b0c,deps=f3a699b4c50a71e2aa73da4e7e55962150086c0470260677d244af7cc78bae92,usage=17189cb8d83ff0c05d349b77e15479c3c2f61fa6cd2a7b02fcba885f972f232b",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вес сущности вычисляется логарифмической формулой, учитывающей количество операторов, прямой in-degree и наличие побочных эффектов."
+          }
+        },
+        "dependencies": {
+          "body": "Опирается на «Общие низкоуровневые утилиты» для хеширования идентификаторов, нормализации путей и кодирования URI. Не выполняет парсинг TypeScript (получает AST из индекса), не сохраняет решения на диск, не анализирует динамический код (eval, new Function), косвенные вызовы (call/apply) или перегрузки методов. Не отслеживает побочные эффекты через присваивания свойствам объектов, кроме process.env. In-degree считается только по прямым использованиям, без транзитивных связей.",
+          "rendered": false,
+          "fingerprint": "deps=f3a699b4c50a71e2aa73da4e7e55962150086c0470260677d244af7cc78bae92",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.25,
+            "specificity": 0.5,
+            "novelFact": "Отсутствует работа с файловой системой — все вычисления чисто функциональны и используют только утилиты для хеширования и путей."
+          }
+        },
+        "workflows": {
+          "body": "Входной индекс подаётся в computeEntityMetrics, которая делегирует подсчёт операторов (countStatements), фильтрацию прямых использований (effectiveDirectUsages) и проверку обращений к process.env (hasSideEffects). Затем analyzeClassCohesion для каждого класса определяет overlap полей, а detectPrivateWrappers находит приватные методы-обёртки, вызывающие ровно один другой метод. Полученные метрики и результаты анализа передаются в decideDocumentationRoles, которая делегирует назначение роли функции decideEntityRole, а calculateWeight объединяет метрики (при необходимости с приватным методом-якорем) и вычисляет вес по логарифмической шкале. Наконец, determineBlockInclusion использует метрики и конфигурацию, чтобы определить, какие блоки включить.",
+          "rendered": true,
+          "fingerprint": "body=85f1ae388aea27f85049485966a0a546b5f340f9a0d0348d8c5c63bb03d74b0c,deps=f3a699b4c50a71e2aa73da4e7e55962150086c0470260677d244af7cc78bae92",
+          "language": "ru",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "Этапы выполняются строго последовательно: метрики, связность и обёртки, роль, блоки — каждое последующее решение зависит от результатов предыдущего."
+          }
+        },
+        "limitations": {
+          "body": "Не обрабатывает динамически порождаемый код, косвенные вызовы (call/apply) и перегрузки методов. Побочные эффекты детектируются только по обращениям к process.env; присваивания полям других объектов игнорируются. Класс без методов считается несвязным (fieldOverlap=0). Обнаружение обёрток работает исключительно для приватных методов классов. In-degree вычисляется без транзитивных использований. Вес не учитывает историю изменений, а конфигурация блоков задаётся внешним кодом вне подсистемы.",
+          "rendered": true,
+          "fingerprint": "body=85f1ae388aea27f85049485966a0a546b5f340f9a0d0348d8c5c63bb03d74b0c",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Побочные эффекты распознаются исключительно по обращениям к process.env; присваивания свойствам других объектов не отслеживаются."
+          }
+        }
+      },
+      "memberDocsFingerprint": "14bfe656450d2ed271f43589c33d5db154a1a2912c373b4b7f3873af84161b84"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

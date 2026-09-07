@@ -1,0 +1,231 @@
+{
+  "version": 4,
+  "docPath": "src/llm/provider.codelore.md",
+  "generatedAt": "2026-07-03T16:25:43.570Z",
+  "sectionOrder": [
+    "symbol:src/llm/provider.ts#createConfiguredProvider"
+  ],
+  "sections": {
+    "symbol:src/llm/provider.ts#createConfiguredProvider": {
+      "heading": "createConfiguredProvider",
+      "depth": 1,
+      "anchor": "createconfiguredprovider",
+      "owns": [
+        "symbol:src/llm/provider.ts#createConfiguredProvider"
+      ],
+      "depends": [
+        "symbol:src/errors.ts#CodeloreError"
+      ],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.gateDepDocsCascade",
+        "symbol:src/service/codelore-service.ts#CodeloreService.runPipelineForSections",
+        "symbol:src/service/codelore-service.ts#CodeloreService.translateScope"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Точка входа для создания настроенного LLM-провайдера по имени из конфигурации, с разрешением имени по умолчанию и валидацией существования.",
+          "rendered": true,
+          "fingerprint": "signature=f2a0bdd5d71093178e1c89076f2f4ffd7920e9ae8b75e40b4693c92c7b17d53d,placement=a77eba084af621d9a5b330d7dc7f35253cfc7d0eb335ecc1996244b27413d72b",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 0.5,
+            "novelFact": "Разрешает имя провайдера и валидирует его существование перед делегированием создания."
+          }
+        },
+        "responsibility": {
+          "body": "- Разрешает имя провайдера через `providerName ?? config.llm.provider`.\n- Валидирует наличие конфигурации для разрешённого имени в `config.llm.providers`, при отсутствии бросает `CodeloreError(\"UNKNOWN_LLM_PROVIDER\")`.\n- Делегирует создание `ChatCompletionProvider` внутренней функции `createProvider`, передавая ей имя, конфигурацию и runtime.\n- Предоставляет точку входа для внешних вызывающих, не управляя временем жизни возвращённого объекта и не обрабатывая ошибки вызова LLM — эти обязанности лежат на `OpenAiCompatibleProvider.complete`.",
+          "rendered": true,
+          "fingerprint": "signature=f2a0bdd5d71093178e1c89076f2f4ffd7920e9ae8b75e40b4693c92c7b17d53d,deps=513f4b3b7c85c7c5d22ee4c1b2269175c849eeb89c6a26040220d559ccd2b92e,usage=a0c9adda44038bb7158b74603b91c71e77f0fcf22e2340f49d49c8bfce6bb166",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Разрешает имя провайдера и валидирует его существование в конфигурации, затем делегирует создание реализации."
+          },
+          "language": "ru"
+        },
+        "invariants": {
+          "body": "- Бросает `CodeloreError(\"UNKNOWN_LLM_PROVIDER\")`, если `providerName` или `config.llm.provider` не найден в `config.llm.providers`.\n- Для любого валидного имени возвращает объект, реализующий `ChatCompletionProvider`.\n- Не модифицирует `config` и `runtime`.",
+          "rendered": true,
+          "fingerprint": "signature=f2a0bdd5d71093178e1c89076f2f4ffd7920e9ae8b75e40b4693c92c7b17d53d,body=f601fa2cab23c169eb2fe5d26d44a73a29eaac9517984f027119a4e31e9a7579",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "Гарантирует возврат провайдера для любого валидного имени и не модифицирует входные объекты."
+          }
+        },
+        "dependencies": {
+          "body": "- `CodeloreError` (`src/errors.ts`) — для структурированной ошибки при отсутствии конфигурации провайдера.",
+          "rendered": true,
+          "fingerprint": "deps=513f4b3b7c85c7c5d22ee4c1b2269175c849eeb89c6a26040220d559ccd2b92e",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Зависит только от CodeloreError для валидации имени провайдера."
+          },
+          "language": "ru"
+        },
+        "workflows": {
+          "body": "Вызывается из `CodeloreService.gateDepDocsCascade`, `CodeloreService.runPipelineForSections` и `CodeloreService.translateScope` во время генерации документации. Каждый вызывающий передаёт `runtime.providerName`, `runtime.env` и `runtime.fetch`. Функция разрешает имя провайдера, проверяет наличие конфигурации в `config.llm.providers` и делегирует создание провайдера в `createProvider`. Возвращённый `ChatCompletionProvider` используется в каждом из этих методов для соответствующих этапов генерации. Порядок выполнения не гарантирован, так как вызовы идут из разных этапов пайплайна.",
+          "rendered": true,
+          "fingerprint": "body=f601fa2cab23c169eb2fe5d26d44a73a29eaac9517984f027119a4e31e9a7579,deps=513f4b3b7c85c7c5d22ee4c1b2269175c849eeb89c6a26040220d559ccd2b92e",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Используется тремя различными методами CodeloreService для создания провайдера на разных этапах генерации."
+          },
+          "language": "ru"
+        },
+        "limitations": {
+          "body": "Поддерживает только провайдеры с типом `\"openai-compatible\"`; для других типов выбрасывает `CodeloreError(\"UNKNOWN_LLM_PROVIDER\")` через вызов `createProvider`. Ограничение накладывается внутренней функцией `createProvider`, которая проверяет `config.type === \"openai-compatible\"` и выбрасывает ошибку для других типов.",
+          "rendered": true,
+          "fingerprint": "body=f601fa2cab23c169eb2fe5d26d44a73a29eaac9517984f027119a4e31e9a7579",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Ограничивает поддержку только openai-совместимыми провайдерами, что контролируется проверкой типа в createProvider."
+          },
+          "language": "ru"
+        },
+        "changeGuide": {
+          "body": "1. Разрешение имени провайдера: инвариант закреплён в строке `const name = providerName ?? config.llm.provider;`. 2. Валидация наличия конфигурации: инвариант закреплён в проверке `if (!providerConfig) { throw new CodeloreError(\"UNKNOWN_LLM_PROVIDER\", ...) }`.",
+          "rendered": true,
+          "fingerprint": "body=f601fa2cab23c169eb2fe5d26d44a73a29eaac9517984f027119a4e31e9a7579,deps=513f4b3b7c85c7c5d22ee4c1b2269175c849eeb89c6a26040220d559ccd2b92e,usage=a0c9adda44038bb7158b74603b91c71e77f0fcf22e2340f49d49c8bfce6bb166,placement=a77eba084af621d9a5b330d7dc7f35253cfc7d0eb335ecc1996244b27413d72b",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Два ключевых инварианта: разрешение имени через оператор `??` и проверка существования конфигурации с выбрасыванием ошибки."
+          },
+          "language": "ru"
+        }
+      },
+      "depDocsFingerprint": "043766bbe87cafd90b69d5fa9b9aabcb58c88f75a234363cd593c50bdf52ab50",
+      "generationHistory": [
+        {
+          "runId": "22bccca0-cf47-476d-bbf5-52789133117c",
+          "timestamp": "2026-06-10T19:48:25.139Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "a7046937-2e94-4ccf-94da-48f19ec4f9cc",
+          "timestamp": "2026-06-10T21:16:17.754Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "c1327f82-e935-4ac7-9328-7b82bc1dfe0c",
+          "timestamp": "2026-06-11T21:27:35.775Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "1372adf6-4062-4467-b8d3-6610906819f7",
+          "timestamp": "2026-06-13T20:26:07.280Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "1372adf6-4062-4467-b8d3-6610906819f7",
+          "timestamp": "2026-06-13T20:32:16.448Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:19:56.872Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:25:43.570Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

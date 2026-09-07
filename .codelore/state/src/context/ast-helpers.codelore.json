@@ -1,0 +1,625 @@
+{
+  "version": 4,
+  "docPath": "src/context/ast-helpers.codelore.md",
+  "generatedAt": "2026-06-10T12:33:55.573Z",
+  "sectionOrder": [
+    "symbol:src/context/ast-helpers.ts#isInsideImportExport",
+    "symbol:src/context/ast-helpers.ts#isInsideJsDoc",
+    "symbol:src/context/ast-helpers.ts#isInsideTypeNode",
+    "symbol:src/context/ast-helpers.ts#hasLiteralContextualType",
+    "symbol:src/context/ast-helpers.ts#computeSyntaxRole"
+  ],
+  "sections": {
+    "symbol:src/context/ast-helpers.ts#isInsideImportExport": {
+      "heading": "isInsideImportExport",
+      "depth": 1,
+      "anchor": "isinsideimportexport",
+      "owns": [
+        "symbol:src/context/ast-helpers.ts#isInsideImportExport"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/context/ast-hit-filter.ts",
+        "file:src/context/literal-extractor.ts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Отсеивает строковые литералы, находящиеся внутри `import` или `export` деклараций.",
+          "rendered": true,
+          "fingerprint": "signature=e5f50f5d4effbf3baf08835ed756389a10bb16a2016e85935e8be7a5405c2306,placement=d7c8be903aebb6b8f7b40e367bf8e12d30d97c659215d6ab1f12caa666405775",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Фильтрация литералов в import/export — часть pipeline фильтрации AST-узлов."
+          }
+        },
+        "responsibility": {
+          "body": "- Не проверяет другие виды деклараций (например, `require`).\n- Не определяет, является ли узел частью модульного specifier — только проверяет наличие предка-декларации.\n- Не различает `import` и `export` — возвращает `true` для обоих.",
+          "rendered": true,
+          "fingerprint": "signature=e5f50f5d4effbf3baf08835ed756389a10bb16a2016e85935e8be7a5405c2306,deps=8ec425c01900071b596d6b2e92508881f73cb0659728239a2ffa768611575a04,usage=6842fa75b9c56f86c8256ed6b7374e45822af68d77919af5f73b417e772449c8",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Границы ответственности: не различает import/export, не проверяет require."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращает `true` для любого узла, у которого есть предок `ImportDeclaration` или `ExportDeclaration`.\n- Возвращает `false` для узлов вне таких деклараций.\n- Не бросает исключений.",
+          "rendered": true,
+          "fingerprint": "signature=e5f50f5d4effbf3baf08835ed756389a10bb16a2016e85935e8be7a5405c2306,body=8f39171017100e7e3b0b604796fdaae7ee2d167b60418de5453ad4ef6b4896d3",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Инварианты: true для любого предка ImportDeclaration/ExportDeclaration, false иначе, без исключений."
+          }
+        },
+        "dependencies": {
+          "body": "- `ts-morph` — предоставляет `Node` и методы `isImportDeclaration`, `isExportDeclaration`, `getFirstAncestor`.",
+          "rendered": true,
+          "fingerprint": "deps=8ec425c01900071b596d6b2e92508881f73cb0659728239a2ffa768611575a04",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Зависимость от ts-morph для навигации по AST."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `isAcceptedLiteralNode` в `src/context/ast-hit-filter.ts` и `isAcceptableLiteral` в `src/context/literal-extractor.ts`. Обе функции проверяют, что строковый литерал не находится внутри `import`/`export`, прежде чем считать его валидным литералом для дальнейшей обработки.",
+          "rendered": true,
+          "fingerprint": "body=8f39171017100e7e3b0b604796fdaae7ee2d167b60418de5453ad4ef6b4896d3,deps=8ec425c01900071b596d6b2e92508881f73cb0659728239a2ffa768611575a04",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается в pipeline фильтрации литералов в двух модулях."
+          }
+        },
+        "limitations": {
+          "body": "Не обрабатывает динамические импорты (`import()`) — они не являются `ImportDeclaration`.",
+          "rendered": true,
+          "fingerprint": "body=8f39171017100e7e3b0b604796fdaae7ee2d167b60418de5453ad4ef6b4896d3",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не обрабатывает динамические импорты."
+          }
+        }
+      },
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "generationHistory": [
+        {
+          "runId": "4d8c9311-178a-4cf1-9357-692225f67b1a",
+          "timestamp": "2026-06-10T12:33:55.569Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        }
+      ]
+    },
+    "symbol:src/context/ast-helpers.ts#isInsideJsDoc": {
+      "heading": "isInsideJsDoc",
+      "depth": 1,
+      "anchor": "isinsidejsdoc",
+      "owns": [
+        "symbol:src/context/ast-helpers.ts#isInsideJsDoc"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/context/ast-hit-filter.ts",
+        "file:src/context/literal-extractor.ts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Отсеивает строковые литералы, находящиеся внутри JSDoc-комментариев.",
+          "rendered": true,
+          "fingerprint": "signature=b8ffbd3cf31a616b4178c62dbc8b78e45f66d44f5b879aa9efec32c6cdc8e961,placement=386628e6791e8ce4e7fb0493a4fec6d60bb77b6852f7f24faebaf146679e45cb",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Фильтрация литералов в JSDoc — часть pipeline фильтрации AST-узлов."
+          }
+        },
+        "responsibility": {
+          "body": "- Не проверяет другие виды комментариев (однострочные, блочные).\n- Не различает типы JSDoc-тегов — возвращает `true` для любого предка `JSDoc`.",
+          "rendered": true,
+          "fingerprint": "signature=b8ffbd3cf31a616b4178c62dbc8b78e45f66d44f5b879aa9efec32c6cdc8e961,deps=03d18b9c38c1e8180936c40a9b53a087f759dde1888028129ccd9e7df45d1427,usage=f7be9e771dd7eb8703300bac79c040511b1cb2365a30f885c8f23a5ff0bfa609",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Границы: не проверяет другие комментарии, не различает теги JSDoc."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращает `true` для любого узла, у которого есть предок `JSDoc`.\n- Возвращает `false` для узлов вне JSDoc.\n- Не бросает исключений.",
+          "rendered": true,
+          "fingerprint": "signature=b8ffbd3cf31a616b4178c62dbc8b78e45f66d44f5b879aa9efec32c6cdc8e961,body=91da631eba975762eaa5c58e03d2287295e3abb81ab231e4b27870f15ea5bec5",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Инварианты: true для любого предка JSDoc, false иначе, без исключений."
+          }
+        },
+        "dependencies": {
+          "body": "- `ts-morph` — предоставляет `Node` и метод `isJSDoc`, `getFirstAncestor`.",
+          "rendered": true,
+          "fingerprint": "deps=03d18b9c38c1e8180936c40a9b53a087f759dde1888028129ccd9e7df45d1427",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Зависимость от ts-morph для навигации по AST."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `isAcceptedLiteralNode` в `src/context/ast-hit-filter.ts` и `isAcceptableLiteral` в `src/context/literal-extractor.ts`. Обе функции проверяют, что строковый литерал не находится внутри JSDoc, прежде чем считать его валидным литералом для дальнейшей обработки.",
+          "rendered": true,
+          "fingerprint": "body=91da631eba975762eaa5c58e03d2287295e3abb81ab231e4b27870f15ea5bec5,deps=03d18b9c38c1e8180936c40a9b53a087f759dde1888028129ccd9e7df45d1427",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается в pipeline фильтрации литералов в двух модулях."
+          }
+        },
+        "limitations": {
+          "body": "Не обрабатывает комментарии, не являющиеся JSDoc (например, `//` или `/* */`).",
+          "rendered": true,
+          "fingerprint": "body=91da631eba975762eaa5c58e03d2287295e3abb81ab231e4b27870f15ea5bec5",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не обрабатывает не-JSDoc комментарии."
+          }
+        }
+      },
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "generationHistory": [
+        {
+          "runId": "4d8c9311-178a-4cf1-9357-692225f67b1a",
+          "timestamp": "2026-06-10T12:33:55.570Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        }
+      ]
+    },
+    "symbol:src/context/ast-helpers.ts#isInsideTypeNode": {
+      "heading": "isInsideTypeNode",
+      "depth": 1,
+      "anchor": "isinsidetypenode",
+      "owns": [
+        "symbol:src/context/ast-helpers.ts#isInsideTypeNode"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/context/ast-hit-filter.ts",
+        "file:src/context/literal-extractor.ts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Отсеивает строковые литералы, находящиеся внутри type-аннотаций (литеральных union-типов).",
+          "rendered": true,
+          "fingerprint": "signature=249abf1b860b24ddfca0d4101f574189e3fb51c183949bda43fd3ee137ca10a8,placement=878282ea4e1b9d657a0817e783c66a2b01dddfba3c33037913e2376b862576b1",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Фильтрация литералов в type-пространстве — часть pipeline фильтрации AST-узлов."
+          }
+        },
+        "responsibility": {
+          "body": "- Не проверяет другие type-узлы (например, `TypeReference`, `ArrayType`).\n- Не различает конкретные литеральные union-типы — возвращает `true` для любого предка `LiteralTypeNode`.",
+          "rendered": true,
+          "fingerprint": "signature=249abf1b860b24ddfca0d4101f574189e3fb51c183949bda43fd3ee137ca10a8,deps=529a2ea9ea7adc03cba0576edb9d6082e87b0bd1b30ff4d0ea61e197d68be9de,usage=1f86bb2a85b8a974d840aa4de7911b85109995d4c12c94aa38315e07188787e2",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Границы: не проверяет другие type-узлы, не различает union-типы."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращает `true` для любого узла, у которого есть предок `LiteralTypeNode`.\n- Возвращает `false` для узлов вне `LiteralTypeNode`.\n- Не бросает исключений.",
+          "rendered": true,
+          "fingerprint": "signature=249abf1b860b24ddfca0d4101f574189e3fb51c183949bda43fd3ee137ca10a8,body=914cf5cfae8b8a7fae9524169348c25157d028acda1fc3870e51861de85c8460",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Инварианты: true для любого предка LiteralTypeNode, false иначе, без исключений."
+          }
+        },
+        "dependencies": {
+          "body": "- `ts-morph` — предоставляет `Node` и метод `isLiteralTypeNode`, `getFirstAncestor`.",
+          "rendered": true,
+          "fingerprint": "deps=529a2ea9ea7adc03cba0576edb9d6082e87b0bd1b30ff4d0ea61e197d68be9de",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Зависимость от ts-morph для навигации по AST."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `isAcceptedLiteralNode` в `src/context/ast-hit-filter.ts` и `isAcceptableLiteral` в `src/context/literal-extractor.ts`. Обе функции проверяют, что строковый литерал не находится внутри type-аннотации, прежде чем считать его валидным литералом для дальнейшей обработки.",
+          "rendered": true,
+          "fingerprint": "body=914cf5cfae8b8a7fae9524169348c25157d028acda1fc3870e51861de85c8460,deps=529a2ea9ea7adc03cba0576edb9d6082e87b0bd1b30ff4d0ea61e197d68be9de",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается в pipeline фильтрации литералов в двух модулях."
+          }
+        },
+        "limitations": {
+          "body": "Не обрабатывает литералы в других type-контекстах, например, в `TypeAliasDeclaration` без `LiteralTypeNode`.",
+          "rendered": true,
+          "fingerprint": "body=914cf5cfae8b8a7fae9524169348c25157d028acda1fc3870e51861de85c8460",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не обрабатывает литералы в других type-контекстах."
+          }
+        }
+      },
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "generationHistory": [
+        {
+          "runId": "4d8c9311-178a-4cf1-9357-692225f67b1a",
+          "timestamp": "2026-06-10T12:33:55.571Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        }
+      ]
+    },
+    "symbol:src/context/ast-helpers.ts#hasLiteralContextualType": {
+      "heading": "hasLiteralContextualType",
+      "depth": 1,
+      "anchor": "hasliteralcontextualtype",
+      "owns": [
+        "symbol:src/context/ast-helpers.ts#hasLiteralContextualType"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/context/ast-hit-filter.ts",
+        "file:src/context/literal-extractor.ts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Определяет, является ли строковый литерал частью выражения, чей контекстный тип — строковый литерал или union строковых литералов.",
+          "rendered": true,
+          "fingerprint": "signature=19815a2a0180b2d910d2bb1ef304fcac9f3950dbad6ab72368b641c5aac705d0,placement=e3f2765a4a8e90acef26685d8d60074c110b2ef76841f7831b57e36024bca683",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Проверка контекстного типа для отсеивания литералов, чьё значение контролируется компилятором."
+          }
+        },
+        "responsibility": {
+          "body": "- Не проверяет контекстный тип для не-выражений (возвращает `false`).\n- Для выражений в бинарных операциях сравнения и `case`-клаузах читает тип противоположного операнда напрямую, так как TypeScript не даёт контекстный тип в этих позициях.\n- Не проверяет другие синтаксические конструкции, где контекстный тип может быть неявным (например, `return` в функции с возвращаемым типом).",
+          "rendered": true,
+          "fingerprint": "signature=19815a2a0180b2d910d2bb1ef304fcac9f3950dbad6ab72368b641c5aac705d0,deps=3ae6b39e2fb6c7c188c351df2fdb4f4a69392e1f2659bd140d6e79670ae28a6d,usage=c04412f11138f15478f6d29cb90943e33c60bf4436aeda570239ba9756363963",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Границы: не проверяет не-выражения, обрабатывает бинарные операции и case-клаузы особым образом."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращает `false` для узлов, не являющихся `Expression`.\n- Для выражений в бинарных операциях сравнения (`===`, `!==`, `==`, `!=`) и `case`-клаузах проверяет тип противоположного операнда.\n- Для остальных выражений использует `getContextualType()`.\n- Возвращает `true`, если контекстный тип — строковый литерал или union строковых литералов.\n- Не бросает исключений.",
+          "rendered": true,
+          "fingerprint": "signature=19815a2a0180b2d910d2bb1ef304fcac9f3950dbad6ab72368b641c5aac705d0,body=c9e2576b7d238ecf9e3ac3be6e5bb89f8f233cb051ef4e071949ec7b79ebd732",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Инварианты: false для не-Expression, специальная обработка для сравнений и case, использование getContextualType для остальных."
+          }
+        },
+        "dependencies": {
+          "body": "- `ts-morph` — предоставляет `Node`, `Type`, `SyntaxKind`, методы `isExpression`, `isBinaryExpression`, `isCaseClause`, `isSwitchStatement`, `getContextualType`, `getType`, `isStringLiteral`, `isUnion`, `getUnionTypes`.",
+          "rendered": true,
+          "fingerprint": "deps=3ae6b39e2fb6c7c188c351df2fdb4f4a69392e1f2659bd140d6e79670ae28a6d",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Зависимость от ts-morph для проверки типов и навигации по AST."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `isAcceptedLiteralNode` в `src/context/ast-hit-filter.ts` и `isAcceptableLiteral` в `src/context/literal-extractor.ts`. Обе функции проверяют, что строковый литерал не имеет контекстного типа-литерала, прежде чем считать его валидным литералом для дальнейшей обработки.",
+          "rendered": true,
+          "fingerprint": "body=c9e2576b7d238ecf9e3ac3be6e5bb89f8f233cb051ef4e071949ec7b79ebd732,deps=3ae6b39e2fb6c7c188c351df2fdb4f4a69392e1f2659bd140d6e79670ae28a6d",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается в pipeline фильтрации литералов в двух модулях."
+          }
+        },
+        "limitations": {
+          "body": "- Не обрабатывает контекстный тип для выражений в `return` или присваиваниях, где тип может быть выведен из объявления переменной или возвращаемого типа функции.\n- Полагается на `getContextualType()`, который может возвращать `undefined` для некоторых сложных случаев (например, при ошибках типизации).",
+          "rendered": true,
+          "fingerprint": "body=c9e2576b7d238ecf9e3ac3be6e5bb89f8f233cb051ef4e071949ec7b79ebd732",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не обрабатывает return/присваивания, полагается на getContextualType."
+          }
+        },
+        "changeGuide": {
+          "body": "1. Если изменится логика определения контекстного типа (например, добавятся новые синтаксические конструкции), проверить, что `comparedOperandType` покрывает все необходимые случаи.\n2. Если изменится определение `isStringLiteralOrLiteralUnion` (например, добавится поддержка `TemplateLiteralType`), убедиться, что это не приведёт к ложным срабатываниям для литералов, которые должны быть отфильтрованы.",
+          "rendered": true,
+          "fingerprint": "body=c9e2576b7d238ecf9e3ac3be6e5bb89f8f233cb051ef4e071949ec7b79ebd732,deps=3ae6b39e2fb6c7c188c351df2fdb4f4a69392e1f2659bd140d6e79670ae28a6d,usage=c04412f11138f15478f6d29cb90943e33c60bf4436aeda570239ba9756363963,placement=e3f2765a4a8e90acef26685d8d60074c110b2ef76841f7831b57e36024bca683",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Конкретные углы поломки: изменение comparedOperandType и isStringLiteralOrLiteralUnion."
+          }
+        }
+      },
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "generationHistory": [
+        {
+          "runId": "4d8c9311-178a-4cf1-9357-692225f67b1a",
+          "timestamp": "2026-06-10T12:33:55.572Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    },
+    "symbol:src/context/ast-helpers.ts#computeSyntaxRole": {
+      "heading": "computeSyntaxRole",
+      "depth": 1,
+      "anchor": "computesyntaxrole",
+      "owns": [
+        "symbol:src/context/ast-helpers.ts#computeSyntaxRole"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/context/enclosing-resolver.ts",
+        "file:src/context/literal-extractor.ts",
+        "symbol:src/context/enclosing-resolver.ts#resolveEnclosing",
+        "symbol:src/context/literal-extractor.ts#extractLiterals"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Определяет синтаксическую роль строкового литерала в AST (например, аргумент вызова, инициализатор свойства).",
+          "rendered": true,
+          "fingerprint": "signature=1b11e3d6ef0d81b5dd1ccae33460e8bcf1d5d78b1d8e33d5b6190e72456ec77d,placement=44bccdd6daf5720f24cff66f21a21a6f8af9c8fd570ac52dc0d1f4fd27ec4756",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Классификация литералов по синтаксической роли для анализа использования."
+          }
+        },
+        "responsibility": {
+          "body": "- Не определяет семантическую роль (например, «это имя сущности»).\n- Не обрабатывает все возможные родительские узлы — для неизвестных возвращает `getKindName()` родителя.\n- Для аргументов вызова и `new`-выражений возвращает строку с индексом аргумента.",
+          "rendered": true,
+          "fingerprint": "signature=1b11e3d6ef0d81b5dd1ccae33460e8bcf1d5d78b1d8e33d5b6190e72456ec77d,deps=275a3102c89e229f5f2138a15abab9fd1811a9f0c920d01dc8da16241d6e3361,usage=edb06b4da55d8e29fc1009db9a5b0804ec68cefb04005ce414f3a890245f97f7",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Границы: не определяет семантическую роль, не обрабатывает все родительские узлы."
+          }
+        },
+        "invariants": {
+          "body": "- Всегда возвращает непустую строку.\n- Для узлов без родителя возвращает `\"SourceFile\"`.\n- Для аргументов вызова возвращает `\"CallExpression.arguments[N]\"` или `\"NewExpression.arguments[N]\"`.\n- Для элементов массива возвращает `\"ArrayLiteralExpression.elements[N]\"`.\n- Для известных простых ролей (инициализатор, выражение) возвращает соответствующую строку.\n- Для неизвестных родительских узлов возвращает `getKindName()` родителя.\n- Не бросает исключений.",
+          "rendered": true,
+          "fingerprint": "signature=1b11e3d6ef0d81b5dd1ccae33460e8bcf1d5d78b1d8e33d5b6190e72456ec77d,body=633d8d9b11d2dfa7d39f3bda6a3f0246072d7badf4a81cca2f1300820fbc6cb8",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Инварианты: всегда непустая строка, SourceFile для безродительских, индексированные роли для аргументов/элементов."
+          }
+        },
+        "dependencies": {
+          "body": "- `ts-morph` — предоставляет `Node`, методы `isCallExpression`, `isNewExpression`, `isArrayLiteralExpression`, `isPropertyAssignment`, `isDecorator`, `isVariableDeclaration`, `isReturnStatement`, `isElementAccessExpression`, `isBinaryExpression`, `getParent`, `getArguments`, `getElements`, `getLeft`, `getRight`, `getKindName`.",
+          "rendered": true,
+          "fingerprint": "deps=275a3102c89e229f5f2138a15abab9fd1811a9f0c920d01dc8da16241d6e3361",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Зависимость от ts-morph для навигации по AST и определения типов узлов."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `resolveEnclosing` в `src/context/enclosing-resolver.ts` и `extractLiterals` в `src/context/literal-extractor.ts`. В `resolveEnclosing` используется для заполнения поля `syntaxRole` в `RuntimeHit`. В `extractLiterals` — для заполнения поля `syntaxRole` в `ExtractedLiteral`.",
+          "rendered": true,
+          "fingerprint": "body=633d8d9b11d2dfa7d39f3bda6a3f0246072d7badf4a81cca2f1300820fbc6cb8,deps=275a3102c89e229f5f2138a15abab9fd1811a9f0c920d01dc8da16241d6e3361",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается в двух модулях для разных целей: resolveEnclosing и extractLiterals."
+          }
+        },
+        "limitations": {
+          "body": "- Не обрабатывает все возможные синтаксические конструкции (например, `TaggedTemplateExpression`, `JsxExpression`).\n- Для неизвестных конструкций возвращает `getKindName()`, что может быть менее информативно.",
+          "rendered": true,
+          "fingerprint": "body=633d8d9b11d2dfa7d39f3bda6a3f0246072d7badf4a81cca2f1300820fbc6cb8",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не обрабатывает все конструкции, для неизвестных возвращает getKindName."
+          }
+        },
+        "changeGuide": {
+          "body": "1. Если добавляется новая синтаксическая конструкция (например, `TaggedTemplateExpression`), необходимо добавить соответствующую проверку в `computeArgumentRole` или `computeSimpleParentRole`.\n2. Если изменяется логика определения индекса аргумента (например, для spread-элементов), проверить, что `findIndex` корректно обрабатывает новые случаи.",
+          "rendered": true,
+          "fingerprint": "body=633d8d9b11d2dfa7d39f3bda6a3f0246072d7badf4a81cca2f1300820fbc6cb8,deps=275a3102c89e229f5f2138a15abab9fd1811a9f0c920d01dc8da16241d6e3361,usage=edb06b4da55d8e29fc1009db9a5b0804ec68cefb04005ce414f3a890245f97f7,placement=44bccdd6daf5720f24cff66f21a21a6f8af9c8fd570ac52dc0d1f4fd27ec4756",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Конкретные углы поломки: добавление новых конструкций и изменение логики индексации аргументов."
+          }
+        }
+      },
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "generationHistory": [
+        {
+          "runId": "4d8c9311-178a-4cf1-9357-692225f67b1a",
+          "timestamp": "2026-06-10T12:33:55.573Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

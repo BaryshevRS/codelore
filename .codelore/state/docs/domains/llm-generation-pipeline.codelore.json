@@ -1,0 +1,116 @@
+{
+  "version": 4,
+  "docPath": "docs/domains/llm-generation-pipeline.codelore.md",
+  "generatedAt": "2026-07-08T07:59:27.227Z",
+  "sectionOrder": [
+    "domain:llm-generation-pipeline"
+  ],
+  "sections": {
+    "domain:llm-generation-pipeline": {
+      "heading": "Пайплайн генерации документации файлов",
+      "depth": 1,
+      "anchor": "пайплайн-генерации-документации-файлов",
+      "owns": [
+        "domain:llm-generation-pipeline"
+      ],
+      "depends": [
+        "file:src/llm/file-chunks.ts",
+        "file:src/llm/file-pipeline.ts",
+        "file:src/llm/file-writer.ts",
+        "file:src/llm/generation-debug.ts",
+        "domain:change-impact-graph",
+        "domain:codelore-service-facade",
+        "domain:common-utils",
+        "domain:error-handling",
+        "domain:llm-doc-validation",
+        "domain:llm-json-response-parsing",
+        "domain:llm-source-context-prep",
+        "domain:project-config",
+        "domain:runtime-context"
+      ],
+      "usedBy": [
+        "domain:codelore-service-facade",
+        "domain:stale-blocks-detection"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Пайплайн генерирует документацию для группы изменившихся файлов за один прогон: разбивает исходный код на чанки с учётом лимитов LLM, формирует и отправляет запросы, парсит ответы и проверяет каждый блок на фактические противоречия с помощью LLM, исправляя нарушения в цикле. Итоговый объект FileGenerationOutcome содержит проверенные секции, готовые к сохранению — вызывающему не нужно повторять верификацию. За счёт этого остальная система получает надёжный инструмент сквозной регенерации документации, скрывающий детали лимитов модели и логики промптов.",
+          "rendered": true,
+          "fingerprint": "signature=18c4da53f24478b0f4fefee4c120fbd9be48f3d634c1fb7e5cd171766f63a37d,placement=5dc3178f68813a5cac9caab7ba5e4f1881a51c0c2fd64e52a3d0bd331710ec21",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Итоговый объект FileGenerationOutcome содержит проверенные секции, готовые к сохранению — вызывающему не нужно повторять верификацию."
+          }
+        },
+        "responsibility": {
+          "body": "Подсистема владеет полным циклом генерации документации для группы файлов: сбор документации зависимостей (collectDependencyDocs), разбиение исходного кода на чанки (planWriterChunks), формирование структурированных запросов (buildFileWriteRequest), парсинг ответов LLM (parseFileWriteResponse), факт-чекинг с циклом «ремонт — перепроверка» (verifyChunkFacts и buildRepairRequest). После обработки чанков она проверяет существующие блоки на соответствие документации зависимостей (verifyBlocksAgainstDeps) и атомарно записывает отладочный снимок (writeGenerationDebug). Отдельно, утилита compactChunkCallers уменьшает дублирование тел вызывающих функций, отдавая приоритет вызывающим с runtimeEvidence — это позволяет оптимизировать размер промпта перед генерацией.",
+          "rendered": true,
+          "fingerprint": "signature=18c4da53f24478b0f4fefee4c120fbd9be48f3d634c1fb7e5cd171766f63a37d,deps=7c98f57285f86af3e0f4e9ea8703c6f5ca3d330a9e2374618f95c1a8baff25ff,usage=d57c797853d34ac55e87edcf02dac3c74a2b89bdc3cc2a4c3542c497616b14e2",
+          "language": "ru",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "факт-чекинг выполняется с циклом «ремонт — перепроверка» через buildRepairRequest."
+          }
+        },
+        "dependencies": {
+          "body": "Пайплайн опирается на другие подсистемы за готовыми входными данными: граф изменений и список затронутых файлов/секций приходят от подсистемы «Граф зависимостей и влияние изменений»; бюджет токенов и термины — от «Конфигурации проекта»; runtimeEvidence для вызывающих — от «Построения runtime-контекста из литералов». Структурную валидацию (длину блоков, ссылки) пайплайн не выполняет самостоятельно — она лежит на подсистеме валидации, которая запускается после генерации. Сам пайплайн не строит граф зависимостей, не вычисляет изменения и не сохраняет документацию на диск — эти задачи остаются за вызывающим фасадом сервиса.",
+          "rendered": true,
+          "fingerprint": "deps=7c98f57285f86af3e0f4e9ea8703c6f5ca3d330a9e2374618f95c1a8baff25ff",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "пайплайн не вычисляет граф изменений и не определяет budget модели — он получает на вход уже подготовленные данные от графа зависимостей и конфигурации."
+          }
+        },
+        "workflows": {
+          "body": "generateFileGroup собирает документацию зависимостей и разбивает исходные файлы на чанки через planWriterChunks. Каждый чанк обрабатывается параллельно: запрос к LLM строится buildFileWriteRequest, ответ парсится в FileWriteResult через parseFileWriteResponse, затем verifyChunkFacts проверяет блоки на фактические противоречия и, при обнаружении, запускает ремонт (buildRepairRequest) с повторной верификацией. Результаты чанков сливаются — более поздние чанки перезаписывают одноимённые блоки. Существующие блоки, не попавшие в генерацию, проходят проверку на соответствие документации зависимостей через verifyBlocksAgainstDeps. В конце writeGenerationDebug записывает отладочный снимок прогона.",
+          "rendered": true,
+          "fingerprint": "body=18c4da53f24478b0f4fefee4c120fbd9be48f3d634c1fb7e5cd171766f63a37d,deps=7c98f57285f86af3e0f4e9ea8703c6f5ca3d330a9e2374618f95c1a8baff25ff",
+          "language": "ru",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "более поздние чанки перезаписывают одноимённые блоки из предыдущих при объединении."
+          }
+        },
+        "limitations": {
+          "body": "Пайплайн не сохраняет сгенерированную документацию на диск — возвращает FileGenerationOutcome. planWriterChunks разбивает файлы по границам top-level сущностей и не дробит отдельные сущности; если одна сущность превышает лимит токенов, она не будет разбита, и чанк может выйти за лимиты модели. collectDependencyDocs ограничивает суммарный объём документации зависимостей константами DEP_DOCS_TOTAL_CAP и DEP_DOC_FILE_CAP, молча отбрасывая данные сверх лимита. verifyBlocksAgainstDeps возвращает только идентификаторы секций без нарушений — вызывающий не узнает, какие блоки и в чём противоречат зависимостям. Ошибки файловой системы при записи отладочного снимка пробрасываются наверх без обработки.",
+          "rendered": true,
+          "fingerprint": "body=18c4da53f24478b0f4fefee4c120fbd9be48f3d634c1fb7e5cd171766f63a37d",
+          "language": "ru",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "verifyBlocksAgainstDeps не раскрывает детали противоречий — возвращаются только идентификаторы секций без нарушений."
+          }
+        }
+      },
+      "memberDocsFingerprint": "dda506ac0c6db7ab2808e540b80ad717711f423108f9c90cc55b2c09c91d73e9"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

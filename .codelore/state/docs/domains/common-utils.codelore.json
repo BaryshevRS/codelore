@@ -1,0 +1,109 @@
+{
+  "version": 4,
+  "docPath": "docs/domains/common-utils.codelore.md",
+  "generatedAt": "2026-07-08T07:59:27.227Z",
+  "sectionOrder": [
+    "domain:common-utils"
+  ],
+  "sections": {
+    "domain:common-utils": {
+      "heading": "Общие низкоуровневые утилиты",
+      "depth": 1,
+      "anchor": "общие-низкоуровневые-утилиты",
+      "owns": [
+        "domain:common-utils"
+      ],
+      "depends": [
+        "file:src/utils/hash.ts",
+        "file:src/utils/path.ts"
+      ],
+      "usedBy": [
+        "domain:block-fingerprinting",
+        "domain:code-doc-indexing",
+        "domain:code-metrics-analysis",
+        "domain:initial-docs-preparation",
+        "domain:llm-generation-pipeline",
+        "domain:mcp-server"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Предоставляет детерминированную идентификацию строк через SHA-256-хеширование и кроссплатформенную нормализацию путей с кодированием для URI — для всех вышележащих модулей проекта. Все функции подсистемы опираются исключительно на встроенные модули Node.js и не обращаются к файловой системе, что делает их безопасными для использования в любых контекстах без побочных эффектов.",
+          "rendered": true,
+          "fingerprint": "signature=44fd9c3b84e7cce34830f0f067349e69ec609598dccc49312bbbab63ef0424b5,placement=9a4def83f091ab46aac96e42b6a18a130f50ff0cd212313d66efdcdb9acba605",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Все функции подсистемы опираются исключительно на встроенные модули Node.js и не обращаются к файловой системе, что делает их безопасными для использования в любых контекстах без побочных эффектов."
+          }
+        },
+        "responsibility": {
+          "body": "Модуль sha256 вычисляет 64-символьный hex-дайджест SHA-256 для произвольной строки без нормализации входа. Путевые утилиты нормализуют разделители к POSIX-слешам, вычисляют относительный путь от корня проекта, проводят быструю эвристическую фильтрацию путей для индексации и кодируют/декодируют идентификаторы в URI-безопасный формат — без добавления схемы или префиксов. Ни одна функция не читает диск и не проверяет существование файлов — все операции чисто строковые, без сайд-эффектов.",
+          "rendered": true,
+          "fingerprint": "signature=44fd9c3b84e7cce34830f0f067349e69ec609598dccc49312bbbab63ef0424b5,deps=b7d4f9b7880cbe6eb5a2a2245dbb10e2e8626ae6516816544eda3faf7e4fb824,usage=7316cab743c4737cb7e05e9519e74c99ebe223a69a8d802199b7cd3406b11bdd",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Ни одна функция не читает диск и не проверяет существование файлов — все операции чисто строковые, без сайд-эффектов."
+          }
+        },
+        "dependencies": {
+          "body": "Подсистема использует только `node:crypto` (хеширование), модуль `path` (resolve) и глобальные функции `encodeURIComponent`/`decodeURIComponent`. Все функции реализованы исключительно на встроенных API Node.js без внешних зависимостей и не обращаются к файловой системе. Нет зависимостей от других модулей проекта или конфигураций.",
+          "rendered": true,
+          "fingerprint": "deps=b7d4f9b7880cbe6eb5a2a2245dbb10e2e8626ae6516816544eda3faf7e4fb824",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 1,
+            "novelFact": "Все функции реализованы исключительно на встроенных API Node.js без внешних зависимостей и не обращаются к файловой системе."
+          }
+        },
+        "workflows": {
+          "body": "Утилиты не взаимодействуют друг с другом — каждая вызывается отдельно. Типичная последовательность: строка хешируется `sha256` для идентификации; путь нормализуется `toPosixPath`, приводится к относительному виду `relativeProjectPath`, затем `isProbablyExcluded` помогает решить, нужна ли индексация; для передачи в MCP-сервис `encodeResourceId` кодирует идентификатор, принимающая сторона восстанавливает его через `decodeResourceId`. Все функции реализованы исключительно на встроенных API Node.js без внешних зависимостей и не обращаются к файловой системе.",
+          "rendered": true,
+          "fingerprint": "body=44fd9c3b84e7cce34830f0f067349e69ec609598dccc49312bbbab63ef0424b5,deps=b7d4f9b7880cbe6eb5a2a2245dbb10e2e8626ae6516816544eda3faf7e4fb824",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Все функции реализованы исключительно на встроенных API Node.js без внешних зависимостей и не обращаются к файловой системе."
+          }
+        },
+        "limitations": {
+          "body": "SHA-256 не нормализует вход — разница в регистре или пробелах даёт разные хеши. Путевые утилиты не проверяют существование файлов, не разрешают симлинки и не изменяют регистр; результат `relativeProjectPath` может содержать `..`, если путь вне корня. `isProbablyExcluded` не обрабатывает glob и регулярные выражения, поэтому может пропустить неочевидные пути. `encodeResourceId`/`decodeResourceId` не валидируют идентификаторы и не добавляют URI-префиксы — это делает вызывающий код. Все функции реализованы исключительно на встроенных API Node.js без внешних зависимостей и не обращаются к файловой системе.",
+          "rendered": true,
+          "fingerprint": "body=44fd9c3b84e7cce34830f0f067349e69ec609598dccc49312bbbab63ef0424b5",
+          "language": "ru",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "Все функции реализованы исключительно на встроенных API Node.js без внешних зависимостей и не обращаются к файловой системе."
+          }
+        }
+      },
+      "memberDocsFingerprint": "3f06b9c84f32121f57b034687312b651ed6bc76be9be1bce945aba8f94769a1b"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

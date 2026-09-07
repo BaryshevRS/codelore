@@ -1,0 +1,113 @@
+{
+  "version": 4,
+  "docPath": "overview.codelore.md",
+  "generatedAt": "2026-07-08T07:59:27.228Z",
+  "sectionOrder": [
+    "project:"
+  ],
+  "sections": {
+    "project:": {
+      "heading": "Обзор проекта",
+      "depth": 1,
+      "anchor": "обзор-проекта",
+      "owns": [
+        "project:"
+      ],
+      "depends": [
+        "domain:block-fingerprinting",
+        "domain:change-impact-graph",
+        "domain:cli-entrypoint",
+        "domain:code-doc-indexing",
+        "domain:code-metrics-analysis",
+        "domain:codelore-service-facade",
+        "domain:common-utils",
+        "domain:dag-visualization",
+        "domain:doc-state-consistency",
+        "domain:doc-state-storage",
+        "domain:doc-translation",
+        "domain:error-handling",
+        "domain:initial-docs-preparation",
+        "domain:json-storage",
+        "domain:llm-doc-validation",
+        "domain:llm-generation-pipeline",
+        "domain:llm-json-response-parsing",
+        "domain:llm-provider-factory",
+        "domain:llm-source-context-prep",
+        "domain:markdown-rendering",
+        "domain:mcp-server",
+        "domain:project-config",
+        "domain:project-index-manager",
+        "domain:runtime-context",
+        "domain:section-rewrite-application",
+        "domain:service-helpers",
+        "domain:stale-blocks-detection"
+      ],
+      "usedBy": [],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Codelore — система автоматического документирования кодовых баз: строит индексы экспортированных сущностей, генерирует и обновляет Markdown-документацию через LLM-пайплайн, обнаруживает устаревшие блоки и применяет переводы. Остальная система получает через единый фасад CodeloreService сквозной API, чтобы не разбираться в индексации, генерации, отпечатках и файловом хранилище.",
+          "rendered": true,
+          "fingerprint": "signature=51217bf634939d199efe9dd4da4af0b1af94273dc7a88632aed5e5ff515151f2,placement=0c96f50c97155f531ebff3f236c59445e71f493f3bc74d5743d98a583a793403",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Codelore — система автоматического документирования кодовых баз: строит индексы экспортированных сущностей, генерирует и обновляет Markdown-документацию через LLM-пайплайн, обнаруживает устаревшие блоки и применяет переводы."
+          }
+        },
+        "responsibility": {
+          "body": "Система владеет полным жизненным циклом документации: от построения индекса кода и документации до рендеринга Markdown-файлов с локализованными заголовками и цитатами устаревших блоков. IndexManager параллельно собирает код- и док-индексы, CodeloreService оркестрирует подготовку скелетов новых секций, обнаружение устаревших блоков, двухфазный LLM-конвейер с верификацией фактов и применение перезаписей. Подсистема отпечатков вычисляет хеши блоков для сравнения с актуальным кодом, граф зависимостей разбирает unified diff и строит файловый граф с волнами генерации. Хранилище атомарно сохраняет JSON-состояния и Markdown, а подсистема перевода через LLM готовит локализованные версии блоков, отбрасывая дефектные. MCP-сервер предоставляет ресурсы и инструменты документации внешним клиентам.",
+          "rendered": true,
+          "fingerprint": "signature=51217bf634939d199efe9dd4da4af0b1af94273dc7a88632aed5e5ff515151f2,deps=336606164c7294f7edfb6c78f60a9e058b07d90b56b1fbe0d343edbd4aded0a0,usage=51217bf634939d199efe9dd4da4af0b1af94273dc7a88632aed5e5ff515151f2",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Система владеет полным жизненным циклом документации: от построения индекса кода и документации до рендеринга Markdown-файлов с локализованными заголовками и цитатами устаревших блоков."
+          }
+        },
+        "workflows": {
+          "body": "Запрос на генерацию документации проходит через CodeloreService, который сначала строит или обновляет индексы через IndexManager. Для новых сущностей prepareInitialDocs создаёт скелетные DocState с пустыми телами блоков. refreshStaleDocs через подсистему обнаружения устаревших блоков сравнивает отпечатки с актуальным кодом и документацией зависимостей, выявляет блоки с удалёнными сущностями и «похороненные» блоки, формирует план перезаписи. runPipelineForSections запускает двухфазный LLM-конвейер: пайплайн генерации разбивает исходный код на чанки, формирует запросы, парсит ответы и проверяет блоки на фактические противоречия с помощью LLM, исправляя нарушения в цикле. rewriteSections группирует перезаписи по документу, вливает каждый блок в состояние секции, вычисляет отпечаток, обновляет тело и сбрасывает флаги устаревания, после чего хранилище атомарно сохраняет JSON-состояние и рендерит Markdown с локализованными заголовками. translateScope для каждого настроенного языка запускает перевод блоков через LLM, проверяет целостность кодовых промежутков и отбрасывает дефектные переводы, затем сохраняет переведённые Markdown-файлы.",
+          "rendered": true,
+          "fingerprint": "body=51217bf634939d199efe9dd4da4af0b1af94273dc7a88632aed5e5ff515151f2,deps=336606164c7294f7edfb6c78f60a9e058b07d90b56b1fbe0d343edbd4aded0a0",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Запрос на генерацию документации проходит через CodeloreService, который сначала строит или обновляет индексы через IndexManager, затем подготавливает скелеты, обнаруживает устаревшие блоки, запускает двухфазный LLM-конвейер с верификацией фактов и применяет перезаписи."
+          }
+        },
+        "limitations": {
+          "body": "Система не проверяет схему конфигурации и не разрешает относительные пути при загрузке codelore.config.json — эта ответственность лежит на вызывающем коде. Она не управляет жизненным циклом LLM-провайдера и не обрабатывает ошибки провайдера выше фабрики. Валидация контента ограничена обнаружением фактических противоречий с исходным кодом и не включает логическую или стилистическую проверку. Отпечатки вычисляются только для owned-сущностей блока; если список owned пуст, возвращается undefined, что не позволяет отследить изменения для блоков без владельцев. Статус «похороненных» блоков не проверяется по коду повторно — система полагается на ранее сохранённую метку staleSince. При индексации файлы вне источниковых глобов игнорируются.",
+          "rendered": true,
+          "fingerprint": "body=51217bf634939d199efe9dd4da4af0b1af94273dc7a88632aed5e5ff515151f2",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Отпечатки вычисляются только для owned-сущностей блока; если список owned пуст, возвращается undefined, что не позволяет отследить изменения для блоков без владельцев."
+          }
+        }
+      },
+      "memberDocsFingerprint": "366b4254b4a6c353768a4bf17552a023c501dd3bff9d641c733a85ae1ebbb1a8"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

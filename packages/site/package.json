@@ -1,0 +1,38 @@
+{
+  "name": "@codelore/site",
+  "version": "0.1.0",
+  "description": "Generate and synchronize documentation sites from Codelore artifacts.",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "codelore-site": "./dist/bin/codelore-site.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check-types": "tsc -p tsconfig.json --noEmit",
+    "lint": "pnpm exec biome check --write . && pnpm run check-types",
+    "pretest": "pnpm run check-types && pnpm run build",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "create-fumadocs-app": "16.0.117",
+    "mdast-util-from-markdown": "^2.0.2",
+    "mdast-util-to-markdown": "^2.1.2",
+    "mdast-util-to-string": "^4.0.0",
+    "unist-util-visit": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/mdast": "^4.0.4",
+    "@types/node": "^25.5.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.4"
+  },
+  "engines": {
+    "node": ">=22.13"
+  }
+}

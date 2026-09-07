@@ -1,0 +1,393 @@
+{
+  "version": 4,
+  "docPath": "src/graph/file-dag.codelore.md",
+  "generatedAt": "2026-07-06T21:17:53.737Z",
+  "sectionOrder": [
+    "file:src/graph/file-dag.ts",
+    "symbol:src/graph/file-dag.ts#buildFileDag",
+    "symbol:src/graph/file-dag.ts#generationWaves"
+  ],
+  "sections": {
+    "file:src/graph/file-dag.ts": {
+      "heading": "file-dag.ts",
+      "depth": 1,
+      "anchor": "file-dagts",
+      "owns": [
+        "file:src/graph/file-dag.ts"
+      ],
+      "depends": [],
+      "usedBy": [],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Превращает индекс сущностей проекта в файловый граф зависимостей и раскладывает выбранные файлы по волнам генерации, где каждая волна содержит группы файлов, которые можно документировать одновременно, потому что все их зависимости лежат в более нижних волнах.",
+          "rendered": true,
+          "fingerprint": "signature=565574a2f1e2ab7d629cbc0ecae65b3baa8c0dfb0d14c0963f02a1f5dae21f6a,placement=565574a2f1e2ab7d629cbc0ecae65b3baa8c0dfb0d14c0963f02a1f5dae21f6a",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Файл строит файловый DAG из сущностного индекса и раскладывает файлы по волнам генерации через поиск сильно связных компонент."
+          }
+        },
+        "responsibility": {
+          "body": "- `buildFileDag` переводит сущностные зависимости в файловые: каждый файл получает множество файлов, от которых он зависит, с отбрасыванием ссылок внутри одного файла и на файлы, отсутствующие в индексе.\n- `stronglyConnectedComponents` находит циклы в файловому графе итеративным алгоритмом Тарьяна, группируя взаимно зависимые файлы в одну компоненту.\n- `generationWaves` присваивает каждой компоненте уровень (волну) по максимальному уровню её зависимостей и собирает компоненты одного уровня в массивы групп файлов.",
+          "rendered": true,
+          "fingerprint": "signature=565574a2f1e2ab7d629cbc0ecae65b3baa8c0dfb0d14c0963f02a1f5dae21f6a,deps=68eec50d691b60022b5988e0ff17b66b64160966a6eba73ea8b7e233354f8e88,usage=68eec50d691b60022b5988e0ff17b66b64160966a6eba73ea8b7e233354f8e88",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Все три функции образуют конвейер: сущностный индекс → файловый DAG → сильно связные компоненты → волны генерации."
+          }
+        },
+        "invariants": {
+          "body": "- Порядок обхода детерминирован: `stronglyConnectedComponents` сортирует корни и соседей, а `generationWaves` сортирует файлы внутри группы и группы внутри волны по `localeCompare`.\n- Файлы, переданные в `generationWaves`, но отсутствующие в DAG, молча отбрасываются фильтром `files.filter((file) => dag.has(file))`.\n- Циклические зависимости не вызывают ошибку: файлы в одном цикле попадают в одну сильно связную компоненту и обрабатываются как единая группа.",
+          "rendered": true,
+          "fingerprint": "signature=565574a2f1e2ab7d629cbc0ecae65b3baa8c0dfb0d14c0963f02a1f5dae21f6a,body=a39cb5fbde1e1d62785bde6c0d9fb780591c7d3579385df7374a84a277e14291",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Порядок вывода полностью детерминирован за счёт сортировки корней, соседей, файлов в группах и групп в волнах."
+          }
+        },
+        "limitations": {
+          "body": "Рёбра на файлы вне запрошенного набора невидимы для волновой разметки: `neighborsOf` в `stronglyConnectedComponents` отсекает их через `scope.has(dep)`, поэтому уровень волны не учитывает зависимости на файлы, не переданные в `files`. DAG хранит только прямые зависимости — итерация `entity.directDeps` в `buildFileDag` не раскрывает транзитивные связи, и потребителям, которым нужно замыкание, приходится обходить DAG самостоятельно.",
+          "rendered": true,
+          "fingerprint": "body=a39cb5fbde1e1d62785bde6c0d9fb780591c7d3579385df7374a84a277e14291",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Рёбра на файлы вне запрошенного набора невидимы для волновой разметки из-за фильтрации `scope.has(dep)` в `neighborsOf`."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "68a5eb69-c4cf-4908-b918-b798272d75a4",
+          "timestamp": "2026-07-06T21:15:01.560Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "glm-5.2",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "68a5eb69-c4cf-4908-b918-b798272d75a4",
+          "timestamp": "2026-07-06T21:17:53.732Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "glm-5.2",
+          "generatedBlocks": [
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "symbol:src/graph/file-dag.ts#buildFileDag": {
+      "heading": "buildFileDag",
+      "depth": 1,
+      "anchor": "buildfiledag",
+      "signature": "buildFileDag(code: CodeIndex): FileDag",
+      "owns": [
+        "symbol:src/graph/file-dag.ts#buildFileDag"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/cli/render-graph.ts",
+        "file:src/llm/file-pipeline.ts",
+        "symbol:src/graph/file-dag.ts#generationWaves",
+        "symbol:src/llm/file-pipeline.ts#collectDependencyDocs"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Создаёт файловый граф зависимостей из сущностного индекса, чтобы downstream-потребители могли работать на уровне файлов, а не отдельных сущностей.",
+          "rendered": true,
+          "fingerprint": "signature=b4e1c8f5f8262cca61f793468ed6c8e1d6e5f6740300611216b226434dc90524,placement=eb0a18f325e59eada1eb0e578536b6d1c841d5edbd8feb9b93b79a53f5d20eca",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Создаёт файловый граф из сущностного индекса, переводя зависимости между сущностями в зависимости между файлами."
+          }
+        },
+        "responsibility": {
+          "body": "- Заводит пустую запись в Map для каждого файла из `code.fileToEntities`.\n- Проходит по всем сущностям и добавляет в множество зависимостей файла те файлы, на которые ссылаются `directDeps`, пропуская ссылки на несуществующие сущности, на свой собственный файл и на файлы вне индекса.",
+          "rendered": true,
+          "fingerprint": "signature=b4e1c8f5f8262cca61f793468ed6c8e1d6e5f6740300611216b226434dc90524,deps=1b4bdf72c1f74252ad58a895d97f1ae2a18d84edeb2ef7ff871e13a2111894fa,usage=acfb7228bb5a60ea33bb2a6db6f77786f3a283961952854320066392ab5f6c2d",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Зависимости сущности фильтруются: отбрасываются ссылки на несуществующие сущности, на свой собственный файл и на файлы, которых нет в DAG."
+          }
+        },
+        "invariants": {
+          "body": "- Каждый файл из `code.fileToEntities` получает запись в DAG, даже если у него нет зависимостей — значение будет пустым `Set`.\n- Самоссылки (зависимость сущности от другой сущности в том же файле) не попадают в DAG благодаря проверке `depEntity.path !== entity.path`.\n- Зависимости на сущности, чьи файлы отсутствуют в `code.fileToEntities`, отбрасываются проверкой `dag.has(depEntity.path)`.\n- Возвращённый Map не содержит записей для файлов, которых нет в `code.fileToEntities`.",
+          "rendered": true,
+          "fingerprint": "signature=b4e1c8f5f8262cca61f793468ed6c8e1d6e5f6740300611216b226434dc90524,body=4e2139e9f688b6f55a37ff383c11fd7baf3d8da7651320d65fc1e2f02cd1a8e4",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Каждый файл из fileToEntities гарантированно получает запись в DAG, даже без зависимостей; самоссылки и внешние ссылки отбрасываются."
+          }
+        },
+        "workflows": {
+          "body": "`generationWaves` (в том же файле) вызывает `buildFileDag(code)` первым шагом и использует возвращённый DAG для фильтрации области и построения волн. `collectDependencyDocs` (src/llm/file-pipeline.ts) строит DAG через `buildFileDag(index.code)`, перебирает `dag.get(file) ?? []` для каждого запрошенного файла и собирает файлы-зависимости вне целевой группы, чтобы подтянуть для них документацию с ограничением по `DEP_DOCS_TOTAL_CAP`. `renderGraphHtml` и `renderGraphTree` (src/cli/render-graph.ts) обращаются к DAG для отрисовки узлов и рёбер графа зависимостей — в виде HTML-страницы и текстового дерева соответственно.",
+          "rendered": true,
+          "fingerprint": "body=4e2139e9f688b6f55a37ff383c11fd7baf3d8da7651320d65fc1e2f02cd1a8e4,deps=1b4bdf72c1f74252ad58a895d97f1ae2a18d84edeb2ef7ff871e13a2111894fa",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "`collectDependencyDocs` использует DAG для сбора файлов-зависимостей вне целевой группы с ограничением по `DEP_DOCS_TOTAL_CAP`."
+          }
+        },
+        "limitations": {
+          "body": "DAG содержит только прямые зависимости: итерация `entity.directDeps` не раскрывает транзитивные связи, поэтому потребителям, которым нужно замыкание по зависимостям, приходится обходить DAG самостоятельно.",
+          "rendered": true,
+          "fingerprint": "body=4e2139e9f688b6f55a37ff383c11fd7baf3d8da7651320d65fc1e2f02cd1a8e4",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "DAG хранит только прямые зависимости из `entity.directDeps`, без транзитивного замыкания."
+          }
+        },
+        "changeGuide": {
+          "body": "- Инвариант «нет самоссылок» обеспечивается выражением `depEntity.path !== entity.path` в цикле по `directDeps`.\n- Инвариант «каждый файл из `fileToEntities` получает запись» обеспечивается вызовом `dag.set(file, new Set())` в первом цикле `for (const file of Object.keys(code.fileToEntities))`.",
+          "rendered": true,
+          "fingerprint": "body=4e2139e9f688b6f55a37ff383c11fd7baf3d8da7651320d65fc1e2f02cd1a8e4,deps=1b4bdf72c1f74252ad58a895d97f1ae2a18d84edeb2ef7ff871e13a2111894fa,usage=acfb7228bb5a60ea33bb2a6db6f77786f3a283961952854320066392ab5f6c2d,placement=eb0a18f325e59eada1eb0e578536b6d1c841d5edbd8feb9b93b79a53f5d20eca",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Самоссылки исключаются выражением `depEntity.path !== entity.path`."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "68a5eb69-c4cf-4908-b918-b798272d75a4",
+          "timestamp": "2026-07-06T21:15:01.562Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "glm-5.2",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "68a5eb69-c4cf-4908-b918-b798272d75a4",
+          "timestamp": "2026-07-06T21:17:53.734Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "glm-5.2",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "symbol:src/graph/file-dag.ts#generationWaves": {
+      "heading": "generationWaves",
+      "depth": 1,
+      "anchor": "generationwaves",
+      "signature": "generationWaves(code: CodeIndex, files: string[]): string[][][]",
+      "owns": [
+        "symbol:src/graph/file-dag.ts#generationWaves"
+      ],
+      "depends": [
+        "symbol:src/graph/file-dag.ts#buildFileDag"
+      ],
+      "usedBy": [
+        "file:src/cli/render-graph.ts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Раскладывает файлы по волнам генерации так, чтобы документацию можно было создавать снизу вверх: каждая волна содержит группы файлов, все зависимости которых лежат в более ранних волнах.",
+          "rendered": true,
+          "fingerprint": "signature=3aacf2bcd201a596541b2bee2825d6711f3d1d8cf869c52120b3f842ced95cd6,placement=7e9fa087109190ab330e2800cd42ebffff64cdc4eedc5e64c69bf9c6acf399de",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Раскладывает файлы по волнам генерации, где уровень каждой группы равен максимальному уровню её зависимостей плюс один."
+          }
+        },
+        "responsibility": {
+          "body": "- Строит файловый DAG через `buildFileDag` и фильтрует запрошенные файлы до тех, что присутствуют в DAG.\n- Делегирует поиск сильно связных компонент локальной функции `stronglyConnectedComponents`, затем вычисляет уровень каждой компоненты рекурсивно с мемоизацией: уровень равен максимуму из уровней зависимых компонент плюс один.\n- Собирает компоненты одного уровня в волны и сортирует файлы внутри каждой группы и группы внутри волны для детерминированного вывода.",
+          "rendered": true,
+          "fingerprint": "signature=3aacf2bcd201a596541b2bee2825d6711f3d1d8cf869c52120b3f842ced95cd6,deps=172dd9a7c79ac1deba0c1d99298ee0b8e8c27ffe1c03928ba919cf6d143a6295,usage=922bde791c850bfdf2c21eff34278540a8bcff2e76b7c762ef7bcb515b65de40",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Уровень компоненты вычисляется рекурсивно с мемоизацией через массив levels, инициализированный значением -1 как признак «ещё не вычислено»."
+          }
+        },
+        "invariants": {
+          "body": "- Файлы из `files`, отсутствующие в DAG, молча отбрасываются и не появляются в результате.\n- Внутри одной волны группы отсортированы по первому файлу группы через `localeCompare`.\n- Зависимости внутри одной сильно связной компоненты не учитываются при расчёте уровня — проверка `depGroup !== groupIndex` исключает их.",
+          "rendered": true,
+          "fingerprint": "signature=3aacf2bcd201a596541b2bee2825d6711f3d1d8cf869c52120b3f842ced95cd6,body=88df58a73a73f9df2ead66c41ef261e7ee318bf5949c3293c0d49dcce56e755d",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Внутрикомпонентные зависимости исключены из расчёта уровня проверкой `depGroup !== groupIndex`, поэтому циклы не искажают нумерацию волн."
+          }
+        },
+        "dependencies": {
+          "body": "`buildFileDag` (в том же файле) — строит файловый DAG из индекса сущностей. `stronglyConnectedComponents` (локальная функция в том же файле) — находит сильно связные компоненты в файловому графе.",
+          "rendered": true,
+          "fingerprint": "deps=172dd9a7c79ac1deba0c1d99298ee0b8e8c27ffe1c03928ba919cf6d143a6295",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Зависит от `buildFileDag` и локальной `stronglyConnectedComponents`."
+          }
+        },
+        "workflows": {
+          "body": "`renderGraphHtml` (src/cli/render-graph.ts) вызывает `generationWaves` и формирует HTML-визуализацию графа зависимостей, размещая узлы по волнам. `renderGraphTree` (src/cli/render-graph.ts) вызывает `generationWaves` и выводит текстовое дерево генерации, группируя файлы по волнам от нижних к верхним.",
+          "rendered": true,
+          "fingerprint": "body=88df58a73a73f9df2ead66c41ef261e7ee318bf5949c3293c0d49dcce56e755d,deps=172dd9a7c79ac1deba0c1d99298ee0b8e8c27ffe1c03928ba919cf6d143a6295",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "`renderGraphHtml` и `renderGraphTree` вызывают `generationWaves` для получения волновой структуры."
+          }
+        },
+        "limitations": {
+          "body": "Рёбра на файлы вне `scope` невидимы для волновой разметки: `neighborsOf` в `stronglyConnectedComponents` отсекает их через `scope.has(dep)`, поэтому уровень волны не учитывает зависимости на файлы, не переданные в параметре `files`.",
+          "rendered": true,
+          "fingerprint": "body=88df58a73a73f9df2ead66c41ef261e7ee318bf5949c3293c0d49dcce56e755d",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Уровень волны не учитывает зависимости на файлы вне `files` из-за `scope.has(dep)` в `neighborsOf`."
+          }
+        },
+        "changeGuide": {
+          "body": "- Мемоизация уровня каждой компоненты обеспечивается проверкой `levels[groupIndex] >= 0` в `levelOf` — повторный вызов возвращает уже вычисленное значение.\n- Детерминированный порядок файлов внутри группы обеспечивается вызовом `[...groups[i]].sort()` перед добавлением в волну.",
+          "rendered": true,
+          "fingerprint": "body=88df58a73a73f9df2ead66c41ef261e7ee318bf5949c3293c0d49dcce56e755d,deps=172dd9a7c79ac1deba0c1d99298ee0b8e8c27ffe1c03928ba919cf6d143a6295,usage=922bde791c850bfdf2c21eff34278540a8bcff2e76b7c762ef7bcb515b65de40,placement=7e9fa087109190ab330e2800cd42ebffff64cdc4eedc5e64c69bf9c6acf399de",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Мемоизация уровня обеспечивается проверкой `levels[groupIndex] >= 0`."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "68a5eb69-c4cf-4908-b918-b798272d75a4",
+          "timestamp": "2026-07-06T21:15:01.565Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "glm-5.2",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "68a5eb69-c4cf-4908-b918-b798272d75a4",
+          "timestamp": "2026-07-06T21:17:53.736Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "glm-5.2",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

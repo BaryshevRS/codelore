@@ -1,0 +1,107 @@
+{
+  "version": 4,
+  "docPath": "docs/domains/section-rewrite-application.codelore.md",
+  "generatedAt": "2026-07-08T07:59:27.228Z",
+  "sectionOrder": [
+    "domain:section-rewrite-application"
+  ],
+  "sections": {
+    "domain:section-rewrite-application": {
+      "heading": "Применение перезаписей секций",
+      "depth": 1,
+      "anchor": "применение-перезаписей-секций",
+      "owns": [
+        "domain:section-rewrite-application"
+      ],
+      "depends": [
+        "file:src/service/section-rewrite.ts",
+        "domain:block-fingerprinting",
+        "domain:doc-state-storage",
+        "domain:error-handling",
+        "domain:service-helpers"
+      ],
+      "usedBy": [
+        "domain:codelore-service-facade"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Подсистема принимает запросы на перезапись секций сгенерированными блоками, группирует их по документу и вливает каждый блок в состояние секции: вычисляет отпечаток, обновляет тело, оценки и сбрасывает флаги устаревания, после чего обновляет метаданные секции и сохраняет документ. Это позволяет безопасно зафиксировать результат работы генератора в хранилище документации с актуальным статусом свежести.",
+          "rendered": true,
+          "fingerprint": "signature=e6d16b4ec212b0e76a4bc8e58081bfd4e945aab21d63cc50ff530afeea7e9daa,placement=069894f57eda5431bddbadf5f429570e25862f2d194d9b5903dc4c5fb94fa956",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Подсистема принимает запросы на перезапись секций сгенерированными блоками, группирует их по документу и вливает каждый блок в состояние секции."
+          }
+        },
+        "responsibility": {
+          "body": "Отвечает за полный цикл обновления документа: нормализует входные перезаписи, оставляя только блоки с идентификаторами из фиксированного набора BLOCK_IDS; группирует перезаписи по документу; для каждого документа загружает состояние, перебирает перезаписи и для каждой: находит секцию, вызывает слияние (перезаписывает отпечатки, тело, оценки, сбрасывает дату устаревания, дополняет blockOrder и allowedBlocks, обновляет поля depends/usedBy из сущности владельца, если есть), пересчитывает статус секции. После всех перезаписей обновляет метку времени и сохраняет документ через хранилище. По запросу может собрать отфильтрованные блоки для ответа.",
+          "rendered": true,
+          "fingerprint": "signature=e6d16b4ec212b0e76a4bc8e58081bfd4e945aab21d63cc50ff530afeea7e9daa,deps=b3adea2b97fc7210b29326450ecce94327927fb92c62f03200304b69c1da7731,usage=7509ebc9d8d4ad19463e8c2217aaa0107199c110fd9be3c9ecb7ff5c2471e5b6",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Нормализует входные перезаписи, оставляя только блоки с идентификаторами из фиксированного набора BLOCK_IDS."
+          }
+        },
+        "dependencies": {
+          "body": "Опирается на подсистемы: «Хранилище состояния документации» для загрузки и атомарного сохранения состояния; «Отпечатки блоков документации» для вычисления хеша блока; «Общие вспомогательные функции сервиса» для сортировки зависимостей (uniqueSorted) и списка допустимых идентификаторов блоков (BLOCK_IDS); «Единый формат ошибок» для выброса CodeloreError с кодами UNKNOWN_SECTION, UNKNOWN_DOC, MISSING_GENERATED_BLOCKS. Сама подсистема не валидирует содержимое блоков (текст, оценки) и не управляет конкурентным доступом к документу — эти заботы делегированы хранилищу или вызывающему коду.",
+          "rendered": true,
+          "fingerprint": "deps=b3adea2b97fc7210b29326450ecce94327927fb92c62f03200304b69c1da7731",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Опирается на подсистемы: «Хранилище состояния документации», «Отпечатки блоков документации», «Общие вспомогательные функции сервиса», «Единый формат ошибок»."
+          }
+        },
+        "workflows": {
+          "body": "1. Нормализация: normalizeGeneratedRewrite отфильтровывает блоки из generatedBlocks, оставляя только те, чьи ключи есть в BLOCK_IDS; проверяет, что сгенерированных блоков не ноль. 2. Группировка: groupRewritesByDoc строит Map docPath → массив перезаписей, попутно проверяя существование секции. 3. Применение к документу: applyRewritesToDoc загружает состояние, для каждой перезаписи вызывает mergeGeneratedBlocksIntoSection, потом обновляет generatedAt и сохраняет. 4. Слияние в секцию: mergeGeneratedBlocksIntoSection для каждого блока вычисляет отпечаток, записывает текст/оценки/язык, сбрасывает staleSince, при необходимости добавляет идентификатор в blockOrder и allowedBlocks; если у секции есть владелец, синхронизирует depends/usedBy; вызывает updateSectionStatusForBlocks. 5. Статус: updateSectionStatusForBlocks пропускает секции с review_needed, иначе считает allBlocksStale — если все блоки устарели, ставит stale, иначе normal. 6. Сбор отфильтрованных: если showFiltered, collectFilteredBlocksForRewrites вызывает collectFilteredBlocksForResponse, которая выбирает блоки с оценками и rendered=false, вычисляет finalScore и применяет порог, опционально включает текст.",
+          "rendered": true,
+          "fingerprint": "body=e6d16b4ec212b0e76a4bc8e58081bfd4e945aab21d63cc50ff530afeea7e9daa,deps=b3adea2b97fc7210b29326450ecce94327927fb92c62f03200304b69c1da7731",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Нормализация: normalizeGeneratedRewrite отфильтровывает блоки из generatedBlocks, оставляя только те, чьи ключи есть в BLOCK_IDS."
+          }
+        },
+        "limitations": {
+          "body": "Не проверяет качество или валидность сгенерированного текста блоков. Игнорирует любые идентификаторы блоков, не перечисленные в BLOCK_IDS. Не поддерживает конкурентные изменения одного документа: повторные или параллельные сохранения могут привести к конфликтам, если хранилище не обеспечивает блокировку. Прерывает обработку при первой ошибке (неизвестная секция или отсутствующий документ) и не откатывает уже применённые к другим документам изменения. Секции со статусом review_needed не получают автоматическое обновление статуса, даже если после перезаписи их блоки стали свежими.",
+          "rendered": true,
+          "fingerprint": "body=e6d16b4ec212b0e76a4bc8e58081bfd4e945aab21d63cc50ff530afeea7e9daa",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Секции со статусом review_needed не получают автоматическое обновление статуса, даже если после перезаписи их блоки стали свежими."
+          }
+        }
+      },
+      "memberDocsFingerprint": "1852ba3197b2e9b3276b8799800995d89c9c1fad2d2e44d275f658046fc35629"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

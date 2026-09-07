@@ -1,0 +1,109 @@
+{
+  "version": 4,
+  "docPath": "docs/domains/block-fingerprinting.codelore.md",
+  "generatedAt": "2026-07-08T07:59:27.227Z",
+  "sectionOrder": [
+    "domain:block-fingerprinting"
+  ],
+  "sections": {
+    "domain:block-fingerprinting": {
+      "heading": "Отпечатки блоков документации",
+      "depth": 1,
+      "anchor": "отпечатки-блоков-документации",
+      "owns": [
+        "domain:block-fingerprinting"
+      ],
+      "depends": [
+        "file:src/markdown/block-facets.ts",
+        "domain:common-utils"
+      ],
+      "usedBy": [
+        "domain:codelore-service-facade",
+        "domain:doc-state-consistency",
+        "domain:initial-docs-preparation",
+        "domain:markdown-rendering",
+        "domain:section-rewrite-application",
+        "domain:stale-blocks-detection"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Подсистема вычисляет два типа отпечатков блоков документации: по фасетам принадлежащих блоку сущностей — чтобы обнаружить изменения в коде, и по исходному телу блока — чтобы определить, устарел ли перевод. Это позволяет вызывающему слою управлять инвалидацией кеша и синхронизацией переводов.",
+          "rendered": true,
+          "fingerprint": "signature=9fa1426dfa8aab0279fee760dea9bdf38eca7755979366e06b1a50b7a57c6b8e,placement=93af0ca3c9fb41c6aca284522840c9b0852ba56c689b5bba093d3489293c2f78",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Подсистема вычисляет два типа отпечатков: для проверки изменений кода по фасетам сущностей и для проверки устаревания перевода по исходному телу."
+          }
+        },
+        "responsibility": {
+          "body": "Подсистема реализует четыре функции для работы с отпечатками блоков. computeBlockFingerprint собирает релевантные фасеты каждой owned-сущности, игнорируя идентификаторы, отсутствующие в хранилище, и хеширует их конкатенацию; если owned-список пуст или ни одна сущность не найдена, возвращает undefined — это сигнал отсутствия изменений. translationSourceFingerprint обрезает пробелы в теле и вычисляет SHA-256. parseBlockFingerprintValue разбирает строку сохранённого отпечатка в объект, пропуская некорректные части. diffFacetHashes сравнивает фасеты двух объектов и возвращает список изменившихся.",
+          "rendered": true,
+          "fingerprint": "signature=9fa1426dfa8aab0279fee760dea9bdf38eca7755979366e06b1a50b7a57c6b8e,deps=b2bab67b58e043a3d79c5cb49193aa523c12522ab60dba4bbb247fb31f9d1a77,usage=91da78cd1d362bcc2641bd14efbf2989716b65fa5de121e42992f1a206a36bfa",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Когда блок не имеет owned-сущностей или ни одна не найдена в хранилище, computeBlockFingerprint возвращает undefined, сигнализируя об отсутствии изменений."
+          }
+        },
+        "dependencies": {
+          "body": "Подсистема не содержит собственной криптографии: хеширование исходного тела перевода передаётся низкоуровневым утилитам, предоставляющим SHA-256. Не занимается абсолютными путями и кодированием URI. Хранение и сравнение отпечатков остаются обязанностью вызывающей стороны.",
+          "rendered": true,
+          "fingerprint": "deps=b2bab67b58e043a3d79c5cb49193aa523c12522ab60dba4bbb247fb31f9d1a77",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вычисление SHA-256 для исходного тела выполняется внешней утилитой, а не собственной реализацией."
+          }
+        },
+        "workflows": {
+          "body": "Для проверки изменений вызывающий код передаёт в computeBlockFingerprint список owned-сущностей и хранилище entities. Функция перебирает идентификаторы, собирает фасеты и хеширует результат. Позже parseBlockFingerprintValue разбирает ранее сохранённый отпечаток, а diffFacetHashes сравнивает его с текущим, возвращая изменившиеся фасеты (только те, что присутствуют в обоих). Отдельно translationSourceFingerprint обрабатывает исходное тело и даёт хеш для контроля устаревания перевода.",
+          "rendered": true,
+          "fingerprint": "body=9fa1426dfa8aab0279fee760dea9bdf38eca7755979366e06b1a50b7a57c6b8e,deps=b2bab67b58e043a3d79c5cb49193aa523c12522ab60dba4bbb247fb31f9d1a77",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "diffFacetHashes сравнивает только фасеты, присутствующие в обоих отпечатках, игнорируя отсутствующие."
+          }
+        },
+        "limitations": {
+          "body": "Подсистема не обрабатывает сущности вне owned-списка и не строит отпечатки для анонимных блоков. Ожидает, что фасеты уже являются строками. Не кеширует промежуточные результаты — каждый вызов computeBlockFingerprint заново проходит по хранилищу. Сохранение отпечатков и последующее сравнение возлагаются на вызывающий код.",
+          "rendered": true,
+          "fingerprint": "body=9fa1426dfa8aab0279fee760dea9bdf38eca7755979366e06b1a50b7a57c6b8e",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Каждый вызов computeBlockFingerprint заново собирает фасеты из хранилища, не кешируя результаты."
+          }
+        }
+      },
+      "memberDocsFingerprint": "9a12a532146891f3881470a0a4d5a7db090765ab175ebffa6f14efa159e8635b"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

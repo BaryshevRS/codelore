@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.codelore/index.json
+.codelore/changes/
+.codelore/config.json
+codelore-context.md
+.idea/
+.claude
+.env
+.pnpm-store
+bench
+CLAUDE.md
+PLAN.md
+.DS_Store
+.codelore/state/**/*.generation-debug*.json
+.codelore/render-graph

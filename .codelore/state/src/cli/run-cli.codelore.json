@@ -1,0 +1,330 @@
+{
+  "version": 4,
+  "docPath": "src/cli/run-cli.codelore.md",
+  "generatedAt": "2026-07-03T17:42:56.842Z",
+  "sectionOrder": [
+    "symbol:src/cli/run-cli.ts#runCli"
+  ],
+  "sections": {
+    "symbol:src/cli/run-cli.ts#runCli": {
+      "heading": "runCli",
+      "depth": 1,
+      "anchor": "runcli",
+      "owns": [
+        "symbol:src/cli/run-cli.ts#runCli"
+      ],
+      "depends": [
+        "symbol:src/errors.ts#toCodeloreErrorPayload",
+        "symbol:src/server/start-stdio-server.ts#startStdioServer",
+        "symbol:src/service/codelore-service.ts#CodeloreService"
+      ],
+      "usedBy": [
+        "file:src/bin/codelore.ts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Точка входа CLI, объединяющая парсинг глобальных аргументов, диспетчеризацию команд и обработку ошибок с возвратом кода выхода.",
+          "rendered": true,
+          "fingerprint": "signature=f41f15035411df3604289b2c4a1c70cdab1561b32a1baf095723b7933bcafe2d,placement=e1399646d6cbb2f2a808d5a003e1147c33a937b826eff47117e0d1a5700dac1f",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Единственная точка входа для всех CLI-команд, гарантирующая единый формат ошибок и кодов возврата."
+          }
+        },
+        "responsibility": {
+          "body": "- Не выполняет бизнес-логику команд — делегирует `CodeloreService` или `startStdioServer`.\n- Не управляет MCP-сервером после запуска — `startStdioServer` управляет своим жизненным циклом.\n- Не валидирует аргументы каждой команды — это делают `assertExpectedArgs` и `parse*` функции.\n- Форматирует вывод: сериализует результат в JSON с отступами и выводит в `stdout`.",
+          "rendered": true,
+          "fingerprint": "signature=f41f15035411df3604289b2c4a1c70cdab1561b32a1baf095723b7933bcafe2d,deps=d1216775679b741d8e0128aefefea87b568c26c2b55a8dab0e2763a27a86491e,usage=9fc2aba204c1adc55be228a56bc564e2af92b9d9448ce5a1f894cac070b03cd5",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Делегирует выполнение команд сервису или серверу, не содержа бизнес-логики."
+          }
+        },
+        "invariants": {
+          "body": "- Всегда возвращает 0 при успешном выполнении, 1 при непредвиденной ошибке, 2 при наличии секций с `failed` в результате.\n- Любое исключение перехватывается и выводится в `stderr` как JSON с полями `ok: false` и `error` через `toCodeloreErrorPayload`.\n- Результат (если не `undefined`) выводится в `stdout` как JSON.",
+          "rendered": true,
+          "fingerprint": "signature=f41f15035411df3604289b2c4a1c70cdab1561b32a1baf095723b7933bcafe2d,body=85438a4b2d7dc494906c8a021f1910e09bdfe5314a0a7c3b596e6ec7ba7b0da7",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Код возврата 2 сигнализирует о частичном успехе с неудачными секциями, что позволяет вызывающему различать полный и частичный успех."
+          }
+        },
+        "dependencies": {
+          "body": "runCli использует три внешних модуля: `toCodeloreErrorPayload` из `src/errors.ts` — сериализует перехваченные исключения в JSON для вывода в `stderr`; `startStdioServer` из `src/server/start-stdio-server.ts` — запускает MCP-сервер для команды `mcp`; `CodeloreService` из `src/service/codelore-service.ts` — предоставляет методы для всех остальных команд (делегируется через `runCommand`).",
+          "rendered": true,
+          "fingerprint": "deps=d1216775679b741d8e0128aefefea87b568c26c2b55a8dab0e2763a27a86491e",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 0.75,
+            "novelFact": "runCli полагается на toCodeloreErrorPayload для унифицированной сериализации ошибок и на CodeloreService для всей бизнес-логики, кроме mcp."
+          },
+          "language": "ru"
+        },
+        "workflows": {
+          "body": "Файл `src/bin/codelore.ts` вызывает `runCli`, передавая `process.argv.slice(2)` и объект `runtime` с `cwd`, `env`, `stdout`, `stderr`. После возврата `process.exitCode` устанавливается в результат `runCli`.\n\nВнутри `runCli`:\n1. `parseGlobalArgs` извлекает `--root` (или `cwd` по умолчанию), `--provider` и команду; при отсутствии команды по умолчанию `help`.\n2. Если команда `help` или `--help`/`-h` — выводит `helpText()` в `stdout` и возвращает 0.\n3. Если команда `mcp` — вызывает `startStdioServer` и после его успешного завершения возвращает 0.\n4. Для остальных команд создаётся `CodeloreService`, вызывается `runCommand`, который проверяет аргументы через `assertExpectedArgs`, парсит специфичные аргументы (через `parseScope`, `parseAnalyzeChangeInput`, `parseRefreshStaleDocsInput`) и вызывает соответствующий метод сервиса.\n5. Результат (если не `undefined`) сериализуется в JSON с отступами и выводится в `stdout`.\n6. Если в результате есть секции с `failed` (проверка `hasFailedSections`), возвращается 2, иначе 0.\n7. Любое исключение перехватывается, сериализуется через `toCodeloreErrorPayload` и выводится в `stderr` как JSON с полями `{ ok: false, error: ... }`, возвращается 1.",
+          "rendered": true,
+          "fingerprint": "body=85438a4b2d7dc494906c8a021f1910e09bdfe5314a0a7c3b596e6ec7ba7b0da7,deps=d1216775679b741d8e0128aefefea87b568c26c2b55a8dab0e2763a27a86491e",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 1,
+            "specificity": 0.5,
+            "novelFact": "runCli перехватывает все исключения, сериализует их через toCodeloreErrorPayload и выводит в stderr с единым форматом { ok: false, error }."
+          },
+          "language": "ru"
+        },
+        "limitations": {
+          "body": "- Команда `mcp` блокирует процесс навсегда — конструкция `await startStdioServer({ rootDir: parsed.rootDir })` без таймаута или graceful shutdown.\n- Для `graph --html` путь вывода фиксирован: `join(parsed.rootDir, '.codelore', 'render-graph', 'index.html')`, без опции переопределения.\n- Нет поддержки конфигурационных файлов — параметры `--root` и `--provider` читаются только из CLI-аргументов.\n- Обрабатывается только девять команд — `switch` в `runCommand` покрывает эти случаи; остальное выдаёт сообщение об ошибке.",
+          "rendered": true,
+          "fingerprint": "body=85438a4b2d7dc494906c8a021f1910e09bdfe5314a0a7c3b596e6ec7ba7b0da7",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Команда mcp блокирует процесс навсегда из-за await startStdioServer без таймаута."
+          },
+          "language": "ru"
+        },
+        "changeGuide": {
+          "body": "- Формат вывода ошибки в stderr фиксирован: JSON с полями `ok` и `error`. Конструкция: `runtime.stderr.write(\\`\\${JSON.stringify({ ok: false, error: toCodeloreErrorPayload(error) }, null, 2)}\\n\\`)`.\n- Код возврата для успеха (0), исключения (1), и наличия секций с `failed` (2) зафиксирован. Конструкции: `return 0;`, `return 1;`, `return 2;` в соответствующих ветвях.",
+          "rendered": true,
+          "fingerprint": "body=85438a4b2d7dc494906c8a021f1910e09bdfe5314a0a7c3b596e6ec7ba7b0da7,deps=d1216775679b741d8e0128aefefea87b568c26c2b55a8dab0e2763a27a86491e,usage=9fc2aba204c1adc55be228a56bc564e2af92b9d9448ce5a1f894cac070b03cd5,placement=e1399646d6cbb2f2a808d5a003e1147c33a937b826eff47117e0d1a5700dac1f",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 1,
+            "novelFact": "Формат вывода ошибки в stderr зафиксирован конструкцией runtime.stderr.write с toCodeloreErrorPayload."
+          },
+          "language": "ru"
+        }
+      },
+      "depDocsFingerprint": "402bc9e922bb6bf0e89b844fe75708a422f5509d1a2227ef9a813cd73e6af761",
+      "generationHistory": [
+        {
+          "runId": "ee069a72-0d61-4285-b9c9-6103b0868625",
+          "timestamp": "2026-06-10T14:34:32.574Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "61372614-014e-462a-bae1-622628a3489c",
+          "timestamp": "2026-06-10T21:13:49.891Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "74780818-2bcb-467b-a4ba-ae5bbf256e9a",
+          "timestamp": "2026-06-11T21:24:41.633Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ],
+          "manualReviewNeeded": true
+        },
+        {
+          "runId": "c1327f82-e935-4ac7-9328-7b82bc1dfe0c",
+          "timestamp": "2026-06-11T21:34:52.324Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ],
+          "manualReviewNeeded": true
+        },
+        {
+          "runId": "fa2f4067-7034-4c2d-872f-ab8cc0a2fb03",
+          "timestamp": "2026-06-11T21:40:34.090Z",
+          "command": "fix-stale",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "1205729d-eb3a-4c33-8f3d-3875d9bc9951",
+          "timestamp": "2026-06-12T15:52:47.442Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "b0886669-7838-42d7-ab13-3ea1faedfcee",
+          "timestamp": "2026-06-12T21:42:59.021Z",
+          "command": "fix-stale",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "ea3df4eb-2d04-4e4c-a68a-273c075c8aa6",
+          "timestamp": "2026-06-13T20:47:08.300Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "ea3df4eb-2d04-4e4c-a68a-273c075c8aa6",
+          "timestamp": "2026-06-13T20:48:59.335Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "changeGuide"
+          ],
+          "manualReviewNeeded": true
+        },
+        {
+          "runId": "ed558c26-f183-4ec3-86ae-c2808a4bc076",
+          "timestamp": "2026-06-13T21:09:24.528Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "25edcfe6-910c-4993-8cc6-4eabb2b2d4d5",
+          "timestamp": "2026-06-19T16:25:57.054Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.115Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:25:43.596Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "limitations",
+            "changeGuide"
+          ],
+          "manualReviewNeeded": true
+        },
+        {
+          "runId": "f6726991-f0fd-442a-aa00-38bec07298cb",
+          "timestamp": "2026-07-03T17:42:56.841Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows"
+          ]
+        }
+      ]
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

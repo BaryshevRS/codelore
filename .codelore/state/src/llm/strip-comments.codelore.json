@@ -1,0 +1,189 @@
+{
+  "version": 4,
+  "docPath": "src/llm/strip-comments.codelore.md",
+  "generatedAt": "2026-06-19T16:25:56.898Z",
+  "sectionOrder": [
+    "symbol:src/llm/strip-comments.ts#stripComments"
+  ],
+  "sections": {
+    "symbol:src/llm/strip-comments.ts#stripComments": {
+      "heading": "stripComments",
+      "depth": 1,
+      "anchor": "stripcomments",
+      "owns": [
+        "symbol:src/llm/strip-comments.ts#stripComments"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/llm/file-chunks.ts",
+        "file:src/llm/file-pipeline.ts",
+        "file:src/llm/type-context.ts",
+        "symbol:src/llm/file-chunks.ts#planWriterChunks",
+        "symbol:src/llm/type-context.ts#collectTypeContext"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Очистка исходного кода от комментариев для передачи в LLM и верификацию.",
+          "rendered": true,
+          "fingerprint": "signature=c992563b21f81bfd4dd841348acfe618bab1ecd433ae3ab5b2dca7c6ea4c3617,placement=8f64bc842aa3e73bfced18af30d4621db6eb725d0d5abf458c848f1f61117d35",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается из четырёх мест в пайплайне."
+          }
+        },
+        "responsibility": {
+          "body": "- Не заменяет лексер — использует `ts.createScanner` для токенизации.\n- Не обрабатывает JSX (выбран `LanguageVariant.Standard`).\n- Разрешает неоднозначность деления и регулярного выражения через контекст предыдущего значимого токена.\n- Нормализует пробелы: удаляет концевые пробелы строк и схлопывает три и более перевода строки в два.",
+          "rendered": true,
+          "fingerprint": "signature=c992563b21f81bfd4dd841348acfe618bab1ecd433ae3ab5b2dca7c6ea4c3617,deps=7466ce0cd418915812a93df65e188bbae8303875a6669caa09eed5d790c401c4,usage=d495b422c7e5ba1867ac7219f453dfc88dce4921294d369e9b02636c0a41680e",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция не заменяет лексер, а использует `ts.createScanner` для токенизации, не обрабатывает JSX, разрешает неоднозначность деления и регулярного выражения через контекст предыдущего значимого токена, нормализует пробелы."
+          }
+        },
+        "invariants": {
+          "body": "- Никогда не бросает исключений — при любой строке возвращает новую строку.\n- Все одно- и многострочные комментарии удалены.\n- Нормализация пробелов сохраняет логическую структуру (количество строк может уменьшиться из-за схлопывания).",
+          "rendered": true,
+          "fingerprint": "signature=c992563b21f81bfd4dd841348acfe618bab1ecd433ae3ab5b2dca7c6ea4c3617,body=d768567f5384f36c4403a1abd1754f83608ccd056879d8f75a65d25303d5a04f",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Схлопывание переводов строк может изменить относительные номера строк, что критично для `buildVerifySections`."
+          }
+        },
+        "dependencies": {
+          "body": "- `typescript` — предоставляет лексер (`ts.createScanner`) для разбиения на токены и определения типа комментария.",
+          "rendered": true,
+          "fingerprint": "deps=7466ce0cd418915812a93df65e188bbae8303875a6669caa09eed5d790c401c4",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Единственная внешняя зависимость — `typescript`, используемая для токенизации."
+          }
+        },
+        "workflows": {
+          "body": "- `planWriterChunks` (src/llm/file-chunks.ts): обрезает комментарии из каждого файла источника перед сборкой в чанки. Если весь файл влезает в лимит символов, применяет `stripComments` ко всему файлу сразу.\n- `buildVerifySections` (src/llm/file-pipeline.ts): обрабатывает срез исходного кода сущности (от `startOffset` до `endOffset`) перед передачей в верификатор.\n- `verifyBlocksAgainstDeps` (src/llm/file-pipeline.ts): аналогично `buildVerifySections`, обрабатывает срезы для верификации блоков документации.\n- `collectTypeContext` (src/llm/type-context.ts): очищает извлечённые объявления типов от комментариев для отправки в контекст LLM.",
+          "rendered": true,
+          "fingerprint": "body=d768567f5384f36c4403a1abd1754f83608ccd056879d8f75a65d25303d5a04f,deps=7466ce0cd418915812a93df65e188bbae8303875a6669caa09eed5d790c401c4",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Вызывается четырьмя разными сущностями, из которых `verifyBlocksAgainstDeps` — новый сценарий верификации блоков."
+          }
+        },
+        "limitations": {
+          "body": "- Не обрабатывает JSX — при `LanguageVariant.Standard` токены JSX могут быть лексемизированы некорректно.\n- Может ошибочно интерпретировать косую черту как начало регулярного выражения, если предыдущий значимый токен отсутствует в `DIVISION_CONTEXT_TOKENS` (например, макрос или нестандартный синтаксис).\n- Удаление комментариев уничтожает аннотации вроде `@ts-expect-error` или `// eslint-disable-next-line`, которые могут влиять на поведение downstream.\n- Схлопывание переводов строк может изменить относительные номера строк, что критично для `buildVerifySections` и `verifyBlocksAgainstDeps`, режущих по офсетам.",
+          "rendered": true,
+          "fingerprint": "body=d768567f5384f36c4403a1abd1754f83608ccd056879d8f75a65d25303d5a04f",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Нормализация пробелов может нарушить корректность срезов в двух сценариях верификации."
+          }
+        },
+        "changeGuide": {
+          "body": "- Изменение набора `DIVISION_CONTEXT_TOKENS` — инвариант, закреплённый в строгом перечислении токенов (`ts.SyntaxKind.Identifier` … `ts.SyntaxKind.MinusMinusToken`), проверять в `planWriterChunks`, `collectTypeContext` и обоих вызовах из `file-pipeline.ts`.",
+          "rendered": true,
+          "fingerprint": "body=d768567f5384f36c4403a1abd1754f83608ccd056879d8f75a65d25303d5a04f,deps=7466ce0cd418915812a93df65e188bbae8303875a6669caa09eed5d790c401c4,usage=d495b422c7e5ba1867ac7219f453dfc88dce4921294d369e9b02636c0a41680e,placement=8f64bc842aa3e73bfced18af30d4621db6eb725d0d5abf458c848f1f61117d35",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Изменение набора `DIVISION_CONTEXT_TOKENS` — инвариант, закреплённый в строгом перечислении токенов (`ts.SyntaxKind.Identifier` … `ts.SyntaxKind.MinusMinusToken`), проверять в `planWriterChunks`, `collectTypeContext` и обоих вызовах из `file-pipeline.ts`."
+          }
+        }
+      },
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "generationHistory": [
+        {
+          "runId": "5060a4d8-0793-463c-aed2-37fbee87223a",
+          "timestamp": "2026-06-11T18:36:14.096Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "1372adf6-4062-4467-b8d3-6610906819f7",
+          "timestamp": "2026-06-13T20:26:07.283Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "1372adf6-4062-4467-b8d3-6610906819f7",
+          "timestamp": "2026-06-13T20:32:16.451Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "25edcfe6-910c-4993-8cc6-4eabb2b2d4d5",
+          "timestamp": "2026-06-19T16:22:35.780Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "25edcfe6-910c-4993-8cc6-4eabb2b2d4d5",
+          "timestamp": "2026-06-19T16:25:56.898Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "changeGuide"
+          ]
+        }
+      ]
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

@@ -1,0 +1,108 @@
+{
+  "version": 4,
+  "docPath": "docs/domains/markdown-rendering.codelore.md",
+  "generatedAt": "2026-07-08T07:59:27.227Z",
+  "sectionOrder": [
+    "domain:markdown-rendering"
+  ],
+  "sections": {
+    "domain:markdown-rendering": {
+      "heading": "Рендеринг и локализация Markdown-документов",
+      "depth": 1,
+      "anchor": "рендеринг-и-локализация-markdown-документов",
+      "owns": [
+        "domain:markdown-rendering"
+      ],
+      "depends": [
+        "file:src/markdown/callouts.ts",
+        "file:src/markdown/locales.ts",
+        "file:src/markdown/render-doc.ts",
+        "domain:block-fingerprinting"
+      ],
+      "usedBy": [
+        "domain:codelore-service-facade",
+        "domain:doc-state-storage",
+        "domain:project-config"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Подсистема превращает внутреннее состояние документа в готовый Markdown-файл с локализованными заголовками и цитатами об устаревших или непереведённых блоках. Она расставляет локализованные заголовки секций и блоков, группирует устаревшие блоки в цитаты с объяснением причины и даты, а для ещё не переведённых блоков вставляет предупреждение-заглушку. Остальная система получает единый документ, пригодный для публикации, без необходимости разбираться в структуре секций и статусах блоков.",
+          "rendered": true,
+          "fingerprint": "signature=fd06a7955f6e2f6214cb3b1cab0c20313df26d3350d5d3e18b22778c106f32b9,placement=ee2ac32a324e5fb2309b53cb85e3bc5e45c5800bc2bcfc6b757cfb4c0dabd4d3",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Превращает внутреннее состояние документа в готовый Markdown-файл с локализованными заголовками и цитатами об устаревших или непереведённых блоках."
+          }
+        },
+        "responsibility": {
+          "body": "renderDoc перебирает секции в порядке sectionOrder, для каждой вызывает renderSection и склеивает результаты двойным переводом строки. renderSection формирует заголовок секции, получает словарь заголовков блоков через resolveBlockHeadings для заданного языка, затем обходит блоки: свежие выводит с подзаголовком и телом, устаревшие группирует по одинаковой причине и дате в единую цитату с локализованным объяснением — для каждой группы вызывает staleCalloutText, который подставляет причину и дату в шаблон. Блоки без перевода обрабатывает translationPendingCalloutText, вставляя готовое предупреждение. Обе функции цитат разрешают строки через localeBundle, который по языковому ключу достаёт бандл из статического реестра LOCALES, а при отсутствии языка возвращает английский.",
+          "rendered": true,
+          "fingerprint": "signature=fd06a7955f6e2f6214cb3b1cab0c20313df26d3350d5d3e18b22778c106f32b9,deps=1fad4c0682de955b67665947cba313ecc8990fe565a6bb11b5f0ec4d6c37e46f,usage=a526491801673fc8d52381bd363b16e039f6c5b660849dec6b77a804fe11e509",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Группирует устаревшие блоки по одинаковой причине и дате в единую цитату с локализованным объяснением."
+          }
+        },
+        "dependencies": {
+          "body": "Подсистема опирается на модуль «Отпечатки блоков документации»: он поставляет данные об изменении кода и устаревании перевода (признаки staleSince и staleReason). Сама подсистема не вычисляет хеши и не синхронизирует переводы — только интерпретирует готовые признаки устаревания, превращая их в видимые пользователю цитаты о неактуальности.",
+          "rendered": true,
+          "fingerprint": "deps=1fad4c0682de955b67665947cba313ecc8990fe565a6bb11b5f0ec4d6c37e46f",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Не вычисляет хеши и не синхронизирует переводы — только интерпретирует готовые признаки устаревания."
+          }
+        },
+        "workflows": {
+          "body": "Входная точка renderDoc получает state (секции и их порядок), config и language. Для каждой секции из sectionOrder вызывает renderSection. Та запрашивает у resolveBlockHeadings словарь заголовков блоков для языка — тот дёргает localeBundle, достающий бандл из реестра LOCALES или возвращающий английский. Затем renderSection проходит блоки: свежие сразу попадают в вывод с подзаголовком и телом; устаревшие накапливаются в словаре, сгруппированном по ключу (staleReason, staleSince). Для каждой группы staleCalloutText формирует цитату — определяет локализованную причину через bundle.reasons, заполняет шаблон bundle.callouts.stale значениями reason, since и списком заголовков, оборачивает результат в \"> \". Если блок вообще не переведён, translationPendingCalloutText возвращает готовую цитату из bundle.callouts.translationPending. Результаты всех секций renderDoc склеивает двойным переводом строки и добавляет завершающий перевод строки; при пустом sectionOrder возвращает пустую строку.",
+          "rendered": true,
+          "fingerprint": "body=fd06a7955f6e2f6214cb3b1cab0c20313df26d3350d5d3e18b22778c106f32b9,deps=1fad4c0682de955b67665947cba313ecc8990fe565a6bb11b5f0ec4d6c37e46f",
+          "language": "ru",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "renderDoc обходит секции в порядке sectionOrder, для каждой вызывает renderSection, которая группирует устаревшие блоки по ключу (staleReason, staleSince) и формирует цитаты через staleCalloutText."
+          }
+        },
+        "limitations": {
+          "body": "Подсистема не проверяет целостность состояния: отсутствующую секцию молча пропускает, а неизвестный язык заменяет английским без предупреждения. Локализация жёстко привязана к статическому реестру LOCALES, добавить новый язык без изменения реестра невозможно. Заголовки блоков для устаревших групп берутся из resolveBlockHeadings — если ключ блока там не найден, цитата останется без перечисленных заголовков. Подсистема не работает с частично переведёнными блоками: блок либо свежий, либо устаревший, либо не рендерится при rendered: false — промежуточных состояний нет.",
+          "rendered": true,
+          "fingerprint": "body=fd06a7955f6e2f6214cb3b1cab0c20313df26d3350d5d3e18b22778c106f32b9",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Не проверяет целостность состояния: отсутствующую секцию молча пропускает, а неизвестный язык заменяет английским без предупреждения."
+          }
+        }
+      },
+      "memberDocsFingerprint": "5d4171aaa4a017d42f86c0ea88763bb2e9d1b7ce83d6c4618435dd3cba5a2a61"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

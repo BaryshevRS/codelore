@@ -1,0 +1,160 @@
+{
+  "version": 4,
+  "docPath": "src/service/index-manager.codelore.md",
+  "generatedAt": "2026-06-20T13:35:27.992Z",
+  "sectionOrder": [
+    "symbol:src/service/index-manager.ts#IndexManager"
+  ],
+  "sections": {
+    "symbol:src/service/index-manager.ts#IndexManager": {
+      "heading": "IndexManager",
+      "depth": 1,
+      "anchor": "indexmanager",
+      "owns": [
+        "symbol:src/service/index-manager.ts#IndexManager"
+      ],
+      "depends": [
+        "symbol:src/indexer/code-indexer.ts#buildCodeIndex",
+        "symbol:src/indexer/state-indexer.ts#buildDocIndex",
+        "symbol:src/indexer/state-indexer.ts#patchDocIndexPaths",
+        "symbol:src/service/index-manager.ts#IndexManager.buildScopedIndex",
+        "symbol:src/service/index-manager.ts#IndexManager.loadOrRebuild",
+        "symbol:src/service/index-manager.ts#IndexManager.patchDocs",
+        "symbol:src/service/index-manager.ts#IndexManager.rebuild",
+        "symbol:src/storage/doc-state-storage.ts#DocStateStorage",
+        "symbol:src/storage/json-storage.ts#JsonStorage"
+      ],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Управляет сборкой, кэшированием и проверкой свежести `ProjectIndex`.",
+          "rendered": true,
+          "fingerprint": "signature=a1df42ef6ddd7167f5185c734b2db4141ecdae3bb486d9072c56b779414eb0db,placement=4edbb9c9e64c6138ff9d90495058b0839a0cc98197c3bee2864cdefc73720dd3",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Синхронизирует сборку кода и документации и кэширует результат."
+          }
+        },
+        "responsibility": {
+          "body": "- Координирует параллельную сборку код- и док-индексов через `buildCodeIndex` и `buildDocIndex`.\n- Проверяет свежесть загруженного индекса по времени модификации файлов относительно `generatedAt` (`persistedIndexIsFresh`).\n- Хранит кэш индекса в приватном поле `cache`, сбрасывает его при ребилде через колбэк `onIndexChanged`.\n- Делегирует точечное обновление документации методу `patchDocIndexPaths`.",
+          "rendered": true,
+          "fingerprint": "signature=a1df42ef6ddd7167f5185c734b2db4141ecdae3bb486d9072c56b779414eb0db,deps=6e9abc4bdccc7f5f1df0ba213aba87a1b960b741279dd409f4d525e46a132406,usage=5bf854616fb93874134e1c588e6283605e9d2aaa067f93622f9776242459c0ca",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Координирует параллельную сборку, проверяет свежесть загруженного индекса."
+          }
+        },
+        "invariants": {
+          "body": "- После вызова `rebuild` или `loadOrRebuild` поле `cache` содержит актуальный индекс.\n- `loadOrRebuild` возвращает существующий кэш без повторной сборки, если он есть.\n- `patchDocs` при отсутствующем кэше вызывает полный `rebuild`.\n- `persistedIndexIsFresh` возвращает `false` при невалидной дате или наличии более нового файла.",
+          "rendered": true,
+          "fingerprint": "signature=a1df42ef6ddd7167f5185c734b2db4141ecdae3bb486d9072c56b779414eb0db,body=3337391663ef98b65b6cf8be123f18f649986f200d96059206931a15897e689e",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Гарантирует, что `cache` всегда актуален после ребилда, и что `patchDocs` при пустом кэше форсирует полную пересборку."
+          }
+        },
+        "dependencies": {
+          "body": "- `buildCodeIndex` (`src/indexer/code-indexer.ts`) — построение индекса кода проекта.\n- `buildDocIndex` (`src/indexer/state-indexer.ts`) — построение индекса документации.\n- `patchDocIndexPaths` (`src/indexer/state-indexer.ts`) — инкрементальное обновление индекса документации.\n- `DocStateStorage` (`src/storage/doc-state-storage.ts`) — управление файлами состояний документов.\n- `JsonStorage` (`src/storage/json-storage.ts`) — сохранение и загрузка `ProjectIndex` в JSON.\n- `fastGlob` — поиск файлов исходного кода и файлов состояний для проверки свежести индекса.\n- `stat` (`node:fs/promises`) — получение времени модификации файлов для проверки свежести.",
+          "rendered": true,
+          "fingerprint": "deps=6e9abc4bdccc7f5f1df0ba213aba87a1b960b741279dd409f4d525e46a132406",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Зависимости перечислены с указанием источника и назначения."
+          }
+        },
+        "workflows": {
+          "body": "1. `IndexManager.rebuild` вызывается с `persist: true` и `renderDocs: true` — запускает полную перестройку индекса с сохранением на диск и перерендерингом документов.\n2. `IndexManager.loadOrRebuild` используется для загрузки сохранённого индекса или перестройки, если кэш пуст.\n3. `IndexManager.patchDocs` вызывается для инкрементального обновления индекса документации по переданным путям.\n4. `IndexManager.rebuild` вызывается для перестройки индекса перед анализом изменений.\n5. `IndexManager.loadOrRebuild` вызывается для загрузки или перестройки индекса при поиске затронутых секций.\n6. `IndexManager.buildScopedIndex` вызывается для построения индекса только для указанной области видимости.",
+          "rendered": true,
+          "fingerprint": "body=3337391663ef98b65b6cf8be123f18f649986f200d96059206931a15897e689e,deps=6e9abc4bdccc7f5f1df0ba213aba87a1b960b741279dd409f4d525e46a132406",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Описаны все сценарии вызова методов IndexManager с указанием параметров."
+          }
+        },
+        "limitations": {
+          "body": "- Проверка свежести индекса (`persistedIndexIsFresh`) не учитывает изменения в конфигурации — сравниваются только времена модификации файлов исходного кода и файлов состояний.\n- При ошибке `stat` для любого файла (например, файл удалён) время модификации считается равным 0, что может привести к ложному признанию индекса устаревшим.\n- `buildScopedIndex` не использует кэш — каждый вызов строит индексы заново.",
+          "rendered": true,
+          "fingerprint": "body=3337391663ef98b65b6cf8be123f18f649986f200d96059206931a15897e689e",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Указаны три ограничения: игнорирование конфигурации, обработка ошибок stat, отсутствие кэша для scoped."
+          }
+        },
+        "changeGuide": {
+          "body": "- `persistedIndexIsFresh` проверяет, что все файлы исходного кода и состояний не новее `generatedAt` — при добавлении нового поля в `ProjectIndex` нужно убедиться, что `persistedIndexIsFresh` не пропустит устаревший индекс. Конструкция: `mtimes.every((mtime) => mtime <= generatedAt)`.\n- `patchDocs` при отсутствующем кэше вызывает полный `rebuild` — при изменении логики `patchDocIndexPaths` нужно проверить, что `patchDocs` корректно обрабатывает случай пустого кэша. Конструкция: `if (!this.cache) { await this.rebuild(); return; }`.",
+          "rendered": true,
+          "fingerprint": "body=3337391663ef98b65b6cf8be123f18f649986f200d96059206931a15897e689e,deps=6e9abc4bdccc7f5f1df0ba213aba87a1b960b741279dd409f4d525e46a132406,usage=5bf854616fb93874134e1c588e6283605e9d2aaa067f93622f9776242459c0ca,placement=4edbb9c9e64c6138ff9d90495058b0839a0cc98197c3bee2864cdefc73720dd3",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Два инварианта с цитатами из кода."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.761Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:27.992Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "2d7ead7fcb3bbf314d7432cce9e4a931ebb82758549219d4920836cfb5368c9a"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

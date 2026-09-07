@@ -1,0 +1,210 @@
+{
+  "version": 4,
+  "docPath": "src/server/start-stdio-server.codelore.md",
+  "generatedAt": "2026-07-03T16:19:56.880Z",
+  "sectionOrder": [
+    "symbol:src/server/start-stdio-server.ts#startStdioServer"
+  ],
+  "sections": {
+    "symbol:src/server/start-stdio-server.ts#startStdioServer": {
+      "heading": "startStdioServer",
+      "depth": 1,
+      "anchor": "startstdioserver",
+      "owns": [
+        "symbol:src/server/start-stdio-server.ts#startStdioServer"
+      ],
+      "depends": [
+        "symbol:src/server/create-server.ts#createCodeloreServer"
+      ],
+      "usedBy": [
+        "file:src/cli/run-cli.ts",
+        "symbol:src/cli/run-cli.ts#runCli"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Точка входа для подключения MCP-сервера Codelore к stdio-транспорту, делая инструменты и ресурсы документации доступными через stdin/stdout.",
+          "rendered": true,
+          "fingerprint": "signature=86def2a310fdcf81b33271c50e1efc60485b30badec06269c2662c2adb10933d,placement=bd7c22de08b4d2b695b1f7bed249e7dc089368daee536a68b3f03423e835e249",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Система автодокументирования Codelore использует MCP-протокол для предоставления инструментов через стандартные потоки."
+          },
+          "translations": {
+            "en": {
+              "body": "Entry point for connecting Codelore MCP server to stdio transport, making documentation tools and resources available via stdin/stdout.",
+              "sourceFingerprint": "729c4ced0d453ee1f05a3614d323768521eead467e961bf7bd154d36fdb57413"
+            }
+          }
+        },
+        "responsibility": {
+          "body": "- Создаёт экземпляр MCP-сервера через `createCodeloreServer` с переданным `rootDir`.\n- Подключает созданный сервер к `StdioServerTransport`, после чего сервер обрабатывает сообщения через stdin/stdout.\n- Не управляет жизненным циклом сервера после подключения — `server.connect` остаётся активным до завершения процесса.\n- Не поддерживает другие транспортные протоколы — всегда использует `StdioServerTransport`.",
+          "rendered": true,
+          "fingerprint": "signature=86def2a310fdcf81b33271c50e1efc60485b30badec06269c2662c2adb10933d,deps=1248151ef900e18707d1fc667a85249db86e92f56deac055d19941e813450650,usage=98349713bf73e4fa114bdfa4c4541559ed15f507d11cdfbbcdb45a1d351091c9",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция создаёт сервер через `createCodeloreServer` и подключает его к `StdioServerTransport`, после чего не управляет жизненным циклом."
+          },
+          "translations": {
+            "en": {
+              "body": "- Does not manage the server lifecycle after connection — `server.connect` remains active until process termination.\n- Does not support other transport protocols — always uses `StdioServerTransport`.\n- Delegates server creation to `createCodeloreServer`, passing `rootDir`.",
+              "sourceFingerprint": "1077f21f4a29ca7ec8d4daf1182b96134181219eb9ca8bf25185175e9c9eb8e6"
+            }
+          },
+          "language": "ru"
+        },
+        "invariants": {
+          "body": "- При каждом вызове создаётся новый экземпляр сервера через `createCodeloreServer`; состояние между вызовами не разделяется.\n- Всегда вызывает `server.connect(transport)` сразу после создания сервера.\n- Функция асинхронная — возвращает `Promise<void>`, который разрешается при успешном подключении или отклоняется при ошибке подключения.",
+          "rendered": true,
+          "fingerprint": "signature=86def2a310fdcf81b33271c50e1efc60485b30badec06269c2662c2adb10933d,body=115b976661c1dc28b6ef8fd262b1adaf5dc52b59c5abd0c0a591e4e9f4dc02c6",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "- При каждом вызове создаётся новый экземпляр сервера через `createCodeloreServer`; состояние между вызовами не разделяется."
+          },
+          "translations": {
+            "en": {
+              "body": "- Each call creates a new server instance via `createCodeloreServer`; state is not shared between calls.\n- Always calls `server.connect(transport)` immediately after creating the server.\n- The function is asynchronous — returns `Promise<void>` that resolves on successful connection or rejects on connection error.",
+              "sourceFingerprint": "7d7353f117d9fcf2df4705a488e44e6c6c0278ac7f8b743ee88509eb2854263f"
+            }
+          }
+        },
+        "dependencies": {
+          "body": "- `createCodeloreServer` (`src/server/create-server.ts`) — создание и настройка MCP-сервера с регистрацией всех ресурсов и инструментов.\n- `StdioServerTransport` (`@modelcontextprotocol/server`) — транспорт для общения через стандартные потоки ввода-вывода.",
+          "rendered": false,
+          "fingerprint": "deps=1248151ef900e18707d1fc667a85249db86e92f56deac055d19941e813450650",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.25,
+            "specificity": 0.75,
+            "novelFact": "Зависимости не изменились относительно существующего блока."
+          }
+        },
+        "workflows": {
+          "body": "1. Прямой вызов из `file:src/bin/codelore-mcp.ts` через `#!/usr/bin/env node` — запускается как CLI-утилита с `rootDir: process.cwd()`.\n2. Вызов из `symbol:src/cli/run-cli.ts#runCli` при значении `parsed.command === \"mcp\"` — передаётся `rootDir` из разобранных глобальных аргументов.\n3. `createCodeloreServer` создаёт сервер и регистрирует ресурсы, затем `StdioServerTransport` подключается через `server.connect(transport)`, после чего сервер начинает обработку сообщений через stdin/stdout.",
+          "rendered": true,
+          "fingerprint": "body=115b976661c1dc28b6ef8fd262b1adaf5dc52b59c5abd0c0a591e4e9f4dc02c6,deps=1248151ef900e18707d1fc667a85249db86e92f56deac055d19941e813450650",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Оба вызывающих места передают `rootDir`; `runCli` использует `parsed.rootDir`."
+          },
+          "translations": {
+            "en": {
+              "body": "1. Direct invocation from `file:src/bin/codelore-mcp.ts` via `#!/usr/bin/env node` — runs as a CLI utility with `rootDir: process.cwd()`.\n2. Invocation from `symbol:src/cli/run-cli.ts#runCli` when `parsed.command === \"mcp\"` — passes `rootDir` from the parsed global arguments.\n3. `createCodeloreServer` creates the server and registers resources, then `StdioServerTransport` connects via `server.connect(transport)`, after which the server starts processing messages through stdin/stdout.",
+              "sourceFingerprint": "0c0685e5ac15b45b5156861e2714d4d0db824f6d1c6a2dc9df05b9b2fbbfd43e"
+            }
+          }
+        },
+        "limitations": {
+          "body": "- Работает только со stdio-транспортом; для сетевого доступа требуется другой entry point.\n- Не обрабатывает сигналы завершения процесса — полагается на стандартное поведение Node.js.",
+          "rendered": false,
+          "fingerprint": "body=115b976661c1dc28b6ef8fd262b1adaf5dc52b59c5abd0c0a591e4e9f4dc02c6",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.25,
+            "specificity": 0.75,
+            "novelFact": "Ограничения вытекают из использования `StdioServerTransport` и отсутствия обработчиков сигналов."
+          }
+        }
+      },
+      "depDocsFingerprint": "3f903d736c68641b044c1730a27553a0f0bbace2304a5feff1f299dca9acc397",
+      "generationHistory": [
+        {
+          "runId": "d6af7e22-9c12-4834-a862-ef390bc3048c",
+          "timestamp": "2026-06-10T21:03:22.800Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "c1327f82-e935-4ac7-9328-7b82bc1dfe0c",
+          "timestamp": "2026-06-11T21:27:36.721Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "f263d701-a1b3-42af-8474-bc7848f05621",
+          "timestamp": "2026-06-12T19:43:18.574Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants",
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "ee309424-0690-4fb9-ac27-b0e5dc513555",
+          "timestamp": "2026-06-19T18:04:32.284Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d83e2522-bab2-4432-a33e-69b326ff6c39",
+          "timestamp": "2026-07-03T16:19:56.880Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        }
+      ]
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

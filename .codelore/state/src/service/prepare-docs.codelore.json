@@ -1,0 +1,2425 @@
+{
+  "version": 4,
+  "docPath": "src/service/prepare-docs.codelore.md",
+  "generatedAt": "2026-07-03T20:27:08.471Z",
+  "sectionOrder": [
+    "symbol:src/service/prepare-docs.ts#emptyDocState",
+    "symbol:src/service/prepare-docs.ts#allowedBlockIds",
+    "symbol:src/service/prepare-docs.ts#orderBlocks",
+    "symbol:src/service/prepare-docs.ts#anchorForHeading",
+    "symbol:src/service/prepare-docs.ts#preparedDocsResult",
+    "symbol:src/service/prepare-docs.ts#withPreservedBlockBodies",
+    "symbol:src/service/prepare-docs.ts#docStateSectionForPlannedEntity",
+    "symbol:src/service/prepare-docs.ts#normalizePrepareScope",
+    "symbol:src/service/prepare-docs.ts#normalizePreparePath",
+    "symbol:src/service/prepare-docs.ts#publicPrepareScope",
+    "symbol:src/service/prepare-docs.ts#prepareInitialDocsSummary",
+    "symbol:src/service/prepare-docs.ts#prepareInitialDocsNextStep",
+    "symbol:src/service/prepare-docs.ts#codeIndexScopeFromPrepareScope",
+    "symbol:src/service/prepare-docs.ts#hasPrepareScope",
+    "symbol:src/service/prepare-docs.ts#skippedPreparedDocSection",
+    "symbol:src/service/prepare-docs.ts#isSectionSkeleton",
+    "symbol:src/service/prepare-docs.ts#isEntityInPrepareScope",
+    "symbol:src/service/prepare-docs.ts#shouldCreatePage",
+    "symbol:src/service/prepare-docs.ts#collectSkippedBlocksByEntity"
+  ],
+  "sections": {
+    "symbol:src/service/prepare-docs.ts#emptyDocState": {
+      "heading": "emptyDocState",
+      "depth": 1,
+      "anchor": "emptydocstate",
+      "owns": [
+        "symbol:src/service/prepare-docs.ts#emptyDocState"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.prepareInitialDocs"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Создаёт пустой `DocState` для нового документа, заданного путём.",
+          "rendered": true,
+          "fingerprint": "signature=9c60f1aa68f5434f3fd4bebebac29bd04840500737c1841042aed3c6257fe518,placement=137d7fe32a823e7536dc931686f0b8603dad4eb7c53332bcab1a1ab7ccca7e41",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "Функция инициализирует `DocState` с версией `DOC_STATE_VERSION` и текущей датой."
+          }
+        },
+        "responsibility": {
+          "body": "- Устанавливает `version` из константы `DOC_STATE_VERSION`.\n- Устанавливает `docPath` переданным значением, `generatedAt` — текущей ISO-строкой.\n- Инициализирует `sectionOrder` пустым массивом и `sections` пустым объектом.\n- Не создаёт никаких секций или блоков — `DocState` готов к наполнению.",
+          "rendered": true,
+          "fingerprint": "signature=9c60f1aa68f5434f3fd4bebebac29bd04840500737c1841042aed3c6257fe518,deps=eae5064853704783c5644f3d78d2c8831bb9441acb8ad064b13c42a911f4e345,usage=d954ae3b32c520d7679bb7c6a7ba0f8564452654f2f88bc2fd310dc897cc1f67",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Функция не валидирует `docPath` и не проверяет существование файла."
+          }
+        },
+        "invariants": {
+          "body": "Всегда возвращает объект с `version: DOC_STATE_VERSION`, `docPath` как передано, `generatedAt` — текущей датой, `sectionOrder` пуст, `sections` пуст. Никогда не бросает исключения.",
+          "rendered": true,
+          "fingerprint": "signature=9c60f1aa68f5434f3fd4bebebac29bd04840500737c1841042aed3c6257fe518,body=e30361825219b9ab7c16d93fa7a3429843085d8051c46e4535fade70e64e045a",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 1,
+            "novelFact": "Возвращаемый объект не содержит ссылок на внешние данные."
+          }
+        },
+        "dependencies": {
+          "body": "Использует константу `DOC_STATE_VERSION` из модуля `../storage/doc-state-storage.js` для установки версии состояния.",
+          "rendered": true,
+          "fingerprint": "deps=eae5064853704783c5644f3d78d2c8831bb9441acb8ad064b13c42a911f4e345",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Зависимость определяет версию DocState"
+          }
+        },
+        "workflows": {
+          "body": "Вызывается `CodeloreService.prepareInitialDocs` (src/service/codelore-service.ts), когда для файла источника не найдено сохранённое состояние (`existing ?? emptyDocState(docPath)`). Результат затем наполняется секциями и сохраняется в хранилище.",
+          "rendered": true,
+          "fingerprint": "body=e30361825219b9ab7c16d93fa7a3429843085d8051c46e4535fade70e64e045a,deps=eae5064853704783c5644f3d78d2c8831bb9441acb8ad064b13c42a911f4e345",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Единственный вызывающий — prepareInitialDocs, при отсутствии существующего состояния"
+          }
+        },
+        "limitations": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=e30361825219b9ab7c16d93fa7a3429843085d8051c46e4535fade70e64e045a"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.767Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.002Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+    },
+    "symbol:src/service/prepare-docs.ts#allowedBlockIds": {
+      "heading": "allowedBlockIds",
+      "depth": 1,
+      "anchor": "allowedblockids",
+      "owns": [
+        "symbol:src/service/prepare-docs.ts#allowedBlockIds"
+      ],
+      "depends": [],
+      "usedBy": [
+        "symbol:src/service/prepare-docs.ts#docStateSectionForPlannedEntity"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Определяет, какие идентификаторы блоков разрешены для указанной сущности.",
+          "rendered": true,
+          "fingerprint": "signature=73dbc75cdfe4be3b7370bd2659c861d252eaeafc49f518d44ee826073dd55678,placement=9bfc573b508dd704b091b8bf8ce253b7894cdfe55931c3500b346980158f65ec",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "Использует метаданные сущности (`allowedBlocks`), если они заданы и непусты."
+          }
+        },
+        "responsibility": {
+          "body": "- Если `entity.metadata?.allowedBlocks` существует и непуст, возвращает его копию.\n- Иначе возвращает копию `BLOCK_IDS` — полный список всех блоков.\n- Не проверяет, что возвращаемые идентификаторы относятся к реальным блокам; доверяет источнику.\n- Не изменяет переданную сущность.",
+          "rendered": true,
+          "fingerprint": "signature=73dbc75cdfe4be3b7370bd2659c861d252eaeafc49f518d44ee826073dd55678,deps=a6a2849e52d2160baa9ca50edccb1326920d21b65f832a294f7bab5a1224312f,usage=772ac5b0fdee550e644520fae602dd5f40301baf25c22e207826014454bb9b9a",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Функция не фильтрует дубликаты в `allowedBlocks` — они сохраняются как есть."
+          }
+        },
+        "invariants": {
+          "body": "Возвращаемый массив всегда непуст, так как `BLOCK_IDS` непуст и резервное значение — его копия. Функция никогда не возвращает `undefined` или `null`.",
+          "rendered": true,
+          "fingerprint": "signature=73dbc75cdfe4be3b7370bd2659c861d252eaeafc49f518d44ee826073dd55678,body=a26cbda318e2bbe2c54c5bd3bedb38ab3f00922e9c0fe80a0592209fc91d1483",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 1,
+            "novelFact": "Возвращаемый массив — это новый массив (спред `...`), а не ссылка на внутренний."
+          }
+        },
+        "dependencies": {
+          "body": "Использует `BLOCK_IDS` из модуля `../markdown/block-ids.js` как резервный список разрешённых блоков.",
+          "rendered": true,
+          "fingerprint": "deps=a6a2849e52d2160baa9ca50edccb1326920d21b65f832a294f7bab5a1224312f",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Зависимость для полного списка идентификаторов блоков"
+          }
+        },
+        "workflows": {
+          "body": "Вызывается `docStateSectionForPlannedEntity` (тот же файл) для определения набора блоков, которые могут быть сгенерированы для сущности.",
+          "rendered": true,
+          "fingerprint": "body=a26cbda318e2bbe2c54c5bd3bedb38ab3f00922e9c0fe80a0592209fc91d1483,deps=a6a2849e52d2160baa9ca50edccb1326920d21b65f832a294f7bab5a1224312f",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызвана при создании каждой новой секции"
+          }
+        },
+        "limitations": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=a26cbda318e2bbe2c54c5bd3bedb38ab3f00922e9c0fe80a0592209fc91d1483"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.769Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.004Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+    },
+    "symbol:src/service/prepare-docs.ts#orderBlocks": {
+      "heading": "orderBlocks",
+      "depth": 1,
+      "anchor": "orderblocks",
+      "owns": [
+        "symbol:src/service/prepare-docs.ts#orderBlocks"
+      ],
+      "depends": [],
+      "usedBy": [
+        "symbol:src/service/prepare-docs.ts#docStateSectionForPlannedEntity"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Упорядочивает разрешённые идентификаторы блоков согласно каноническому порядку из `BLOCK_IDS`.",
+          "rendered": true,
+          "fingerprint": "signature=acf3a29cf7d9a27cc0a768c1c5dacb9b8093e0ff5fe818b3f9e48aa1ebe6f4cc,placement=31d0bf412240852a3c5a7655f2be37a8c3ee1fec307888c543efb1fa3b49050d",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "Фильтрует `BLOCK_IDS` по множеству `allowed`, оставляя только присутствующие в обоих."
+          }
+        },
+        "responsibility": {
+          "body": "- Принимает массив `allowed` идентификаторов блоков.\n- Строит `Set` из `allowed` для быстрой проверки.\n- Возвращает отфильтрованную копию `BLOCK_IDS`, содержащую только элементы из множества.\n- Сохраняет относительный порядок `BLOCK_IDS`, а не порядок входного массива.",
+          "rendered": true,
+          "fingerprint": "signature=acf3a29cf7d9a27cc0a768c1c5dacb9b8093e0ff5fe818b3f9e48aa1ebe6f4cc,deps=c990ff78e75ae483a8c6822f389c789ef9daff7bef4095f3b67de52fd06abd92,usage=e15d4b18b9dddf7ce4169030c753a496e3d73d292f1a6a5dd8618fe7b52904ee",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Функция не проверяет, что входные идентификаторы действительны; доверяет `allowed`."
+          }
+        },
+        "invariants": {
+          "body": "Длина выходного массива ≤ длина `allowed`. Если `allowed` пуст, возвращает пустой массив. Никогда не мутирует входные данные.",
+          "rendered": true,
+          "fingerprint": "signature=acf3a29cf7d9a27cc0a768c1c5dacb9b8093e0ff5fe818b3f9e48aa1ebe6f4cc,body=1aa6a08f7cc65b035a182158640746b90bec718d51a873ffe1986980431135da",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 1,
+            "novelFact": "Функция не бросает исключений на любом входе."
+          }
+        },
+        "dependencies": {
+          "body": "Использует `BLOCK_IDS` из модуля `../markdown/block-ids.js` для получения канонического порядка блоков.",
+          "rendered": true,
+          "fingerprint": "deps=c990ff78e75ae483a8c6822f389c789ef9daff7bef4095f3b67de52fd06abd92",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Зависимость для порядка блоков"
+          }
+        },
+        "workflows": {
+          "body": "Вызывается `docStateSectionForPlannedEntity` (тот же файл) для упорядочивания разрешённых блоков в порядке, заданном `BLOCK_IDS`. Результат используется для итерации при создании объектов блоков.",
+          "rendered": true,
+          "fingerprint": "body=1aa6a08f7cc65b035a182158640746b90bec718d51a873ffe1986980431135da,deps=c990ff78e75ae483a8c6822f389c789ef9daff7bef4095f3b67de52fd06abd92",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Сортирует блоки в каноническом порядке"
+          }
+        },
+        "limitations": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=1aa6a08f7cc65b035a182158640746b90bec718d51a873ffe1986980431135da"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.771Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.006Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+    },
+    "symbol:src/service/prepare-docs.ts#anchorForHeading": {
+      "heading": "anchorForHeading",
+      "depth": 1,
+      "anchor": "anchorforheading",
+      "owns": [
+        "symbol:src/service/prepare-docs.ts#anchorForHeading"
+      ],
+      "depends": [],
+      "usedBy": [
+        "symbol:src/service/prepare-docs.ts#docStateSectionForPlannedEntity"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Преобразует строку заголовка в якорь, удаляя недопустимые символы и заменяя пробелы на дефисы, для использования в HTML-ссылках и навигации по документу.",
+          "rendered": true,
+          "fingerprint": "signature=11b351910120b75c9277974302e49d61ae64e5ac28044a0b9a737b16c021da6a,placement=e08ed3162a6660d0e2faa0e4fc52cbdfb2a951d82b3c283f63b60592fcf74605",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Преобразует строку заголовка в якорь, удаляя недопустимые символы и заменяя пробелы на дефисы."
+          },
+          "language": "ru"
+        },
+        "responsibility": {
+          "body": "- Обрезает начальные и конечные пробелы с помощью .trim().\n- Приводит строку к нижнему регистру через .toLowerCase().\n- Удаляет все символы, кроме латиницы, кириллицы, цифр, пробелов и дефисов, с помощью replace(/[^a-z0-9а-яё\\s-]/gi, \"\").\n- Заменяет последовательности пробелов на один дефис через replace(/\\s+/g, \"-\").",
+          "rendered": true,
+          "fingerprint": "signature=11b351910120b75c9277974302e49d61ae64e5ac28044a0b9a737b16c021da6a,deps=0443682d28a021cee9c3e0da549a42ec8817c2b0e698683eda135b7844109993,usage=19a18e539a2c2c6cf2ae692ca1f63ac4a7d3e0708545e8474c94b246cb46eedd",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Выполняет четыре последовательных преобразования: обрезка, приведение к нижнему регистру, удаление недопустимых символов, замена пробелов на дефисы."
+          },
+          "language": "ru"
+        },
+        "invariants": {
+          "body": "- Возвращает строку, не содержащую пробелов (все заменены на дефис).\n- Для пустой строки или строки только из пробелов возвращает пустую строку.\n- Всегда возвращает строку, никогда не бросает исключений.",
+          "rendered": true,
+          "fingerprint": "signature=11b351910120b75c9277974302e49d61ae64e5ac28044a0b9a737b16c021da6a,body=2ccf0540cb91af35e7e145d38531b0df77d76fa235babff1043da4040be4268a",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Гарантирует отсутствие пробелов в результате и никогда не бросает исключений."
+          },
+          "language": "ru"
+        },
+        "dependencies": {
+          "body": "Нет внешних зависимостей; использует только встроенные методы String (trim, toLowerCase, replace) и регулярные выражения.",
+          "rendered": true,
+          "fingerprint": "deps=0443682d28a021cee9c3e0da549a42ec8817c2b0e698683eda135b7844109993",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция не использует внешние модули — полагается исключительно на встроенные методы String."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается функцией docStateSectionForPlannedEntity для генерации якоря из заголовка планируемой секции. Результат присваивается полю anchor возвращаемого объекта DocStateSection.",
+          "rendered": true,
+          "fingerprint": "body=2ccf0540cb91af35e7e145d38531b0df77d76fa235babff1043da4040be4268a,deps=0443682d28a021cee9c3e0da549a42ec8817c2b0e698683eda135b7844109993",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Единственный прямой вызов — из docStateSectionForPlannedEntity, где результат используется как стабильный идентификатор секции."
+          }
+        },
+        "limitations": {
+          "body": "Не сохраняет символы, не входящие в латиницу, кириллицу, цифры, пробелы или дефисы — все прочие символы (например, подчёркивания, знаки препинания, символы других алфавитов) удаляются регулярным выражением /[^a-z0-9а-яё\\s-]/gi.",
+          "rendered": true,
+          "fingerprint": "body=2ccf0540cb91af35e7e145d38531b0df77d76fa235babff1043da4040be4268a",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Регулярное выражение /[^a-z0-9а-яё\\s-]/gi удаляет все символы, не входящие в латиницу, кириллицу, цифры, пробелы или дефисы, что исключает поддержку других алфавитов и специальных символов."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.773Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "c0f79ccc-452b-4e9d-8952-d351f2fc8221",
+          "timestamp": "2026-07-03T20:25:41.207Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "c0f79ccc-452b-4e9d-8952-d351f2fc8221",
+          "timestamp": "2026-07-03T20:27:08.470Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "8850a7f16cfcb42d76e97a9c125a901807fc277aefe70deddf58cf4d3b9cf123"
+    },
+    "symbol:src/service/prepare-docs.ts#preparedDocsResult": {
+      "heading": "preparedDocsResult",
+      "depth": 1,
+      "anchor": "prepareddocsresult",
+      "owns": [
+        "symbol:src/service/prepare-docs.ts#preparedDocsResult"
+      ],
+      "depends": [
+        "symbol:src/service/prepare-docs.ts#collectSkippedBlocksByEntity",
+        "symbol:src/service/prepare-docs.ts#prepareInitialDocsNextStep",
+        "symbol:src/service/prepare-docs.ts#prepareInitialDocsSummary",
+        "symbol:src/service/prepare-docs.ts#publicPrepareScope"
+      ],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.prepareInitialDocs"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Собирает полный результат `PrepareInitialDocsResult` из вычисленных секций и метаданных.",
+          "rendered": true,
+          "fingerprint": "signature=5f34d4fdb0438f3aa1a966d3fd1546b4c8838676a0c6134673a6fb7b2a70e717,placement=7c55afa23c2cbaf6d6934cf057d51789d641a767c94df42f855f194bc2c09f6e",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "Эта функция — композиция нескольких более мелких функций для построения результата."
+          }
+        },
+        "responsibility": {
+          "body": "- Преобразует `scope` в публичное представление через `publicPrepareScope`.\n- Определяет следующий шаг через `prepareInitialDocsNextStep` и вставляет его в результат.\n- Строит сводку через `prepareInitialDocsSummary`.\n- Собирает пропущенные блоки через `collectSkippedBlocksByEntity`.\n- Не вычисляет `plannedSections`, `createdSections` или `skippedSections`; они переданы готовыми.",
+          "rendered": true,
+          "fingerprint": "signature=5f34d4fdb0438f3aa1a966d3fd1546b4c8838676a0c6134673a6fb7b2a70e717,deps=f72c31acec21c4f5489299c940744c855f8b7cd2671fd6e08f6b60c28a11a936,usage=5617a02948e562f693913b21a9b9a31c4d4c328ebb7026ed924a6d22834ccc73",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Функция не изменяет переданные секции и не валидирует их содержимое."
+          }
+        },
+        "invariants": {
+          "body": "Возвращаемый объект содержит все указанные поля: `dryRun`, `scope`, `nextAction`, `guidance`, `summary`, `plannedSections`, `createdSections`, `skippedSections`, `skippedBlocksByEntity`. Значения полей — ссылки на переданные объекты, без глубокого копирования.",
+          "rendered": true,
+          "fingerprint": "signature=5f34d4fdb0438f3aa1a966d3fd1546b4c8838676a0c6134673a6fb7b2a70e717,body=8728f4e5282b77097b467f48dc0b9ac9b2252c97151080a91e7cd0a83d5344de",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 1,
+            "novelFact": "`nextAction` и `guidance` вычисляются заново каждый раз через `prepareInitialDocsNextStep`."
+          }
+        },
+        "dependencies": {
+          "body": "Не использует внешних модулей во время выполнения; полагается на типы из `../types.js`.",
+          "rendered": false,
+          "fingerprint": "deps=f72c31acec21c4f5489299c940744c855f8b7cd2671fd6e08f6b60c28a11a936",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.75,
+            "specificity": 0.5,
+            "novelFact": "Нет внешних runtime-зависимостей"
+          }
+        },
+        "workflows": {
+          "body": "Вызывается `CodeloreService.prepareInitialDocs` (src/service/codelore-service.ts) после обработки всех сущностей для сборки финального результата. Делегирует вычисление следующего шага в `prepareInitialDocsNextStep` и сводку в `prepareInitialDocsSummary`.",
+          "rendered": true,
+          "fingerprint": "body=8728f4e5282b77097b467f48dc0b9ac9b2252c97151080a91e7cd0a83d5344de,deps=f72c31acec21c4f5489299c940744c855f8b7cd2671fd6e08f6b60c28a11a936",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Точка сборки результата"
+          }
+        },
+        "limitations": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=8728f4e5282b77097b467f48dc0b9ac9b2252c97151080a91e7cd0a83d5344de"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.775Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.009Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+    },
+    "symbol:src/service/prepare-docs.ts#withPreservedBlockBodies": {
+      "heading": "withPreservedBlockBodies",
+      "depth": 1,
+      "anchor": "withpreservedblockbodies",
+      "owns": [
+        "symbol:src/service/prepare-docs.ts#withPreservedBlockBodies"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.prepareInitialDocs"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Сохраняет тела блоков из предыдущего состояния секции при обновлении, если новая секция не содержит собственного текста.",
+          "rendered": true,
+          "fingerprint": "signature=ef596bdddfccee9837fadbb069974be1da6ce46d9f9979f3a3f2c16e1e4b5f89,placement=7c3adab65edfb5830932f4108084524cdfced1b4ac68d6aab5a84ec47f565b9d",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "Предотвращает потерю уже написанного содержимого при пересоздании секции."
+          }
+        },
+        "responsibility": {
+          "body": "- Для каждого блока `previous`: если его тело непустое, а соответствующего блока в `fresh` нет или его тело пустое, то копирует предыдущий блок в `fresh`.\n- Добавляет идентификатор блока в `fresh.blockOrder` и `fresh.allowedBlocks`, если он там отсутствует.\n- Не изменяет предыдущее состояние.\n- Возвращает мутированный объект `fresh`.",
+          "rendered": true,
+          "fingerprint": "signature=ef596bdddfccee9837fadbb069974be1da6ce46d9f9979f3a3f2c16e1e4b5f89,deps=de086f4491d8c7bcf778adde2b5855cf5df07d62845653fc7a76e0ccc8e9d028,usage=20150b231579e126506d6c95759a95b7fafae34ff081b44102c209b5f9055de6",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Функция не копирует другие поля (например, `depends`, `usedBy`); только блоки."
+          }
+        },
+        "invariants": {
+          "body": "Мутирует объект `fresh` in-place. Если в `previous` есть блоки с пустым телом, они игнорируются. Если в `fresh` уже есть блок с непустым телом, он не перезаписывается. Функция никогда не удаляет блоки из `fresh`.",
+          "rendered": true,
+          "fingerprint": "signature=ef596bdddfccee9837fadbb069974be1da6ce46d9f9979f3a3f2c16e1e4b5f89,body=13241a996cb7dbf60487d20db1a8d5ff4e9e49d3df3a7c1a21f14996e2ccc63e",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 1,
+            "novelFact": "Функция не проверяет, что идентификатор блока действителен; он просто копируется."
+          }
+        },
+        "dependencies": {
+          "body": "Не использует внешних модулей во время выполнения; все операции — над переданными объектами.",
+          "rendered": false,
+          "fingerprint": "deps=de086f4491d8c7bcf778adde2b5855cf5df07d62845653fc7a76e0ccc8e9d028",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.75,
+            "specificity": 0.5,
+            "novelFact": "Нет внешних зависимостей"
+          }
+        },
+        "workflows": {
+          "body": "Вызывается `CodeloreService.prepareInitialDocs` (src/service/codelore-service.ts) при обновлении существующей секции документа. После создания свежей секции вызывается `withPreservedBlockBodies(previous, fresh)`, если `previous` существует. Сохраняет текстовое наполнение блоков из `previous`, если в `fresh` нет непустого тела.",
+          "rendered": true,
+          "fingerprint": "body=13241a996cb7dbf60487d20db1a8d5ff4e9e49d3df3a7c1a21f14996e2ccc63e,deps=de086f4491d8c7bcf778adde2b5855cf5df07d62845653fc7a76e0ccc8e9d028",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Обновление секции с сохранением непустого текста"
+          }
+        },
+        "limitations": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=13241a996cb7dbf60487d20db1a8d5ff4e9e49d3df3a7c1a21f14996e2ccc63e"
+        },
+        "changeGuide": {
+          "body": "1. Блоки с пустым телом в `previous` игнорируются. Обеспечивает проверка `if (prevBlock.body.trim() === \"\") { continue; }`.\n2. Если в `fresh` уже есть блок с непустым телом, он не перезаписывается. Обеспечивает проверка `if (freshBlock && freshBlock.body.trim() !== \"\") { continue; }`.",
+          "rendered": true,
+          "fingerprint": "body=13241a996cb7dbf60487d20db1a8d5ff4e9e49d3df3a7c1a21f14996e2ccc63e,deps=de086f4491d8c7bcf778adde2b5855cf5df07d62845653fc7a76e0ccc8e9d028,usage=20150b231579e126506d6c95759a95b7fafae34ff081b44102c209b5f9055de6,placement=7c3adab65edfb5830932f4108084524cdfced1b4ac68d6aab5a84ec47f565b9d",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Два условия копирования блоков"
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.777Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.012Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+    },
+    "symbol:src/service/prepare-docs.ts#docStateSectionForPlannedEntity": {
+      "heading": "docStateSectionForPlannedEntity",
+      "depth": 1,
+      "anchor": "docstatesectionforplannedentity",
+      "owns": [
+        "symbol:src/service/prepare-docs.ts#docStateSectionForPlannedEntity"
+      ],
+      "depends": [
+        "symbol:src/markdown/block-facets.ts#computeBlockFingerprint",
+        "symbol:src/service/helpers.ts#uniqueSorted",
+        "symbol:src/service/prepare-docs.ts#allowedBlockIds",
+        "symbol:src/service/prepare-docs.ts#anchorForHeading",
+        "symbol:src/service/prepare-docs.ts#orderBlocks"
+      ],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.prepareInitialDocs"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Создаёт пустой скелет секции документации для сущности, объединяя данные разметки файла (`planned.heading`, `planned.depth`) с зависимостями и потребителями сущности.",
+          "rendered": true,
+          "fingerprint": "signature=21d8f84ff180e66213831b47f7378752807416a486c06b1179b6f2e17d96207f,placement=bb209141eed6ebc254ec54cb065b65a6e3f2ec7584f1e1caa87ed11d19ffdab0",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Создаёт пустой скелет секции документации для сущности, объединяя данные разметки файла (`planned.heading`, `planned.depth`) с зависимостями и потребителями сущности."
+          }
+        },
+        "responsibility": {
+          "body": "- Делегирует вычисление разрешённых блоков `allowedBlockIds(entity)`, сортировку — `orderBlocks`.\n- Устанавливает `owns` как `[entity.id]`, `depends` и `usedBy` как отсортированные без дубликатов массивы из `entity.directDeps` и `entity.directUsages`.\n- Создаёт пустое тело для каждого блока (`body: \"\"`) и добавляет отпечаток `fingerprint` через `computeBlockFingerprint`, если он определён.\n- Генерирует `anchor` из `planned.heading` функцией `anchorForHeading`.",
+          "rendered": true,
+          "fingerprint": "signature=21d8f84ff180e66213831b47f7378752807416a486c06b1179b6f2e17d96207f,deps=1088d612495404b1e25d9bb7198f896f8f10b94286f1d85f7c558b911f50bf97,usage=d7785529f0c9306eb05b65577c6f4e5919471b5c8fe30008024c3d68e1e5c75f",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "- Делегирует вычисление разрешённых блоков `allowedBlockIds(entity)`, сортировку — `orderBlocks`."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращаемая секция всегда имеет `status: \"normal\"`.\n- Порядок блоков в `blockOrder` соответствует порядку, полученному из `orderBlocks`, который сам следует глобальному порядку `BLOCK_IDS`.\n- Поля `depends` и `usedBy` отсортированы и не содержат дубликатов (гарантируется `uniqueSorted`).",
+          "rendered": true,
+          "fingerprint": "signature=21d8f84ff180e66213831b47f7378752807416a486c06b1179b6f2e17d96207f,body=2b807bd8e01e41b696315087a597cda1f03e202922331d091f15229978418c5c",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "- Возвращаемая секция всегда имеет `status: \"normal\"`."
+          }
+        },
+        "dependencies": {
+          "body": "Зависимости:\n- `computeBlockFingerprint` (`src/markdown/block-facets.ts`) — вычисляет отпечаток для каждого блока.\n- `uniqueSorted` (`src/service/helpers.ts`) — дедуплицирует и сортирует массивы `depends` и `usedBy`.",
+          "rendered": true,
+          "fingerprint": "deps=1088d612495404b1e25d9bb7198f896f8f10b94286f1d85f7c558b911f50bf97",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Эта функция использует computeBlockFingerprint для создания отпечатка на основе сущности и её фасетов, и uniqueSorted для нормализации массивов зависимостей."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `CodeloreService.prepareInitialDocs` для каждой запланированной секции в цикле по файлам и группам сущностей. Для каждой секции создаётся свежий `DocStateSection` с пустыми телами блоков. Если в хранилище уже есть предыдущая секция для той же сущности, вызывающий объединяет её с новой, иначе секция сохраняется как есть. Новая секция добавляется в `sectionOrder`, если её там ещё нет. Затем состояние сохраняется через `this.docStateStorage.saveDocState(state)`.",
+          "rendered": true,
+          "fingerprint": "body=2b807bd8e01e41b696315087a597cda1f03e202922331d091f15229978418c5c,deps=1088d612495404b1e25d9bb7198f896f8f10b94286f1d85f7c558b911f50bf97",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Работа функции полностью управляется вызывающим: создание, слияние и сохранение секций."
+          }
+        },
+        "limitations": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=2b807bd8e01e41b696315087a597cda1f03e202922331d091f15229978418c5c"
+        },
+        "changeGuide": {
+          "body": "1. `orderBlocks(allowed)` гарантирует, что `blockOrder` совпадает с глобальным порядком `BLOCK_IDS`.\n2. `uniqueSorted([...entity.directDeps])` и `uniqueSorted([...entity.directUsages])` гарантируют отсутствие дубликатов и сортировку в массивах `depends` и `usedBy`.",
+          "rendered": true,
+          "fingerprint": "body=2b807bd8e01e41b696315087a597cda1f03e202922331d091f15229978418c5c,deps=1088d612495404b1e25d9bb7198f896f8f10b94286f1d85f7c558b911f50bf97,usage=d7785529f0c9306eb05b65577c6f4e5919471b5c8fe30008024c3d68e1e5c75f,placement=bb209141eed6ebc254ec54cb065b65a6e3f2ec7584f1e1caa87ed11d19ffdab0",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "Два инварианта структуры секции гарантируются вызовами `orderBlocks` и `uniqueSorted`."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.779Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.014Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+    },
+    "symbol:src/service/prepare-docs.ts#normalizePrepareScope": {
+      "heading": "normalizePrepareScope",
+      "depth": 1,
+      "anchor": "normalizepreparescope",
+      "owns": [
+        "symbol:src/service/prepare-docs.ts#normalizePrepareScope"
+      ],
+      "depends": [
+        "symbol:src/service/helpers.ts#uniqueSorted",
+        "symbol:src/service/prepare-docs.ts#normalizePreparePath"
+      ],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.prepareInitialDocs"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Приводит входящий скоуп документации к нормализованному формату: очищает пути, устраняет дубликаты, устанавливает `dryRun` по умолчанию `false`.",
+          "rendered": true,
+          "fingerprint": "signature=33ca88de62c1b93688279fc952dd40f27c81035073bd13149f5fa1fc0644cf4b,placement=78594cc9d7465ba4a5901f8ec4f2d4a5f4c37f8010d1feb18ae8026b9cf7de90",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Приводит входящий скоуп документации к нормализованному формату: очищает пути, устраняет дубликаты, устанавливает `dryRun` по умолчанию `false`."
+          }
+        },
+        "responsibility": {
+          "body": "- Нормализует массивы `paths`, `files` через `normalizePreparePath` и фильтрует пустые строки.\n- Дедуплицирует и сортирует все массивы через `uniqueSorted`.\n- Гарантирует, что `dryRun` — булево значение (`false`, если не указано).",
+          "rendered": true,
+          "fingerprint": "signature=33ca88de62c1b93688279fc952dd40f27c81035073bd13149f5fa1fc0644cf4b,deps=cc7363446ff6407c120fdc360e4e3b468417bdddd9d91d7ab8e908269f22e1e2,usage=8f3c716041e4fb91912fb70315eb33c6fe23110218ab937e67d62b3b30155ea5",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "- Нормализует массивы `paths`, `files` через `normalizePreparePath` и фильтрует пустые строки."
+          }
+        },
+        "invariants": {
+          "body": "- Возвращаемый объект всегда имеет поля `paths`, `files`, `entityIds` (массивы) и `dryRun` (булево).\n- Все массивы отсортированы по возрастанию и не содержат дубликатов.\n- Значения полей копируются, не ссылаются на входные массивы (из-за `map` и `filter` создаются новые массивы).",
+          "rendered": true,
+          "fingerprint": "signature=33ca88de62c1b93688279fc952dd40f27c81035073bd13149f5fa1fc0644cf4b,body=43b79fe81e952d22ac7a97cc8ae6b1b2d6b8c5258a57fb1751387bf41f4573f2",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Возвращаемый объект всегда имеет поля `paths`, `files`, `entityIds` (массивы) и `dryRun` (булево)."
+          }
+        },
+        "dependencies": {
+          "body": "Зависимости:\n- `uniqueSorted` (`src/service/helpers.ts`) — дедуплицирует и сортирует массивы скоупа.\n- `normalizePreparePath` (`src/service/prepare-docs.ts`) — нормализует каждый путь перед дедупликацией.",
+          "rendered": true,
+          "fingerprint": "deps=cc7363446ff6407c120fdc360e4e3b468417bdddd9d91d7ab8e908269f22e1e2",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Для нормализации скоупа используются две утилиты: уникальная сортировка и нормализация путей."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается первой в `CodeloreService.prepareInitialDocs`. Нормализованный скоуп используется для построения индекса через `buildScopedIndex` и для фильтрации сущностей в скоупе.",
+          "rendered": true,
+          "fingerprint": "body=43b79fe81e952d22ac7a97cc8ae6b1b2d6b8c5258a57fb1751387bf41f4573f2,deps=cc7363446ff6407c120fdc360e4e3b468417bdddd9d91d7ab8e908269f22e1e2",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция — точка входа для подготовки скоупа, результат немедленно потребляется индексатором."
+          }
+        },
+        "limitations": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=43b79fe81e952d22ac7a97cc8ae6b1b2d6b8c5258a57fb1751387bf41f4573f2"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.780Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.016Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+    },
+    "symbol:src/service/prepare-docs.ts#normalizePreparePath": {
+      "heading": "normalizePreparePath",
+      "depth": 1,
+      "anchor": "normalizepreparepath",
+      "owns": [
+        "symbol:src/service/prepare-docs.ts#normalizePreparePath"
+      ],
+      "depends": [
+        "symbol:src/utils/path.ts#toPosixPath"
+      ],
+      "usedBy": [
+        "symbol:src/service/prepare-docs.ts#normalizePrepareScope"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Приводит путь к POSIX-формату без ведущего `./` и завершающего слеша.",
+          "rendered": true,
+          "fingerprint": "signature=899ee4e79902b34cbd66d260e56ba73056f71b90f437094fd4d1b98d48939570,placement=bded3575a3ab55dcd0ff0659ce99d263d37797a48ad5048a6cd30f73966ae4cf",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Приводит путь к POSIX-формату без ведущего `./` и завершающего слеша."
+          }
+        },
+        "responsibility": {
+          "body": "- Преобразует путь через `toPosixPath` и удаляет префикс `./` и завершающие слеши.",
+          "rendered": true,
+          "fingerprint": "signature=899ee4e79902b34cbd66d260e56ba73056f71b90f437094fd4d1b98d48939570,deps=592f5bc90643dc3644a97a0fad35976d2d807bbdbec1d51017bb290e0b71c8e0,usage=08d9fc4de3714ad3706074770e7a946f527355cb313876ee3d1ed0d458732694",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "- Преобразует путь через `toPosixPath` и удаляет префикс `./` и завершающие слеши."
+          }
+        },
+        "invariants": {
+          "body": "- Если входная строка пуста, возвращается пустая строка.\n- Результат никогда не начинается с `./` и не заканчивается на `/`.",
+          "rendered": true,
+          "fingerprint": "signature=899ee4e79902b34cbd66d260e56ba73056f71b90f437094fd4d1b98d48939570,body=07271beae298c6856586ea3136bae4081a07601ce77c1a7b9d100553e32ec0d3",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "- Если входная строка пуста, возвращается пустая строка."
+          }
+        },
+        "dependencies": {
+          "body": "Зависимости:\n- `toPosixPath` (`src/utils/path.ts`) — конвертирует обратные слеши в прямые.",
+          "rendered": true,
+          "fingerprint": "deps=592f5bc90643dc3644a97a0fad35976d2d807bbdbec1d51017bb290e0b71c8e0",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Единственная внешняя зависимость — преобразование в POSIX-формат."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `normalizePrepareScope` при нормализации каждого пути. Применяется в `map`, а результата фильтруются пустые строки.",
+          "rendered": true,
+          "fingerprint": "body=07271beae298c6856586ea3136bae4081a07601ce77c1a7b9d100553e32ec0d3,deps=592f5bc90643dc3644a97a0fad35976d2d807bbdbec1d51017bb290e0b71c8e0",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Этап подготовки путей перед дедупликацией в скоупе."
+          }
+        },
+        "limitations": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=07271beae298c6856586ea3136bae4081a07601ce77c1a7b9d100553e32ec0d3"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.782Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.018Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+    },
+    "symbol:src/service/prepare-docs.ts#publicPrepareScope": {
+      "heading": "publicPrepareScope",
+      "depth": 1,
+      "anchor": "publicpreparescope",
+      "owns": [
+        "symbol:src/service/prepare-docs.ts#publicPrepareScope"
+      ],
+      "depends": [],
+      "usedBy": [
+        "symbol:src/service/prepare-docs.ts#preparedDocsResult"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Извлекает из нормализованного скоупа только поля, предназначенные для ответа API (`paths`, `files`, `entityIds`), исключая внутреннее поле `dryRun`.",
+          "rendered": true,
+          "fingerprint": "signature=32ca7ff73621cc0a37aaf4bfaec108115c1019c07ec44273df997e2b8004babd,placement=627a310db016477856f60e3a71b18848caf5e4821bd41d96980152ed0a23dd0d",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Извлекает из нормализованного скоупа только поля, предназначенные для ответа API (`paths`, `files`, `entityIds`), исключая внутреннее поле `dryRun`."
+          }
+        },
+        "responsibility": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "signature=32ca7ff73621cc0a37aaf4bfaec108115c1019c07ec44273df997e2b8004babd,deps=8d628a568c58905c5748466f1bc10fa4b7a84701342abe35499423a739afca49,usage=8efecd9e215e08123bec0c2d09596ec28830e5c703b9059ba74d6a95fe3be62f"
+        },
+        "invariants": {
+          "body": "- Возвращаемый объект содержит те же элементы в тех же массивах, что и входной scope.\n- Поле `dryRun` не включается.",
+          "rendered": true,
+          "fingerprint": "signature=32ca7ff73621cc0a37aaf4bfaec108115c1019c07ec44273df997e2b8004babd,body=76046b85929c348580cf517ade369af7d74fd19c6a1c37008ebfbe1d41b07b4e",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "- Возвращаемый объект содержит те же элементы в тех же массивах, что и входной scope."
+          }
+        },
+        "dependencies": {
+          "body": "Нет внешних зависимостей.",
+          "rendered": false,
+          "fingerprint": "deps=8d628a568c58905c5748466f1bc10fa4b7a84701342abe35499423a739afca49",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Функция не использует импортированные модули."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `preparedDocsResult` для формирования публичного поля `scope` в результате. Просто копирует три массива из нормализованного скоупа, исключая `dryRun`.",
+          "rendered": true,
+          "fingerprint": "body=76046b85929c348580cf517ade369af7d74fd19c6a1c37008ebfbe1d41b07b4e,deps=8d628a568c58905c5748466f1bc10fa4b7a84701342abe35499423a739afca49",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция изолирует публичную часть скоупа для ответа API."
+          }
+        },
+        "limitations": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=76046b85929c348580cf517ade369af7d74fd19c6a1c37008ebfbe1d41b07b4e"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.784Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.020Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+    },
+    "symbol:src/service/prepare-docs.ts#prepareInitialDocsSummary": {
+      "heading": "prepareInitialDocsSummary",
+      "depth": 1,
+      "anchor": "prepareinitialdocssummary",
+      "owns": [
+        "symbol:src/service/prepare-docs.ts#prepareInitialDocsSummary"
+      ],
+      "depends": [
+        "symbol:src/service/prepare-docs.ts#hasPrepareScope"
+      ],
+      "usedBy": [
+        "symbol:src/service/prepare-docs.ts#preparedDocsResult"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Формирует сводку результатов подготовки документации: общее количество сущностей, скоуп, сколько уже задокументировано, запланировано, создано.",
+          "rendered": true,
+          "fingerprint": "signature=9735f22643337ab89192221b829a7982eca9be9661389d1c648c2d1e2399acd7,placement=9492f6d4227ca6d97dd9cc4dd6c683c4a23d6a60b92b95b44f16b21eb3a063ff",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Формирует сводку результатов подготовки документации: общее количество сущностей, скоуп, сколько уже задокументировано, запланировано, создано."
+          }
+        },
+        "responsibility": {
+          "body": "- Вычисляет `scopeMode` на основе `hasPrepareScope`: если есть фильтрация — `\"scoped\"`, иначе `\"all\"`.\n- Устанавливает `totalCodeEntities` и `indexedCodeEntities` равными количеству сущностей в индексе.\n- Отражает количество сущностей в скоупе, пропущенных (уже задокументированных), запланированных и созданных секций.",
+          "rendered": true,
+          "fingerprint": "signature=9735f22643337ab89192221b829a7982eca9be9661389d1c648c2d1e2399acd7,deps=0480e169806b4698eb025eede29dc83344540b6ceddf405a8a542ac623aab118,usage=306654f524abeaeaeea56c4cb78184198f5b73c41cce34c2915a4420600a5c18",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Вычисляет `scopeMode` на основе `hasPrepareScope`: если есть фильтрация — `\"scoped\"`, иначе `\"all\"`."
+          }
+        },
+        "invariants": {
+          "body": "- Все числовые поля неотрицательны.\n- `scopeMode` всегда `\"scoped\"` или `\"all\"`.\n- Значения соответствуют переданным аргументам без трансформации (кроме `indexedCodeEntities` из индекса).",
+          "rendered": true,
+          "fingerprint": "signature=9735f22643337ab89192221b829a7982eca9be9661389d1c648c2d1e2399acd7,body=56ffc650da648675b88a16fecccb2ab900a8859c042cd93ca7fa2df3fc2efc31",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Все числовые поля неотрицательны."
+          }
+        },
+        "dependencies": {
+          "body": "Зависимости:\n- `hasPrepareScope` (`src/service/prepare-docs.ts`) — определяет, есть ли фильтрация скоупа.",
+          "rendered": true,
+          "fingerprint": "deps=0480e169806b4698eb025eede29dc83344540b6ceddf405a8a542ac623aab118",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Единственная внутренняя функция для вычисления `scopeMode`."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `preparedDocsResult` для заполнения поля `summary` результата. Использует переданные параметры и индекс для подсчёта количества сущностей, скоупа, пропущенных и запланированных секций.",
+          "rendered": true,
+          "fingerprint": "body=56ffc650da648675b88a16fecccb2ab900a8859c042cd93ca7fa2df3fc2efc31,deps=0480e169806b4698eb025eede29dc83344540b6ceddf405a8a542ac623aab118",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Агрегирует метрики для отчёта вызывающему."
+          }
+        },
+        "limitations": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=56ffc650da648675b88a16fecccb2ab900a8859c042cd93ca7fa2df3fc2efc31"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.785Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.022Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+    },
+    "symbol:src/service/prepare-docs.ts#prepareInitialDocsNextStep": {
+      "heading": "prepareInitialDocsNextStep",
+      "depth": 1,
+      "anchor": "prepareinitialdocsnextstep",
+      "owns": [
+        "symbol:src/service/prepare-docs.ts#prepareInitialDocsNextStep"
+      ],
+      "depends": [],
+      "usedBy": [
+        "symbol:src/service/prepare-docs.ts#preparedDocsResult"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Определяет следующее действие на основе состояния подготовки: останов, запрос на выполнение без `--dry-run`, запрос на заполнение созданных секций или отчёт о полной документированности.",
+          "rendered": true,
+          "fingerprint": "signature=52f3ea1ac0b8a65ab2e49173e26b0cd43d2d1c1608b083a156de05ac525baf0b,placement=7d71a2f3e7f9c5027e656db85c34653c4b01e0313dcc8bf9fb8dd496806701ce",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Определяет следующее действие на основе состояния подготовки: останов, запрос на выполнение без `--dry-run`, запрос на заполнение созданных секций или отчёт о полной документированности."
+          }
+        },
+        "responsibility": {
+          "body": "- Возвращает `nextAction` одно из четырёх значений и соответствующую `guidance`.\n- Проверяет в порядке приоритета: пустой скоуп, dry run с незаполненными секциями, созданные секции, полностью задокументировано.\n- Не изменяет состояние, чистая функция.",
+          "rendered": true,
+          "fingerprint": "signature=52f3ea1ac0b8a65ab2e49173e26b0cd43d2d1c1608b083a156de05ac525baf0b,deps=17c0efc802fdb65727e851ed3217f237e04b9543aa39b4d71a6675ed1db98b60,usage=3cb1ec58e80e5777db8b045735cb785808c502972afa326964fe0471b61b1eda",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "- Возвращает `nextAction` одно из четырёх значений и соответствующую `guidance`."
+          }
+        },
+        "invariants": {
+          "body": "- Если `scopedEntities.length === 0`, возвращается `\"stop_no_matching_entities\"`.\n- Если `scope.dryRun` истина и `plannedSections.length > 0`, возвращается `\"run_without_dry_run\"`.\n- Иначе, если `createdSections.length > 0`, возвращается `\"fill_created_sections\"`.\n- Иначе, если `skippedSections.length > 0`, возвращается `\"stop_already_documented\"`.\n- Иначе возвращается `\"stop_no_matching_entities\"`.",
+          "rendered": true,
+          "fingerprint": "signature=52f3ea1ac0b8a65ab2e49173e26b0cd43d2d1c1608b083a156de05ac525baf0b,body=bc8fcd77e4e4d2d2b4a817f82729b18ecfa81e915ee4efc92b9ad68b10767172",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "- Если `scopedEntities.length === 0`, возвращается `nextAction: \"stop_no_matching_entities\"`."
+          }
+        },
+        "dependencies": {
+          "body": "Нет внешних зависимостей.",
+          "rendered": false,
+          "fingerprint": "deps=17c0efc802fdb65727e851ed3217f237e04b9543aa39b4d71a6675ed1db98b60",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Функция не использует импортированные модули."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `preparedDocsResult` для определения `nextAction` и `guidance`. Проверяет условия в фиксированном порядке приоритета и возвращает соответствующее действие и инструкцию.",
+          "rendered": true,
+          "fingerprint": "body=bc8fcd77e4e4d2d2b4a817f82729b18ecfa81e915ee4efc92b9ad68b10767172,deps=17c0efc802fdb65727e851ed3217f237e04b9543aa39b4d71a6675ed1db98b60",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция инкапсулирует логику выбора следующего шага пайплайна."
+          }
+        },
+        "limitations": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=bc8fcd77e4e4d2d2b4a817f82729b18ecfa81e915ee4efc92b9ad68b10767172"
+        },
+        "changeGuide": {
+          "body": "1. `scopedEntities.length === 0` — первая проверка, немедленный возврат `stop_no_matching_entities` без дальнейших условий.\n2. `scope.dryRun && plannedSections.length > 0` — вторая проверка, возврат `run_without_dry_run`.",
+          "rendered": true,
+          "fingerprint": "body=bc8fcd77e4e4d2d2b4a817f82729b18ecfa81e915ee4efc92b9ad68b10767172,deps=17c0efc802fdb65727e851ed3217f237e04b9543aa39b4d71a6675ed1db98b60,usage=3cb1ec58e80e5777db8b045735cb785808c502972afa326964fe0471b61b1eda,placement=7d71a2f3e7f9c5027e656db85c34653c4b01e0313dcc8bf9fb8dd496806701ce",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "Приоритет проверок фиксирован и жёстко закодирован."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.787Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.023Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+    },
+    "symbol:src/service/prepare-docs.ts#codeIndexScopeFromPrepareScope": {
+      "heading": "codeIndexScopeFromPrepareScope",
+      "depth": 1,
+      "anchor": "codeindexscopefrompreparescope",
+      "owns": [
+        "symbol:src/service/prepare-docs.ts#codeIndexScopeFromPrepareScope"
+      ],
+      "depends": [
+        "symbol:src/service/prepare-docs.ts#hasPrepareScope"
+      ],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.prepareInitialDocs"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Преобразует `NormalizedPrepareScope` в `CodeIndexScope` для построения частичного индекса, если область задана.",
+          "rendered": true,
+          "fingerprint": "signature=c3de25d05c24689fe5241f9281de14e1ac9cd99aaef593429cd3a95312d24cc5,placement=a9aa06dfb8b1d93038ca7719e056c4491957f8926c2f905dd6ee3caecd258b4e",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Преобразование пропускается, если `hasPrepareScope` возвращает `false`."
+          }
+        },
+        "responsibility": {
+          "body": "- Проверяет наличие области через `hasPrepareScope` и возвращает `undefined` при её отсутствии.\n- При наличии области копирует массивы `paths`, `files` и `entityIds` без изменений.\n- Не валидирует содержимое массивов и не фильтрует сущности.",
+          "rendered": true,
+          "fingerprint": "signature=c3de25d05c24689fe5241f9281de14e1ac9cd99aaef593429cd3a95312d24cc5,deps=5a8c387f3acfff88531992ca14fb70c65a6c80509cb0bc0a01def16f6495fe44,usage=b4ba03cb0b82ca11099cb847f1cde8c74552ee371d2b84a94f17fa486711d3c4",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Полностью делегирует определение наличия области внешней функции."
+          }
+        },
+        "invariants": {
+          "body": "Возвращает `undefined` только когда `hasPrepareScope` возвращает `false`. В противном случае возвращает `CodeIndexScope` с теми же значениями полей, что и входной `scope`, включая пустые массивы.",
+          "rendered": true,
+          "fingerprint": "signature=c3de25d05c24689fe5241f9281de14e1ac9cd99aaef593429cd3a95312d24cc5,body=e2f8891f0b0d4108949809aaa51635b2a8aa90bd4903129ccc2da21bcedc61a1",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Гарантирует, что поля выходного объекта — точные копии входных массивов."
+          }
+        },
+        "dependencies": {
+          "body": "`hasPrepareScope` (`src/service/prepare-docs.ts`) — проверяет наличие хотя бы одного фильтра в области.",
+          "rendered": true,
+          "fingerprint": "deps=5a8c387f3acfff88531992ca14fb70c65a6c80509cb0bc0a01def16f6495fe44",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Зависит от hasPrepareScope для принятия решения о возврате undefined."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `CodeloreService.prepareInitialDocs` для построения частичного индекса. Если `hasPrepareScope` возвращает `false`, возвращается `undefined`, и `buildScopedIndex` индексирует весь проект. Иначе возвращается объект с полями `paths`, `files`, `entityIds` из области.",
+          "rendered": true,
+          "fingerprint": "body=e2f8891f0b0d4108949809aaa51635b2a8aa90bd4903129ccc2da21bcedc61a1,deps=5a8c387f3acfff88531992ca14fb70c65a6c80509cb0bc0a01def16f6495fe44",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается в CodeloreService.prepareInitialDocs для построения индекса."
+          }
+        },
+        "limitations": {
+          "body": "Не фильтрует пустые массивы — если все три массива пусты, `hasPrepareScope` возвращает `false`, и функция возвращает `undefined`, а не объект с пустыми массивами.",
+          "rendered": true,
+          "fingerprint": "body=e2f8891f0b0d4108949809aaa51635b2a8aa90bd4903129ccc2da21bcedc61a1",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не фильтрует пустые массивы — при пустых массивах возвращает undefined."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.789Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.025Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+    },
+    "symbol:src/service/prepare-docs.ts#hasPrepareScope": {
+      "heading": "hasPrepareScope",
+      "depth": 1,
+      "anchor": "haspreparescope",
+      "owns": [
+        "symbol:src/service/prepare-docs.ts#hasPrepareScope"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.prepareInitialDocs",
+        "symbol:src/service/prepare-docs.ts#codeIndexScopeFromPrepareScope",
+        "symbol:src/service/prepare-docs.ts#prepareInitialDocsSummary"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Определяет, задан ли хотя бы один фильтр области в `NormalizedPrepareScope`.",
+          "rendered": true,
+          "fingerprint": "signature=665bbc8116e34c19c2236321c75fb091be0b57558611c66fdf884b6d1da7d754,placement=d1fed2d9654e507e1c7daaf212ed0fc8cf2d427907586e66ef9875947a155181",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Используется как страж для всех функций, работающих с областью."
+          }
+        },
+        "responsibility": {
+          "body": "- Проверяет три поля: `paths`, `files`, `entityIds`.\n- Возвращает `true`, если хотя бы один массив не пуст.\n- Не анализирует содержимое элементов.",
+          "rendered": true,
+          "fingerprint": "signature=665bbc8116e34c19c2236321c75fb091be0b57558611c66fdf884b6d1da7d754,deps=96faed2be9be471c2cf8997c7eda2e517e74971c79635c5db8f86ce5535e3e85,usage=41b34c448cdc499cf643d4c3f8a619389be95405e6350f28f188ca1af16956a0",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Никакой другой проверки не производится — только длина массивов."
+          }
+        },
+        "invariants": {
+          "body": "Всегда возвращает `false`, когда все три массива пусты. Возвращает `true` при любом непустом массиве, независимо от допустимости значений.",
+          "rendered": true,
+          "fingerprint": "signature=665bbc8116e34c19c2236321c75fb091be0b57558611c66fdf884b6d1da7d754,body=48791e35bd251d338866170f04a31eb448f3558244fdc9557ca8553b5e14e48b",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Контракт: пустой массив приравнивается к отсутствию фильтра."
+          }
+        },
+        "dependencies": {
+          "body": "Нет зависимостей от других модулей или сущностей.",
+          "rendered": false,
+          "fingerprint": "deps=96faed2be9be471c2cf8997c7eda2e517e74971c79635c5db8f86ce5535e3e85",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не имеет зависимостей."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `codeIndexScopeFromPrepareScope` для решения о возврате `undefined`. Вызывается из `prepareInitialDocsSummary` для определения `scopeMode`. Вызывается из `CodeloreService.prepareInitialDocs` для выбора между полным и частичным индексом.",
+          "rendered": true,
+          "fingerprint": "body=48791e35bd251d338866170f04a31eb448f3558244fdc9557ca8553b5e14e48b,deps=96faed2be9be471c2cf8997c7eda2e517e74971c79635c5db8f86ce5535e3e85",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается из трёх мест: codeIndexScopeFromPrepareScope, prepareInitialDocsSummary и CodeloreService.prepareInitialDocs."
+          }
+        },
+        "limitations": {
+          "body": "Не проверяет содержимое элементов массивов — пустой массив с невалидными значениями всё равно даёт `false`.",
+          "rendered": true,
+          "fingerprint": "body=48791e35bd251d338866170f04a31eb448f3558244fdc9557ca8553b5e14e48b",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не проверяет содержимое элементов массивов."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.791Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.027Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+    },
+    "symbol:src/service/prepare-docs.ts#skippedPreparedDocSection": {
+      "heading": "skippedPreparedDocSection",
+      "depth": 1,
+      "anchor": "skippedprepareddocsection",
+      "owns": [
+        "symbol:src/service/prepare-docs.ts#skippedPreparedDocSection"
+      ],
+      "depends": [
+        "symbol:src/service/helpers.ts#uniqueSorted"
+      ],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.prepareInitialDocs"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Формирует запись о пропущенной секции для сущности, которая уже задокументирована.",
+          "rendered": true,
+          "fingerprint": "signature=4da395a7e4cb044706e63cca1d1ff0855b05cd63840befb595ad6ac458a401e2,placement=67ae713bfe925b1d4bbfb15551d565dc17997ea564aab6ddc51f421ee60d94bd",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Используется в `CodeloreService.prepareInitialDocs` для сбора ранее созданных секций."
+          }
+        },
+        "responsibility": {
+          "body": "- Извлекает идентификаторы секций из `index.docs.entityToSections[entity.id]`.\n- Преобразует их в пути документов через `index.docs.sections`.\n- Дедуплицирует пути с помощью `uniqueSorted`.\n- Выставляет причину `'already_documented'`.",
+          "rendered": true,
+          "fingerprint": "signature=4da395a7e4cb044706e63cca1d1ff0855b05cd63840befb595ad6ac458a401e2,deps=7e8f0a004766e19fbee7d3fdaf25718c4b979fb8acd30ed7ea42113dd5f011bc,usage=d1454d5ad9ca3302094679997946740d27bb1e8e93812d57caf46bfa772d3698",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Не проверяет, существует ли секция в индексе — только читает `entityToSections`."
+          }
+        },
+        "invariants": {
+          "body": "Всегда возвращает `reason === 'already_documented'`. Если у сущности нет секций, возвращает пустой `sectionIds` и пустой `docPaths`.",
+          "rendered": true,
+          "fingerprint": "signature=4da395a7e4cb044706e63cca1d1ff0855b05cd63840befb595ad6ac458a401e2,body=9a2fc58b040b141f9e9e639074bdef808dbd5541d888121697cad08ce43d82a3",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Гарантирует, что `docPaths` отсортированы и уникальны."
+          }
+        },
+        "dependencies": {
+          "body": "`uniqueSorted` (`src/service/helpers.ts`) — дедуплицирует и сортирует пути документов.",
+          "rendered": true,
+          "fingerprint": "deps=7e8f0a004766e19fbee7d3fdaf25718c4b979fb8acd30ed7ea42113dd5f011bc",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Зависит от uniqueSorted для дедупликации путей."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `CodeloreService.prepareInitialDocs` для каждой сущности, которая уже задокументирована. Результат включается в `skippedSections` и возвращается в `PrepareInitialDocsResult`.",
+          "rendered": true,
+          "fingerprint": "body=9a2fc58b040b141f9e9e639074bdef808dbd5541d888121697cad08ce43d82a3,deps=7e8f0a004766e19fbee7d3fdaf25718c4b979fb8acd30ed7ea42113dd5f011bc",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается для каждой уже задокументированной сущности."
+          }
+        },
+        "limitations": {
+          "body": "Не проверяет, что `sectionId` существует в `index.docs.sections` — если секция удалена из индекса, `docPaths` может содержать `undefined`, который отфильтровывается через `.filter(Boolean)`.",
+          "rendered": true,
+          "fingerprint": "body=9a2fc58b040b141f9e9e639074bdef808dbd5541d888121697cad08ce43d82a3",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не проверяет существование секции в индексе — undefined отфильтровывается."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.792Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.029Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+    },
+    "symbol:src/service/prepare-docs.ts#isSectionSkeleton": {
+      "heading": "isSectionSkeleton",
+      "depth": 1,
+      "anchor": "issectionskeleton",
+      "owns": [
+        "symbol:src/service/prepare-docs.ts#isSectionSkeleton"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.prepareInitialDocs"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Определяет, пуста ли секция документации (содержит только скелет без содержимого).",
+          "rendered": true,
+          "fingerprint": "signature=a831fb4e9fcd0f0dee1456ef4bdde98d19ae7c44e31e75539646c4ad8610e7c9,placement=bb4989362f108341fe5be082f1015da49b774cd640952130e6eea80b26d70c32",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Используется в `CodeloreService.prepareInitialDocs` для фильтрации уже заполненных секций."
+          }
+        },
+        "responsibility": {
+          "body": "- Проверяет все блоки секции.\n- Возвращает `true`, если каждый блок имеет пустое тело после обрезки пробелов.\n- Не модифицирует секцию.",
+          "rendered": true,
+          "fingerprint": "signature=a831fb4e9fcd0f0dee1456ef4bdde98d19ae7c44e31e75539646c4ad8610e7c9,deps=139e9cfe0a67737e0d3cc06b5617a73909e1ad8c5634d1ab1f38c71551646d63,usage=f31322b9c9f7c041083953400f6ab9526cd2ce08669ad70d12e1dba2e82eca63",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Не проверяет метаданные секции — только содержимое блоков."
+          }
+        },
+        "invariants": {
+          "body": "Не вызывает побочных эффектов. Возвращает `false`, если хотя бы один блок содержит непробельные символы.",
+          "rendered": true,
+          "fingerprint": "signature=a831fb4e9fcd0f0dee1456ef4bdde98d19ae7c44e31e75539646c4ad8610e7c9,body=95eaea1fbe329c07be8f62259a575ea86ffdbd1e3cae52c1e73308ebf423b78a",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Гарантирует, что результат можно использовать для фильтрации без изменения состояния."
+          }
+        },
+        "dependencies": {
+          "body": "Нет зависимостей от других модулей или сущностей.",
+          "rendered": false,
+          "fingerprint": "deps=139e9cfe0a67737e0d3cc06b5617a73909e1ad8c5634d1ab1f38c71551646d63",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не имеет зависимостей."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `CodeloreService.prepareInitialDocs` для фильтрации секций, которые уже имеют содержимое. Используется в `documentedEntities` для определения, какие сущности уже задокументированы.",
+          "rendered": true,
+          "fingerprint": "body=95eaea1fbe329c07be8f62259a575ea86ffdbd1e3cae52c1e73308ebf423b78a,deps=139e9cfe0a67737e0d3cc06b5617a73909e1ad8c5634d1ab1f38c71551646d63",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Используется для фильтрации секций с содержимым."
+          }
+        },
+        "limitations": {
+          "body": "Не различает блоки с пробельными символами и полностью пустые — `trim()` считает пробелы пустотой.",
+          "rendered": true,
+          "fingerprint": "body=95eaea1fbe329c07be8f62259a575ea86ffdbd1e3cae52c1e73308ebf423b78a",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не различает пробельные символы и пустоту."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.794Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.030Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+    },
+    "symbol:src/service/prepare-docs.ts#isEntityInPrepareScope": {
+      "heading": "isEntityInPrepareScope",
+      "depth": 1,
+      "anchor": "isentityinpreparescope",
+      "owns": [
+        "symbol:src/service/prepare-docs.ts#isEntityInPrepareScope"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.prepareInitialDocs"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Проверяет, входит ли сущность в заданный фильтр области документирования.",
+          "rendered": true,
+          "fingerprint": "signature=3995f7a6e93a89fc3c293e7bfbb89809f344f92e7c27b4b404da2b8b5af37fca,placement=26f604c85f48b955acd38edb4d7f714d7839651e253b1839b7651d46e58fab09",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Если область не задана (все массивы пусты), возвращает `true` — fallback на полное сканирование."
+          }
+        },
+        "responsibility": {
+          "body": "- Принимает `entity` и `scope`.\n- Возвращает `true`, если область пуста.\n- Иначе проверяет совпадение `entity.id` с `scope.entityIds`, `entity.path` с `scope.files`, или `entity.path` начинается с одного из `scope.paths` с добавлением `/`.\n- Не проверяет дубликаты.",
+          "rendered": true,
+          "fingerprint": "signature=3995f7a6e93a89fc3c293e7bfbb89809f344f92e7c27b4b404da2b8b5af37fca,deps=4b2ee6eb7bdc10c2d885a50cdc89e3f292c48d52dca89113a2a7995fe79df266,usage=e580c5f367de7657a680df8c336cb4fd393efd21e7f3354bb6d55470163328c6",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Проверка пути по префиксу с `/` гарантирует границу каталога."
+          }
+        },
+        "invariants": {
+          "body": "Возвращает `true` при отсутствии области (все массивы пусты). Возвращает `true`, если сущность совпадает хотя бы по одному критерию, даже если другие не совпадают.",
+          "rendered": true,
+          "fingerprint": "signature=3995f7a6e93a89fc3c293e7bfbb89809f344f92e7c27b4b404da2b8b5af37fca,body=14bf53e242c126677f47accfc1fd8d06849c6d62b8e2ee1d5b5b4705a2fce8ad",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Каждый критерий проверяется независимо; совпадение по `paths` использует `startsWith` с добавлением `/`."
+          }
+        },
+        "dependencies": {
+          "body": "Нет зависимостей от других модулей или сущностей.",
+          "rendered": false,
+          "fingerprint": "deps=4b2ee6eb7bdc10c2d885a50cdc89e3f292c48d52dca89113a2a7995fe79df266",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не имеет зависимостей."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `CodeloreService.prepareInitialDocs` для фильтрации `scopedEntities`. Каждая сущность проверяется на вхождение в область; результат используется для формирования списка сущностей для документирования.",
+          "rendered": true,
+          "fingerprint": "body=14bf53e242c126677f47accfc1fd8d06849c6d62b8e2ee1d5b5b4705a2fce8ad,deps=4b2ee6eb7bdc10c2d885a50cdc89e3f292c48d52dca89113a2a7995fe79df266",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается для каждой сущности при фильтрации scopedEntities."
+          }
+        },
+        "limitations": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=14bf53e242c126677f47accfc1fd8d06849c6d62b8e2ee1d5b5b4705a2fce8ad"
+        },
+        "changeGuide": {
+          "body": "1. Инвариант «возвращает `true` при отсутствии области» закреплён в условии `if (!hasScope) { return true; }`.\n2. Инвариант «проверяет совпадение по пути через `startsWith` с добавлением `/`» закреплён в выражении `entity.path.startsWith(`${path}/`)`.",
+          "rendered": true,
+          "fingerprint": "body=14bf53e242c126677f47accfc1fd8d06849c6d62b8e2ee1d5b5b4705a2fce8ad,deps=4b2ee6eb7bdc10c2d885a50cdc89e3f292c48d52dca89113a2a7995fe79df266,usage=e580c5f367de7657a680df8c336cb4fd393efd21e7f3354bb6d55470163328c6,placement=26f604c85f48b955acd38edb4d7f714d7839651e253b1839b7651d46e58fab09",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Инварианты закреплены в условии и выражении startsWith."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.795Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.032Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+    },
+    "symbol:src/service/prepare-docs.ts#shouldCreatePage": {
+      "heading": "shouldCreatePage",
+      "depth": 1,
+      "anchor": "shouldcreatepage",
+      "owns": [
+        "symbol:src/service/prepare-docs.ts#shouldCreatePage"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.prepareInitialDocs"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Определяет, следует ли создавать новую страницу документации для сущности.",
+          "rendered": true,
+          "fingerprint": "signature=3d14ca34a073796304580b8dc34aed3c765354226732f53822bfa90f08ec18d0,placement=727d50f7cd38770d1919fc9ca7f3e9a0b6141a9d40f301b25324e581ff8e075a",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Фильтрует сущности с явной ролью, отличной от `short_page`/`full_page`."
+          }
+        },
+        "responsibility": {
+          "body": "- Проверяет `entity.metadata?.role`.\n- Возвращает `true`, если `metadata` отсутствует или роль равна `'short_page'` или `'full_page'`.\n- Иначе возвращает `false`.",
+          "rendered": true,
+          "fingerprint": "signature=3d14ca34a073796304580b8dc34aed3c765354226732f53822bfa90f08ec18d0,deps=72fec4d7c1996ddacf858281fbc486f21a464997d8e9f4b3330c0c8d4427ae78,usage=bdbd39ea1e8065705fc5ad4e6da0502507400fb3a85dfe0efed2ced5b7702718",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Не проверяет другие поля метаданных и не учитывает уже существующую документацию."
+          }
+        },
+        "invariants": {
+          "body": "Возвращает `false` только когда `entity.metadata?.role` явно установлено в значение, отличное от `'short_page'` и `'full_page'`. Отсутствие метаданных трактуется как разрешение на создание.",
+          "rendered": true,
+          "fingerprint": "signature=3d14ca34a073796304580b8dc34aed3c765354226732f53822bfa90f08ec18d0,body=f0f4edbe6c5ada680ad1c9c488f8a73abf38cb0aa38a0a52d57c921265502892",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Отсутствие `metadata` приравнивается к роли `full_page`."
+          }
+        },
+        "dependencies": {
+          "body": "Нет зависимостей от других модулей или сущностей.",
+          "rendered": false,
+          "fingerprint": "deps=72fec4d7c1996ddacf858281fbc486f21a464997d8e9f4b3330c0c8d4427ae78",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не имеет зависимостей."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `CodeloreService.prepareInitialDocs` для фильтрации `missingEntities`. Сущности, для которых функция возвращает `false`, исключаются из списка на создание документации.",
+          "rendered": true,
+          "fingerprint": "body=f0f4edbe6c5ada680ad1c9c488f8a73abf38cb0aa38a0a52d57c921265502892,deps=72fec4d7c1996ddacf858281fbc486f21a464997d8e9f4b3330c0c8d4427ae78",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Используется для фильтрации missingEntities."
+          }
+        },
+        "limitations": {
+          "body": "Не обрабатывает случай, когда `entity.metadata` существует, но `role` отсутствует — тогда `entity.metadata?.role` возвращает `undefined`, и функция возвращает `false`.",
+          "rendered": true,
+          "fingerprint": "body=f0f4edbe6c5ada680ad1c9c488f8a73abf38cb0aa38a0a52d57c921265502892",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не обрабатывает случай отсутствия role при наличии metadata."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.797Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.034Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+    },
+    "symbol:src/service/prepare-docs.ts#collectSkippedBlocksByEntity": {
+      "heading": "collectSkippedBlocksByEntity",
+      "depth": 1,
+      "anchor": "collectskippedblocksbyentity",
+      "owns": [
+        "symbol:src/service/prepare-docs.ts#collectSkippedBlocksByEntity"
+      ],
+      "depends": [],
+      "usedBy": [
+        "symbol:src/service/prepare-docs.ts#preparedDocsResult"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Собирает информацию о пропущенных блоках для каждой сущности из переданных секций, чтобы включить её в результат подготовки документации.",
+          "rendered": true,
+          "fingerprint": "signature=09b6f465c8ce579a78b1d8f8b8963caf5424d3c984033f274a47efcdb923f5e4,placement=8d751664bb00f5a06cde2b9d06af63ca686443cbe59d8304db3d6b920b95bbdd",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция агрегирует метаданные о пропущенных блоках из сущностей, соответствующих переданным секциям."
+          }
+        },
+        "responsibility": {
+          "body": "- Фильтрует дублирующиеся записи об одной сущности, используя `Set<string>`.\n- Извлекает `skippedBlocks` из метаданных сущности, если они есть.\n- Сортирует результат по `entityId` в алфавитном порядке.\n- Возвращает пустой массив, если ни у одной сущности нет пропущенных блоков.",
+          "rendered": true,
+          "fingerprint": "signature=09b6f465c8ce579a78b1d8f8b8963caf5424d3c984033f274a47efcdb923f5e4,deps=c89d2b3f6f55c14e678b92aa91cfebc4812f2d1c3b27973d71945e8343ab3542,usage=b84a7e49817df4284f595afc5c35e3f58fa603501b704c10f44e448c8415ba3d",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция не проверяет, что переданные секции действительно соответствуют сущностям в `entities`."
+          }
+        },
+        "invariants": {
+          "body": "Результат отсортирован по `entityId` в порядке возрастания (`localeCompare`). Каждая сущность встречается не более одного раза.",
+          "rendered": true,
+          "fingerprint": "signature=09b6f465c8ce579a78b1d8f8b8963caf5424d3c984033f274a47efcdb923f5e4,body=bde52a66171df230be7bf9c81bcf4f528906abc3ec691ab21d3723076544c31d",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция гарантирует уникальность и сортировку записей."
+          }
+        },
+        "dependencies": {
+          "body": "`../types.js` — типы `PreparedDocSection`, `CodeEntity`, `BlockSkipReason`.",
+          "rendered": true,
+          "fingerprint": "deps=c89d2b3f6f55c14e678b92aa91cfebc4812f2d1c3b27973d71945e8343ab3542",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция не использует runtime-зависимостей, только типы."
+          }
+        },
+        "workflows": {
+          "body": "Вызывается из `preparedDocsResult` для заполнения поля `skippedBlocksByEntity` в результате `PrepareInitialDocsResult`. `preparedDocsResult` передаёт объединённый массив `[...plannedSections, ...createdSections]` и `index.code.entities`. Функция обходит секции, собирает сущности с пропущенными блоками из метаданных и возвращает отсортированный по `entityId` список.",
+          "rendered": true,
+          "fingerprint": "body=bde52a66171df230be7bf9c81bcf4f528906abc3ec691ab21d3723076544c31d,deps=c89d2b3f6f55c14e678b92aa91cfebc4812f2d1c3b27973d71945e8343ab3542",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Выполняется однократно при формировании результата, не влияет на планирование секций."
+          }
+        },
+        "limitations": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=bde52a66171df230be7bf9c81bcf4f528906abc3ec691ab21d3723076544c31d"
+        },
+        "changeGuide": {
+          "body": "- Дедупликация по `entityId`: каждая сущность присутствует в результате не более одного раза. Конструкт: `new Set<string>()` и `seen.has(entityId)`. Тест не указан.\n- Порядок результатов: список отсортирован лексикографически по `entityId`. Конструкт: `.sort((left, right) => left.entityId.localeCompare(right.entityId))`. Тест не указан.",
+          "rendered": true,
+          "fingerprint": "body=bde52a66171df230be7bf9c81bcf4f528906abc3ec691ab21d3723076544c31d,deps=c89d2b3f6f55c14e678b92aa91cfebc4812f2d1c3b27973d71945e8343ab3542,usage=b84a7e49817df4284f595afc5c35e3f58fa603501b704c10f44e448c8415ba3d,placement=8d751664bb00f5a06cde2b9d06af63ca686443cbe59d8304db3d6b920b95bbdd",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Оба контракта (дедупликация и сортировка) обеспечиваются стандартными методами JavaScript без внешних утилит."
+          }
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:30:58.799Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "6b147c6d-8e53-4938-a894-ea836c386cb5",
+          "timestamp": "2026-06-20T13:35:28.035Z",
+          "command": "generate",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}
