@@ -2,6 +2,15 @@
   "name": "@codelore/site",
   "version": "0.1.0",
   "description": "Generate and synchronize documentation sites from Codelore artifacts.",
+  "keywords": [
+    "codelore",
+    "documentation",
+    "docs-site",
+    "fumadocs",
+    "nextjs",
+    "static-site",
+    "markdown"
+  ],
   "license": "MIT",
   "type": "module",
   "publishConfig": {
@@ -38,5 +47,9 @@
   },
   "engines": {
     "node": ">=22.13"
+  },
+  "homepage": "https://github.com/BaryshevRS/codelore/tree/main/packages/site#readme",
+  "bugs": {
+    "url": "https://github.com/BaryshevRS/codelore/issues"
   }
 }

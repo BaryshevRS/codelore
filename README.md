@@ -32,19 +32,28 @@ Codelore writes a **canonical** language through the full grounded pipeline, the
 - A translation is **never re-verified against the code** — it inherits the canonical block's correctness. This is a deliberate cost/consistency trade-off.
 - Section headings come from `src/locales/<lang>.json`. Add a language by dropping a bundle there; without one a language falls back to English headings.
 
-## Requirements
+## Install
 
-- Node.js `>= 22.13`
-- pnpm
+Node.js `>= 22.13`.
 
-## Install & build
+```sh
+npm install -g @codelore/mcp
+```
+
+Two executables land on your `PATH`: `codelore` (the CLI) and `codelore-mcp` (the
+MCP stdio server). Nothing runs until you point codelore at an LLM endpoint — see
+[Configuration](#configuration).
+
+<details>
+<summary>From source</summary>
 
 ```sh
 pnpm install
 pnpm run build      # compiles to dist/
 ```
 
-The CLI entry point is `dist/bin/codelore.js` (run via `node dist/bin/codelore.js …` or the `codelore` bin). The MCP server entry point is `dist/bin/codelore-mcp.js` (`codelore-mcp`).
+The entry points are then `dist/bin/codelore.js` and `dist/bin/codelore-mcp.js`.
+</details>
 
 ## Configuration
 

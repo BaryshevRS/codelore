@@ -2,6 +2,22 @@
   "name": "@codelore/mcp",
   "version": "1.0.0",
   "description": "MCP server for incremental living Markdown documentation tied to TypeScript and JavaScript code.",
+  "keywords": [
+    "documentation",
+    "docs",
+    "mcp",
+    "model-context-protocol",
+    "llm",
+    "typescript",
+    "javascript",
+    "ast",
+    "ts-morph",
+    "code-documentation",
+    "documentation-generator",
+    "ai",
+    "coding-agents",
+    "stale-docs"
+  ],
   "license": "MIT",
   "author": "Ruslan Baryshev",
   "repository": {
@@ -59,5 +75,9 @@
   },
   "engines": {
     "node": ">=22.13"
+  },
+  "homepage": "https://github.com/BaryshevRS/codelore#readme",
+  "bugs": {
+    "url": "https://github.com/BaryshevRS/codelore/issues"
   }
 }
