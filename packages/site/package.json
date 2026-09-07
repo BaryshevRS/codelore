@@ -2,6 +2,7 @@
   "name": "@codelore/site",
   "version": "0.1.0",
   "description": "Generate and synchronize documentation sites from Codelore artifacts.",
+  "license": "MIT",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -10,12 +11,15 @@
     "codelore-site": "./dist/bin/codelore-site.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "rm -rf dist && tsc -p tsconfig.json",
     "check-types": "tsc -p tsconfig.json --noEmit",
     "lint": "pnpm exec biome check --write . && pnpm run check-types",
+    "prepublishOnly": "pnpm run pretest",
     "pretest": "pnpm run check-types && pnpm run build",
     "test": "vitest run"
   },
