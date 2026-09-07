@@ -14,3 +14,4 @@ PLAN.md
 .DS_Store
 .codelore/state/**/*.generation-debug*.json
 .codelore/render-graph
+codelore.config.json
