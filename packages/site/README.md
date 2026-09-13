@@ -1,5 +1,7 @@
 # @codelore/site
 
+[![npm](https://img.shields.io/npm/v/%40codelore%2Fsite)](https://www.npmjs.com/package/@codelore/site)
+
 Generate a browsable documentation site from Codelore's rendered artifacts.
 
 ```sh
