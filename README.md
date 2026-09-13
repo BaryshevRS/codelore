@@ -1,5 +1,7 @@
 # codelore
 
+[![npm](https://img.shields.io/npm/v/%40codelore%2Fmcp)](https://www.npmjs.com/package/@codelore/mcp)
+
 MCP server for incremental, living Markdown documentation tied to TypeScript and JavaScript code.
 
 Codelore maintains a documentation page per code entity. Per-doc JSON state under `.codelore/state/` is the **single source of truth**; the `.codelore.md` files next to your source are deterministic rendered artifacts — never hand-edited, regenerated from state on every write. As code changes, codelore detects which blocks drifted, regenerates only those through an LLM pipeline grounded in the AST, and propagates updates up the import graph.
