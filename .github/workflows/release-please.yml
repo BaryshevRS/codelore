@@ -1,0 +1,62 @@
+name: release-please
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: release-please
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      releases_created: ${{ steps.release.outputs.releases_created }}
+      # JSON array of the package dirs that got a release this run ("." and/or "packages/site").
+      paths_released: ${{ steps.release.outputs.paths_released }}
+    steps:
+      - uses: googleapis/release-please-action@v5
+        id: release
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  publish:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.releases_created == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # OIDC for npm Trusted Publishing + provenance
+    strategy:
+      fail-fast: false
+      # One job per released package: release-please may release either alone.
+      matrix:
+        path: ${{ fromJSON(needs.release-please.outputs.paths_released) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      # No registry-url: it makes setup-node write a placeholder authToken into
+      # .npmrc, which forces token auth and 404s. Without it npm uses the default
+      # registry and the OIDC trusted-publisher flow.
+      # Node 24 — Trusted Publishing needs npm >= 11.5.1, which Node 22 does not ship.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # The release gate. Each package's own prepublishOnly only typechecks and
+      # builds, so the suite runs here: a red test never reaches npm.
+      - run: pnpm run test
+      # --no-git-checks: the checkout is a detached HEAD at the release commit,
+      # and pnpm's branch check would reject that. The commit is release-please's
+      # own, so there is nothing left for that check to protect.
+      # No NODE_AUTH_TOKEN: auth is via OIDC (Trusted Publisher), provenance is automatic.
+      - run: pnpm publish --no-git-checks
+        working-directory: ${{ matrix.path }}

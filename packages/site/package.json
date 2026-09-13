@@ -12,6 +12,11 @@
     "markdown"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BaryshevRS/codelore.git",
+    "directory": "packages/site"
+  },
   "type": "module",
   "publishConfig": {
     "access": "public"
