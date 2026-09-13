@@ -30,7 +30,7 @@ Codelore writes a **canonical** language through the full grounded pipeline, the
 - The canonical doc is `foo.codelore.md`; each translation is a sibling `foo.<lang>.codelore.md`.
 - A translation is regenerated when the canonical body changes (fingerprint cascade) or when the stored translation fails its guards (code spans must match the source exactly; a prose block must not come back untranslated). Until then the translation `.md` shows a localized "translation pending" callout.
 - A translation is **never re-verified against the code** — it inherits the canonical block's correctness. This is a deliberate cost/consistency trade-off.
-- Section headings come from `src/locales/<lang>.json`. Add a language by dropping a bundle there; without one a language falls back to English headings.
+- Section headings come from `src/locales/<lang>.json`. The bundles are a static registry (`src/markdown/locales.ts` imports each one), so adding a language means dropping a bundle there *and* listing it in that registry; a language with no bundle falls back to English headings.
 
 ## Install
 
@@ -62,7 +62,7 @@ Two layers merge, the overlay wins:
 - **`codelore.config.json`** — committed, shared project settings: source/doc globs, `indexDir`, `docs` (language, translations, `writingRules`, `terms`), `thresholds`, block-inclusion tuning.
 - **`<indexDir>/config.json`** (default `.codelore/config.json`) — gitignored, per-machine overlay: whatever this machine overrides, typically the `llm` block (provider, model, endpoint).
 
-Either file may hold the `llm` block — this repository keeps its own in the committed one, since the block carries no secret. Put it in the overlay when the endpoint or model is a property of the machine rather than of the project.
+Either file may hold the `llm` block. Keep it in the committed file when the endpoint and model are a property of the project, in the overlay when they are a property of the machine. This repository ships neither: its own `codelore.config.json` is gitignored, so a clone inherits no endpoint and starts from the setup below.
 
 The API key never lives in a tracked file. `llm.providers.<name>.apiKeyEnv` names an environment variable (default `AI_API_KEY`); `<root>/.env` is loaded for local dev, and CI/hosts inject it directly. Precedence: env var > `.codelore/config.json` > `codelore.config.json` > built-in defaults.
 
