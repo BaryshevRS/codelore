@@ -52,6 +52,19 @@ const DEFAULT_MAX_SECTIONS_PER_CHUNK = 6;
 export interface ProviderRuntime {
   env: NodeJS.ProcessEnv;
   fetch?: typeof fetch;
+  /**
+   * Called once per completed (or failed) model call. Phase-level progress cannot
+   * explain a slow run: it shows a phase taking twenty minutes without saying whether
+   * that was one slow answer or fifty queued behind a saturated endpoint.
+   */
+  onCall?: (info: {
+    provider: string;
+    model: string;
+    durationMs: number;
+    promptChars: number;
+    usage?: ChatUsage;
+    error?: string;
+  }) => void;
 }
 
 /** Total attempts (1 initial + 3 retries) for retryable transport failures. */
@@ -177,6 +190,7 @@ class OpenAiCompatibleProvider implements ChatCompletionProvider {
   readonly writerBudget: WriterBudget;
   private readonly apiKey: string | undefined;
   private readonly fetchImpl: typeof fetch;
+  private readonly onCall: ProviderRuntime["onCall"];
 
   constructor(
     readonly name: string,
@@ -187,6 +201,7 @@ class OpenAiCompatibleProvider implements ChatCompletionProvider {
     this.writerBudget = resolveWriterBudget(config);
     this.apiKey = config.apiKey ?? (config.apiKeyEnv ? runtime.env[config.apiKeyEnv] : undefined);
     this.fetchImpl = runtime.fetch ?? fetch;
+    this.onCall = runtime.onCall;
   }
 
   async complete(input: ChatCompletionInput): Promise<ChatCompletionResult> {
@@ -198,15 +213,33 @@ class OpenAiCompatibleProvider implements ChatCompletionProvider {
       );
     }
 
+    // Timed across the retries, not per attempt: what a caller waits for is the whole
+    // call, and a request that was retried twice behind a saturated endpoint is exactly
+    // the case this measurement exists to make visible.
+    const startedAt = Date.now();
+    const promptChars = input.messages.reduce((sum, message) => sum + message.content.length, 0);
+    const report = (usage?: ChatUsage, error?: string) =>
+      this.onCall?.({
+        provider: this.name,
+        model: this.model,
+        durationMs: Date.now() - startedAt,
+        promptChars,
+        ...(usage ? { usage } : {}),
+        ...(error ? { error } : {}),
+      });
+
     // High concurrency makes throttling (429) and transient gateway errors routine,
     // so transport failures are retried with capped exponential backoff. Parse and
     // content errors are not retried here — the file pipeline owns those retries.
     for (let attempt = 1; ; attempt++) {
       try {
-        return await this.attemptComplete(input);
+        const result = await this.attemptComplete(input);
+        report(result.usage);
+        return result;
       } catch (error) {
         const delayMs = retryDelayMs(error, attempt, MAX_TRANSPORT_ATTEMPTS);
         if (delayMs === undefined) {
+          report(undefined, error instanceof Error ? error.message : String(error));
           throw error;
         }
         await sleep(delayMs);

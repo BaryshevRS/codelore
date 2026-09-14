@@ -35,7 +35,12 @@ import {
   verifyBlocksAgainstDeps,
 } from "../llm/file-pipeline.js";
 import { writeRunDecisions } from "../llm/generation-debug.js";
-import { type ChatCompletionInput, type ChatCompletionProvider, createConfiguredProvider } from "../llm/provider.js";
+import {
+  type ChatCompletionInput,
+  type ChatCompletionProvider,
+  createConfiguredProvider,
+  type ProviderRuntime,
+} from "../llm/provider.js";
 import {
   type TranslateBlockInput,
   translateBlocks,
@@ -435,7 +440,11 @@ export class CodeloreService {
     }
 
     const providerName = runtime.providerName ?? this.config.llm.partitionProvider;
-    const provider = createConfiguredProvider(this.config, providerName, { env: runtime.env, fetch: runtime.fetch });
+    const provider = createConfiguredProvider(this.config, providerName, {
+      env: runtime.env,
+      fetch: runtime.fetch,
+      ...callReporter(runtime.onProgress),
+    });
     const request = buildPartitionRequest({
       files,
       edges,
@@ -1351,11 +1360,16 @@ export class CodeloreService {
    * provider via `--provider` — an explicit override means "use this model for
    * everything", so it wins over the split.
    */
-  private createProviderPair(runtime: { providerName?: string; env: NodeJS.ProcessEnv; fetch?: typeof fetch }): {
+  private createProviderPair(runtime: {
+    providerName?: string;
+    env: NodeJS.ProcessEnv;
+    fetch?: typeof fetch;
+    onProgress?: (message: string) => void;
+  }): {
     provider: ChatCompletionProvider;
     verifyProvider: ChatCompletionProvider;
   } {
-    const providerRuntime = { env: runtime.env, fetch: runtime.fetch };
+    const providerRuntime = { env: runtime.env, fetch: runtime.fetch, ...callReporter(runtime.onProgress) };
     const provider = createConfiguredProvider(this.config, runtime.providerName, providerRuntime);
     const verifyName = this.config.llm.verifyProvider;
     const verifyProvider =
@@ -1712,6 +1726,7 @@ export class CodeloreService {
     const provider = createConfiguredProvider(this.config, runtime.providerName, {
       env: runtime.env,
       fetch: runtime.fetch,
+      ...callReporter(runtime.onProgress),
     });
     const languages = this.config.docs.translations;
     const limit = pLimit(this.config.llm.concurrency);
@@ -2282,3 +2297,28 @@ function appendPartitionRetry(
 
 // Unused but kept for future external consumers:
 export type { CodeIndex };
+
+/**
+ * Turns per-call telemetry into one progress line. Phase timings cannot tell a single
+ * slow answer from a queue behind a saturated endpoint, and that distinction decides
+ * whether the fix is a faster model or less concurrency.
+ */
+function callReporter(onProgress?: (message: string) => void): { onCall?: ProviderRuntime["onCall"] } {
+  if (!onProgress) {
+    return {};
+  }
+  return {
+    onCall: ({ model, durationMs, promptChars, usage, error }) => {
+      const seconds = (durationMs / 1000).toFixed(1);
+      const prompt = `${Math.round(promptChars / 1000)}kB`;
+      if (error) {
+        onProgress(`call ${seconds}s ${model} prompt=${prompt} FAILED: ${error}`);
+        return;
+      }
+      const out = usage?.completionTokens;
+      const reasoning = usage?.reasoningTokens;
+      const tokens = out === undefined ? "" : ` out=${out}tok${reasoning ? ` (reasoning ${reasoning})` : ""}`;
+      onProgress(`call ${seconds}s ${model} prompt=${prompt}${tokens}`);
+    },
+  };
+}
