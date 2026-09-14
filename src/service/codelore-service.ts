@@ -118,18 +118,12 @@ import {
 import {
   addTargetBlock,
   buildRewriteContextBundle,
-  collectDepDocStaleBlocks,
-  collectLanguageStaleBlocks,
-  collectMemberDocStaleBlocks,
-  collectStaleBlocks,
-  collectTombstonedBlocks,
-  collectUnwrittenBlocks,
   filterSectionsByScope,
-  mergeStaleBlocks,
   refreshStaleResult,
   staleReasonFor,
   targetBlocksFromTombstones,
 } from "./stale-detection.js";
+import { StaleDetector } from "./stale-detector.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -380,8 +374,8 @@ export class CodeloreService {
           if (previous) {
             const fresh = withPreservedBlockBodies(previous, skeleton.sections[sectionId]);
             // A rebuilt skeleton starts with no memberDocsFingerprint; carry the
-            // previous stamp forward so staleDomainSlugs only flags tiers whose
-            // member evidence actually changed, not every tier on every rebuild.
+            // previous stamp forward so the detector only flags tiers whose member
+            // evidence actually changed, not every tier on every rebuild.
             if (previous.memberDocsFingerprint !== undefined) {
               fresh.memberDocsFingerprint = previous.memberDocsFingerprint;
             }
@@ -978,13 +972,9 @@ export class CodeloreService {
     const mode = input.mode ?? "report";
     const index = await this.rebuildIndexes();
     const scoped = filterSectionsByScope(Object.values(index.docs.sections), input.scope, index.code.entities);
-    const stale = mergeStaleBlocks(
-      collectStaleBlocks(scoped, index.code.entities),
-      collectDepDocStaleBlocks(scoped, index),
-      collectMemberDocStaleBlocks(scoped, index),
-      collectLanguageStaleBlocks(scoped, this.config.docs.language)
-    );
-    const tombstoned = collectTombstonedBlocks(scoped, index.code.entities);
+    const detector = new StaleDetector(index, this.config.docs.language);
+    const stale = detector.stale(scoped);
+    const tombstoned = detector.tombstoned(scoped);
 
     if (mode === "report") {
       return refreshStaleResult(mode, stale, tombstoned);
@@ -1005,7 +995,7 @@ export class CodeloreService {
       input.scope,
       refreshed.code.entities
     );
-    const refreshedTombstoned = collectTombstonedBlocks(refreshedScoped, refreshed.code.entities);
+    const refreshedTombstoned = new StaleDetector(refreshed, this.config.docs.language).tombstoned(refreshedScoped);
     return refreshStaleResult(mode, stale, refreshedTombstoned, appliedTombstones);
   }
 
@@ -1095,7 +1085,10 @@ export class CodeloreService {
     }
     await this.assignUncoveredFiles(runtime);
     await this.prepareDomainDocs();
-    const slugs = this.staleDomainSlugs(await this.rebuildIndexes({ renderDocs: false }));
+    const slugs = new StaleDetector(
+      await this.rebuildIndexes({ renderDocs: false }),
+      this.config.docs.language
+    ).tierSlugs();
     if (slugs.size === 0) {
       return empty;
     }
@@ -1173,32 +1166,6 @@ export class CodeloreService {
     await this.storage.saveDomainMap(map);
   }
 
-  /** Tier slugs needing regeneration: never written (empty purpose) or member docs diverged from the stamp. */
-  private staleDomainSlugs(index: ProjectIndex): Set<string> {
-    const slugs = new Set<string>();
-    for (const section of Object.values(index.docs.sections)) {
-      const slug = section.id.startsWith(DOMAIN_ID_PREFIX)
-        ? section.id.slice(DOMAIN_ID_PREFIX.length)
-        : section.id === PROJECT_ID
-          ? "."
-          : undefined;
-      if (slug === undefined) {
-        continue;
-      }
-      const purposeFilled = section.blocks.some((block) => block.id === "purpose" && block.body.trim() !== "");
-      const entity = index.code.entities[section.owns[0] ?? ""];
-      if (!purposeFilled || !entity) {
-        slugs.add(slug);
-        continue;
-      }
-      const current = domainMemberFingerprint(collectDomainMemberEvidence(entity, index));
-      if (current !== section.memberDocsFingerprint) {
-        slugs.add(slug);
-      }
-    }
-    return slugs;
-  }
-
   async fixStaleDocs(input: FixStaleDocsInput, runtime: GenerateDocsRuntime): Promise<GenerateDocsResult> {
     // Assign newly-uncovered files into the domain map before staleness is computed:
     // collectMemberDocStaleBlocks (inside refreshStaleDocs below) reads membership from
@@ -1249,7 +1216,7 @@ export class CodeloreService {
   ): Promise<void> {
     const index = await this.loadOrRebuildIndexes();
     const scoped = filterSectionsByScope(Object.values(index.docs.sections), scope, index.code.entities);
-    for (const entry of collectUnwrittenBlocks(scoped, index.code.entities)) {
+    for (const entry of new StaleDetector(index, this.config.docs.language).unwritten(scoped)) {
       addTargetBlock(targets, entry.sectionId, entry.blockId);
     }
   }
