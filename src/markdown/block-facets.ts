@@ -77,6 +77,23 @@ function hashFacetAcrossEntities(facet: AstFacet, ids: string[], entities: Recor
   return sha256(ids.map((id) => `${id}|${entities[id].facets[facet]}`).join("\n"));
 }
 
+/**
+ * The `body` facet as it was computed before comments were stripped out of it:
+ * `contentHash` is still the verbatim text hash, which is exactly the old value.
+ *
+ * Changing how a hash is derived invalidates every block stamped with the old one —
+ * here 165 of them, none actually wrong. A block whose stored body hash equals this
+ * is provably unchanged since it was written, so the detector treats it as current
+ * rather than sending prose to the writer to be rebuilt identically. Temporary: once
+ * every block has been rewritten under the new scheme, nothing matches this and it
+ * can go.
+ */
+export function legacyBodyHash(ids: string[], entities: Record<string, CodeEntity>): string {
+  // Same ordering as computeBlockFingerprint, or the hash cannot match what it stamped.
+  const presentIds = [...ids].sort().filter((id) => entities[id]);
+  return sha256(presentIds.map((id) => `${id}|${entities[id].contentHash}`).join("\n"));
+}
+
 function isFacet(value: string): value is AstFacet {
   return ALL_FACETS.includes(value as AstFacet);
 }

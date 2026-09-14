@@ -1,12 +1,8 @@
-import {
-  BLOCK_FACETS,
-  computeBlockFingerprint,
-  diffFacetHashes,
-  parseBlockFingerprintValue,
-} from "../markdown/block-facets.js";
+import { BLOCK_FACETS, computeBlockFingerprint } from "../markdown/block-facets.js";
 import type { BlockId } from "../markdown/block-ids.js";
 import type { CodeEntity, DocSection, DocValidationIssue } from "../types.js";
 import { isKnownBlockId } from "./helpers.js";
+import { staleBlockInfoFor } from "./stale-detection.js";
 
 export function validateOwnedEntities(
   section: DocSection,
@@ -73,14 +69,13 @@ export function staleValidationIssue(
       message: `Block "${block.heading}" is tombstoned (${block.staleReason ?? "code_changed"}) since ${block.staleSince}; rewrite to restore.`,
     };
   }
-  const storedValue = section.blockFingerprints[blockId];
-  if (storedValue === undefined || storedValue === currentValue) {
+  // One detector, not two: `check` used to re-implement this comparison, which meant
+  // a rule added on one side (a facet whose derivation changed, say) silently did not
+  // apply on the other.
+  const drift = staleBlockInfoFor(section, block, presentOwns, codeEntities);
+  if (!drift) {
     return undefined;
   }
-  const storedFacets = parseBlockFingerprintValue(storedValue);
-  const currentFacets = parseBlockFingerprintValue(currentValue);
-  const changedFacets = diffFacetHashes(storedFacets, currentFacets);
-  const suspectFacets = changedFacets.length > 0 ? changedFacets : [...BLOCK_FACETS[blockId]];
   return {
     code: "stale_block",
     severity: "warning",
@@ -88,8 +83,8 @@ export function staleValidationIssue(
     docPath: section.docPath,
     blockId,
     drift: "facet_changed",
-    changedFacets: suspectFacets,
-    message: `Block "${block.heading}" is stale: ${suspectFacets.join(", ")} changed since last rewrite.`,
+    changedFacets: drift.changedFacets,
+    message: `Block "${block.heading}" is stale: ${drift.changedFacets.join(", ")} changed since last rewrite.`,
   };
 }
 

@@ -19,6 +19,7 @@ import { analyzeClassCohesion } from "../analysis/class-cohesion.js";
 import { decideDocumentationRoles } from "../analysis/decision-pass.js";
 import { computeEntityMetrics } from "../analysis/entity-metrics.js";
 import { detectPrivateWrappers } from "../analysis/wrapper-detector.js";
+import { stripComments } from "../llm/strip-comments.js";
 import type { CodeEntity, CodeIndex, CodeloreConfig, EntityFacets, EntityType, SourceRange } from "../types.js";
 import { INDEX_VERSION } from "../types.js";
 import { sha256 } from "../utils/hash.js";
@@ -81,7 +82,7 @@ function createFileRecord(rootDir: string, sourceFile: SourceFile): EntityNodeRe
     directDeps: [],
     directUsages: [],
     contentHash,
-    facets: initialFacets(relativePath, relativePath, contentHash),
+    facets: initialFacets(relativePath, relativePath, sourceFile.getFullText()),
   };
   return { entity, node: sourceFile, exportName: relativePath };
 }
@@ -311,7 +312,7 @@ function createSymbolRecord(
     directDeps: [],
     directUsages: [],
     contentHash,
-    facets: initialFacets(signature, relativePath, contentHash),
+    facets: initialFacets(signature, relativePath, node.getText()),
   };
   return { entity, node, exportName };
 }
@@ -337,7 +338,7 @@ function createMethodRecord(
     directDeps: [],
     directUsages: [],
     contentHash,
-    facets: initialFacets(signature, relativePath, contentHash),
+    facets: initialFacets(signature, relativePath, method.getText()),
   };
   return { entity, node: method, exportName: name };
 }
@@ -580,10 +581,17 @@ function populateDependencies(
   refreshGraphFacets(entities);
 }
 
-function initialFacets(signature: string, path: string, contentHash: string): EntityFacets {
+/**
+ * `body` hashes the code with comments removed, while `contentHash` keeps the text
+ * verbatim. The writer never sees comments — `stripComments` runs before anything
+ * reaches the model — so prose can never depend on them, and hashing them would
+ * invalidate a doc over text its author never read. Stripping cannot hide a change
+ * that matters: it removes exactly what generation already ignores.
+ */
+function initialFacets(signature: string, path: string, text: string): EntityFacets {
   return {
     signature: sha256(signature),
-    body: contentHash,
+    body: sha256(stripComments(text)),
     deps: sha256(""),
     usage: sha256(""),
     placement: sha256(path),

@@ -4,6 +4,7 @@ import {
   BLOCK_FACETS,
   computeBlockFingerprint,
   diffFacetHashes,
+  legacyBodyHash,
   parseBlockFingerprintValue,
 } from "../markdown/block-facets.js";
 import type { BlockId } from "../markdown/block-ids.js";
@@ -365,10 +366,17 @@ export function staleBlockInfoFor(
   if (storedValue === undefined || storedValue === currentValue) {
     return undefined;
   }
-  const changedFacets = diffFacetHashes(
-    parseBlockFingerprintValue(storedValue),
-    parseBlockFingerprintValue(currentValue)
-  );
+  const stored = parseBlockFingerprintValue(storedValue);
+  const changedFacets = diffFacetHashes(stored, parseBlockFingerprintValue(currentValue));
+  // Only the body hash moved, and it moved to exactly what the pre-strip scheme
+  // produced: the code is untouched, our hashing changed under it.
+  if (
+    changedFacets.length === 1 &&
+    changedFacets[0] === "body" &&
+    stored.body === legacyBodyHash(presentOwns, entities)
+  ) {
+    return undefined;
+  }
   const suspectFacets: Facet[] = changedFacets.length > 0 ? changedFacets : [...BLOCK_FACETS[block.id]];
   return {
     sectionId: section.id,
