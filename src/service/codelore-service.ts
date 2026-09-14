@@ -34,6 +34,7 @@ import {
   generateFileGroup,
   verifyBlocksAgainstDeps,
 } from "../llm/file-pipeline.js";
+import type { DependencyDoc } from "../llm/file-writer.js";
 import { writeRunDecisions } from "../llm/generation-debug.js";
 import {
   type ChatCompletionInput,
@@ -81,6 +82,7 @@ import type {
   SectionContext,
   StaleBlockInfo,
 } from "../types.js";
+import { blockDepDocsFingerprint, mentionCandidatesFor } from "./dep-fingerprints.js";
 import { reconcileDocStateWithCode } from "./doc-reconcile.js";
 import {
   detectStaleBlocks,
@@ -239,7 +241,12 @@ export class CodeloreService {
     let mutated = false;
     for (const docPath of docPaths) {
       const state = await this.docStateStorage.loadDocState(docPath);
-      if (!state || !reconcileDocStateWithCode(state, index.code.entities)) {
+      if (!state) {
+        continue;
+      }
+      const pruned = reconcileDocStateWithCode(state, index.code.entities);
+      const stamped = this.backfillBlockDepFingerprints(state, index);
+      if (!pruned && !stamped) {
         continue;
       }
       mutated = true;
@@ -252,6 +259,48 @@ export class CodeloreService {
     if (mutated) {
       await this.rebuildIndexes({ renderDocs: false });
     }
+  }
+
+  /**
+   * Give blocks written before per-block dependency hashing the stamp they lack, so the
+   * precision applies to the docs already on disk instead of arriving block by block as
+   * each is rewritten. Only sections whose file-wide stamp still matches are touched:
+   * those are provably current, so recording what each block leans on states a fact
+   * rather than assuming one. A section already flagged keeps the file-wide rule and is
+   * stamped after it is rewritten.
+   */
+  private backfillBlockDepFingerprints(state: DocState, index: ProjectIndex): boolean {
+    let stamped = false;
+    const docsByFile = new Map<string, DependencyDoc[]>();
+    for (const [sectionId, sectionState] of Object.entries(state.sections)) {
+      if (sectionState.depDocsFingerprint === undefined) {
+        continue;
+      }
+      const blocks = Object.values(sectionState.blocks).filter(
+        (block) => block.body.trim() !== "" && block.depDocsFingerprint === undefined
+      );
+      if (blocks.length === 0) {
+        continue;
+      }
+      const file = index.code.entities[index.docs.sections[sectionId]?.owns[0] ?? ""]?.path;
+      if (!file) {
+        continue;
+      }
+      let docs = docsByFile.get(file);
+      if (docs === undefined) {
+        docs = collectDependencyDocs(index, [file]);
+        docsByFile.set(file, docs);
+      }
+      if (dependencyDocsFingerprint(docs) !== sectionState.depDocsFingerprint) {
+        continue;
+      }
+      const candidates = mentionCandidatesFor(docs, index);
+      for (const block of blocks) {
+        block.depDocsFingerprint = blockDepDocsFingerprint(block.body, docs, candidates);
+        stamped = true;
+      }
+    }
+    return stamped;
   }
 
   async loadOrRebuildIndexes(): Promise<ProjectIndex> {
@@ -1684,6 +1733,7 @@ export class CodeloreService {
           fingerprintByFile.set(file, fingerprint);
         }
         sectionState.depDocsFingerprint = fingerprint;
+        stampBlockDepFingerprints(sectionState, collectDependencyDocs(index, [file]), index);
         mutated = true;
       }
       if (mutated) {
@@ -2321,4 +2371,19 @@ function callReporter(onProgress?: (message: string) => void): { onCall?: Provid
       onProgress(`call ${seconds}s ${model} prompt=${prompt}${tokens}`);
     },
   };
+}
+
+/**
+ * Stamp each written block with a hash of only the dependency docs it names. The
+ * section-level stamp above covers every dependency of the file and so cannot say
+ * whether a given block leaned on the one that moved; this can.
+ */
+function stampBlockDepFingerprints(sectionState: DocStateSection, docs: DependencyDoc[], index: ProjectIndex): void {
+  const candidates = mentionCandidatesFor(docs, index);
+  for (const block of Object.values(sectionState.blocks)) {
+    if (block.body.trim() === "") {
+      continue;
+    }
+    block.depDocsFingerprint = blockDepDocsFingerprint(block.body, docs, candidates);
+  }
 }

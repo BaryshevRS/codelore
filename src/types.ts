@@ -116,6 +116,7 @@ export interface DocBlock {
   staleSince?: string;
   staleReason?: string;
   staleFacets?: Facet[];
+  depDocsFingerprint?: string;
   scores?: DocStateBlockScores;
 }
 
@@ -186,6 +187,15 @@ export interface DocStateBlock {
   staleSince?: string;
   staleReason?: string;
   staleFacets?: Facet[];
+  /**
+   * Hash of only the dependency docs this block's prose actually names, against the
+   * section-level `depDocsFingerprint` which hashes every dependency of the file. The
+   * section-level one cannot tell whether a block leaned on the dependency that moved,
+   * so it rewrites all of them: measured here, one edit to `errors.ts` queues 275
+   * blocks of which 39 mention it. Absent on blocks written before this existed, and
+   * those keep the section-level behaviour.
+   */
+  depDocsFingerprint?: string;
   scores?: DocStateBlockScores;
   /** Derived per-language translations of `body`, keyed by language code. */
   translations?: Record<string, DocStateBlockTranslation>;

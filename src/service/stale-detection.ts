@@ -1,5 +1,7 @@
+import type { MentionCandidate } from "../analysis/block-mentions.js";
 import { collectDomainMemberEvidence, domainMemberFingerprint } from "../domains/member-evidence.js";
 import { collectDependencyDocs, dependencyDocsFingerprint, PROPAGATING_BLOCKS } from "../llm/file-pipeline.js";
+import type { DependencyDoc } from "../llm/file-writer.js";
 import {
   BLOCK_FACETS,
   computeBlockFingerprint,
@@ -19,6 +21,7 @@ import type {
   RewriteContextBundle,
   StaleBlockInfo,
 } from "../types.js";
+import { blockDepDocsFingerprint, mentionCandidatesFor } from "./dep-fingerprints.js";
 import { isKnownBlockId, summarizeCodeEntity } from "./helpers.js";
 
 export function targetBlocksFromTombstones(
@@ -84,6 +87,8 @@ export function sourcePathFromEntityId(entityId: string): string | undefined {
 export function collectDepDocStaleBlocks(sections: DocSection[], index: ProjectIndex): StaleBlockInfo[] {
   const stale: StaleBlockInfo[] = [];
   const fingerprintByFile = new Map<string, string>();
+  const docsByFile = new Map<string, DependencyDoc[]>();
+  const candidatesByFile = new Map<string, MentionCandidate[]>();
   for (const section of sections) {
     if (section.depDocsFingerprint === undefined) {
       continue;
@@ -101,6 +106,18 @@ export function collectDepDocStaleBlocks(sections: DocSection[], index: ProjectI
     if (current === section.depDocsFingerprint) {
       continue;
     }
+    // Something among the file's dependencies moved. Which blocks that reaches is
+    // decided per block, from the docs each one actually names.
+    let docs = docsByFile.get(file);
+    if (docs === undefined) {
+      docs = collectDependencyDocs(index, [file]);
+      docsByFile.set(file, docs);
+    }
+    let candidates = candidatesByFile.get(file);
+    if (candidates === undefined) {
+      candidates = mentionCandidatesFor(docs, index);
+      candidatesByFile.set(file, candidates);
+    }
     for (const block of section.blocks) {
       if (!isKnownBlockId(block.id) || block.staleSince !== undefined || block.body.trim() === "") {
         continue;
@@ -109,6 +126,15 @@ export function collectDepDocStaleBlocks(sections: DocSection[], index: ProjectI
       // drift by depDocs — only terminal blocks consume them.
       if (PROPAGATING_BLOCKS.includes(block.id)) {
         continue;
+      }
+      // A block stamped with its own dependency hash is judged by that alone: if the
+      // docs it named are unchanged, nothing it says can have been invalidated, no
+      // matter what else the file imports. A block with no stamp predates this and
+      // keeps the file-wide rule.
+      if (block.depDocsFingerprint !== undefined) {
+        if (block.depDocsFingerprint === blockDepDocsFingerprint(block.body, docs, candidates)) {
+          continue;
+        }
       }
       stale.push({
         sectionId: section.id,

@@ -187,6 +187,7 @@ function blockFromState(
     staleSince: block?.staleSince,
     staleReason: block?.staleReason,
     staleFacets: block?.staleFacets,
+    depDocsFingerprint: block?.depDocsFingerprint,
     scores: block?.scores,
   };
 }

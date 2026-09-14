@@ -393,7 +393,14 @@ describe("runCli", () => {
         const sectionId = prompt.includes("--- src/util.ts ---")
           ? "symbol:src/util.ts#helper"
           : "symbol:src/app.ts#run";
-        return llmResponse(writerReply(sectionId, init));
+        // app's prose names `helper`, which is what makes it lean on util's doc at all.
+        // A block that never mentions a dependency is not touched when that dependency
+        // is reworded, so a fixture of generic text would never exercise the cascade.
+        return llmResponse(
+          sectionId === "symbol:src/app.ts#run"
+            ? writerReply(sectionId, init, { limitations: block("Не обрабатывает ошибки `helper`.") })
+            : writerReply(sectionId, init)
+        );
       }
       return llmResponse(JSON.stringify({ contradictions: [] }));
     }) as typeof fetch;
@@ -517,7 +524,14 @@ describe("runCli", () => {
         const sectionId = prompt.includes("--- src/util.ts ---")
           ? "symbol:src/util.ts#helper"
           : "symbol:src/app.ts#run";
-        return llmResponse(writerReply(sectionId, init));
+        // app's prose names `helper`, which is what makes it lean on util's doc at all.
+        // A block that never mentions a dependency is not touched when that dependency
+        // is reworded, so a fixture of generic text would never exercise the cascade.
+        return llmResponse(
+          sectionId === "symbol:src/app.ts#run"
+            ? writerReply(sectionId, init, { limitations: block("Не обрабатывает ошибки `helper`.") })
+            : writerReply(sectionId, init)
+        );
       }) as typeof fetch,
     });
     expect(cold).toBe(0);
@@ -598,7 +612,14 @@ describe("runCli", () => {
         const sectionId = prompt.includes("--- src/util.ts ---")
           ? "symbol:src/util.ts#helper"
           : "symbol:src/app.ts#run";
-        return llmResponse(writerReply(sectionId, init));
+        // app's prose names `helper`, which is what makes it lean on util's doc at all.
+        // A block that never mentions a dependency is not touched when that dependency
+        // is reworded, so a fixture of generic text would never exercise the cascade.
+        return llmResponse(
+          sectionId === "symbol:src/app.ts#run"
+            ? writerReply(sectionId, init, { limitations: block("Не обрабатывает ошибки `helper`.") })
+            : writerReply(sectionId, init)
+        );
       }) as typeof fetch,
     });
     expect(cold).toBe(0);
