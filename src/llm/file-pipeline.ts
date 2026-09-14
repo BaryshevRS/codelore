@@ -1314,8 +1314,13 @@ export async function verifyBlocksAgainstDeps(args: {
   // configured concurrency like the rest of the pipeline. Walking them serially
   // made this gate the tail of every run: it fires after the last write, when a
   // central file's rewrite has left depDocs drift on each of its dependents.
+  // allSettled, not all: this gate only decides whether a dependent can be left
+  // alone. A provider that fails or streams nothing back is not evidence the doc is
+  // broken — it is the absence of evidence, which already has a meaning here (the
+  // section stays flagged and is regenerated). Letting one bad response reject would
+  // fail the whole command after every doc has already been written.
   const limit = pLimit(service.config.llm.concurrency);
-  await Promise.all(
+  await Promise.allSettled(
     [...byFile].map(([file, fileTargets]) =>
       limit(async () => {
         const dependencyDocs = collectDependencyDocs(index, [file]);
