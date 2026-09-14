@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/service/stale-detection.codelore.md",
-  "generatedAt": "2026-09-14T10:13:07.275Z",
+  "generatedAt": "2026-09-14T13:12:14.425Z",
   "sectionOrder": [
     "symbol:src/service/stale-detection.ts#targetBlocksFromTombstones",
     "symbol:src/service/stale-detection.ts#addTargetBlock",
@@ -158,7 +158,7 @@
           "manualReviewNeeded": true
         }
       ],
-      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234",
+      "depDocsFingerprint": "952ac44851cd5971c931b2eb871aa8163928e275b921f53a7ddc043d7b4fb672",
       "signature": "targetBlocksFromTombstones(tombstoned: Array<{ sectionId: string; blockId: string }>): Map<string, BlockId[]>"
     },
     "symbol:src/service/stale-detection.ts#addTargetBlock": {
@@ -341,7 +341,7 @@
           "manualReviewNeeded": true
         }
       ],
-      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234",
+      "depDocsFingerprint": "952ac44851cd5971c931b2eb871aa8163928e275b921f53a7ddc043d7b4fb672",
       "signature": "addTargetBlock(targets: Map<string, BlockId[]>, sectionId: string, blockId: string): void"
     },
     "symbol:src/service/stale-detection.ts#filterSectionsByScope": {
@@ -529,7 +529,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234",
+      "depDocsFingerprint": "952ac44851cd5971c931b2eb871aa8163928e275b921f53a7ddc043d7b4fb672",
       "signature": "filterSectionsByScope(sections: DocSection[], scope: RefreshStaleScope | undefined, entities: Record<string, CodeEntity>): DocSection[]"
     },
     "symbol:src/service/stale-detection.ts#sourcePathFromEntityId": {
@@ -655,7 +655,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234"
+      "depDocsFingerprint": "952ac44851cd5971c931b2eb871aa8163928e275b921f53a7ddc043d7b4fb672"
     },
     "symbol:src/service/stale-detection.ts#collectDepDocStaleBlocks": {
       "heading": "collectDepDocStaleBlocks",
@@ -821,7 +821,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "ad5653c7c1f37bd6dc70e8da3d0c97a5fd37d27ce208aa08b0dd28debe7682ff",
+      "depDocsFingerprint": "952ac44851cd5971c931b2eb871aa8163928e275b921f53a7ddc043d7b4fb672",
       "signature": "collectDepDocStaleBlocks(sections: DocSection[], index: ProjectIndex): StaleBlockInfo[]"
     },
     "symbol:src/service/stale-detection.ts#mergeStaleBlocks": {
@@ -984,7 +984,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "ad5653c7c1f37bd6dc70e8da3d0c97a5fd37d27ce208aa08b0dd28debe7682ff",
+      "depDocsFingerprint": "952ac44851cd5971c931b2eb871aa8163928e275b921f53a7ddc043d7b4fb672",
       "signature": "mergeStaleBlocks(...passes: StaleBlockInfo[][]): StaleBlockInfo[]"
     },
     "symbol:src/service/stale-detection.ts#collectStaleBlocks": {
@@ -1150,7 +1150,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "ad5653c7c1f37bd6dc70e8da3d0c97a5fd37d27ce208aa08b0dd28debe7682ff",
+      "depDocsFingerprint": "952ac44851cd5971c931b2eb871aa8163928e275b921f53a7ddc043d7b4fb672",
       "signature": "collectStaleBlocks(sections: DocSection[], entities: Record<string, CodeEntity>): StaleBlockInfo[]"
     },
     "symbol:src/service/stale-detection.ts#collectTombstonedBlocks": {
@@ -1316,7 +1316,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "ad5653c7c1f37bd6dc70e8da3d0c97a5fd37d27ce208aa08b0dd28debe7682ff",
+      "depDocsFingerprint": "952ac44851cd5971c931b2eb871aa8163928e275b921f53a7ddc043d7b4fb672",
       "signature": "collectTombstonedBlocks(sections: DocSection[], entities: Record<string, CodeEntity>): StaleBlockInfo[]"
     },
     "symbol:src/service/stale-detection.ts#deletedOwnedEntityBlocks": {
@@ -1458,7 +1458,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234"
+      "depDocsFingerprint": "952ac44851cd5971c931b2eb871aa8163928e275b921f53a7ddc043d7b4fb672"
     },
     "symbol:src/service/stale-detection.ts#staleReasonFor": {
       "heading": "staleReasonFor",
@@ -1584,7 +1584,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234"
+      "depDocsFingerprint": "952ac44851cd5971c931b2eb871aa8163928e275b921f53a7ddc043d7b4fb672"
     },
     "symbol:src/service/stale-detection.ts#staleBlockInfoFor": {
       "heading": "staleBlockInfoFor",
@@ -1596,10 +1596,13 @@
       "depends": [
         "symbol:src/markdown/block-facets.ts#computeBlockFingerprint",
         "symbol:src/markdown/block-facets.ts#diffFacetHashes",
+        "symbol:src/markdown/block-facets.ts#legacyBodyHash",
         "symbol:src/markdown/block-facets.ts#parseBlockFingerprintValue",
         "symbol:src/service/helpers.ts#isKnownBlockId"
       ],
       "usedBy": [
+        "file:src/service/doc-validation.ts",
+        "symbol:src/service/doc-validation.ts#staleValidationIssue",
         "symbol:src/service/stale-detection.ts#collectStaleBlocks"
       ],
       "status": "normal",
@@ -1634,70 +1637,76 @@
           }
         },
         "responsibility": {
-          "body": "- Пропускает блоки с неизвестным ID, пустым телом или уже установленным `staleSince`.\n- Вычисляет текущий отпечаток через `computeBlockFingerprint`; если он `undefined`, возвращает `undefined`.\n- Сравнивает текущий отпечаток с сохранённым (`section.blockFingerprints[block.id]`).\n- Если отпечатки совпадают, возвращает `undefined`; иначе вычисляет изменившиеся фасеты через `diffFacetHashes`; если различие пусто, использует все фасеты для данного типа блока.\n- Возвращает `StaleBlockInfo` с `drift: \"facet_changed\"`.",
+          "body": "- Пропускает блоки, которым проверка не нужна: с неизвестным ID, пустым телом или установленным `staleSince` — для них возвращает `undefined`.\n- Вычисляет текущий отпечаток через `computeBlockFingerprint` и сравнивает с сохранённым в `section.blockFingerprints[block.id]`; возвращает `undefined`, если отпечаток не вычислился, сохранённого значения нет или значения совпали.\n- При расхождении разбирает сохранённый и текущий отпечатки через `parseBlockFingerprintValue` и вычисляет изменившиеся фасеты через `diffFacetHashes`; если изменился только `body` и сохранённый body равен `legacyBodyHash(presentOwns, entities)`, считает блок не устаревшим — поменялась схема хеширования, а не код.\n- Для устаревшего блока возвращает `StaleBlockInfo` с `drift: \"facet_changed\"` и `changedFacets`: фасеты из diff, а при пустом diff — все фасеты типа блока из `BLOCK_FACETS[block.id]`.",
           "rendered": true,
-          "fingerprint": "signature=c882cc9b2053b0a9c4652fbe8649daa2b52634779014998c704448faf9297c65,deps=e8651ecdb294485507a9c9c1d1b231668d5abc1e08a508c09d54b4146c631da6,usage=c45b9e1d91a2e07c8557b98f251fd640f3658c8a07bf177f3042884f66ee052f",
+          "fingerprint": "signature=c882cc9b2053b0a9c4652fbe8649daa2b52634779014998c704448faf9297c65,deps=b32b844f64c48fef0c47f94f5d3a9cd532a4a5edbc2e1b8770bd9a216d739f11,usage=87d44cdf9391ef5f9cbd8b9252c1b442c1c1afcb128f6018b4ebdd29515afe97",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
-            "specificity": 0.75,
-            "novelFact": "- Пропускает блоки с неизвестным ID, пустым телом или уже установленным `staleSince`."
-          }
+            "specificity": 1,
+            "novelFact": "Расхождение только по фасету `body` при совпадении сохранённого body с `legacyBodyHash(presentOwns, entities)` трактуется как смена схемы хеширования, а не изменение кода — блок не помечается устаревшим."
+          },
+          "language": "ru"
         },
         "invariants": {
-          "body": "- Не изменяет состояние.\n- Для блоков, у которых отпечаток не изменился, возвращает `undefined`.",
+          "body": "- Функция чистая: не мутирует `section`, `block` и `entities`.\n- Блок с пустым телом, неизвестным ID или установленным `staleSince` → `undefined`.\n- Отсутствие сохранённого отпечатка в `section.blockFingerprints` или его совпадение с текущим → `undefined`: блок без истории или без изменений не помечается.\n- Возвращённый `StaleBlockInfo` всегда имеет `drift: \"facet_changed\"` и непустой `changedFacets`.",
           "rendered": true,
-          "fingerprint": "signature=c882cc9b2053b0a9c4652fbe8649daa2b52634779014998c704448faf9297c65,body=4938fa8e9ffdef77729f119e4a9a7340e94a5b38b3e9c9fbe61ec5879c480881",
+          "fingerprint": "signature=c882cc9b2053b0a9c4652fbe8649daa2b52634779014998c704448faf9297c65,body=adf457870c4ff23e6bfa3c3b7ec017fa42f59f13b0dc7ac148653772392761c7",
           "scores": {
-            "informativeness": 0.5,
+            "informativeness": 0.75,
             "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "- Не изменяет состояние.\n- Для блоков, у которых отпечаток не изменился, возвращает `undefined`."
-          }
+            "specificity": 0.75,
+            "novelFact": "Блок без сохранённого отпечатка или с совпадающим отпечатком никогда не помечается устаревшим — функция возвращает `undefined`."
+          },
+          "language": "ru"
         },
         "dependencies": {
-          "body": "- `computeBlockFingerprint` (`src/markdown/block-facets.ts`) — вычисляет текущий отпечаток блока.\n- `diffFacetHashes` (`src/markdown/block-facets.ts`) — определяет изменившиеся фасеты.\n- `parseBlockFingerprintValue` (`src/markdown/block-facets.ts`) — преобразует строку отпечатка в объект.\n- `isKnownBlockId` (`src/service/helpers.ts`) — проверяет известность идентификатора блока.",
+          "body": "- `isKnownBlockId` (`src/service/helpers.ts`) проверяет, что `block.id` — известный тип блока; неизвестные id отсекает ещё до вычисления отпечатка, и функция сразу возвращает `undefined`.\n- `computeBlockFingerprint` (`src/markdown/block-facets.ts`) пересобирает текущий отпечаток по фасетам `BLOCK_FACETS[block.id]` для владельцев `presentOwns` из `entities`; если ни один владелец не присутствует в `entities`, возвращает `undefined`, и проверка завершается тем же `undefined`.\n- `parseBlockFingerprintValue` (`src/markdown/block-facets.ts`) превращает строки сохранённого и текущего отпечатка вида `\"фасет=хэш\"` в объекты; затем `diffFacetHashes` (там же) сверяет хэши по порядку `ALL_FACETS` и возвращает только фасеты со строго разошедшимися значениями — из этого массива формируется итоговый `changedFacets`.\n- `legacyBodyHash` (`src/markdown/block-facets.ts`) вычисляет body-хеш по прежней схеме хеширования; равенство с сохранённым `stored.body` — распознаватель миграции схемы.\n- `BLOCK_FACETS` (`src/markdown/block-facets.ts`) задаёт полный набор фасетов типа блока и подставляет его в `changedFacets`, когда diff пуст.",
           "rendered": true,
-          "fingerprint": "deps=e8651ecdb294485507a9c9c1d1b231668d5abc1e08a508c09d54b4146c631da6",
+          "fingerprint": "deps=b32b844f64c48fef0c47f94f5d3a9cd532a4a5edbc2e1b8770bd9a216d739f11",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Четыре внешние зависимости для вычисления и сравнения отпечатков."
-          }
+            "novelFact": "Сравнение строится на тройке зависимостей: parseBlockFingerprintValue разбирает отпечатки в объекты, diffFacetHashes даёт строго разошедшиеся фасеты по ALL_FACETS, а legacyBodyHash распознаёт миграцию прежней схемы хеширования."
+          },
+          "language": "ru"
         },
         "workflows": {
-          "body": "Вызывается из `collectStaleBlocks` для каждого блока секции, у которой есть owned-сущности.\n1. Пропускает блоки с неизвестным ID, пустым телом или `staleSince`.\n2. Вычисляет текущий отпечаток через `computeBlockFingerprint`.\n3. Если отпечаток `undefined`, возвращает `undefined`.\n4. Сравнивает с сохранённым отпечатком из `section.blockFingerprints`.\n5. При несовпадении вычисляет изменившиеся фасеты через `diffFacetHashes`; если различие пусто, использует все фасеты для данного типа блока.",
+          "body": "`collectStaleBlocks` (в том же файле) вызывает её для каждого блока каждой секции, у которой остался хотя бы один живой владелец — секция с `presentOwns.length === 0` сюда не доходит. Возвращённый `StaleBlockInfo` используется для построения результата обновления. `staleValidationIssue` в `src/service/doc-validation.ts` зовёт функцию для одного конкретного блока уже после собственной проверки `staleButted` (на tombstone-блоке валидатор выдаёт предупреждение сам, не вызывая функцию): `undefined` значит «предупреждение не нужно», объект — валидатор превращает его в `stale_block`-предупреждение с `drift: \"boxes\"`.`facet_changed\"` и перечислением `changedFacets` в тексте «changed since last rewrite».",
           "rendered": true,
-          "fingerprint": "body=4938fa8e9ffdef77729f119e4a9a7340e94a5b38b3e9c9fbe61ec5879c480881,deps=e8651ecdb294485507a9c9c1d1b231668d5abc1e08a508c09d54b4146c631da6",
+          "fingerprint": "body=adf457870c4ff23e6bfa3c3b7ec017fa42f59f13b0dc7ac148653772392761c7,deps=b32b844f64c48fef0c47f94f5d3a9cd532a4a5edbc2e1b8770bd9a216d739f11",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.75,
+            "novelty": 1,
             "specificity": 0.75,
-            "novelFact": "Вызывается для каждого блока секции с owned-сущностями."
-          }
+            "novelFact": "Функцией пользуются две независимые конвейерные линии: collectStaleBlocks закидывает её результат в список устаревших для перезаписи, а staleValidationIssue переводит отсутствие undefined в warning-модель — при этом tombstone-блоки обрабатывает сам валидатор, до вызова."
+          },
+          "language": "ru"
         },
         "limitations": {
-          "body": "Не обрабатывает блоки с `staleSince` — они считаются похороненными.",
+          "body": "Проверке подлежит только блок с телом и без `staleSince`: guard `if (block.staleSince !== undefined || block.body.trim() === \"\")` вырезает похороненные и пустые блоки, поэтому они никогда не получают от этой функции `StaleBlockInfo`. Миграционная защёлка срабатывает только в одной сигнатуре — `changedFacets.length === 2 && changedFacets[0] === \"body\" && stored.body === legacyBodyHash(presentOwns, entities)` — любой другой состав изменившихся фасетов помечает блок как `facet_changed`, даже если реальная причина та же: смена схемы хеширования, а не кода.",
           "rendered": true,
-          "fingerprint": "body=4938fa8e9ffdef77729f119e4a9a7340e94a5b38b3e9c9fbe61ec5879c480881",
-          "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
-            "specificity": 0.75,
-            "novelFact": "Ограничение: не обрабатывает tombstoned-блоки."
-          }
-        },
-        "changeGuide": {
-          "body": "- Если изменить условие `block.staleSince !== undefined || block.body.trim() === \"\"`, блоки с пустым телом или staleSince будут включены в проверку — тест `staleBlockInfoFor` должен покрывать эти случаи.\n- Если убрать вызов `diffFacetHashes`, все блоки с изменившимся отпечатком будут помечены как stale со всеми фасетами — тест `staleBlockInfoFor` должен проверять точность определения изменившихся фасетов.",
-          "rendered": true,
-          "fingerprint": "body=4938fa8e9ffdef77729f119e4a9a7340e94a5b38b3e9c9fbe61ec5879c480881,deps=e8651ecdb294485507a9c9c1d1b231668d5abc1e08a508c09d54b4146c631da6,usage=c45b9e1d91a2e07c8557b98f251fd640f3658c8a07bf177f3042884f66ee052f,placement=2be39f4a3a09c23f3af57468bd506879e59aa0d20536e25186f1b2d0540bff7f",
+          "fingerprint": "body=adf457870c4ff23e6bfa3c3b7ec017fa42f59f13b0dc7ac148653772392761c7",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Два инварианта: фильтрация по `staleSince`/пустому телу и вызов `diffFacetHashes`."
-          }
+            "novelFact": "Guard `block.staleSince !== undefined || block.body.trim() === \"\"` выводит из игры похороненные и пустые блоки, а миграционная защёлка именует легаси-хеш тела: только эта узкая сигнатура не считается устареванием."
+          },
+          "language": "ru"
+        },
+        "changeGuide": {
+          "body": "- Итоговый `changedFacets` в `StaleBlockInfo` никогда не бывает пуст: когда `diffFacetHashes` не нашёл разошедшихся фасет, список заполняется тернаром `changedFacets.length > 0 ? changedFacets : [...BLOCK_FACETS[block.id]]`.\n- Один узкий сбой можно не считать устареванием: при `changedFacets.length === 1 && changedFacets[0] === \"body\" && stored.body === legacyBodyHash(presentOwns, entities)` ранний return отдаёт `undefined`, не глядя на значение текущего отпечатка.",
+          "rendered": true,
+          "fingerprint": "body=adf457870c4ff23e6bfa3c3b7ec017fa42f59f13b0dc7ac148653772392761c7,deps=b32b844f64c48fef0c47f94f5d3a9cd532a4a5edbc2e1b8770bd9a216d739f11,usage=87d44cdf9391ef5f9cbd8b9252c1b442c1c1afcb128f6018b4ebdd29515afe97,placement=2be39f4a3a09c23f3af57468bd506879e59aa0d20536e25186f1b2d0540bff7f",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Два места задают результат: террар подставляет полный BLOCK_FACETS при пустом diff (обеспечивает непустой changedFacets), и самая узкая миграционная защёлка сравнивает stored.body с legacyBodyHash и однозначно гасит устаревание."
+          },
+          "language": "ru"
         }
       },
       "generationHistory": [
@@ -1725,9 +1734,34 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:03:31.577Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.424Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
       ],
-      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234"
+      "depDocsFingerprint": "952ac44851cd5971c931b2eb871aa8163928e275b921f53a7ddc043d7b4fb672",
+      "signature": "staleBlockInfoFor(section: DocSection, block: DocSection[\"blocks\"][number], presentOwns: string[], entities: Record<string, CodeEntity>): StaleBlockInfo | undefined"
     },
     "symbol:src/service/stale-detection.ts#tombstonedBlockInfoFor": {
       "heading": "tombstonedBlockInfoFor",
@@ -1853,7 +1887,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234"
+      "depDocsFingerprint": "952ac44851cd5971c931b2eb871aa8163928e275b921f53a7ddc043d7b4fb672"
     },
     "symbol:src/service/stale-detection.ts#buildRewriteContextBundle": {
       "heading": "buildRewriteContextBundle",
@@ -1988,7 +2022,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234"
+      "depDocsFingerprint": "952ac44851cd5971c931b2eb871aa8163928e275b921f53a7ddc043d7b4fb672"
     },
     "symbol:src/service/stale-detection.ts#refreshStaleResult": {
       "heading": "refreshStaleResult",
@@ -2114,7 +2148,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234"
+      "depDocsFingerprint": "952ac44851cd5971c931b2eb871aa8163928e275b921f53a7ddc043d7b4fb672"
     },
     "symbol:src/service/stale-detection.ts#collectLanguageStaleBlocks": {
       "heading": "collectLanguageStaleBlocks",
@@ -2283,7 +2317,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "ad5653c7c1f37bd6dc70e8da3d0c97a5fd37d27ce208aa08b0dd28debe7682ff",
+      "depDocsFingerprint": "952ac44851cd5971c931b2eb871aa8163928e275b921f53a7ddc043d7b4fb672",
       "signature": "collectLanguageStaleBlocks(sections: DocSection[], canonicalLanguage: string | undefined): StaleBlockInfo[]"
     }
   },

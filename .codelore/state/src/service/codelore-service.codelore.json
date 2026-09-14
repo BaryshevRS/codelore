@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/service/codelore-service.codelore.md",
-  "generatedAt": "2026-09-14T10:13:07.232Z",
+  "generatedAt": "2026-09-14T13:12:14.406Z",
   "sectionOrder": [
     "file:src/service/codelore-service.ts",
     "symbol:src/service/codelore-service.ts#CodeloreService",
@@ -249,15 +249,15 @@
           "language": "ru"
         },
         "invariants": {
-          "body": "- `rewriteSections` с пустым массивом возвращает `{ updatedSections: [] }`, не трогая хранилище и индексы; дубликат `sectionId` бросает `CodeloreError` с кодом `DUPLICATE_SECTION` до любой записи.\n- LLM-вызовы идут параллельно, а запись результатов строго последовательна: `rewriteSections` и `markReviewNeeded` мутируют общий doc-индекс, поэтому `applyFileGenerationOutcome` и доменные волны применяются по одному.\n- Томбстоун пишет блоку `staleSince`, `staleReason`, `staleFacets` и скрывает его из рендера; `restoreKeptBlocks` снимает эти поля, заново штампует `fingerprint` и оставляет секцию в статусе `review_needed`; `stampUnwrittenBlocks` штампует только блоки с пустым телом, чтобы пустой блок не запрашивался повторно.\n- Read-методы бросают типизированные ошибки: `resolveSection` — `UNKNOWN_SECTION`, `requireSectionState` — `UNKNOWN_DOC`/`UNKNOWN_SECTION`, `readCodeEntity` — `UNKNOWN_ENTITY`, `readChange` — `UNKNOWN_CHANGE`; перед чтением индекс всегда загружается или пересобирается, так что ответ отражает состояние на диске.",
+          "body": "Контракты класса:\n- `rewriteSections([])` возвращает `{ updatedSections: [] }`, не трогая хранилище и индексы; повторный `sectionId` в списке бросает `CodeloreError` с кодом `DUPLICATE_SECTION` до первой записи.\n- LLM-вызовы идут параллельно, а запись строго последовательна: фаза apply — это поочный цикл по `settled`, и доменные волны тоже `Promise.all` затем применяют документы по одному, потому что `rewriteSections` и `markReviewNeeded` мутируют общий doc-индекс; два пишущих прогона в один момент не пересекаются.\n- Томбстоун и его откат сходятся: `applyTombstones` пишет блоку `staleSince`, `staleReason`, `staleFacets` и обновляет статус секции; `restoreKeptBlocks` снимает эти поля и заново штампует `fingerprint`, при этом статус `review_needed` сохраняется; `stampUnwrittenBlocks` штампит только блоки с `body.trim() === \"\"`, чтобы постоянный отказ писателя не перезапрашивал блок в каждом следующем прогоне.\n- Read-методы отражают состояние на диске и бросают типизированные ошибки: `resolveSection` — `UNKNOWN_SECTION`, `requireSectionState` — `UNKNOWN_DOC`/`UNKNOWN_SECTION`, `readCodeEntity` — `UNKNOWN_ENTITY`, `readChange` — `UNKNOWN_CHANGE`; каждый такой метод проходит через `loadOrRebuildIndexes` либо прямое чтение состояния/файла.",
           "rendered": true,
-          "fingerprint": "signature=c249d027a4e0793cb002a98eab08ffb25a48117b2a094e6f1a9b871470b7e01e,body=61d4035a3f8674caf5e624dccf22c9b7be88442483c9adcbf701b9f1f13ae408",
+          "fingerprint": "signature=c249d027a4e0793cb002a98eab08ffb25a48117b2a094e6f1a9b871470b7e01e,body=559a10509ecad0b4a17d5aa0481c6eb5151f12365062f34e5e6fafaa363afbaf",
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Томбстоун скрывает устаревший блок из рендера, а `restoreKeptBlocks`/`stampUnwrittenBlocks` штампуют фингерпринты, чтобы следующие прогоны не переспрашивали отклонённое или пустое."
+            "novelFact": "Запись результатов всегда последовательна при параллельных LLM-вызовах: фаза apply в `runPipelineForSections` и сохранение доменных волн идут по одному документу, потому что `rewriteSections` и `markReviewNeeded` мутируют общий doc-индекс."
           }
         },
         "dependencies": {
@@ -273,39 +273,39 @@
           }
         },
         "workflows": {
-          "body": "Главный вход — `runCli`: для каждой команды создаётся один `new CodeloreService(parsed.rootDir)`, а `runCommand` диспетчирует сценарии (`generate` → `generateDocsForScope`, `fix-stale` → `fixStaleDocs`, `analize-change` → `analyzeChange`, `rebuild-index` → `rebuildIndex`); при этом `runtime.onProgress` получает интерфейс из CLI, поэтому прогресс-сообщения пишутся в stdout. Ошибки класса ловятся в `runCli` и сериализуются в stderr.\n\nВторой путь — MCP: команда `mcp` запускает `startStdioServer({ rootDir })`, а `createCodeloreServer` (та же директория server) поднимает `McpServer` поверх того же сервиса, так что редактор обращается к тем же методам как к инструментам протокола.\n\nТретий путь есть внутри самого класса: `verifyBlocksAgainstDeps` получает экземпляр `service` как аргумент и сам читает `service.config.rootDir` и `service.config.llm.concurrency` — здесь класс выступает источником конфига для внешнего валидатора.",
+          "body": "Класс обслуживает три внешних контура:\n- CLI: `runCli` создаёт ровно один экземпляр на команду (`new CodeloreService(parsed.rootDir)`) и разводит сценарии из `runCommand`: `generate` → `generateDocsForScope`, `fix-stale` → `fixStaleDocs`, `analyze-change` → `analyzeChange`, `rebuild-index` → `rebuildIndex`. Результат сериализуется в stdout, а общий `try/catch` в `runCli` переводит вылетевшие ошибки в stderr как `CodeloreErrorPayload`.\n- MCP: `createCodeloreServer` поднимает `McpServer` поверх того же экземпляра, поэтому методы класса становятся инструментами для редактора; запускается это через команду `mcp` в `runCli`.\n- Внешний валидатор: `verifyBlocksAgainstDeps` получает экземпляр как параметр `service` и использует из него только `service.config.rootDir` (для `readFile` файла-источника) и `service.config.llm.concurrency` (для своего `pLimit`) — класс выступает для него источником конфигурации, а не хранилища.",
           "rendered": true,
-          "fingerprint": "body=61d4035a3f8674caf5e624dccf22c9b7be88442483c9adcbf701b9f1f13ae408,deps=1538b73c562fb50cad1d334e82ae29440911bb90ccee404fcc726dd53d8e5543",
+          "fingerprint": "body=559a10509ecad0b4a17d5aa0481c6eb5151f12365062f34e5e6fafaa363afbaf,deps=1538b73c562fb50cad1d334e82ae29440911bb90ccee404fcc726dd53d8e5543",
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Сервис живёт ровно один прогон CLI/MCP-команды: каждый вызов `runCli` создаёт новый экземпляр, и LLM-верификатор получает его конфиг как аргумент."
+            "novelFact": "runCli создаёт один экземпляр CodeloreService на команду и диспетчеризует её на методы класса; тот же класс MCP-сервером отдаётся редактору как инструменты протокола."
           }
         },
         "limitations": {
-          "body": "Три границы класса:\n\n- Доменная карта не создаётся автоматически: `refreshDomainDocs` и бесскоупный `generateDocsForScope` при отсутствии сохранённой карты выходят с пустым результатом без единого вызова partition — для появления доменов нужен явный запуск `partitionDomainMap`.\n- Переводы дозаполняются только для блоков, которые пропускает генератор `translatableBlocks`: блок должен быть `rendered`, не stale (`staleSince === undefined`) и с непустым телом; скрытые за томбстоун тексты и пустые блоки перевода не получают.\n- Параллельность LLM-вызовов упирается в единый лимит `pLimit(this.config.llm.concurrency)`: генерация и переводы делят этот кэп, сколько бы каналов ни запустил вызывающий.",
+          "body": "Действующие границы класса:\n- Доменная документация живёт только после явного разбиения: `refreshDomainDocs` и бесскоупный `generateDocsForScope` начинают с `if (!(await this.storage.loadDomainMap())) { return empty; }` — пока `partitionDomainMap` не сохранил карту, обзорный и доменные документы не генерируются вовсе.\n- `assignUncoveredFiles` распределяет неохваченные файлы только по существующим доменам: новых доменов она не создаёт (комментарий в коде: `A new domain is never created here — that is a deliberate full re-partition`), это может только полная перепартиционирование через `partitionDomainMap`.\n- Перевод дозаполняются лишь для блоков, допущенных генератором `translatableBlocks` (с `rendered`, без `staleSince`, с непустым `body`) — скрытые томбстоунами и пустые блоки перевода не получают.\n- Каждый параллельный проход имеет собственный пул `pLimit(this.config.llm.concurrency)` (обе фазы генерации, волны доменов, переводы), поэтому одновременно к модели уходит не أكثر этого значения вызовов.",
           "rendered": true,
-          "fingerprint": "body=61d4035a3f8674caf5e624dccf22c9b7be88442483c9adcbf701b9f1f13ae408",
+          "fingerprint": "body=559a10509ecad0b4a17d5aa0481c6eb5151f12365062f34e5e6fafaa363afbaf",
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Класс никогда не запускает партиционирование сам — без сохранённой карты домены остаются нетронутыми, как бы полно документ ни был запрошен."
+            "novelFact": "Без сохранённой карты доменов класс не создаёт доменных документов: refreshDomainDocs и document выходят с пустым результатом, пока partitionDomainMap не сохранил map."
           }
         },
         "changeGuide": {
-          "body": "- Целевые блоки ограничены разрешённым набором до любой записи: `runPipelineForSections` заранее применяет `const filtered = requested.filter((blockId) => allowed.has(blockId));`, а `resolveTargets` бросает `MISSING_BLOCK` лишь тогда, когда цель всё-таки туда долетела (конструкция `const invalid = requested.filter((id) => !allowed.has(id)); if (invalid.length > 0)`). \n\n- Фингерпринт зависимостей-документов пишется только по завершении терминальной фазы: код выполняет `await this.recordDepDocsFingerprints(...)` строго под условием `if (phase === \"terminal\")` — этим держится контракт «depDocs-финпринт валиден только после перегенерации терминальных блоков». \n\n- Сходимость томбсоундов обеспечивает двойная инконсистентная запись: `restoreKeptBlocks` снимает stale-поля только если `block.staleSince !== undefined` и затем перетирает `block.fingerprint`, а `stampUnwrittenBlocks` штампит только пустые тело (`if (!sectionState || !block || block.body.trim() !== \"\") { continue; }`).",
+          "body": "- Инвариант «depDocs-фингепринт записывается только после терминальной фазы» держит код `if (phase === \"terminal\") { await this.recordDepDocsFingerprints(outcome.writtenSections); }` внутри `applyFileGenerationOutcome`.\n- Инвариант «запрошенные цели не попадают в неразрешённое множество» держит `const filtered = requested.filter((blockId) => allowed.has(blockId));` в `runPipelineForSections`, а ветка `if (filtered.length === 0) { skipped.push(...); continue; }` превращает опустевшие цели в пропуск, а не в исключение.\n- Инвариант «явный провайдер прогона перекрывает дефолтный verify-провайдер» держит тернарник в `createProviderPair`: `verifyName && !runtime.providerName ? createConfiguredProvider(this.config, verifyName, providerRuntime) : provider`.",
           "rendered": true,
-          "fingerprint": "body=61d4035a3f8674caf5e624dccf22c9b7be88442483c9adcbf701b9f1f13ae408,deps=1538b73c562fb50cad1d334e82ae29440911bb90ccee404fcc726dd53d8e5543,usage=87d20d21aa0cb62a0eff6665009d37cb8485a0463ad40c90a60be480d4d77e59,placement=122146b66c56badbb86dbceb27a7b9fa43083e6e58687fdae072ec269357ac8a",
+          "fingerprint": "body=559a10509ecad0b4a17d5aa0481c6eb5151f12365062f34e5e6fafaa363afbaf,deps=1538b73c562fb50cad1d334e82ae29440911bb90ccee404fcc726dd53d8e5543,usage=87d20d21aa0cb62a0eff6665009d37cb8485a0463ad40c90a60be480d4d77e59,placement=122146b66c56badbb86dbceb27a7b9fa43083e6e58687fdae072ec269357ac8a",
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Целевые id блоков режутся по allowed-набору до обращения к `resolveTargets`, а фингерпринт dependency-docs ставится исключительно после терминальной фазы."
+            "novelFact": "Наиболее хрупкий контракт класса: depDocs-финтерпринт легален только после терминальной фазы, и это держит один guard `if (phase === \"terminal\")` в applyFileGenerationOutcome."
           }
         }
       },
@@ -535,6 +535,28 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:03:31.538Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.248Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
       ],
       "signature": "class CodeloreService",
@@ -616,19 +638,19 @@
           "language": "ru"
         },
         "dependencies": {
-          "body": "Метод использует this.docStateStorage и this.config, а также функции normalizeGeneratedRewrite, groupRewritesByDoc, applyRewritesToDoc, patchDocIndexForDocs и класс CodeloreError.",
+          "body": "Единственная зависимость — вызов `this.indexManager.rebuild`: метод пробрасывает переданный `RebuildIndexesOptions` в `this.indexManager.rebuild(options)` без изменений. Ни состояния, ни конфиг, ни хранилище метод не трогает.",
           "rendered": true,
           "fingerprint": "deps=e40e6a8094c2fe6b58436d45ff0986840953d286234cdfd46037cdc0f25c5108",
           "language": "ru",
           "scores": {
-            "informativeness": 0.75,
+            "informativeness": 0.5,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Метод использует this.docStateStorage и this.config, а также функции normalizeGeneratedRewrite, groupRewritesByDoc, applyRewritesToDoc, patchDocIndexForDocs и класс CodeloreError."
+            "novelFact": "Метод — чистый делегат: все свои варианты поведения он получает от `this.indexManager.rebuild` и ничего не делает сам."
           }
         },
         "workflows": {
-          "body": "Метод вызывается извне сервиса для перезаписи секций. При пустом входе сразу возвращает пустой результат. При дубликате sectionId выбрасывает ошибку. Затем загружает или пересобирает индексы, нормализует входные данные, группирует по документам, применяет правки к каждому документу и обновляет индекс документации.",
+          "body": "Это общий вход для перестроек в классе. Аналитические пути (`analyzeChange`, `validateDocs`, `refreshStaleDocs`) вызывают его без параметров, то есть соглашаются на вариант по умолчанию. Пишущие пути — `prepareInitialDocs`, `prepareDomainDocs`, `partitionDomainMap`, `assignUncoveredFiles`, `generateDomainDocs`, `refreshDomainDocs`, `reconcileScopedDocStates` — передают фиксированный флаг `{ renderDocs: false }`, потому что свои документы они уже отрендерили и им нужен только обновлённый индекс для последующих чтений и устарелости.",
           "rendered": true,
           "fingerprint": "body=0c596d65b1a93d38110f696985354d1fb455c0209d0edc97e123b18a681575b5,deps=e40e6a8094c2fe6b58436d45ff0986840953d286234cdfd46037cdc0f25c5108",
           "language": "ru",
@@ -636,19 +658,19 @@
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Метод вызывается извне сервиса для перезаписи секций. При пустом входе сразу возвращает пустой результат. При дубликате sectionId выбрасывает ошибку. Затем загружает или пересобирает индексы, нормализует входные данные, группирует по документам, применяет правки к каждому документу и обновляет индекс документации."
+            "novelFact": "Пишущие пути зовут метод с { renderDocs: false } после собственного рендера, а аналитические — без параметров, получая вариант по умолчанию."
           }
         },
         "limitations": {
-          "body": "Метод не обрабатывает пустой массив sections — он возвращает пустой результат без побочных эффектов. Также он не допускает дубликатов sectionId — выбрасывает CodeloreError. Для секций, не найденных в индексе, docPath возвращается как пустая строка.",
+          "body": "Метод перестраивает проект только целиком: из его кода виден лишь `this.indexManager.rebuild(options)`, а сконфренный по скоупу вариант существует отдельным входом — `prepareInitialDocs` вызывает `this.indexManager.buildScopedIndex(codeIndexScopeFromPrepareScope(scope))`. Частичную перестройку через `rebuildIndexes` получить нельзя.",
           "rendered": true,
           "fingerprint": "body=0c596d65b1a93d38110f696985354d1fb455c0209d0edc97e123b18a681575b5",
           "language": "ru",
           "scores": {
-            "informativeness": 0.75,
+            "informativeness": 0.5,
             "novelty": 0.75,
-            "specificity": 0.75,
-            "novelFact": "Метод не обрабатывает пустой массив sections — он возвращает пустой результат без побочных эффектов. Также он не допускает дубликатов sectionId — выбрасывает CodeloreError. Для секций, не найденных в индексе, docPath возвращается как пустая строка."
+            "specificity": 0.5,
+            "novelFact": "Путь ограничен полной перестройкой: скоупный индекс строится только напрямую через IndexManager.buildScopedIndex из prepareInitialDocs, а не через этот метод."
           }
         }
       },
@@ -698,10 +720,22 @@
             "workflows",
             "limitations"
           ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.256Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
         }
       ],
       "signature": "CodeloreService.rebuildIndexes(options: RebuildIndexesOptions = {}): Promise<ProjectIndex>",
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.rebuildIndex": {
       "heading": "rebuildIndex",
@@ -767,19 +801,19 @@
           "language": "ru"
         },
         "dependencies": {
-          "body": "Метод использует this.docStateStorage и this.config, а также функции normalizeGeneratedRewrite, groupRewritesByDoc, applyRewritesToDoc, patchDocIndexForDocs и класс CodeloreError.",
+          "body": "Метод опирается на две сущности: `this.indexManager.rebuild` (с привязанными сюда опциями) и локальный хелпер `summarizeProjectIndex`, который превращает пересобранный индекс в итоговую сводку. Состояние, хранилище и LLM-провайдеры не используются.",
           "rendered": true,
           "fingerprint": "deps=72d0d3c427aec6b8d2dfe3da72c48216b7e24973786f5dd0d44f0f46ad736e49",
           "language": "ru",
           "scores": {
-            "informativeness": 0.75,
+            "informativeness": 0.5,
             "novelty": 0.75,
-            "specificity": 0.75,
-            "novelFact": "Метод использует this.docStateStorage и this.config, а также функции normalizeGeneratedRewrite, groupRewritesByDoc, applyRewritesToDoc, patchDocIndexForDocs и класс CodeloreError."
+            "specificity": 0.5,
+            "novelFact": "Метод жёстко рассчитывает на хелпер summarizeProjectIndex при сборке итоговой сводки с индексного результата."
           }
         },
         "limitations": {
-          "body": "Метод не обрабатывает пустой массив sections — он возвращает пустой результат без побочных эффектов. Также он не допускает дубликатов sectionId — выбрасывает CodeloreError. Для секций, не найденных в индексе, docPath возвращается как пустая строка.",
+          "body": "У метода нет параметров для сохранения: внутрижды зашит строго `this.indexManager.rebuild({ persist: true, renderDocs: true })`, поэтому перестроить индекс «на лету» — без записи на диск и без рендера — здесь не получается. Единственная степень свободы — `input.verbose ?? false`: она лишь добавляет полный `index` в сводку `summarizeProjectIndex`, а счётчики присутствуют всегда.",
           "rendered": true,
           "fingerprint": "body=ff29bdafcbe9b2f3e2054a0f8c34b204e715013a199620a00d69c3c6ed94d3ab",
           "language": "ru",
@@ -787,7 +821,7 @@
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Метод не обрабатывает пустой массив sections — он возвращает пустой результат без побочных эффектов. Также он не допускает дубликатов sectionId — выбрасывает CodeloreError. Для секций, не найденных в индексе, docPath возвращается как пустая строка."
+            "novelFact": "rebuildIndex всегда выполняет и publish, и render: значения { persist: true, renderDocs: true } зашиты в вызов и не управляются вводом."
           }
         }
       },
@@ -826,10 +860,21 @@
             "dependencies",
             "limitations"
           ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.263Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations"
+          ]
         }
       ],
       "signature": "CodeloreService.rebuildIndex(input: RebuildIndexInput = {}): Promise<RebuildIndexResult>",
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.patchDocIndexForDocs": {
       "heading": "patchDocIndexForDocs",
@@ -901,19 +946,19 @@
           "language": "ru"
         },
         "dependencies": {
-          "body": "Метод использует this.docStateStorage и this.config, а также функции normalizeGeneratedRewrite, groupRewritesByDoc, applyRewritesToDoc, patchDocIndexForDocs и класс CodeloreError.",
+          "body": "Единственная зависимость — внедрённый менеджер индексов: метод делегирует ему обновление индекса по списку `docPaths` без изменений и больше ничего не вызывает.",
           "rendered": true,
           "fingerprint": "deps=faba6435d0f37a2d3935ac04e08d7a10241536310b4f3f18037333baf4563b2f",
           "language": "ru",
           "scores": {
-            "informativeness": 0.75,
+            "informativeness": 0.5,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Метод использует this.docStateStorage и this.config, а также функции normalizeGeneratedRewrite, groupRewritesByDoc, applyRewritesToDoc, patchDocIndexForDocs и класс CodeloreError."
+            "novelFact": "Метод — чистая прослойка: всё его поведение — передать массив путей внедрённому менеджеру индексов."
           }
         },
         "workflows": {
-          "body": "Метод вызывается извне сервиса для перезаписи секций. При пустом входе сразу возвращает пустой результат. При дубликате sectionId выбрасывает ошибку. Затем загружает или пересобирает индексы, нормализует входные данные, группирует по документам, применяет правки к каждому документу и обновляет индекс документации.",
+          "body": "Инкрементальное обновление doc-индекса после каждой записи документации, и вызывающие выдают уже сохранённые пути:\n- `rewriteSections` — после `applyCoverageToDoc`, передаёт `[...byDoc.keys()]`;\n- `refreshStaleDocs` — после применения томбстоунов, передаёт `[...new Set(appliedTombstones.map((entry) => entry.docPath))]`;\n- `markReviewNeeded` — после `stationedStorage.renderAndPersist(state)`, передаёт `[section.docPath]`;\n- `reconcileRenderedDocs` — после `docStateStorage.reconcileRenderedDocs()`, передаёт список `updated`.\nВо всех случаях вызов идёт до следующего чтения индекса, так что последующие чтения видят свежую doc-часть индекса без полной перестройки.",
           "rendered": true,
           "fingerprint": "body=45c67e313028af2452776aad5b6b6dd4efa5c299b8be9b10b540985511a9937d,deps=faba6435d0f37a2d3935ac04e08d7a10241536310b4f3f18037333baf4563b2f",
           "language": "ru",
@@ -921,19 +966,19 @@
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Метод вызывается извне сервиса для перезаписи секций. При пустом входе сразу возвращает пустой результат. При дубликате sectionId выбрасывает ошибку. Затем загружает или пересобирает индексы, нормализует входные данные, группирует по документам, применяет правки к каждому документу и обновляет индекс документации."
+            "novelFact": "Все четыре вызова делаются строго после записи/рендера документации и до следующего чтения индекса — это инкрементальное обновление."
           }
         },
         "limitations": {
-          "body": "Метод не обрабатывает пустой массив sections — он возвращает пустой результат без побочных эффектов. Также он не допускает дубликатов sectionId — выбрасывает CodeloreError. Для секций, не найденных в индексе, docPath возвращается как пустая строка.",
+          "body": "Метод не проверяет корректность набора: он полностью доверяет переданным `docPaths` и передаёт их менеджеру индексов как есть; ответственность за то, что пути действительно записаны в состоянии и на диске, лежит на вызывающих — сам метод не рендерит и не персистит контент.",
           "rendered": true,
           "fingerprint": "body=45c67e313028af2452776aad5b6b6dd4efa5c299b8be9b10b540985511a9937d",
           "language": "ru",
           "scores": {
-            "informativeness": 0.75,
+            "informativeness": 0.5,
             "novelty": 0.75,
-            "specificity": 0.75,
-            "novelFact": "Метод не обрабатывает пустой массив sections — он возвращает пустой результат без побочных эффектов. Также он не допускает дубликатов sectionId — выбрасывает CodeloreError. Для секций, не найденных в индексе, docPath возвращается как пустая строка."
+            "specificity": 0.5,
+            "novelFact": "patchDocIndexForDocs не рендерит и не пишет: он требует, чтобы вызов уже сделал это до неё."
           }
         }
       },
@@ -983,10 +1028,22 @@
             "workflows",
             "limitations"
           ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.270Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
         }
       ],
       "signature": "CodeloreService.patchDocIndexForDocs(docPaths: string[]): Promise<void>",
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.loadOrRebuildIndexes": {
       "heading": "loadOrRebuildIndexes",
@@ -1184,7 +1241,7 @@
         }
       ],
       "signature": "CodeloreService.loadOrRebuildIndexes(): Promise<ProjectIndex>",
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.analyzeChange": {
       "heading": "analyzeChange",
@@ -1320,7 +1377,7 @@
         }
       ],
       "signature": "CodeloreService.analyzeChange(input: AnalyzeChangeInput = {}): Promise<ChangeAnalysis>",
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.getAffectedSections": {
       "heading": "getAffectedSections",
@@ -1451,7 +1508,7 @@
         }
       ],
       "signature": "CodeloreService.getAffectedSections(entityIds: string[]): Promise<AffectedSection[]>",
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.prepareInitialDocs": {
       "heading": "prepareInitialDocs",
@@ -1683,7 +1740,7 @@
         }
       ],
       "signature": "CodeloreService.prepareInitialDocs(input: PrepareInitialDocsInput = {}): Promise<PrepareInitialDocsResult>",
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.getSectionContext": {
       "heading": "getSectionContext",
@@ -1817,7 +1874,7 @@
         }
       ],
       "signature": "CodeloreService.getSectionContext(sectionId: string, reason?: string, options: { includeProjectContext?: boolean; targets?: BlockId[] } = {}): Promise<SectionContext>",
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.getProjectContext": {
       "heading": "getProjectContext",
@@ -1888,39 +1945,39 @@
           "language": "ru"
         },
         "dependencies": {
-          "body": "The method checks this.projectContextCache and calls this.readProjectContext() to build the ProjectContext.",
+          "body": "Метод опирается на приватный `this.readProjectContext` (собирает строки из `config.docs.writingRules` через `writingRulesContext`) и на кэш-поле `this.projectContextCache`. Сброс кэша привязан к перестройке индексов: в конструкторе передаётся колбэк `() => { this.projectContextCache = undefined; }`, поэтому каждая перестройка индексов делает кэш недействительным.",
           "rendered": true,
           "fingerprint": "deps=a8cfc08824e65cdb9cd33f3f3eb8584f9c82a274323e50c6ee19326ff15628bd",
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "The method depends on the index's project metadata to build the ProjectContext."
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Кэш инвалидируется только колбэком перестройки индексов, который класс передаёт при создании менеджера индексов."
           }
         },
         "workflows": {
-          "body": "Called by getSectionContext when includeProjectContext is true (default), providing the project context for the section context. The caller uses the returned ProjectContext to populate the projectContext field of the SectionContext.",
+          "body": "Единственный вызывающий — `getSectionContext`: при `options.includeProjectContext ?? true` метод подставляет результат в поле `projectContext` возвращаемого `SectionContext`, а при `includeProjectContext: false` он вообще не зовётся (`includeProjectContext ? await this.getProjectContext() : undefined`). Так общие правила стиля попадают в контекст, который видят writer и редактор через API инструментов.",
           "rendered": true,
           "fingerprint": "body=5e02a37eaf615a41ab6e51f25081ba2c56dd3801ce996dff20fec73f7ee57763,deps=a8cfc08824e65cdb9cd33f3f3eb8584f9c82a274323e50c6ee19326ff15628bd",
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.5,
+            "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Called by getSectionContext when includeProjectContext is true (default), providing the project context for the section context."
+            "novelFact": "Контекст используется только из getSectionContext, и пользователь может молчавыключить его одним флагом includeProjectContext."
           }
         },
         "limitations": {
-          "body": "The method only returns project-level information; it does not include any section-specific data.",
+          "body": "Кэш хранит ровно одно значение без каких-либо признаков давности: `if (this.projectContextCache) { return this.projectContextCache.value; }` отдаёт сохранённый объект до тех пор, пока колбэк в конструкторе не сбросит поле при перестройке индексов; вторичное чтение `readProjectContext` наступает только этим путём, а не по времени или изменению файла конфига.",
           "rendered": true,
           "fingerprint": "body=5e02a37eaf615a41ab6e51f25081ba2c56dd3801ce996dff20fec73f7ee57763",
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "The method only returns project-level information; it does not include any section-specific data."
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Однослотный кэш не обновляется сам: только перестройка индексов (колбэк из конструктора) заставляет заново читать ProjectContext."
           }
         }
       },
@@ -1960,10 +2017,22 @@
             "workflows",
             "limitations"
           ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.278Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
         }
       ],
       "signature": "CodeloreService.getProjectContext(): Promise<ProjectContext | undefined>",
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.rewriteSection": {
       "heading": "rewriteSection",
@@ -2031,7 +2100,7 @@
           "language": "ru"
         },
         "dependencies": {
-          "body": "Использует вспомогательные функции для перезаписи секции.",
+          "body": "Вся работа делегируется методу `rewriteSections` этого же класса: метод оборачивает вход в массив `[{ sectionId, ...input }]` и возвращает только первый элемент результата — `result.updatedSections[0]`.",
           "rendered": true,
           "fingerprint": "deps=58b68479e9c2b3a5e1ffe31405ccf22a87d9892ed88edc22d2caff8a8af86959",
           "language": "ru",
@@ -2039,19 +2108,19 @@
             "informativeness": 0.5,
             "novelty": 0.5,
             "specificity": 0.5,
-            "novelFact": "Использует вспомогательные функции для перезаписи секции."
+            "novelFact": "rewriteSection передаёт единственную секцию в rewriteSections и возвращает первый элемент результата; все дальнейшие шаги выполняются внутри rewriteSections."
           }
         },
         "limitations": {
-          "body": "Не создаёт новые секции — только перезаписывает содержимое существующих.",
+          "body": "Метод перезаписывает ровно одну секцию за вызов: вход оборачивается в массив из одного элемента, и возвращается только `updatedSections[0]`. Для пакетной перезаписи нескольких секций нужно вызывать `rewriteSections` напрямую с полным массивом — этот метод такой возможности не даёт.",
           "rendered": true,
           "fingerprint": "body=fd41cd1357260dcf21d00ab2a036bee5aceb514f597cb394485edc2b349f36d9",
           "language": "ru",
           "scores": {
             "informativeness": 0.5,
-            "novelty": 0.75,
+            "novelty": 0.5,
             "specificity": 0.75,
-            "novelFact": "Метод не создаёт новые секции — только перезаписывает содержимое существующих."
+            "novelFact": "Перезаписывает ровно одну секцию за вызов и возвращает только updatedSections[0]; пакетная перезапись доступна лишь через прямой вызов rewriteSections."
           }
         }
       },
@@ -2090,10 +2159,21 @@
             "dependencies",
             "limitations"
           ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.285Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations"
+          ]
         }
       ],
       "signature": "CodeloreService.rewriteSection(sectionId: string, input: Omit<RewriteSectionInput, \"sectionId\">): Promise<{ sectionId: string; docPath: string; filteredBlocks?: FilteredGeneratedBlock[] }>",
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.rewriteSections": {
       "heading": "rewriteSections",
@@ -2261,7 +2341,7 @@
         }
       ],
       "signature": "CodeloreService.rewriteSections(sections: RewriteSectionInput[]): Promise<{\n    updatedSections: Array<{ sectionId: string; docPath: string; filteredBlocks?: FilteredGeneratedBlock[] }>;\n  }>",
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.markReviewNeeded": {
       "heading": "markReviewNeeded",
@@ -2427,7 +2507,7 @@
         }
       ],
       "signature": "CodeloreService.markReviewNeeded(sectionId: string, reason: string): Promise<{ sectionId: string; reason: string }>",
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.validateDocs": {
       "heading": "validateDocs",
@@ -2595,7 +2675,7 @@
         }
       ],
       "signature": "CodeloreService.validateDocs(input: { includeQuality?: boolean } = {}): Promise<{ issues: DocValidationIssue[] }>",
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.refreshStaleDocs": {
       "heading": "refreshStaleDocs",
@@ -2927,7 +3007,7 @@
           "language": "ru"
         },
         "dependencies": {
-          "body": "Зависит от `resolveSectionsForId`, `runPipelineForSections`, `translateScope` и `scopeFromParts`.",
+          "body": "Список секций получает через `resolveSectionsForId`: для id-секции возвращается `[id]`, для id-сущности — все секции, в чьём `owns` она присутствует, а для неизвестного id выбрасывается ошибка с кодом `UNKNOWN_ENTITY` или `UNKNOWN_SECTION`. Генерацию делегирует `runPipelineForSections` без ограничения целевых блоков — пустая карта `targetBlocksBySection` означает, что генерируются все разрешённые блоки. Переводы обновляет `translateScope` с областью из `scopeFromParts(sectionIds, [], [])`, которая охватывает только резолвленные секции.",
           "rendered": true,
           "fingerprint": "deps=6ba733b470fc74516c7ca3a2ae6d2cd33b0f55c858a7f1abee328a15f8ff06be",
           "language": "ru",
@@ -2935,19 +3015,19 @@
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Генерация документации для сущности опирается на четыре внутренних помощника CodeloreService: resolveSectionsForId, runPipelineForSections, translateScope и scopeFromParts."
+            "novelFact": "Метод резолвит секции через resolveSectionsForId (секция по id или все секции сущности), генерирует их через runPipelineForSections без ограничения целевых блоков и затем переводит область через translateScope."
           }
         },
         "limitations": {
-          "body": "Не создаёт новые секции — только генерирует содержимое существующих.",
+          "body": "Работает только с уже существующими секциями: `resolveSectionsForId` бросает `UNKNOWN_SECTION` для сущности без секции документации и подсказывает создать её через `document` с `entityIds`. Принимает один id за вызов, а переводы обновляются лишь при настроенных `docs.translations` — `translateScope` выходит раньше, когда список языков пуст.",
           "rendered": true,
           "fingerprint": "body=f8cacd9622b6022a22622bdae91e438d1fb8013549db252e06067de5cf2cbaca",
           "language": "ru",
           "scores": {
             "informativeness": 0.5,
-            "novelty": 0.75,
+            "novelty": 0.5,
             "specificity": 0.75,
-            "novelFact": "Метод не создаёт новые секции — только генерирует содержимое существующих."
+            "novelFact": "Метод не создаёт новые секции: resolveSectionsForId бросает UNKNOWN_SECTION для сущности без документации и направляет на создание через document."
           }
         }
       },
@@ -3008,10 +3088,21 @@
             "dependencies",
             "limitations"
           ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.293Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations"
+          ]
         }
       ],
       "signature": "CodeloreService.generateDocsForEntity(input: GenerateDocsForEntityInput, runtime: GenerateDocsRuntime): Promise<GenerateDocsResult>",
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.generateDocsForScope": {
       "heading": "generateDocsForScope",
@@ -3219,7 +3310,7 @@
         }
       ],
       "signature": "CodeloreService.generateDocsForScope(input: GenerateDocsForScopeInput, runtime: GenerateDocsRuntime): Promise<GenerateDocsResult>",
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.fixStaleDocs": {
       "heading": "fixStaleDocs",
@@ -3479,7 +3570,7 @@
         }
       ],
       "signature": "CodeloreService.fixStaleDocs(input: FixStaleDocsInput, runtime: GenerateDocsRuntime): Promise<GenerateDocsResult>",
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.appendGenerationHistory": {
       "heading": "appendGenerationHistory",
@@ -3550,19 +3641,19 @@
           "language": "ru"
         },
         "dependencies": {
-          "body": "Использует структуру `GenerateDocsResult` для хранения истории; не вызывает внешних модулей.",
+          "body": "Читает doc-состояние через `this.docStateStorage.loadDocState(docPath)` и пишет его обратно через `this.docStateStorage.renderAndPersist(state)`. Других зависимостей у метода нет.",
           "rendered": true,
           "fingerprint": "deps=9a103d6b01a3cbbedeaba91ad27b99b9131e97c16d934e201db8faed7a58938a",
           "language": "ru",
           "scores": {
-            "informativeness": 0.75,
-            "novelty": 0.75,
+            "informativeness": 0.5,
+            "novelty": 0.5,
             "specificity": 0.75,
-            "novelFact": "Зависит от типа `GenerateDocsResult`, который содержит поле `generationHistory`."
+            "novelFact": "Метод читает и пишет doc-состояние через методы `loadDocState`/`renderAndPersist` и не использует других зависимостей."
           }
         },
         "workflows": {
-          "body": "Вызывается из трёх публичных методов сервиса после успешного выполнения генерации, чтобы зафиксировать факт операции.",
+          "body": "`applyFileGenerationOutcome` вызывает метод один раз на каждую записанную секцию после применения перезаписей, передавая `runId`, `timestamp`, `command`, имя и модель провайдера и массив `generatedBlocks`; `intent` и флаг `manualReviewNeeded` попадают в запись условно — только когда они заданы. Метод добавляет запись в конец `generationHistory` секции и обновляет `generatedAt` документа.",
           "rendered": true,
           "fingerprint": "body=a6e0cea77fa76f31202663be45b5d06ce08da9d13dd9ac69ea488db71ec745dc,deps=9a103d6b01a3cbbedeaba91ad27b99b9131e97c16d934e201db8faed7a58938a",
           "language": "ru",
@@ -3570,23 +3661,23 @@
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Вызывается из методов `fixStaleDocs`, `generateDocsForEntity` и `generateDocsForScope` после завершения генерации."
+            "novelFact": "applyFileGenerationOutcome вызывает метод по одному разу на каждую записанную секцию, добавляя запись с runId, timestamp, command, провайдером и generatedBlocks; intent и manualReviewNeeded — условно."
           }
         },
         "limitations": {
-          "body": "Не выполняет дедупликацию: каждая запись добавляется в конец `generationHistory` без проверки на существование.",
+          "body": "Каждый вызов добавляет ровно одну запись без дедупликации: повторные вызовы с одинаковым `entry` накапливают дубли в `generationHistory`. Метод возвращает `Promise<void>` — факт записи можно проверить, только перечитав состояние.",
           "rendered": true,
           "fingerprint": "body=a6e0cea77fa76f31202663be45b5d06ce08da9d13dd9ac69ea488db71ec745dc",
           "language": "ru",
           "scores": {
-            "informativeness": 0.75,
-            "novelty": 0.75,
+            "informativeness": 0.5,
+            "novelty": 0.5,
             "specificity": 0.75,
-            "novelFact": "Не проверяет дубликаты записей; каждая генерация добавляется в конец массива."
+            "novelFact": "Метод добавляет одну запись за вызов без дедупликации — одинаковые entry при повторах копятся в истории."
           }
         },
         "changeGuide": {
-          "body": "Добавляет запись о завершённой генерации в массив `generationHistory` объекта результата, сохраняя метаданные операции для последующего аудита и отладки.",
+          "body": "- Запись добавляется копированием массива, а не мутацией прежнего: `sectionState.generationHistory = [...(sectionState.generationHistory ?? []), entry]` — предыдущая история сохраняется, отсутствующая трактуется как пустой массив.\n- Пустое состояние не приводит к записи: ранние возвраты `if (!state) { return; }` и `if (!sectionState) { return; }` гарантируют, что вызов для отсутствующего документа или секции не трогает хранилище.",
           "rendered": true,
           "fingerprint": "body=a6e0cea77fa76f31202663be45b5d06ce08da9d13dd9ac69ea488db71ec745dc,deps=9a103d6b01a3cbbedeaba91ad27b99b9131e97c16d934e201db8faed7a58938a,usage=ad13f01d1ae32152de1bb0b35bd41a5db74e2fd014bea7a5875b63c4a37350a4,placement=d767ac2e61c4157cda0aa153e93c119c5df6736352e56e76b9bdf923385c4e63",
           "language": "ru",
@@ -3594,7 +3685,7 @@
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Записывает результат генерации в историю, чтобы обеспечить отслеживаемость и возможность последующего анализа."
+            "novelFact": "Запись добавляется копированием массива [...(generationHistory ?? []), entry], а пустое состояние отсекается ранними возвратами if (!state) и if (!sectionState)."
           }
         }
       },
@@ -3635,10 +3726,23 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.301Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
       ],
       "signature": "CodeloreService.appendGenerationHistory(docPath: string, sectionId: string, entry: GenerationHistoryEntry): Promise<void>",
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.runPipelineForSections": {
       "heading": "runPipelineForSections",
@@ -3851,7 +3955,7 @@
         }
       ],
       "signature": "CodeloreService.runPipelineForSections(sectionIds: string[], intent: string | undefined, runtime: GenerateDocsRuntime, targetBlocksBySection: ReadonlyMap<string, BlockId[]> = new Map()): Promise<GenerateDocsResult>",
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.recordDepDocsFingerprints": {
       "heading": "recordDepDocsFingerprints",
@@ -3928,7 +4032,7 @@
           "language": "ru"
         },
         "dependencies": {
-          "body": "Не вызывает внешних зависимостей; оперирует только переданными данными.",
+          "body": "Считает отпечаток через `dependencyDocsFingerprint(collectDependencyDocs(index, [file]))` из `../llm/file-pipeline.js` — всегда по одному файлу. Индекс загружает через `loadOrRebuildIndexes`, секции группирует по `docPath` через `groupBy` из `./helpers.js`, а состояние читает и пишет через `this.docStateStorage.loadDocState` и `this.docStateStorage.renderAndPersist`.",
           "rendered": true,
           "fingerprint": "deps=1eac50819cbf5cfc570311efb69273702451fea0c0ba4d9a3b921e038aec33b6",
           "language": "ru",
@@ -3936,35 +4040,35 @@
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Не использует внешние модули; работает с внутренними структурами данных."
+            "novelFact": "Отпечаток dependency-доков вычисляется через dependencyDocsFingerprint(collectDependencyDocs(index, [file])) по одному файлу и кэшируется на файл внутри вызова."
           }
         },
         "workflows": {
-          "body": "Вызывается после завершения перевода, чтобы сохранить отпечатки для будущих проверок.",
+          "body": "Вызывается из двух мест. `applyFileGenerationOutcome` вызывает метод после применения перезаписей только в фазе `terminal` (условие `if (phase === \"terminal\")`), передавая записанные секции, — потому что отпечаток осмыслен лишь после перегенерации терминальных блоков. `gateDepDocsCascade` вызывает метод для секций, которые верификатор подтвердил согласованными с новыми dependency-доками (`verifiedClean.has(target.sectionId)`), чтобы освежить их отпечаток и исключить из последующего tombstone-прохода.",
           "rendered": true,
           "fingerprint": "body=2fd1e588ad62c4c2d6e758c2f86d20839634bdfc662ffb129b40fbda21e8c25e,deps=1eac50819cbf5cfc570311efb69273702451fea0c0ba4d9a3b921e038aec33b6",
-          "language": "ru",
-          "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Вызывается после завершения перевода, чтобы сохранить отпечатки для будущих проверок."
-          }
-        },
-        "limitations": {
-          "body": "Не выполняет валидацию отпечатков; предполагает, что они уже корректны.",
-          "rendered": true,
-          "fingerprint": "body=2fd1e588ad62c4c2d6e758c2f86d20839634bdfc662ffb129b40fbda21e8c25e",
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Не проверяет корректность отпечатков — просто сохраняет их."
+            "novelFact": "applyFileGenerationOutcome зовёт метод только в фазе terminal после перезаписей, а gateDepDocsCascade — для секций, подтверждённых верификатором, чтобы освежить отпечаток и исключить из tombstone-прохода."
+          }
+        },
+        "limitations": {
+          "body": "Владелец секции берётся только по первому элементу `owns[0]`: для секции с несколькими owned-сущностями отпечаток dependency-доков вычисляется по файлу первой сущности, остальные владельцы не учитываются.",
+          "rendered": true,
+          "fingerprint": "body=2fd1e588ad62c4c2d6e758c2f86d20839634bdfc662ffb129b40fbda21e8c25e",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Отпечаток считается только по первому владельцу секции (owns[0]) — остальные owned-сущности игнорируются."
           }
         },
         "changeGuide": {
-          "body": "Записывает хэши или контрольные суммы документации зависимостей, чтобы позже определять устаревшие записи.",
+          "body": "- Отпечаток вычисляется один раз на файл и переиспользуется между секциями одного документа: `let fingerprint = fingerprintByFile.get(file); if (fingerprint === undefined) { ... fingerprintByFile.set(file, fingerprint); }` — секции одного файла делят один вызов `dependencyDocsFingerprint`.\n- Документ персистится только при реальном изменении: `if (mutated) { await this.docStateStorage.renderAndPersist(state); }` — вызов, где ни одна секция не прошла фильтры, ничего не пишет в хранилище.",
           "rendered": true,
           "fingerprint": "body=2fd1e588ad62c4c2d6e758c2f86d20839634bdfc662ffb129b40fbda21e8c25e,deps=1eac50819cbf5cfc570311efb69273702451fea0c0ba4d9a3b921e038aec33b6,usage=e66f2e831e5b7b86c1dcb522d67fa7535698b1000896d1303f67c4354cdbed97,placement=d66bc930823198a758a41b9cc6a4aa48b8b314881cbf30a5f96b6cd2fbec8c6f",
           "language": "ru",
@@ -3972,7 +4076,7 @@
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Сохраняет отпечатки зависимостей для отслеживания изменений в документации зависимостей."
+            "novelFact": "Отпечаток кэшируется на файл (fingerprintByFile.get/set), а персист происходит только при изменении (if (mutated))."
           }
         }
       },
@@ -4013,10 +4117,23 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.308Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
       ],
       "signature": "CodeloreService.recordDepDocsFingerprints(writtenSections: Array<{ sectionId: string; docPath: string }>): Promise<void>",
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.readDocSection": {
       "heading": "readDocSection",
@@ -4148,7 +4265,7 @@
         }
       ],
       "signature": "CodeloreService.readDocSection(sectionId: string): Promise<string>",
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.readCodeEntity": {
       "heading": "readCodeEntity",
@@ -4218,27 +4335,27 @@
           "language": "ru"
         },
         "dependencies": {
-          "body": "The method depends on the service's own resolveSection and requireSectionState helpers and the imported renderSection function.",
+          "body": "Загружает индекс через `loadOrRebuildIndexes`. Для неизвестного id бросает `CodeloreError` с кодом `UNKNOWN_ENTITY` и деталями `{ entityId }` (класс из `../errors.ts`). Код сущности получает делегированием в `readEntityCode`, который читает файл `join(this.config.rootDir, entity.path)` и возвращает срез от `entity.range.startOffset` до `entity.range.endOffset`.",
           "rendered": true,
           "fingerprint": "deps=f51f61a82c329956a72df54ee6bf98550713e54d73a51b3ef312e5a68bdf5a08",
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "The method relies on resolveSection, requireSectionState, and renderSection, all defined in the same service or imported helpers."
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Для неизвестного id метод бросает CodeloreError с кодом UNKNOWN_ENTITY, а код сущности берёт через readEntityCode — срез файла от startOffset до endOffset."
           }
         },
         "limitations": {
-          "body": "The method only renders the section state; it does not modify any state or index. The early return in resolveSection when the section is not found prevents any rendering for unknown sections.",
+          "body": "Возвращает только фрагмент исходника в границах сущности: `readEntityCode` срезает прочитанный файл от `entity.range.startOffset` до `entity.range.endOffset`, поэтому код вне диапазона `entity.range` в результат не попадает.",
           "rendered": true,
           "fingerprint": "body=4c62096ac8a862eacc28727e382532ae8610c9369c2d268fd79aa1638af189a1",
           "language": "ru",
           "scores": {
             "informativeness": 0.5,
-            "novelty": 0.75,
+            "novelty": 0.5,
             "specificity": 0.75,
-            "novelFact": "The method only renders the section state; it does not modify any state or index."
+            "novelFact": "Возвращается только срез исходника в границах entity.range (startOffset–endOffset), код вне диапазона не попадает в результат."
           }
         }
       },
@@ -4277,10 +4394,21 @@
             "dependencies",
             "limitations"
           ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.315Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations"
+          ]
         }
       ],
       "signature": "CodeloreService.readCodeEntity(entityId: string): Promise<unknown>",
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.readImpact": {
       "heading": "readImpact",
@@ -4349,27 +4477,27 @@
           "language": "ru"
         },
         "dependencies": {
-          "body": "The method depends on the service's own resolveSection and requireSectionState helpers, the imported renderSection function, and the service's patchDocIndexForDocs method.",
+          "body": "Загружает актуальный индекс через `loadOrRebuildIndexes` и полностью делегирует вычисление `getImpactForEntity(index.code, index.docs, entityId)` из `../graph/impact.js`, передавая индекс кода, индекс документации и id сущности. Собственной обработки результата метод не выполняет.",
           "rendered": true,
           "fingerprint": "deps=f346b00c9c43038d2f478ce899063b4f6f41868cb5c23c3202e4e0d09e1ceac3",
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "The method relies on resolveSection, requireSectionState, renderSection, and patchDocIndexForDocs, all defined in the same service or imported helpers."
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Метод целиком делегирует вычисление getImpactForEntity(index.code, index.docs, entityId), не добавляя собственной обработки."
           }
         },
         "limitations": {
-          "body": "The method only updates the section state and the doc index; it does not re-render the full document or update other sections. The early return in resolveSection when the section is not found prevents any state mutation for unknown sections.",
+          "body": "Метод принимает один `entityId` за вызов — пакетного запроса воздействия по нескольким сущностям нет. Валидации id в методе нет: результат для неизвестного id целиком определяется поведением `getImpactForEntity`, метод не добавляет собственных проверок или ошибок.",
           "rendered": true,
           "fingerprint": "body=b99833293bf5e3fadd1cb59f80789bc209a2764d578c5ec0d2701f1cb93289c2",
           "language": "ru",
           "scores": {
             "informativeness": 0.5,
-            "novelty": 0.75,
+            "novelty": 0.5,
             "specificity": 0.75,
-            "novelFact": "The method only updates the section state and the doc index; it does not re-render the full document or update other sections."
+            "novelFact": "Метод не валидирует entityId и не обрабатывает результат — поведение для неизвестного id полностью определяется getImpactForEntity."
           }
         }
       },
@@ -4408,10 +4536,21 @@
             "dependencies",
             "limitations"
           ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.322Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations"
+          ]
         }
       ],
       "signature": "CodeloreService.readImpact(entityId: string): Promise<unknown>",
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.readChange": {
       "heading": "readChange",
@@ -4426,7 +4565,7 @@
       "usedBy": [
         "symbol:src/service/codelore-service.ts#CodeloreService"
       ],
-      "status": "normal",
+      "status": "review_needed",
       "allowedBlocks": [
         "purpose",
         "responsibility",
@@ -4541,7 +4680,7 @@
         }
       ],
       "signature": "CodeloreService.readChange(changeId: string): Promise<ChangeAnalysis>",
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.readDocFile": {
       "heading": "readDocFile",
@@ -4554,7 +4693,7 @@
       "usedBy": [
         "symbol:src/service/codelore-service.ts#CodeloreService"
       ],
-      "status": "normal",
+      "status": "review_needed",
       "allowedBlocks": [
         "purpose",
         "responsibility",
@@ -4609,15 +4748,15 @@
           "language": "ru"
         },
         "dependencies": {
-          "body": "The method depends on the service's own resolveSection and requireSectionState helpers, the imported renderSection function, and the service's patchDocIndexForDocs method.",
+          "body": "Собственных компонентов сервиса не использует: файл читает импортированный из `node:fs/promises` `readFile`, путь собирает `join` из `node:path`, а корень проекта берёт из `this.config.rootDir` (конфигурация подгружена в конструкторе). Индексы, doc-state-хранилище и методы рендеринга в вызове не участвуют.",
           "rendered": true,
           "fingerprint": "deps=c627abdc1da7a4c1fec02ff7a6703128a3a930fb02dab40740c70954cbdfb3be",
           "language": "ru",
           "scores": {
             "informativeness": 0.5,
             "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "The method relies on resolveSection, requireSectionState, renderSection, and patchDocIndexForDocs, all defined in the same service or imported helpers."
+            "specificity": 0.75,
+            "novelFact": "Метод сводится к одному `readFile`: ни индекс, ни doc-state, ни рендер не задействованы."
           }
         },
         "limitations": {
@@ -4633,15 +4772,15 @@
           }
         },
         "changeGuide": {
-          "body": "- The method enforces that only sections with a non-empty state are rendered, via the `filter(Boolean)` on `sectionStates`.\n- The method enforces that the document is rendered only if at least one section has a non-empty state, via the `if (renderedSections.length === 0) return \"\"` guard.",
+          "body": "- Путь всегда привязан к корню проекта через конструкцию `join(this.config.rootDir, docPath)`, поэтому чтение идёт только из репозитория, а не из index-кэша или state-хранилища.\n- Кодировка закошена вторым аргументом вызова — `\"utf8\"` в `readFile(join(this.config.rootDir, docPath), \"utf8\")`, содержимое всегда декодируется как UTF-8.",
           "rendered": true,
           "fingerprint": "body=df8eb60cefd9800ed21996268a5ddeee7e721681a6692925c0ba9bd835a6bcf8,deps=c627abdc1da7a4c1fec02ff7a6703128a3a930fb02dab40740c70954cbdfb3be,usage=2c15da6dc373f52d46da8517250b3194289acb35ecb2bcc456c6708a69e4e270,placement=220bf1ca3d9d121fd3524e934dfd9065b0e58699ba316fe27ca78811318ef41c",
           "language": "ru",
           "scores": {
-            "informativeness": 0.75,
-            "novelty": 0.75,
+            "informativeness": 0.5,
+            "novelty": 0.5,
             "specificity": 0.75,
-            "novelFact": "The method enforces that only sections with a non-empty state are rendered, via the filter(Boolean) on sectionStates."
+            "novelFact": "Два жёстких параметра вызова: путь через `join(this.config.rootDir, docPath)` и фиксированная кодировка `\"utf8\"`."
           }
         }
       },
@@ -4681,10 +4820,22 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.329Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "dependencies",
+            "changeGuide"
+          ],
+          "manualReviewNeeded": true
         }
       ],
       "signature": "CodeloreService.readDocFile(docPath: string): Promise<string>",
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.resolveSection": {
       "heading": "resolveSection",
@@ -4760,51 +4911,51 @@
           "language": "ru"
         },
         "dependencies": {
-          "body": "The method depends on the service's own loadOrRebuildIndexes method and the imported CodeloreError class.",
+          "body": "Зависит от состояния индекса: метод вызывает `this.loadOrRebuildIndexes()` (загрузка кэша или пересборка) и из полученного `ProjectIndex` обращается к `index.docs.sections[sectionId]`. Ошибку `UNKNOWN_SECTION` строит из `CodeloreError` с `src/errors.ts`; других модулей в lookup не участвует.",
           "rendered": true,
           "fingerprint": "deps=f998a72f8cf7e5b30113d82937d5c6e85ebb66af9f2eb941c66d7ad1a070798b",
           "language": "ru",
           "scores": {
             "informativeness": 0.5,
             "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "The method relies on loadOrRebuildIndexes and CodeloreError, both defined in the same service or imported from errors."
+            "specificity": 0.75,
+            "novelFact": "Разрешение секции полностью опирается на актуальность `ProjectIndex` — свежих источников кроме самого индекса нет."
           }
         },
         "workflows": {
-          "body": "All read and write methods in the service call resolveSection first to obtain the section and index. The method is invoked by readDocSection, readDocFile, readCodeEntity, readImpact, and readCodeloreService, each passing a sectionId.",
+          "body": "Все три видимых вызова — `getSectionContext`, `markReviewNeeded` и `readDocSection` — начинаются с этого метода. `getSectionContext` сразу разворачивает пару «index, section» в `section.owns/depends/docPath` и сущности `index.code`; `markReviewNeeded` и `readDocSection` из `section.docPath` и `sectionId` идут дальше к состоянию секции. Брошенный здесь `CodeloreError` всплывает до любой записи: например, `markReviewNeeded` не выставит `review_needed` секции, отсутствующей в индексе, — сбой виден раньше, чем начнётся правка состояния.",
           "rendered": true,
           "fingerprint": "body=08986c3498c24f03350a85c75cf95dbc013cce9369102799d78969bb7184e4cd,deps=f998a72f8cf7e5b30113d82937d5c6e85ebb66af9f2eb941c66d7ad1a070798b",
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
-            "specificity": 0.75,
-            "novelFact": "All read and write methods in the service call resolveSection first to obtain the section and index."
+            "specificity": 1,
+            "novelFact": "Метод служит общим входным шлюзом трёх путей: падает до записи состояния, поэтому сбой индекса никогда не приводит к ложной записи."
           }
         },
         "limitations": {
-          "body": "The method throws an error if the section is not found; it does not return a fallback. The guard `if (!section) throw new CodeloreError(...)` enforces this.",
+          "body": "Узнаёт только секции, которые уже есть в `index.docs.sections`; для сущности, у которой секции нет (или она выпала из индекса), возвращается ошибка `UNKNOWN_SECTION`, а не заглушка. Подмену «id сущности → id секции» метод не делает — lookup строго по `sectionId`.",
           "rendered": true,
           "fingerprint": "body=08986c3498c24f03350a85c75cf95dbc013cce9369102799d78969bb7184e4cd",
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.75,
-            "specificity": 0.75,
-            "novelFact": "The method throws an error if the section is not found; it does not return a fallback."
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 1,
+            "novelFact": "Различает только готовые секции индекса: id сущности без секции даёт `UNKNOWN_SECTION`, поскольку преобразование сущность→секция живёт в другом методе, не здесь."
           }
         },
         "changeGuide": {
-          "body": "- The method enforces that the section must exist in the index, via the `if (!section) throw new CodeloreError(...)` guard.\n- The method enforces that the index is loaded or rebuilt before resolving, via the `await this.loadOrRebuildIndexes()` call.",
+          "body": "- Гервент «секция обязана существовать» закреплён `if (!section) { throw new CodeloreError(\"UNKNOWN_SECTION\", ...) }` — после метода ни один вызывающий не получит `undefined`-секцию.\n- Lookup всегда по свежему снимку: `const index = await this.loadOrRebuildIndexes();` стоит перед обращением к `index.docs.sections[sectionId]`.",
           "rendered": true,
           "fingerprint": "body=08986c3498c24f03350a85c75cf95dbc013cce9369102799d78969bb7184e4cd,deps=f998a72f8cf7e5b30113d82937d5c6e85ebb66af9f2eb941c66d7ad1a070798b,usage=d4042aaa7f927993577bc843b520e77ccc5d692013d85362bac5e33ec256ce1b,placement=0ae65852aac867666f732e632804a53b22adb8e7c15cc5c2af000488801eb767",
           "language": "ru",
           "scores": {
-            "informativeness": 0.75,
-            "novelty": 0.75,
+            "informativeness": 0.5,
+            "novelty": 0.5,
             "specificity": 0.75,
-            "novelFact": "The method enforces that the section must exist in the index, via the `if (!section) throw new CodeloreError(...)` guard."
+            "novelFact": "Гарантия существования секции держится на `if (!section)` и на предшествующем вызове `loadOrRebuildIndexes`."
           }
         }
       },
@@ -4845,10 +4996,23 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.336Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
       ],
       "signature": "CodeloreService.resolveSection(sectionId: string): Promise<{ index: ProjectIndex; section: DocSection }>",
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.requireSectionState": {
       "heading": "requireSectionState",
@@ -4865,7 +5029,7 @@
         "symbol:src/service/codelore-service.ts#CodeloreService.markReviewNeeded",
         "symbol:src/service/codelore-service.ts#CodeloreService.readDocSection"
       ],
-      "status": "normal",
+      "status": "review_needed",
       "allowedBlocks": [
         "purpose",
         "responsibility",
@@ -4922,15 +5086,15 @@
           "language": "ru"
         },
         "dependencies": {
-          "body": "The method relies on the `DocState` type and the `CodeloreError` class, both defined in the same file, and on the `DocSection` type from the markdown module. It does not depend on any external modules beyond those already imported by the file.",
+          "body": "Читает состояние через `this.docStateStorage.loadDocState(docPath)` (хранилище из конструкции сервиса), которое возвращает `undefined` при отсутствующем файле состояния. Обе ошибки кодирует `CodeloreError` из `src/errors.ts`: `UNKNOWN_DOC` для отсутствующего состояния и `UNKNOWN_SECTION` для отсутствия секции внутри него.",
           "rendered": true,
           "fingerprint": "deps=d217b55f41fe867bb2cee4ab26c7da877042f05e2c7d636d3cc87a83fe997fd5",
           "language": "ru",
           "scores": {
             "informativeness": 0.5,
             "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "The method depends on the `DocState` type and the `CodeloreError` class, both defined in the same file, and on the `DocSection` type from the markdown module."
+            "specificity": 0.75,
+            "novelFact": "Вся работа метода — один вызов `docStateStorage.loadDocState` плюс два различных кода `CodeloreError` для двух уровней отсутствия."
           }
         },
         "workflows": {
@@ -4946,27 +5110,27 @@
           }
         },
         "limitations": {
-          "body": "The method only works with sections that already exist in the doc's state; it does not create missing sections. If the section is absent, it rejects with a `CodeloreError` rather than returning a default or empty section.",
+          "body": "Метод никогда не создаёт отсутствующее состояние: `UNKNOWN_DOC` (когда хранилище вернуло `undefined`) и `UNKNOWN_SECTION` (когда секции нет в загруженном состоянии) — это fail-fast исход, а не приглашение инициализировать пустое состояние или секцию-заглушку. Возвращаемый `state` — пришедший из хранилища объект, через который вызывающий может мутацировать секцию, но сам метод никаких изменений не вносит.",
           "rendered": true,
           "fingerprint": "body=9b20260ee54072c7b3c6637faf2ac84387f79b1fb858925417ad1a569eda9e10",
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
+            "informativeness": 0.75,
             "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "The method only works with sections that exist in the doc's state; it does not create missing sections."
+            "specificity": 1,
+            "novelFact": "Оба отсутствия — ожидаемые ошибки: метод не создаёт ни состояние, ни секцию, а возвращает «живой» объект, который вызывающий сам решает мутировать."
           }
         },
         "changeGuide": {
-          "body": "The method enforces a fail-fast contract: when the section is absent, it rejects with a `CodeloreError` whose code is `\"SECTION_NOT_FOUND\"` and whose message includes the section id. The returned `state` is the `DocState` object that owns the section, so callers can mutate the section through it. The method never returns a section without its owning state, and never returns a state without the section — the two always come together.",
+          "body": "- Двухуровневая проверка отсутствия: `if (!state)` бросает `UNKNOWN_DOC`, `if (!sectionState)` бросает `UNKNOWN_SECTION` — секция не может быть возвращена без файла состояния, а файл без секции.\n- Секция всегда берётся из того же состояния, что и отдаётся: `const sectionState = state.sections[sectionId]` читает из того же `state`, который затем попадёт в результат.",
           "rendered": true,
           "fingerprint": "body=9b20260ee54072c7b3c6637faf2ac84387f79b1fb858925417ad1a569eda9e10,deps=d217b55f41fe867bb2cee4ab26c7da877042f05e2c7d636d3cc87a83fe997fd5,usage=a55025463b61c2d06a6a8b11431edbf5f31f134de34e831f03e4b2f47cc0009f,placement=dd8870781b665bab233a6403b2dd3b5be2c07e2c88df6b6e9c3d06467b68c2a1",
           "language": "ru",
           "scores": {
-            "informativeness": 0.75,
-            "novelty": 0.75,
+            "informativeness": 0.5,
+            "novelty": 0.5,
             "specificity": 0.75,
-            "novelFact": "The method rejects with a typed CodeloreError carrying code \"SECTION_NOT_FOUND\" when the section is absent, and returns the owning DocState so callers can mutate the section through it."
+            "novelFact": "Целостность пары {state, sectionState} держится на двух guard-выражениях (`if (!state)`, `if (!sectionState)`) и чтении секции из того же объекта состояния."
           }
         }
       },
@@ -5007,10 +5171,23 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.344Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations",
+            "changeGuide"
+          ],
+          "manualReviewNeeded": true
         }
       ],
       "signature": "CodeloreService.requireSectionState(docPath: string, sectionId: string): Promise<{ state: DocState; sectionState: DocStateSection }>",
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.translateScope": {
       "heading": "CodeloreService.translateScope",
@@ -5076,15 +5253,15 @@
           }
         },
         "invariants": {
-          "body": "The method accepts scope (RefreshStaleScope | undefined) and runtime. It filters sections by scope, groups by docPath, and calls translateDoc per docPath. It returns Promise<void>.",
+          "body": "Границы работы метода:\n- Переводы не настроены (`config.docs.translations.length === 0`) — метод выходит до загрузки индекса и создания провайдера; то же происходит, когда после фильтрации по скоупу `docPaths` пуст.\n- Скоуп `undefined` означает «весь репозиторий», а не «ничего»: `filterSectionsByScope` без фильтра пропускает все секции, так что `translateScope(undefined)` добирается и до уже свежих документов — это и есть механизм дозаполнения переводов для только что добавленного языка.\n- Источники терминов собираются по `section.owns[0]`: если первый владелец секции не имеет пути в индексе, секция пропускается; путь попадает в `sourcePathsByDoc` без дублей.\n- Документы переводятся параллельно под `pLimit(this.config.llm.concurrency)`, и сам метод ничего не пишет: запись выполняет только `translateDoc`, и только если что-то изменилось.",
           "rendered": true,
-          "fingerprint": "signature=03435d833e2a24d469b29fb15b6944c914f69a49999f035cb34c40eff65cbf4e,body=6ec976fe504a8d37cee141903510d54db2739c32c2356dedcc264c1bc7f319b7",
+          "fingerprint": "signature=03435d833e2a24d469b29fb15b6944c914f69a49999f035cb34c40eff65cbf4e,body=d9a50df9731da7443c9f1b145ab95111c310ba07c1091a4f902c8b4ef81fd872",
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "The method translates a scope's documentation by delegating to translateDoc per docPath."
+            "novelFact": "Нет языков в конфиге — метод полный no-op без загрузки индекса; скоуп undefined охватывает все секции репозитория, что и делает дозаполнение переводов при добавлении нового языка."
           }
         },
         "dependencies": {
@@ -5100,39 +5277,39 @@
           }
         },
         "workflows": {
-          "body": "Вызывается из `generateDocsForScope` после подготовки секций для запуска перевода.",
+          "body": "Три сценария генерации зовут метод после того, как текст новых блоков уже записан: `generateDocsForEntity` — с скоупом `scopeFromParts(sectionIds, [], [])` по секциям сгенерированного объекта; `generateDocsForScope` — со скоупом из путей/файлов/сущностей запроса (а при документировании без скоупа — `undefined`, что включает и документы вне списка изменённого); `fixStaleDocs` — со скоупом `input.sectionIds/files/paths` сразу после пайплайна, до регенерации тир-доков. Внутри `translateDoc` пропускает блоки, перевод которых актуален (проверка `isCurrent`), поэтому повторный вызов с тем же скоупом после уже выполненного перевода не порождает новых LLM-запросов.",
           "rendered": true,
-          "fingerprint": "body=6ec976fe504a8d37cee141903510d54db2739c32c2356dedcc264c1bc7f319b7,deps=77444b55e0d89cf5e16bdb0de851d8e9653e0925430cfe0b2c844c76d1fa8f4c",
+          "fingerprint": "body=d9a50df9731da7443c9f1b145ab95111c310ba07c1091a4f902c8b4ef81fd872,deps=77444b55e0d89cf5e16bdb0de851d8e9653e0925430cfe0b2c844c76d1fa8f4c",
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
-            "specificity": 0.75,
-            "novelFact": "Вызывается из `generateDocsForScope` для выполнения перевода области."
+            "specificity": 1,
+            "novelFact": "Все три входа вызывают перевод после записи блоков; идемпотентность на повторах держится на проверке `isCurrent` внутри `translateDoc`."
           }
         },
         "limitations": {
-          "body": "Не предусматривает частичный успех: если одна секция завершается ошибкой, весь перевод области прерывается.",
+          "body": "Без настроенных языков метод не стартует совсем: `if (this.config.docs.translations.length === 0) { return; }` стоит до загрузки индекса и создания провайдера, а второй ранний выход — `if (docPaths.length === 0) { return; }` — отсекает пустой результат фильтрации до вызова LLM. Термины для переводчика собираются только из секций, первый владелец которой имеет путь в `index.code` (`if (!ownerPath) { continue; }`); секции без пути источник терминов своему документу не дают, сам документ всё равно переводится с пустым локальным списком путей.",
           "rendered": true,
-          "fingerprint": "body=6ec976fe504a8d37cee141903510d54db2739c32c2356dedcc264c1bc7f319b7",
+          "fingerprint": "body=d9a50df9731da7443c9f1b145ab95111c310ba07c1091a4f902c8b4ef81fd872",
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.75,
+            "novelty": 0.5,
             "specificity": 0.75,
-            "novelFact": "Не поддерживает отмену операции — при ошибке одной секции остальные не обрабатываются."
+            "novelFact": "Метод способен ничего не делать по двум веским причинам: либо не сконфигурированы языки перевода, либо скоуп не дал ни одного docPath — оба случая обходят создание провайдера."
           }
         },
         "changeGuide": {
-          "body": "Обрабатывает область: получает секции, применяет конвейер с ограничением параллельности и возвращает результат.",
+          "body": "- Ранний выход без конфигурации закреплён guard'ом `if (this.config.docs.translations.length === 0) { return; }`, который выполняется раньше `loadOrRebuildIndexes` и `createConfiguredProvider`.\n- Параллельные вызовы переводов ограничены: `const limit = pLimit(this.config.llm.concurrency);` — каждый документ уходит в работу через `limit(() => this.translateDoc(...))`, поэтому одновременные LLM-вызовы не превышают `llm.concurrency`.",
           "rendered": true,
-          "fingerprint": "body=6ec976fe504a8d37cee141903510d54db2739c32c2356dedcc264c1bc7f319b7,deps=77444b55e0d89cf5e16bdb0de851d8e9653e0925430cfe0b2c844c76d1fa8f4c,usage=142756ab4fa47ffc8d9375e6f19f295702b654fd5c868ddb554eeb4e55bd0f47,placement=324dc29e38cad52465e3931a923852b30a03d5f241fd1f2db8c50bf4ee82dee0",
+          "fingerprint": "body=d9a50df9731da7443c9f1b145ab95111c310ba07c1091a4f902c8b4ef81fd872,deps=77444b55e0d89cf5e16bdb0de851d8e9653e0925430cfe0b2c844c76d1fa8f4c,usage=142756ab4fa47ffc8d9375e6f19f295702b654fd5c868ddb554eeb4e55bd0f47,placement=324dc29e38cad52465e3931a923852b30a03d5f241fd1f2db8c50bf4ee82dee0",
           "language": "ru",
           "scores": {
-            "informativeness": 0.75,
-            "novelty": 0.75,
+            "informativeness": 0.5,
+            "novelty": 0.5,
             "specificity": 0.75,
-            "novelFact": "Переводит документацию для заданной области, используя конвейер и лимит конкуренции."
+            "novelFact": "Две жёсткие границы: отказ от запуска без настроенных языков (`translations.length === 0`) и кап на параллельные переводы (`pLimit(this.config.llm.concurrency)`)."
           }
         }
       },
@@ -5186,9 +5363,31 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:03:31.547Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.351Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
       ],
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5",
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131",
       "signature": "CodeloreService.translateScope(scope: RefreshStaleScope | undefined, runtime: GenerateDocsRuntime): Promise<void>"
     },
     "file:src/service/codelore-service.ts": {
@@ -5320,16 +5519,16 @@
           "fingerprint": "signature=9ae5d230c9574249a5582e867bae2fc39279ca69f8e1a7e10ab10eeff9d8b22e,deps=d687a7a8ea4b8c1302850b9349cb3b06e1f7acb1e2f634181c2ffa43220c806b,usage=74610ac148428498cda64a003036d43f1f172fbd0626f7c391db2ef047fd4e50"
         },
         "invariants": {
-          "body": "- Идентификаторы сущностей кодируют вид: `file:`/`symbol:` — исходный код, `DOMAIN_ID_PREFIX` — tier-домен, `PROJECT_ID` — обзорный документ (tier-секция — это и есть её entity id, `domain:<slug>` или `project:`). `sourceFilePathOf` возвращает путь только для исходных id, для tier-ид — undefined; на этом держатся `splitTierSections`, сборка member-данных и поиск владельца секции.\n- `resolveTargets` без запрошенных целей возвращает весь `allowedBlocks`, а цель вне allowed-набора бросает `CodeloreError` с кодом `MISSING_BLOCK`; поэтому `runPipelineForSections` заранее пересекает запрошенные цели с allowed-набором и пропускает секции, у которых целей не осталось.\n- Секция генерируется в обеих фазах и может попасть в сводку дважды: `mergeSectionSummaries` схлопывает записи одной секции в одну с объединением `generatedBlocks`, а `dedupeSkipped` убирает из skipped секции, которые записала другая фаза.\n- `scopeFromParts` с пустыми списками возвращает undefined — отсутствие фильтра, а не пустой набор; `filterSectionsByScope` в этом случае видит все секции репозитория, поэтому вызывающие передают undefined только когда скоупа нет вовсе.",
+          "body": "Контракты модуля — кодировка идентификаторов, поведение границ входа и правила свертки результатов:\n- Идентификаторы сущностей кодируют вид строго: `sourceFilePathOf` возвращает путь только для `file:` и `symbol:` (у `symbol:` обрезает всё после первого `#`), для tier-идентификаторов и `project:` — undefined. На этом же держится `splitTierSections`: префикс `DOMAIN_ID_PREFIX` уводит секцию в tier-конвейер, `PROJECT_ID` — в sentinel-слаг «.» для обзорного документа, всё остальное — в файловый конвейер.\n- `resolveTargets` на границе входа: пустой запрос возвращает весь `allowedBlocks`, цель вне разрешённого набора бросает `CodeloreError` с кодом `MISSING_BLOCK`; порядок результата всегда канонический, а не порядок запроса — `BLOCK_IDS.filter((id) => requested.includes(id))`.\n- `scopeFromParts` с полностью пустыми списками возвращает undefined, а не пустой фильтр; для `filterSectionsByScope` это означает «все секции репозитория», поэтому вызывающие передают undefined только когда скоупа нет вовсе.\n- Секция генерируется обеими фазами и попадает в сводку дважды: `mergeSectionSummaries` схлопывает повторные записи в одну с объединением `generatedBlocks` без дубликатов и `manualReviewNeeded` как OR; `dedupeSkipped` удаляет из skipped секции, которые записала другая фаза.\n- Набор переводимых блоков строго ограничен: `translatableBlocks` отдаёт только блоки с `rendered`, без `staleSince` и с `body.trim() !== \"\"`; перевод актуален только при совпадении `sourceFingerprint` с телом и отсутствии срабатывания `translationNeedsWork`, иначе блок снова попадёт в перевод.",
           "rendered": true,
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Идентификаторы сущностей кодируют вид (`file:`/`symbol:` — исходный код, `DOMAIN_ID_PREFIX` — домен, `PROJECT_ID` — обзор), и `sourceFilePathOf` возвращает путь только для исходных id."
+            "novelFact": "Маршрутизация секций по двум конвейерам целиком определяется префиксами идентификаторов: `sourceFilePathOf` отдаёт путь только для `file:`/`symbol:` и undefined для tier-идентификаторов, а `splitTierSections` по `DOMAIN_ID_PREFIX` и `PROJECT_ID` направляет секции в tier-конвейер, всё остальное — в файловый."
           },
-          "fingerprint": "signature=9ae5d230c9574249a5582e867bae2fc39279ca69f8e1a7e10ab10eeff9d8b22e,body=5b0a62c1517b180e152ded57b879fae2d21c0514f7cd85647bcbe56d5e424896"
+          "fingerprint": "signature=9ae5d230c9574249a5582e867bae2fc39279ca69f8e1a7e10ab10eeff9d8b22e,body=fd067500669fb534cffccbabf850a381a9cc6303830e014a71199172a740be95"
         },
         "dependencies": {
           "body": "Файл подключает всё окружение сервиса: `loadConfig` и `resolveTerms` (`src/config.ts`) дают конфигурацию и термины для файла/языка; `JsonStorage`, `DocStateStorage`, `IndexManager` — состояние на диске, индексы кода и документации. Индекс/граф: `buildCodeIndex`, `parseUnifiedDiff`, `buildFileDag`, `buildDomainDag`, `dependencyWaves`, `getAffectedSectionsForEntities`, `getImpactForEntity` и константы/функции `DOMAIN_ID_PREFIX`, `PROJECT_ID`, `domainIdFor`, `isDomainTierEntity`, `isSourceCodeEntity` дают карту сущностей, рёбер и волн. Доменные чистые функции: `buildPartitionRequest`/`parsePartitionResponse`, `buildAssignRequest`/`parseAssignResponse`, `domainCoverage`/`fileToDomainSlug`, `collectDomainMemberEvidence`/`domainMemberFingerprint` — формирование и разбор LLM-сообщений и отпечатки tier-членов. LLM-слой: `createConfiguredProvider` (фабрика провайдеров и их бюджет), `generateFileGroup`, `generateDomainDoc`, `verifyBlocksAgainstDeps`, `collectDependencyDocs`/`dependencyDocsFingerprint`, `translateBlocks`, `writeRunDecisions`. Разметка/состояние: `computeBlockFingerprint`, `translationSourceFingerprint`, `docResponsibilities`, `renderSection`, `BLOCK_IDS`/`BlockId`. Внутренние модули той же директории (`prepare-docs`, `section-rewrite`, `stale-detection`/`stale-detector`, `doc-reconcile`, `doc-validation`, `domain-docs`, `file-layout`, `index-manager`, `helpers`) задают правила скоупа, томбстоуны, перезапись, проверки и планы раскладки.",
@@ -5344,16 +5543,16 @@
           "fingerprint": "deps=d687a7a8ea4b8c1302850b9349cb3b06e1f7acb1e2f634181c2ffa43220c806b"
         },
         "limitations": {
-          "body": "На уровне файла действуют три рамки:\n- `assertRequestFitsBudget` суммирует длины всех `message.content` промпта партиционирования и при `estimatedTokens > maxPromptTokens` бросает `PARTITION_TOO_LARGE`; текст ошибки прямо говорит `Batched partition is not yet implemented`, поэтому слишком большой набор файлов нельзя разбить одним запросом — нужен меньший вход.\n- Невалидный ответ LLM переспрашивается ровно один раз: в `partitionDomainMap` и `assignUncoveredFiles` повторный `parsePartitionResponse`/`parseAssignResponse` стоит вне `try`, значит второй сбой парсинга пробрасывается наверх и останавливает команду без дальнейших попыток.\n- `readGitDiff` ловит любую ошибку `execFile` и молча возвращает пустую строку; если вызывающий не передал `diff` и `changedFiles` явно, `analyzeChange` увидит пустой diff и не сообщит о сбое git.",
+          "body": "В файле действуют три реальные границы:\n- Партиционирование умеет только один запрос: `assertRequestFitsBudget` суммирует длины всех `message.content`, делит на `provider.writerBudget.charsPerToken` и при `estimatedTokens > maxPromptTokens` бросает `CodeloreError` с кодом `PARTITION_TOO_LARGE`; текст ошибки прямо говорит `Batched partition is not yet implemented`, поэтому набор файлов, не помещающийся в бюджет модели, сейчас разбить нельзя.\n- Невалидный ответ LLM переспрашивается ровно один раз: в `partitionDomainMap` и `assignUncoveredFiles` повторный разбор (`parsePartitionResponse`/`parseAssignResponse`) стоит вне `try`/`catch`, поэтому второй сбой парсинга пробрасывается наверх и останавливает команду без третьей попытки.\n- Сбой `git diff` молча глотается: `readGitDiff` в `catch { return \"\"; }` возвращает пустую строку при любой ошибке `execFile`, и если вызывающий не передал `diff`/`changedFiles`, `analyzeChange` видит пустой diff и не сигнализирует о том, что чтение git не удалось.",
           "rendered": true,
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Партиционирование ограничено бюджетом промпта провайдера (guard `PARTITION_TOO_LARGE`), а невалидный ответ LLM имеет только одну повторную попытку."
+            "novelFact": "Партиционирование не умеет батчить: набор файлов, не помещающийся в токенный бюджет модели, падает с PARTITION_TOO_LARGE, а не дробится на запросы."
           },
-          "fingerprint": "body=5b0a62c1517b180e152ded57b879fae2d21c0514f7cd85647bcbe56d5e424896"
+          "fingerprint": "body=fd067500669fb534cffccbabf850a381a9cc6303830e014a71199172a740be95"
         }
       },
       "generationHistory": [
@@ -5399,6 +5598,26 @@
           "model": "deepseek-v4-flash-0731",
           "generatedBlocks": [
             "dependencies",
+            "limitations"
+          ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:03:31.530Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.241Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
             "limitations"
           ]
         }
@@ -5532,7 +5751,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.prepareDomainDocs": {
       "heading": "CodeloreService.prepareDomainDocs",
@@ -5764,16 +5983,16 @@
           "fingerprint": "signature=692a7836126ee3f8ff9e0f14ce2d36f559caa58e748b5f0ed4dd374fc30cd0f2,deps=20f26ba5acd12ff7059503d4dc1441165c10e37524dcfdf451c3c102fc0b5037,usage=9af34f9ad79227bd5ca114f6e952c89e20d4530e1d41801e6419ab9d20bbb519"
         },
         "invariants": {
-          "body": "The method partitions a map of domain IDs to members into two maps: one for domain-prefixed keys and one for the rest.",
+          "body": "Инварианты работы метода:\n- Нет документированных файлов — `CodeloreError` с кодом `NO_DOCUMENTED_FILES` бросается до создания провайдера и первого LLM-вызова.\n- В запрос на разбиение попадают только рёбра файлового DAG, у которых оба конца документированы: недокументированный источник или цель отсекается условиями `if (!knownFiles.has(from))` и `if (!knownFiles.has(to))`, поэтому граф вне документированного набора не влияет на разбиение.\n- На невалидный ответ LLM (`INVALID_LLM_RESPONSE`) метод переспрашивает ровно один раз через `appendPartitionRetry` — в сообщения добавляются предыдущий `assistant`-текст и `user`-просьба вернуть исправленный JSON; повторный parse стоит вне `try`, поэтому второй сбой прокидывает ошибку наверх без повторной подачи.\n- Успешный результат сразу сохраняется `storage.saveDomainMap(map)`, а возвращаемое число файлов — это `knownFiles.size`, то есть число отправленных на разбиение документированных файлов.",
           "rendered": true,
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "The method partitions a map of domain IDs to members into two maps: one for domain-prefixed keys and one for the rest."
+            "novelFact": "Невалидный ответ LLM на партицирование перезапрашивается ровно один раз через `appendPartitionRetry`, а второй сбой парсинга не ловится и пробрасывается наверх, останавливая команду без дальнейших попыток."
           },
-          "fingerprint": "signature=692a7836126ee3f8ff9e0f14ce2d36f559caa58e748b5f0ed4dd374fc30cd0f2,body=26cfcbb8741432e66366b57f413356bd8d6ac0c5eb908e6e34ded82d503a713c"
+          "fingerprint": "signature=692a7836126ee3f8ff9e0f14ce2d36f559caa58e748b5f0ed4dd374fc30cd0f2,body=ec619451e6181ca611ad77ccc27669f6e4f3029b9325308ecd85f41c3ac41b58"
         },
         "dependencies": {
           "body": "",
@@ -5781,21 +6000,28 @@
           "fingerprint": "deps=20f26ba5acd12ff7059503d4dc1441165c10e37524dcfdf451c3c102fc0b5037"
         },
         "limitations": {
-          "body": "Ограничений нет.",
+          "body": "Разбиение не умеет дробиться на части: весь набор файлов и рёбер уходит в один запрос, и перед первым (и единственным) вызовом провайдера `assertRequestFitsBudget` проверяет оценку токенов — при `estimatedTokens > maxPromptTokens` метод бросает `CodeloreError(\"PARTITION_TOO_LARGE\", ...)` с текстом, что батчинга ещё нет, так что крупный проект, не влезающий в контекст, остаётся неразбитым без автоматической запасной стратегии. Входными считаются только документированные файлы: все рёбра графа, у которых хотя бы один конец (источник или цель) вне `knownFiles`, отбрасываются до построения запроса, поэтому недокументированные части проекта в разбиение не попадают.",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 1,
-            "novelty": 1,
-            "specificity": 1,
-            "novelFact": "Ограничений нет."
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Двоякое ограничение: единственный запрос с проверкой бюджета (`assertRequestFitsBudget`) и отсев недокументированных вершин рёбер до построения запроса."
           },
-          "fingerprint": "body=26cfcbb8741432e66366b57f413356bd8d6ac0c5eb908e6e34ded82d503a713c"
+          "fingerprint": "body=ec619451e6181ca611ad77ccc27669f6e4f3029b9325308ecd85f41c3ac41b58"
         },
         "changeGuide": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "body=26cfcbb8741432e66366b57f413356bd8d6ac0c5eb908e6e34ded82d503a713c,deps=20f26ba5acd12ff7059503d4dc1441165c10e37524dcfdf451c3c102fc0b5037,usage=9af34f9ad79227bd5ca114f6e952c89e20d4530e1d41801e6419ab9d20bbb519,placement=5785baab2c55de05629f39a0cd62cfceea4756e57064a07e08a27fc7b8dcba3e"
+          "body": "- Провайдер не вызывается на пустом наборе: guard `if (files.length === 0) { throw new CodeloreError(\"NO_DOCUMENTED_FILES\", ...) }` останавливает алгоритм до создания конфигурации провайдера.\n- Запрос не уходит с превышением контекста: `assertRequestFitsBudget(request, provider)` (внутренняя проверка `if (estimatedTokens > maxPromptTokens)`) срабатывает перед `provider.complete(request)`.",
+          "rendered": true,
+          "fingerprint": "body=ec619451e6181ca611ad77ccc27669f6e4f3029b9325308ecd85f41c3ac41b58,deps=20f26ba5acd12ff7059503d4dc1441165c10e37524dcfdf451c3c102fc0b5037,usage=9af34f9ad79227bd5ca114f6e952c89e20d4530e1d41801e6419ab9d20bbb519,placement=5785baab2c55de05629f39a0cd62cfceea4756e57064a07e08a27fc7b8dcba3e",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Два guard'а до LLM: пустой вход бросает `NO_DOCUMENTED_FILES` раньше провайдера, превышение бюджета — `assertRequestFitsBudget` раньше `complete`."
+          }
         }
       },
       "generationHistory": [
@@ -5820,9 +6046,30 @@
           "generatedBlocks": [
             "limitations"
           ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:03:31.554Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.358Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "limitations",
+            "changeGuide"
+          ]
         }
       ],
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.generateDomainDocs": {
       "heading": "CodeloreService.generateDomainDocs",
@@ -5918,26 +6165,26 @@
           "fingerprint": "deps=10375a72931894cbb7401765a31553eb5dcb88e7fcaf0e21cd83734be7f10684"
         },
         "workflows": {
-          "body": "Вызывается из `gatherTierMembers` для каждого идентификатора зависимости, начинающегося с `DOMAIN_ID_PREFIX`, чтобы получить сводку доменного документа.",
+          "body": "- `refreshDomainDocs` вызывает этот метод как последний этап автоматического обновления тира: сначала подготовительные шаги и `prepareDomainDocs`, затем список слагов тиров, и результат `{ generated, droppedBlocks, failed }` возвращается наружу без постобработки.\n- `fixStaleDocs` обращается к методу только когда выделены tier-секции (`domain:<slug>` или `project:`), передаёт `slugs` тиров; возвращённые `failed` и счётчики `generated`/`droppedBlocks` метод заворачивает в запись запуска, поэтому лог запуска показывает работу тира даже когда файловый пайплайн ничего не написал.\n- Оба вызывающих опираются на то, что волны идут листьями вперёд: `fixStaleDocs` обращается к summary зависимых доменов уже после того, как предыдущая волна записала их прозу, поэтому генератор зависимого тира не дёргает провайдер повторно за их содержимым.",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 1,
-            "novelty": 1,
-            "specificity": 1,
-            "novelFact": "Вызывается из `gatherTierMembers` для каждого идентификатора зависимости, начинающегося с `DOMAIN_ID_PREFIX`, чтобы получить сводку доменного документа."
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "refreshDomainDocs получает результат без постобработки, fixStaleDocs заворачивает его в запись запуска, а волны идут листьями вперёд: зависимые домены читают уже записанную прозу."
           },
           "fingerprint": "body=1b2f14b017bb82b3a7b4b08b0e7c13bebddd81772700bb0d0aeb8dc59df164b9,deps=10375a72931894cbb7401765a31553eb5dcb88e7fcaf0e21cd83734be7f10684"
         },
         "limitations": {
-          "body": "Ограничений нет.",
+          "body": "- Работает только при сохранённой карте доменов: `if (!map) throw new CodeloreError(\"NO_DOMAIN_MAP\", ...)` срабатывает до всех обращений к провайдеру, поэтому прямой вызов до построения карты падает исключением; `refreshDomainDocs` заранее проверяет наличие карты и не вызывает метод без неё.\n- Упавший тир не ретраится в этом прогоне: `catch (error)` фиксирует `failed.push({slug: entity.path, ...})` и возвращает `answered: false` — такие блоки не включаются в `unsettled`, и домен перегенеряется в следующий запуск (скелет остаётся на диске).\n- Генерация тиров внутри волны параллельна (`Promise.all` + pLimit), но запись результатов — строго последовательный цикл `for (const { entity, blocks, dropped, answered } of results)`: комментарий в коде требует сериальной персистенции, потому что запись держит общий контекст рендера.",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 1,
-            "novelty": 1,
+            "informativeness": 0.75,
+            "novelty": 0.75,
             "specificity": 1,
-            "novelFact": "Ограничений нет."
+            "novelFact": "Без карты доменов метод бросает NO_DOMAIN_MAP до обращений к LLM, падение тира не ретраится внутри одного запуска, а персист волны всегда идёт последовательно."
           },
           "fingerprint": "body=1b2f14b017bb82b3a7b4b08b0e7c13bebddd81772700bb0d0aeb8dc59df164b9"
         },
@@ -5970,9 +6217,20 @@
             "workflows",
             "limitations"
           ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.365Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "workflows",
+            "limitations"
+          ]
         }
       ],
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.domainDocSummary": {
       "heading": "CodeloreService.domainDocSummary",
@@ -6114,7 +6372,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.collectDocumentedFileLeads": {
       "heading": "CodeloreService.collectDocumentedFileLeads",
@@ -6190,50 +6448,50 @@
           "fingerprint": "signature=b448447764c61d3700f5fdd3f605d603748c27ba5fabc5ef94897ffc798bb901,body=8756bdcac9b6912d1e9e1e42c841d2c069e3eef67b1f57a8e4c7f609b487b0f1"
         },
         "dependencies": {
-          "body": "Использует провайдера LLM для извлечения заголовков из файлов.",
+          "body": "- Перебирает состояния через `this.docStateStorage.listDocStates()` и `this.docStateStorage.loadDocState(docPath)`.\n- Извлекает lead из состояния через `docResponsibilities(state)` из `src/markdown/linkify.ts`; документ без non-empty lead пропускается (`if (!lead) continue`).\n- Путь файла получает через локальный `sourceFilePathOf(entityId)` — ids вида `file:...` отдаёт путь напрямую, `symbol:...#` обрезает до `#`; остальные ids (доменные, проектные) возвращают `undefined` и отбрасываются.\n- Фильтрует результат по входящему индексу кода через `index.code.fileToEntities[filePath]`.",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Зависит от провайдера LLM для извлечения заголовков."
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Lead берётся из docResponsibilities, а пути определяются локальным sourceFilePathOf, при этом файл не попадёт в результат, если его нет в index.code.fileToEntities."
           },
           "fingerprint": "deps=9b47507b4c0845cd3132c59a916942808385268f41ceedf8fc1d2c4d9ea6eac1"
         },
         "workflows": {
-          "body": "Вызывается в начале процесса для сбора заголовков; результаты используются для дальнейшей обработки.",
+          "body": "- `partitionDomainMap` первым делом зовёт метод и, если `files.length === 0`, решает что делить нечего и бросает `NO_DOCUMENTED_FILES`; из полученных путей строится `knownFiles` и рёбра DAG для запроса разбиения.\n- `assignUncoveredFiles` затем для каждого пути подставляет текст lead: файл, уже описанный файлом-доком, отправится с текстом lead в запрос к LLM, файл без lead — с пустой строкой.\n- `detectUncoveredFiles` использует список путей как источник для определения непокрытых файлов: непокрытые файлы становятся предупреждениями с кодом `uncovered_file` результата валидации.",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Вызывается в начале процесса для сбора заголовков."
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "partitionDomainMap бросает NO_DOCUMENTED_FILES при пустом списке, assignUncoveredFiles подставляет lead в запрос с fallback-пустой строкой, а detectUncoveredFiles строит из результата предупреждения о непокрытых файлах."
           },
           "fingerprint": "body=8756bdcac9b6912d1e9e1e42c841d2c069e3eef67b1f57a8e4c7f609b487b0f1,deps=9b47507b4c0845cd3132c59a916942808385268f41ceedf8fc1d2c4d9ea6eac1"
         },
         "limitations": {
-          "body": "Не обрабатывает файлы, у которых отсутствует документация — они пропускаются.",
+          "body": "- «Первый выигрывает» для каждого файла: запись в `Map` ставится только по `!leadByFile.has(filePath)`, поэтому после первого встреченного состояния lead файла больше не меняется — какой из секций одного файла даст lead, определяется порядком `state.sectionOrder`.\n- В результат не попадают файлы, отсутствующие в индексе кода: guard `filePath && index.code.fileToEntities[filePath]` отбрасывает их, даже если они числятся в состоянии дока.\n- Результат не включает тир-секции (domain/project): `sourceFilePathOf` не возвращает для них путь, поэтому такие докумен теряются из списка целиком.",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Ограничение: не обрабатывает файлы без документации."
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Для каждого файла первый реальный lead фиксируется при первом же вхождении (guard !leadByFile.has(filePath)), а файлы без записи в индексе кода и тир-секции вовсе пропускаются."
           },
           "fingerprint": "body=8756bdcac9b6912d1e9e1e42c841d2c069e3eef67b1f57a8e4c7f609b487b0f1"
         },
         "changeGuide": {
-          "body": "Собирает документационные заголовки файлов.",
+          "body": "- Одна запись на файл держится через `!leadByFile.has(filePath)` — изменение «первый выигрывает» возможно только отменив эту проверку.\n- Сортировка рабочего результата задана `.sort((a, b) => a.path.localeCompare(b.path))` — пути выходят в лексикографическом порядке независимо от порядка обхода.\n- Фильтр «документированного индекса» стоит в `filePath && index.code.fileToEntities[filePath]` — убрав эту проверку, в список попадут файлы, которых нет в кодовой стороне индекса.",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
+            "informativeness": 0.75,
             "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Собирает документационные заголовки файлов."
+            "specificity": 0.75,
+            "novelFact": "Внутренние инварианты метода — уникальность файла через !leadByFile.has, лексикографическая сортировка и фильтр по fileToEntities — удерживаются конкретными конструкциями: Map.has-проверкой, sort-колбэком и веткой сfileToEntities."
           },
           "fingerprint": "body=8756bdcac9b6912d1e9e1e42c841d2c069e3eef67b1f57a8e4c7f609b487b0f1,deps=9b47507b4c0845cd3132c59a916942808385268f41ceedf8fc1d2c4d9ea6eac1,usage=8c57cc43103e1a0fa8f80389b2f6b34859a293651beb17746f49792faa5f37b6,placement=ae373d9cd019a681dbd849f20c9d3e5c1634d64d235458fe20d5d55e7ec6e499"
         }
@@ -6263,9 +6521,22 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.371Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
       ],
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.refreshDomainDocs": {
       "heading": "CodeloreService.refreshDomainDocs",
@@ -6523,52 +6794,52 @@
           "fingerprint": "signature=175b022ba10ff8de0a1104df7a8b0a09ca1953cada22fc1fd7b22b776401a60d,body=ec0890aa37b4cca449e21dce0a403ff4073cf92cb069399a1a53d80a8905d2d7"
         },
         "dependencies": {
-          "body": "Использует провайдера LLM, созданного через createConfiguredProvider, для генерации назначений.",
+          "body": "- Считывает и сохраняет карту доменов через storage.\n- Отыскивает непокрытые файлы через `domainCoverage(map, paths)` из `src/domains/domain-map.ts` на основе результата `collectDocumentedFileLeads`.\n- Строит запрос `buildAssignRequest` и разбирает ответ `parseAssignResponse` из `src/domains/assign.ts`.\n- Провайдер для единственного LLM-вызова берёт из `createProviderPair(runtime).verifyProvider`, а исключения фильтрует по коду `INVALID_LLM_RESPONSE` из `src/errors.ts`.",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Зависит от провайдера LLM для генерации назначений."
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Метод опирается только на verify-провайдер через createProviderPair: единственный вызов complete делается verifyProvider, а не writer."
           },
           "fingerprint": "deps=5e1ca722ad0440084c358de77788da2bddcca9d48b044a960c26898a7b15abda"
         },
         "workflows": {
-          "body": "Вызывается из orchestration-слоя после сбора непокрытых файлов; результат передаётся дальше для исполнения.",
+          "body": "- `fixStaleDocs` вызывает метод самым первым с прогресс-строкой «assigning uncovered files and rebuilding tier skeletons»: комментарий поясняет, что раз присваивание записано на диск до расчёта stale, последующая проверка stale в том же запуске заметит смену индексированного членства и перегенерирует принимающий домен, не отлавливая его спустя запуск.\n- `refreshDomainDocs` зовёт метод перед генерацией доменов: получивший файлы домен становится stale из-за смены membership, и последующий расчёт tier-слагов подхватит его для генерации.\n- Метод меняет только карту: сохраняет её с обновлённым `generatedAt`, а создание новых доменов оставляет отдельному шагу — в этом методе их никогда нет.",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Вызывается из orchestration-слоя после сбора непокрытых файлов."
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "fixStaleDocs именно потому вызывает метод первым, что назначение должно быть на диске до расчёта stale — иначе принимающий домен обновится только на следующий запуск."
           },
-          "fingerprint": "body=ec0890aa37b4cca449e21dce0a403ff4073cf92cb069399a1a53d80a8905d2d7,deps=5e1ca722ad0440084c358de77788da2bddcca9d48b044a960c26898a7b15abda"
+          "fingerprint": "body=590e1930ddc8f1eba303a1c1382fa4add2210df447181ef40c091c190a561eae,deps=5e1ca722ad0440084c358de77788da2bddcca9d48b044a960c26898a7b15abda"
         },
         "limitations": {
-          "body": "Не обрабатывает случай, когда список непокрытых файлов пуст — метод завершается без действий.",
+          "body": "- Новых доменов метод не создаёт: `map.domains` остаётся исходным — это только распределение по существующим; создание новой границы домена — отдельный шаг (комментарий «A new domain is never created here»).\n- Ретрай выполнен ровно один: при `INVALID_LLM_RESPONSE` добавляется feedback-сообщение и второй `complete`, но повторный `parseAssignResponse` стоит уже вне try, так что вторая невалидность пробрасывается наружу.\n- При отсутствии `uncovered` или карты метод делает ранний выход без вызовов LLM — это no-op для скоупа, где неприкрытых файлов нет.",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Ограничение: не обрабатывает случай, когда нет непокрытых файлов."
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Метод никогда не создаёт домены (только распределяет в существующие), ретраит невалидный ответ ровно один раз, а при отсутствии uncovered завершается без единого LLM-вызова."
           },
-          "fingerprint": "body=ec0890aa37b4cca449e21dce0a403ff4073cf92cb069399a1a53d80a8905d2d7"
+          "fingerprint": "body=590e1930ddc8f1eba303a1c1382fa4add2210df447181ef40c091c190a561eae"
         },
         "changeGuide": {
-          "body": "Распределяет непокрытые файлы между участниками команды.",
+          "body": "- В файл домена путь попадает не более одного раза: `if (domain && !domain.files.includes(file))` перед добавлением.\n- Список `domain.files` в карте сразу приводится к сортированному виду выражением `domain.files = [...domain.files, file].sort()`.\n- Ретрай ограничен одним: первый parse внутри try, второй `parseAssignResponse(retryCompletion.content, knownFiles, knownSlugs)` — уже за пределами try, поэтому вторая неудача не имеет защитной ветки.",
           "rendered": true,
           "language": "ru",
           "scores": {
             "informativeness": 0.5,
             "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Распределяет непокрытые файлы между участниками команды."
+            "specificity": 0.75,
+            "novelFact": "Инвариантами здесь выступают дедупликация файла через !includes, сортировка files через .sort() и ровно один retry, так как второй раз parse вызывается уже вне try."
           },
-          "fingerprint": "body=ec0890aa37b4cca449e21dce0a403ff4073cf92cb069399a1a53d80a8905d2d7,deps=5e1ca722ad0440084c358de77788da2bddcca9d48b044a960c26898a7b15abda,usage=3f3783c11d464372065144b9e1e17d70ace2f6de7b2399393cf59b2eb2f51605,placement=b69d6baab1c83981110b58a56f046ad6fc13963c7a9a11c48629df6200039daa"
+          "fingerprint": "body=590e1930ddc8f1eba303a1c1382fa4add2210df447181ef40c091c190a561eae,deps=5e1ca722ad0440084c358de77788da2bddcca9d48b044a960c26898a7b15abda,usage=3f3783c11d464372065144b9e1e17d70ace2f6de7b2399393cf59b2eb2f51605,placement=b69d6baab1c83981110b58a56f046ad6fc13963c7a9a11c48629df6200039daa"
         }
       },
       "generationHistory": [
@@ -6596,9 +6867,22 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.378Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
       ],
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.queueUnwrittenBlocks": {
       "heading": "CodeloreService.queueUnwrittenBlocks",
@@ -6834,38 +7118,38 @@
           "fingerprint": "signature=d9b037888b6e314ff27b57607f60a0c7d7e0f720e591569ea4ac8cefe192b724,body=dda054c16be9e2527b9b422602b4898ec47d5fdf6a9a79e63b83b45a253be789"
         },
         "dependencies": {
-          "body": "Использует провайдера LLM для сверки сгенерированной документации с исходным кодом.",
+          "body": "- Делегирует перерисовку `this.docStateStorage.reconcileRenderedDocs()` — источник перечня `updated`.\n- Если перечень непуст, обновляет индекс пачт-каналом через собственный `patchDocIndexForDocs(updated)` (тот дергает `indexManager.patchDocs`).",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
+            "informativeness": 0.75,
             "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Зависит от провайдера LLM для сверки документации."
+            "specificity": 0.75,
+            "novelFact": "Весь результат — это число из DocStateStorage.reconcileRenderedDocs, а сам метод только условно вызывает patchDocIndexForDocs на перечне."
           },
           "fingerprint": "deps=c5f4655db40a5150b4c3b2878acc05858062ccbeff63a0746cfcb42ac3fadcf4"
         },
         "workflows": {
-          "body": "Вызывается после генерации документации для проверки согласованности с кодом.",
+          "body": "- `prepareDomainDocs` вызывает его в конце после сохранения скелетов и пересборки индекса; `generateDomainDocs` — после последней пересборки и stamping-подписей;\n- `fixStaleDocs` — после файлового пайплайна и тир-генерации, и перед финальной проверкой каскада зависимых доков;\n- `generateDocsForScope` — после файлового пайплайна и перевода скоупа, но прежде общего обновления доменов.\n- Общий паттерн вызова: каждый из этих методов ставит его в конец своего прохода, чтобы доки, созданные в поздних шагах, имели финальный .md раньше, чем патчится индекс: рано перерисованный док ещё не видит зависимых доков этого же прогона.",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Вызывается после генерации документации для проверки согласованности."
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Каждый вызов приходит из конца прохода (prepareDomainDocs, generateDomainDocs, fixStaleDocs, generateDocsForScope), чтобы ссылки сходились после того как все доки прогона уже на диске."
           },
           "fingerprint": "body=dda054c16be9e2527b9b422602b4898ec47d5fdf6a9a79e63b83b45a253be789,deps=c5f4655db40a5150b4c3b2878acc05858062ccbeff63a0746cfcb42ac3fadcf4"
         },
         "limitations": {
-          "body": "Не обрабатывает случаи, когда документация полностью совпадает с кодом — пропускает такие файлы.",
+          "body": "- У метода нет параметров, поэтому ограниченая выборочная пере-присота невозможна: он всегда спрашивает весь `docStateStorage` целиком (`reconcileRenderedDocs(): Promise<void>` без аргументов), и вызвающий не может исключить из обработки один док.\n- Патч индекса выполняется только когда перерисование действительно что-то вернуло: `if (updated.length > 0)` — при полностью свежем состоянии метод не трогает индекс, а принудительной пере-генерации здесь не предусмотрено.",
           "rendered": true,
           "language": "ru",
           "scores": {
             "informativeness": 0.5,
             "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Ограничение: не обрабатывает случаи, когда документация полностью совпадает."
+            "specificity": 0.75,
+            "novelFact": "reconcileRenderedDocs лишён параметров (обрабатывает все доки сразу), и патч индекса проходит только в ветке if (updated.length > 0)."
           },
           "fingerprint": "body=dda054c16be9e2527b9b422602b4898ec47d5fdf6a9a79e63b83b45a253be789"
         }
@@ -6894,15 +7178,27 @@
             "workflows",
             "limitations"
           ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.385Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
         }
       ],
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.createProviderPair": {
       "heading": "CodeloreService.createProviderPair",
       "depth": 1,
       "anchor": "codeloreservicecreateproviderpair",
-      "signature": "CodeloreService.createProviderPair(runtime: { providerName?: string; env: NodeJS.ProcessEnv; fetch?: typeof fetch }): {\n    provider: ChatCompletionProvider;\n    verifyProvider: ChatCompletionProvider;\n  }",
+      "signature": "CodeloreService.createProviderPair(runtime: {\n    providerName?: string;\n    env: NodeJS.ProcessEnv;\n    fetch?: typeof fetch;\n    onProgress?: (message: string) => void;\n  }): {\n    provider: ChatCompletionProvider;\n    verifyProvider: ChatCompletionProvider;\n  }",
       "owns": [
         "symbol:src/service/codelore-service.ts#CodeloreService.createProviderPair"
       ],
@@ -6937,40 +7233,40 @@
       ],
       "blocks": {
         "purpose": {
-          "body": "Метод создает пару провайдеров для генерации и проверки документации, используя конфигурацию сервиса.",
+          "body": "Даёт вызывающим два провайдера — писателя и верификатора — так, чтобы факт-чекинг уходил на отдельный, обычно более дешёвый провайдер из конфигурации, а принудительный `runtime.providerName` отменял это расщепление и использовал одну модель для всего.",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Метод создает пару провайдеров для генерации и проверки документации, используя конфигурацию сервиса."
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Принудительный `runtime.providerName` отменяет расщепление — оба возвращаемых поля указывают на один и тот же экземпляр; отдельный верификатор рождается только при `config.llm.verifyProvider` и отсутствии принудительного имени."
           },
-          "fingerprint": "signature=daa52fb9e05e3c44475346830d9d0ca3e9cf3f93566c9a99d6cb303ececa69fc,placement=1307fdad0f949cdeae0afec62cbd2d3e0f86c98e03d3e4e24f87df597bf05e1e"
+          "fingerprint": "signature=20ad94ab3a67e617fde3c5e338b41bcb1415c623f9645ee1e2a7eeee14aeef83,placement=1307fdad0f949cdeae0afec62cbd2d3e0f86c98e03d3e4e24f87df597bf05e1e"
         },
         "responsibility": {
-          "body": "- Создает основной провайдер, вызывая `createConfiguredProvider` с конфигурацией `primary`.\n- Создает проверочный провайдер, вызывая `createConfiguredProvider` с конфигурацией `verify`, если она задана.\n- Возвращает объект с полями `primary` и `verify`.",
+          "body": "- Создаёт писателя `provider` через `createConfiguredProvider` с именем `runtime.providerName` и общим `providerRuntime` из `env`, `fetch` и `callReporter(runtime.onProgress)`.\n- Заводит верификатор отдельным экземпляром только при `config.llm.verifyProvider` и при отсутствии `runtime.providerName`; во всех остальных случаях `verifyProvider` — это тот же объект, что и `provider`.\n- Подключает телеметрию `onCall` к обоим провайдерам: репортер превращает длительность, объём промпта, токены вывода и ошибку вызова в одну progress-строку.",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
+            "informativeness": 0.75,
             "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "- Создает основной провайдер, вызывая `createConfiguredProvider` с конфигурацией `primary`."
+            "specificity": 0.75,
+            "novelFact": "Верификатор создаётся отдельным экземпляром только когда `config.llm.verifyProvider` задан и `runtime.providerName` отсутствует; принудительное имя провайдера заставляет оба поля быть одним объектом."
           },
-          "fingerprint": "signature=daa52fb9e05e3c44475346830d9d0ca3e9cf3f93566c9a99d6cb303ececa69fc,deps=ea2177c98aab623d9dc265a1ea87020835363ee99d954bf187f9ecbc1a499745,usage=77409e7c8c0174f6e522a30fb162d3d6fdad23de93bf01ec896c819084051f97"
+          "fingerprint": "signature=20ad94ab3a67e617fde3c5e338b41bcb1415c623f9645ee1e2a7eeee14aeef83,deps=ea2177c98aab623d9dc265a1ea87020835363ee99d954bf187f9ecbc1a499745,usage=77409e7c8c0174f6e522a30fb162d3d6fdad23de93bf01ec896c819084051f97"
         },
         "invariants": {
-          "body": "Метод возвращает объект с двумя свойствами: `primary` и `verify`, каждое из которых является экземпляром провайдера. При вызове с конфигурацией, в которой `verify` не задан, свойство `verify` будет равно `undefined`. Метод не изменяет состояние сервиса и не имеет побочных эффектов. Метод не проверяет корректность переданной конфигурации и полагается на `createConfiguredProvider` для создания провайдеров.",
+          "body": "- При заданном `runtime.providerName` возвращается один экземпляр: условие `verifyName && !runtime.providerName` не выполняется, и `verifyProvider` присваивается ровно тот же `provider`.\n- При отсутствии `runtime.providerName` и заданном `config.llm.verifyProvider` возвращаются два разных экземпляра — только в этой комбинации пара может различаться.\n- Метод ничего не пишет: не трогает конфиг, хранилище или индексы, а только собирает провайдеры из переданного рантайма и конфигурации, поэтому повторный вызов даёт параллельные независимые объекты.",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Метод возвращает объект с двумя свойствами: `primary` и `verify`, каждое из которых является экземпляром провайдера."
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Поля `provider` и `verifyProvider` могут тождественно совпадать: это происходит всегда, когда задан `runtime.providerName`, или когда `verifyProvider` не настроен в конфиге; только непровезание обоих условий ведёт пару двух отдельных провайдеров."
           },
-          "fingerprint": "signature=daa52fb9e05e3c44475346830d9d0ca3e9cf3f93566c9a99d6cb303ececa69fc,body=3c9507b9413b457cbc9ffbaf0671acbca21e87198e5559bd314765dde8e39410"
+          "fingerprint": "signature=20ad94ab3a67e617fde3c5e338b41bcb1415c623f9645ee1e2a7eeee14aeef83,body=e251fa34c0326a6a94a59353241a3bff33d95dd8cee71e6598fb93ac187f9019"
         },
         "dependencies": {
           "body": "Использует createConfiguredProvider для создания двух провайдеров.",
@@ -6985,40 +7281,40 @@
           "fingerprint": "deps=ea2177c98aab623d9dc265a1ea87020835363ee99d954bf187f9ecbc1a499745"
         },
         "workflows": {
-          "body": "Вызывается при инициализации сервиса для подготовки провайдеров.",
+          "body": "- `runPipelineForSections` получает пару в начале и передаёт оба провайдера в обработку файловых групп на фазы `propagating` и `terminal` — writer генерирует текст, verify-провайдер проверяет факты на каждой фазе.\n- `generateDomainDocs` отдаёт пару в генерацию тир-доков: writer пишет раздел тира, verify-провайдер сверяет блоки против member evidence.\n- `assignUncoveredFiles` и `gateDepDocsCascade` берут только `verifyProvider` — один «дешёвый» LLM-вызов для классификации файла в домен и для чистого факт-чека против dependency docs (комментарий кода: picking a domain from a fixed list is classification, не phase-переход).\n- Прогресс-репортер подключается ко всем созданным инстансам через один `callReporter(runtime.onProgress)` в общем `providerRuntime`.",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Вызывается при инициализации сервиса."
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Файловый пайплайн и generateDomainDocs пользуются обоими провайдерами, а assignUncoveredFiles и gate берут только verify: так дешёвая модель используется для классификации и факт-чека."
           },
-          "fingerprint": "body=3c9507b9413b457cbc9ffbaf0671acbca21e87198e5559bd314765dde8e39410,deps=ea2177c98aab623d9dc265a1ea87020835363ee99d954bf187f9ecbc1a499745"
+          "fingerprint": "body=e251fa34c0326a6a94a59353241a3bff33d95dd8cee71e6598fb93ac187f9019,deps=ea2177c98aab623d9dc265a1ea87020835363ee99d954bf187f9ecbc1a499745"
         },
         "limitations": {
-          "body": "Не проверяет корректность конфигурации провайдеров — предполагается, что она валидна.",
+          "body": "- При заданном `runtime.providerName` полностью выключен отдельный verify: условие `verifyName && !runtime.providerName` ложно, `verifyProvider` становится тем же объектом, что и в ролях, поэтому «дешёвый» факт-чек силами `thin` модели в этом режиме недоступен.\n- Без `onProgress` у рантайма канал телемерии отключается целиком: `callReporter(runtime.onProgress)` при undefined возвращает `{}` (`if (!onProgress) return {}`), и ни один провайдер не получит `onCall`.",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Ограничение: не проверяет конфигурацию провайдеров."
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Принуждение `--provider` оставляет один экземпляр на оба ро aliasing — verifyName игнорируется; при отсутствии onProgress телеметрия вообще не подключается."
           },
-          "fingerprint": "body=3c9507b9413b457cbc9ffbaf0671acbca21e87198e5559bd314765dde8e39410"
+          "fingerprint": "body=e251fa34c0326a6a94a59353241a3bff33d95dd8cee71e6598fb93ac187f9019"
         },
         "changeGuide": {
-          "body": "Создаёт пару провайдеров для разных задач.",
+          "body": "- Условие «разделять только без принудительного провайдера» заковано в выражении `verifyName && !runtime.providerName ? createConfiguredProvider(this.config, verifyName, providerRuntime) : provider`.\n- Тот же runtime-богат: `const providerRuntime = { env: runtime.env, fetch: runtime.fetch, ...callReporter(runtime.onTwelve) }` — `env`, `fetch` и репортер прокидываются в любой созданный экземпляр единым объектом.",
           "rendered": true,
           "language": "ru",
           "scores": {
             "informativeness": 0.5,
             "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Создаёт пару провайдеров для разных задач."
+            "specificity": 0.75,
+            "novelFact": "Разделителей принудительный providerName (тернарник verifyName && !runtime.providerName), а общие env/fetch/reporter задаются одним объектом providerRuntime, который идет в оба вызова createConfiguredProvider."
           },
-          "fingerprint": "body=3c9507b9413b457cbc9ffbaf0671acbca21e87198e5559bd314765dde8e39410,deps=ea2177c98aab623d9dc265a1ea87020835363ee99d954bf187f9ecbc1a499745,usage=77409e7c8c0174f6e522a30fb162d3d6fdad23de93bf01ec896c819084051f97,placement=1307fdad0f949cdeae0afec62cbd2d3e0f86c98e03d3e4e24f87df597bf05e1e"
+          "fingerprint": "body=e251fa34c0326a6a94a59353241a3bff33d95dd8cee71e6598fb93ac187f9019,deps=ea2177c98aab623d9dc265a1ea87020835363ee99d954bf187f9ecbc1a499745,usage=77409e7c8c0174f6e522a30fb162d3d6fdad23de93bf01ec896c819084051f97,placement=1307fdad0f949cdeae0afec62cbd2d3e0f86c98e03d3e4e24f87df597bf05e1e"
         }
       },
       "generationHistory": [
@@ -7046,9 +7342,33 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:03:31.561Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.391Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
       ],
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.restoreKeptBlocks": {
       "heading": "CodeloreService.restoreKeptBlocks",
@@ -7125,50 +7445,50 @@
           "fingerprint": "signature=7e52ba601e256894c92ab7849582aac8ef8da294e5ed908f3379f56f0304598f,body=ae0148e1d1c9b448cf4a88335468df0cdce300370ce0b5dbc968bdd7393a3cdb"
         },
         "dependencies": {
-          "body": "Метод использует this.docStateStorage и this.config, а также функции normalizeGeneratedRewrite, groupRewritesByDoc, applyRewritesToDoc, patchDocIndexForDocs и класс CodeloreError.",
+          "body": "- Группирует входные записи по док-путям через `groupBy` из `src/service/helpers.ts`.\n- Путь для записи ищет в текущем индексе: `index.docs.sections[entry.sectionId]?.docPath` после `loadOrRebuildIndexes()`.\n- Вычисляет свежий отпечаток блока по коду через `computeBlockFingerprint` из `src/markdown/block-facets.ts`.\n- Читает и пишет состояния через storage состояний.",
           "rendered": true,
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.75,
+            "novelty": 0.5,
             "specificity": 0.75,
-            "novelFact": "Метод использует this.docStateStorage и this.config, а также функции normalizeGeneratedRewrite, groupRewritesByDoc, applyRewritesToDoc, patchDocIndexForDocs и класс CodeloreError."
+            "novelFact": "Для расчёта отпечатка нужен индекс (loadOrRebuildIndexes + computeBlockFingerprint), а пути группируются groupBy перед загрузкой состояний."
           },
           "fingerprint": "deps=a56adbf33a9f788ef29b9edc4cbafebb8509aa65ab2ca5cd3ced8d932fe0108a"
         },
         "workflows": {
-          "body": "Метод вызывается извне сервиса для перезаписи секций. При пустом входе сразу возвращает пустой результат. При дубликате sectionId выбрасывает ошибку. Затем загружает или пересобирает индексы, нормализует входные данные, группирует по документам, применяет правки к каждому документу и обновляет индекс документации.",
+          "body": "- `applyFileGenerationOutcome` вызывает метод после того, как для каждого kept-блока выставил `review_needed`, а затем ещё отмечает незаписанные блоки: сохранённый текст возвращается на экран, но секция остаётся отмеченной — «может быть устаревшим» живёт именно здесь.\n- `generateDomainDocs` собирает `unsettled` — блоки, по которым writer ответил в волне, но текст не пришлось на место (включая «ничего»), — и после одной волны вызывает `restoreKeptBlocks(unsettled)` и отмечает незаписанные блоки.\n- Оба вызова опираются на то, что tombstone поднялся в том же запуске: ответ writer-отказ означает отложенный retain, а текст берётся из state, где он до сих пор лежит.",
           "rendered": true,
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Метод вызывается извне сервиса для перезаписи секций. При пустом входе сразу возвращает пустой результат. При дубликате sectionId выбрасывает ошибку. Затем загружает или пересобирает индексы, нормализует входные данные, группирует по документам, применяет правки к каждому документу и обновляет индекс документации."
+            "novelFact": "Файловый пайплайн (applyFileGenerationOutcome) и тир-волны (generateDomainDocs) сначала ставят review_needed, потом зовут restoreKeptBlocks — отказное содержимое остаётся на экране, но секция продолжает быть review_needed."
           },
           "fingerprint": "body=ae0148e1d1c9b448cf4a88335468df0cdce300370ce0b5dbc968bdd7393a3cdb,deps=a56adbf33a9f788ef29b9edc4cbafebb8509aa65ab2ca5cd3ced8d932fe0108a"
         },
         "limitations": {
-          "body": "Метод не обрабатывает пустой массив sections — он возвращает пустой результат без побочных эффектов. Также он не допускает дубликатов sectionId — выбрасывает CodeloreError. Для секций, не найденных в индексе, docPath возвращается как пустая строка.",
+          "body": "- Блоки без поднятого tombstone игнорируются: guard `!sectionState || !block || block.staleSince === undefined` переводит такой запрос в `continue` — повторная передача уже распакованного блока ничего не делает.\n- Записи ба без документа в текущем индексе отсекаются до работы: `.filter((entry) => entry.docPath !== \"\")` — если `index.docs.sections` не знает sectionId, пара не будет перерисовываться.\n- Свежий fingerprint записывается только если его удалось вычислить: `if (fingerprint !== undefined) { block.fingerprint = fingerprint; }` — stale-флаги снимутся и без него, но отпечаток может остаться старым.",
           "rendered": true,
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Метод не обрабатывает пустой массив sections — он возвращает пустой результат без побочных эффектов. Также он не допускает дубликатов sectionId — выбрасывает CodeloreError. Для секций, не найденных в индексе, docPath возвращается как пустая строка."
+            "novelFact": "Восстанавливаются только на-вhabilированные блоки (guard staleSince === undefined), записи без docPath отсекаются, а fingerprint ставится лишь при удачном result computeBlockFingerprint."
           },
           "fingerprint": "body=ae0148e1d1c9b448cf4a88335468df0cdce300370ce0b5dbc968bdd7393a3cdb"
         },
         "changeGuide": {
-          "body": "Метод восстанавливает сохранённые блоки в секциях документации после перезаписи.",
+          "body": "- Тройное очищение stale-свойств в одном месте: `block.staleSince = undefined; block.staleReason = undefined; block.staleFacets = undefined;`.\n- Состояние перерисовывается один раз на док за вызов: `let mutated = false` + `if (mutated) { await this.docStateStorage.renderAndPersist(state); }` — объединяет записи многих блоков одного doc в один рендер.\n- Отсутствующее в индексе закрывается фильтром `entry.docPath !== \"\"` до группировки — тихий cherry-pick для tier-секций, у которых в этот прогон нет пути.",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 0.75,
-            "novelty": 0.75,
+            "informativeness": 0.5,
+            "novelty": 0.5,
             "specificity": 0.75,
-            "novelFact": "Метод восстанавливает сохранённые блоки в секциях документации после перезаписи."
+            "novelFact": "Свежие инварианты: три stale-пол затачиваются совместно, персист одного дока производится максимум раз через мутирующий переключатель, а пустые docPath исключаются ещё до groupBy."
           },
           "fingerprint": "body=ae0148e1d1c9b448cf4a88335468df0cdce300370ce0b5dbc968bdd7393a3cdb,deps=a56adbf33a9f788ef29b9edc4cbafebb8509aa65ab2ca5cd3ced8d932fe0108a,usage=8fe1a3fb0e8ed4cb26b14035d3cb6096dc09ee272027bd551f74f3e288a93921,placement=58fc2d0efe96d904222888e3380883d5769dc8aa504ba0d782f936fca382ea0d"
         }
@@ -7198,9 +7518,22 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.398Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
       ],
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.stampUnwrittenBlocks": {
       "heading": "CodeloreService.stampUnwrittenBlocks",
@@ -7277,50 +7610,50 @@
           "fingerprint": "signature=0b0f8f00e63f550d0f1e1e425ad320cdc706abbc7fefda041e6635d7f1d345fe,body=0c839bfc7a154241b457fbb559c1ed1fb6336be9fd06ff0bc2864a4a1948d724"
         },
         "dependencies": {
-          "body": "Метод использует this.docStateStorage и this.config, а также функции normalizeGeneratedRewrite, groupRewritesByDoc, applyRewritesToDoc, patchDocIndexForDocs и класс CodeloreError.",
-          "rendered": true,
+          "body": "Метод использует `this.loadOrRebuildIndexes()` для получения актуального индекса, `groupBy` из `./helpers.js` для группировки записей по docPath, `computeBlockFingerprint` из `../markdown/block-facets.js` для вычисления отпечатка блока, а также `this.docStateStorage.loadDocState` и `this.docStateStorage.renderAndPersist` для чтения и сохранения состояния документа.",
+          "rendered": false,
           "language": "ru",
           "scores": {
-            "informativeness": 0.75,
-            "novelty": 0.75,
+            "informativeness": 0.5,
+            "novelty": 0.25,
             "specificity": 0.75,
-            "novelFact": "Метод использует this.docStateStorage и this.config, а также функции normalizeGeneratedRewrite, groupRewritesByDoc, applyRewritesToDoc, patchDocIndexForDocs и класс CodeloreError."
+            "novelFact": "Метод полагается на computeBlockFingerprint для вычисления отпечатка блока."
           },
           "fingerprint": "deps=c085ca40dbd8e8f850900f4840b3a720b493a5ddbff0d0e3282dedbd775ea59b"
         },
         "workflows": {
-          "body": "Метод вызывается извне сервиса для перезаписи секций. При пустом входе сразу возвращает пустой результат. При дубликате sectionId выбрасывает ошибку. Затем загружает или пересобирает индексы, нормализует входные данные, группирует по документам, применяет правки к каждому документу и обновляет индекс документации.",
+          "body": "Метод вызывается из `applyFileGenerationOutcome` и из `generateDomainDocs` (в конце обработки волны для `unsettled`) — оба передают массив блоков, которые писатель отказался записывать. Метод загружает индекс, сопоставляет каждую запись с docPath, группирует по документам, для каждого блока с пустым телом вычисляет отпечаток и записывает его в состояние, затем рендерит и сохраняет изменённый документ. Благодаря этому на следующем запуске сохранённый отпечаток позволяет не запрашивать блок повторно, пока не изменится документируемый код.",
           "rendered": true,
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.75,
+            "novelty": 0.5,
             "specificity": 0.75,
-            "novelFact": "Метод вызывается извне сервиса для перезаписи секций. При пустом входе сразу возвращает пустой результат. При дубликате sectionId выбрасывает ошибку. Затем загружает или пересобирает индексы, нормализует входные данные, группирует по документам, применяет правки к каждому документу и обновляет индекс документации."
+            "novelFact": "Штамповка отпечатка на отказанных блоках останавливает их повторный запрос на последующих запусках."
           },
           "fingerprint": "body=0c839bfc7a154241b457fbb559c1ed1fb6336be9fd06ff0bc2864a4a1948d724,deps=c085ca40dbd8e8f850900f4840b3a720b493a5ddbff0d0e3282dedbd775ea59b"
         },
         "limitations": {
-          "body": "Метод не обрабатывает пустой массив sections — он возвращает пустой результат без побочных эффектов. Также он не допускает дубликатов sectionId — выбрасывает CodeloreError. Для секций, не найденных в индексе, docPath возвращается как пустая строка.",
+          "body": "Метод обрабатывает только блоки с пустым телом: блоки с непустым `body.trim()` пропускаются. Если `computeBlockFingerprint` возвращает `undefined`, блок остаётся без отпечатка. Если для документа нет сохранённого состояния, метод пропускает весь документ. Записи без определённого `docPath` (пустая строка) отфильтровываются до группировки.",
           "rendered": true,
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.75,
+            "novelty": 0.5,
             "specificity": 0.75,
-            "novelFact": "Метод не обрабатывает пустой массив sections — он возвращает пустой результат без побочных эффектов. Также он не допускает дубликатов sectionId — выбрасывает CodeloreError. Для секций, не найденных в индексе, docPath возвращается как пустая строка."
+            "novelFact": "Штампуются только блоки с пустым телом; непустые пропускаются."
           },
           "fingerprint": "body=0c839bfc7a154241b457fbb559c1ed1fb6336be9fd06ff0bc2864a4a1948d724"
         },
         "changeGuide": {
-          "body": "Метод помечает блоки, которые не были записаны, как необработанные.",
+          "body": "- Инвариант: пустой блок получает отпечаток только если его тело пусто; конструкция `block.body.trim() !== \"\"` в условии `if (!sectionState || !block || block.body.trim() !== \"\")`.\n- Инвариант: блок без вычислимого отпечатка не штампуется; конструкция `if (fingerprint === undefined) { continue; }`.\n- Инвариант: пустой список записей завершает метод без побочных эффектов; конструкция `if (unwritten.length === 0) { return; }`.",
           "rendered": true,
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.75,
+            "novelty": 0.5,
             "specificity": 0.75,
-            "novelFact": "Метод помечает блоки, которые не были записаны, как необработанные."
+            "novelFact": "Инвариант пустого тела контролируется условием block.body.trim() !== ''."
           },
           "fingerprint": "body=0c839bfc7a154241b457fbb559c1ed1fb6336be9fd06ff0bc2864a4a1948d724,deps=c085ca40dbd8e8f850900f4840b3a720b493a5ddbff0d0e3282dedbd775ea59b,usage=2fa745c2b5e1a9eac6c7e57340d479e4c89ae70a3ac837953ab1a782eb6f477e,placement=027bcc13dccd0a69094aec2256818316f111853062955184dc795ca4f395acb7"
         }
@@ -7350,9 +7683,22 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.405Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
       ],
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     }
   },
   "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"

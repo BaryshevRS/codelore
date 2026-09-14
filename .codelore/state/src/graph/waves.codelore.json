@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/graph/waves.codelore.md",
-  "generatedAt": "2026-09-13T23:13:44.451Z",
+  "generatedAt": "2026-09-14T13:03:31.612Z",
   "sectionOrder": [
     "file:src/graph/waves.ts",
     "symbol:src/graph/waves.ts#dependencyWaves",
@@ -56,9 +56,16 @@
           "fingerprint": "signature=0f8d07ebd5c6523c417b0dd3481b33cef8d1da22d8ff3eea5c920dbfc6898454,deps=160eda62563635b7175b51e4cc60f10bb6f956f5d28c8378ec491bd34216c11a,usage=160eda62563635b7175b51e4cc60f10bb6f956f5d28c8378ec491bd34216c11a"
         },
         "invariants": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "signature=0f8d07ebd5c6523c417b0dd3481b33cef8d1da22d8ff3eea5c920dbfc6898454,body=9fac1299377c629ed0da004d1e36d64eb2fe4365b57d96fba86fd1489e538f95"
+          "body": "Обе функции принимают scope как ReadonlySet<string> и граф как Map<string, Set<string>>; узлы вне scope игнорируются, а рёбра к узлам вне scope отбрасываются ещё до обхода. stronglyConnectedComponents возвращает компоненты в порядке завершения алгоритма Тарьяна, каждый компонент — массив имён узлов; для ациклического графа каждая компонента состоит ровно из одного узла. dependencyWaves возвращает массив волн, где уровень группы равен максимуму уровней зависимых групп плюс один, и группы одного уровня образуют волну; внутри волны группы отсортированы по первому элементу, а элементы каждой группы — по алфавиту. Пустой scope даёт пустой массив волн. Циклические зависимости не теряются: все узлы одного цикла попадают в одну группу и, следовательно, в одну волну.",
+          "rendered": true,
+          "fingerprint": "signature=0f8d07ebd5c6523c417b0dd3481b33cef8d1da22d8ff3eea5c920dbfc6898454,body=a56a8aab4e701b8b245c176766ce5051da029681ae66136e676c9d014a2cf808",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "dependencyWaves помещает все узлы одного цикла в одну группу и в одну волну, а внутри волны сортирует группы по первому элементу, а элементы группы — по алфавиту."
+          }
         },
         "limitations": {
           "body": "The module only groups files that are in scope; files outside the scope are ignored.",
@@ -93,6 +100,16 @@
           "model": "deepseek-v4-flash",
           "generatedBlocks": [
             "limitations"
+          ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:03:31.612Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "invariants"
           ]
         }
       ],

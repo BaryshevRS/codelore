@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "docs/domains/stale-blocks-detection.codelore.md",
-  "generatedAt": "2026-09-14T09:37:11.390Z",
+  "generatedAt": "2026-09-14T13:12:16.592Z",
   "sectionOrder": [
     "domain:stale-blocks-detection"
   ],
@@ -20,7 +20,8 @@
         "domain:service-helpers"
       ],
       "usedBy": [
-        "domain:codelore-service-facade"
+        "domain:codelore-service-facade",
+        "domain:doc-state-consistency"
       ],
       "status": "normal",
       "allowedBlocks": [],

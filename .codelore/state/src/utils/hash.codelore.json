@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/utils/hash.codelore.md",
-  "generatedAt": "2026-09-13T19:32:57.145Z",
+  "generatedAt": "2026-09-14T13:03:31.604Z",
   "sectionOrder": [
     "symbol:src/utils/hash.ts#sha256"
   ],
@@ -23,6 +23,7 @@
         "symbol:src/domains/member-evidence.ts#domainMemberFingerprint",
         "symbol:src/indexer/domain-entities.ts#buildDomainEntities",
         "symbol:src/llm/file-pipeline.ts#dependencyDocsFingerprint",
+        "symbol:src/markdown/block-facets.ts#legacyBodyHash",
         "symbol:src/markdown/block-facets.ts#translationSourceFingerprint"
       ],
       "status": "normal",
@@ -53,14 +54,14 @@
           }
         },
         "responsibility": {
-          "body": "- Передаёт вычисление хеша модулю `node:crypto`, последовательно вызывая `createHash`, `update` и `digest`.\n- Принимает произвольную строку без предварительной обработки; вызывающая сторона отвечает за то, что именно хешировать.",
+          "body": "- Вычисляет SHA-256-хеш переданной строки одной цепочкой вызовов `node:crypto` — `createHash(\"sha256\").update(input).digest(\"hex\")` — и возвращает готовый hex-дигест.\n- Передаёт строку в хеш-функцию без предварительной обработки: без трима, нормализации и изменения кодировки; какие именно байты попадут под хеш, полностью определяет вызывающий код.",
           "rendered": true,
-          "fingerprint": "signature=663368dc8901a56350f70615ca13f98b4b041a900fde69709027a4d64a562659,deps=41bc28493d395cd38336d099925f62edb706d7a98e117e3da8fbee14ef3128dd,usage=43f9f8bbd70c5f7ec8dcb78696700bee68d21253f9da13147a2c6c29735d88c8",
+          "fingerprint": "signature=663368dc8901a56350f70615ca13f98b4b041a900fde69709027a4d64a562659,deps=41bc28493d395cd38336d099925f62edb706d7a98e117e3da8fbee14ef3128dd,usage=7d692bf51c6cfc447f479717363816c4cb9a884f8f0810669ad46d5ed11b1019",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Не выполняет нормализацию или проверку входных данных."
+            "novelFact": "Передаёт строку в хеш без какой-либо предварительной обработки — вызывающий код полностью определяет, какие байты попадут под хеш."
           },
           "language": "ru"
         },
@@ -145,6 +146,16 @@
           "command": "update",
           "provider": "aitunnel",
           "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:03:31.603Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
           "generatedBlocks": [
             "responsibility"
           ]

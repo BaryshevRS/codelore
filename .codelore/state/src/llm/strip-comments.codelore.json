@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/llm/strip-comments.codelore.md",
-  "generatedAt": "2026-06-19T16:25:56.898Z",
+  "generatedAt": "2026-09-14T13:12:14.146Z",
   "sectionOrder": [
     "symbol:src/llm/strip-comments.ts#stripComments"
   ],
@@ -15,6 +15,7 @@
       ],
       "depends": [],
       "usedBy": [
+        "file:src/indexer/code-indexer.ts",
         "file:src/llm/file-chunks.ts",
         "file:src/llm/file-pipeline.ts",
         "file:src/llm/type-context.ts",
@@ -53,15 +54,16 @@
           }
         },
         "responsibility": {
-          "body": "- Не заменяет лексер — использует `ts.createScanner` для токенизации.\n- Не обрабатывает JSX (выбран `LanguageVariant.Standard`).\n- Разрешает неоднозначность деления и регулярного выражения через контекст предыдущего значимого токена.\n- Нормализует пробелы: удаляет концевые пробелы строк и схлопывает три и более перевода строки в два.",
+          "body": "- Сканирует исходник через `ts.createScanner` и восстанавливает текст из срезов исходного кода, пропуская одно- и многострочные комментарии — остальные токены попадают в результат без изменений.\n- Разрешает неоднозначность косой черты: когда предыдущий значимый токен не входит в `DIVISION_CONTEXT_TOKENS`, вызывает `scanner.reScanSlashToken()`, чтобы трактовать слэш как начало регулярного выражения; пробелы и переводы строк при этом не обновляют «предыдущий значимый токен».\n- Нормализует пробелы в результате: обрезает концевые пробелы строк и схлопывает три и более перевода строки в два.",
           "rendered": true,
-          "fingerprint": "signature=c992563b21f81bfd4dd841348acfe618bab1ecd433ae3ab5b2dca7c6ea4c3617,deps=7466ce0cd418915812a93df65e188bbae8303875a6669caa09eed5d790c401c4,usage=d495b422c7e5ba1867ac7219f453dfc88dce4921294d369e9b02636c0a41680e",
+          "fingerprint": "signature=c992563b21f81bfd4dd841348acfe618bab1ecd433ae3ab5b2dca7c6ea4c3617,deps=7466ce0cd418915812a93df65e188bbae8303875a6669caa09eed5d790c401c4,usage=cd80d369b057afa2545a25e1ee0d7334eb842a64a33aa77b7dfa426e1289b7e6",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Функция не заменяет лексер, а использует `ts.createScanner` для токенизации, не обрабатывает JSX, разрешает неоднозначность деления и регулярного выражения через контекст предыдущего значимого токена, нормализует пробелы."
-          }
+            "novelFact": "Слэш трактуется как начало регулярного выражения, когда предыдущий значимый токен не входит в DIVISION_CONTEXT_TOKENS, и пересканируется через scanner.reScanSlashToken()."
+          },
+          "language": "ru"
         },
         "invariants": {
           "body": "- Никогда не бросает исключений — при любой строке возвращает новую строку.\n- Все одно- и многострочные комментарии удалены.\n- Нормализация пробелов сохраняет логическую структуру (количество строк может уменьшиться из-за схлопывания).",
@@ -108,15 +110,16 @@
           }
         },
         "changeGuide": {
-          "body": "- Изменение набора `DIVISION_CONTEXT_TOKENS` — инвариант, закреплённый в строгом перечислении токенов (`ts.SyntaxKind.Identifier` … `ts.SyntaxKind.MinusMinusToken`), проверять в `planWriterChunks`, `collectTypeContext` и обоих вызовах из `file-pipeline.ts`.",
+          "body": "- Разрешение слэша: инвариант — слэш становится началом регулярного выражения только когда предыдущий значимый токен отсутствует или не входит в `DIVISION_CONTEXT_TOKENS`; закреплён условием `previousSignificant === undefined || !DIVISION_CONTEXT_TOKENS.has(previousSignificant)`, при котором вызывается `scanner.reScanSlashToken()`. Изменение набора токенов напрямую меняет, где слэш читается как деление, а где как начало регэкспа.\n- Нормализация пробелов: инвариант — в результате нет концевых пробелов в строках и троек переводов строк подряд; закреплён цепочкой `result.replace(/[ \\t]+$/gm, \"\").replace(/\\n{3,}/g, \"\\n\\n\")`. Правка любого из регулярных выражений меняет выдаваемые строки и их длину.\n- «Предыдущий значимый токен»: инвариант — пробелы и переводы строк не переопределяют контекст следующего слэша; закреплён условием `if (token !== ts.SyntaxKind.WhitespaceTrivia && token !== ts.SyntaxKind.NewLineTrivia) { previousSignificant = token; }`. Добавление других типов токенов в исключение изменит, какие токены считаются значимыми для интерпретации слэша.",
           "rendered": true,
-          "fingerprint": "body=d768567f5384f36c4403a1abd1754f83608ccd056879d8f75a65d25303d5a04f,deps=7466ce0cd418915812a93df65e188bbae8303875a6669caa09eed5d790c401c4,usage=d495b422c7e5ba1867ac7219f453dfc88dce4921294d369e9b02636c0a41680e,placement=8f64bc842aa3e73bfced18af30d4621db6eb725d0d5abf458c848f1f61117d35",
+          "fingerprint": "body=d5b636bd37fe3a76465bf76134169f4a1bdda5b3cd0db39adffe4f28ca374f74,deps=7466ce0cd418915812a93df65e188bbae8303875a6669caa09eed5d790c401c4,usage=cd80d369b057afa2545a25e1ee0d7334eb842a64a33aa77b7dfa426e1289b7e6,placement=8f64bc842aa3e73bfced18af30d4621db6eb725d0d5abf458c848f1f61117d35",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "- Изменение набора `DIVISION_CONTEXT_TOKENS` — инвариант, закреплённый в строгом перечислении токенов (`ts.SyntaxKind.Identifier` … `ts.SyntaxKind.MinusMinusToken`), проверять в `planWriterChunks`, `collectTypeContext` и обоих вызовах из `file-pipeline.ts`."
-          }
+            "novelFact": "Слэш трактуется как начало регэкспа только когда предыдущий значимый токен отсутствует или не входит в `DIVISION_CONTEXT_TOKENS` — условие `previousSignificant === undefined || !DIVISION_CONTEXT_TOKENS.has(previousSignificant)` перед вызовом `scanner.reScanSlashToken()`."
+          },
+          "language": "ru"
         }
       },
       "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
@@ -181,8 +184,29 @@
           "generatedBlocks": [
             "changeGuide"
           ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:03:31.502Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.145Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "changeGuide"
+          ]
         }
-      ]
+      ],
+      "signature": "stripComments(source: string): string"
     }
   },
   "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"

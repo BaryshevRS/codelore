@@ -13,10 +13,12 @@ The file provides two private methods that both traverse an entity's direct depe
 
 ## На что можно положиться
 
-- Идентификаторы сущностей кодируют вид: `file:`/`symbol:` — исходный код, `DOMAIN_ID_PREFIX` — tier-домен, `PROJECT_ID` — обзорный документ (tier-секция — это и есть её entity id, `domain:<slug>` или `project:`). `sourceFilePathOf` возвращает путь только для исходных id, для tier-ид — undefined; на этом держатся `splitTierSections`, сборка member-данных и поиск владельца секции.
-- `resolveTargets` без запрошенных целей возвращает весь `allowedBlocks`, а цель вне allowed-набора бросает [`CodeloreError`](../errors.codelore.md#codeloreerror) с кодом `MISSING_BLOCK`; поэтому [`runPipelineForSections`](#runpipelineforsections) заранее пересекает запрошенные цели с allowed-набором и пропускает секции, у которых целей не осталось.
-- Секция генерируется в обеих фазах и может попасть в сводку дважды: `mergeSectionSummaries` схлопывает записи одной секции в одну с объединением `generatedBlocks`, а `dedupeSkipped` убирает из skipped секции, которые записала другая фаза.
-- `scopeFromParts` с пустыми списками возвращает undefined — отсутствие фильтра, а не пустой набор; [`filterSectionsByScope`](stale-detection.codelore.md#filtersectionsbyscope) в этом случае видит все секции репозитория, поэтому вызывающие передают undefined только когда скоупа нет вовсе.
+Контракты модуля — кодировка идентификаторов, поведение границ входа и правила свертки результатов:
+- Идентификаторы сущностей кодируют вид строго: `sourceFilePathOf` возвращает путь только для `file:` и `symbol:` (у `symbol:` обрезает всё после первого `#`), для tier-идентификаторов и `project:` — undefined. На этом же держится `splitTierSections`: префикс `DOMAIN_ID_PREFIX` уводит секцию в tier-конвейер, `PROJECT_ID` — в sentinel-слаг «.» для обзорного документа, всё остальное — в файловый конвейер.
+- `resolveTargets` на границе входа: пустой запрос возвращает весь `allowedBlocks`, цель вне разрешённого набора бросает [`CodeloreError`](../errors.codelore.md#codeloreerror) с кодом `MISSING_BLOCK`; порядок результата всегда канонический, а не порядок запроса — `BLOCK_IDS.filter((id) => requested.includes(id))`.
+- `scopeFromParts` с полностью пустыми списками возвращает undefined, а не пустой фильтр; для [`filterSectionsByScope`](stale-detection.codelore.md#filtersectionsbyscope) это означает «все секции репозитория», поэтому вызывающие передают undefined только когда скоупа нет вовсе.
+- Секция генерируется обеими фазами и попадает в сводку дважды: `mergeSectionSummaries` схлопывает повторные записи в одну с объединением `generatedBlocks` без дубликатов и `manualReviewNeeded` как OR; `dedupeSkipped` удаляет из skipped секции, которые записала другая фаза.
+- Набор переводимых блоков строго ограничен: `translatableBlocks` отдаёт только блоки с `rendered`, без `staleSince` и с `body.trim() !== ""`; перевод актуален только при совпадении `sourceFingerprint` с телом и отсутствии срабатывания [`translationNeedsWork`](../llm/translator.codelore.md#translationneedswork), иначе блок снова попадёт в перевод.
 
 ## От чего зависит
 
@@ -24,10 +26,10 @@ The file provides two private methods that both traverse an entity's direct depe
 
 ## Чего не делает
 
-На уровне файла действуют три рамки:
-- `assertRequestFitsBudget` суммирует длины всех `message.content` промпта партиционирования и при `estimatedTokens > maxPromptTokens` бросает `PARTITION_TOO_LARGE`; текст ошибки прямо говорит `Batched partition is not yet implemented`, поэтому слишком большой набор файлов нельзя разбить одним запросом — нужен меньший вход.
-- Невалидный ответ LLM переспрашивается ровно один раз: в [`partitionDomainMap`](#codeloreservicepartitiondomainmap) и [`assignUncoveredFiles`](#codeloreserviceassignuncoveredfiles) повторный [`parsePartitionResponse`](../domains/partition.codelore.md#parsepartitionresponse)/[`parseAssignResponse`](../domains/assign.codelore.md#parseassignresponse) стоит вне `try`, значит второй сбой парсинга пробрасывается наверх и останавливает команду без дальнейших попыток.
-- `readGitDiff` ловит любую ошибку `execFile` и молча возвращает пустую строку; если вызывающий не передал `diff` и `changedFiles` явно, [`analyzeChange`](#analyzechange) увидит пустой diff и не сообщит о сбое git.
+В файле действуют три реальные границы:
+- Партиционирование умеет только один запрос: `assertRequestFitsBudget` суммирует длины всех `message.content`, делит на `provider.writerBudget.charsPerToken` и при `estimatedTokens > maxPromptTokens` бросает [`CodeloreError`](../errors.codelore.md#codeloreerror) с кодом `PARTITION_TOO_LARGE`; текст ошибки прямо говорит `Batched partition is not yet implemented`, поэтому набор файлов, не помещающийся в бюджет модели, сейчас разбить нельзя.
+- Невалидный ответ LLM переспрашивается ровно один раз: в [`partitionDomainMap`](#codeloreservicepartitiondomainmap) и [`assignUncoveredFiles`](#codeloreserviceassignuncoveredfiles) повторный разбор ([`parsePartitionResponse`](../domains/partition.codelore.md#parsepartitionresponse)/[`parseAssignResponse`](../domains/assign.codelore.md#parseassignresponse)) стоит вне `try`/`catch`, поэтому второй сбой парсинга пробрасывается наверх и останавливает команду без третьей попытки.
+- Сбой `git diff` молча глотается: `readGitDiff` в `catch { return ""; }` возвращает пустую строку при любой ошибке `execFile`, и если вызывающий не передал `diff`/`changedFiles`, [`analyzeChange`](#analyzechange) видит пустой diff и не сигнализирует о том, что чтение git не удалось.
 
 # CodeloreService
 
@@ -48,10 +50,11 @@ class CodeloreService
 
 ## На что можно положиться
 
-- [`rewriteSections`](#rewritesections) с пустым массивом возвращает `{ updatedSections: [] }`, не трогая хранилище и индексы; дубликат `sectionId` бросает [`CodeloreError`](../errors.codelore.md#codeloreerror) с кодом `DUPLICATE_SECTION` до любой записи.
-- LLM-вызовы идут параллельно, а запись результатов строго последовательна: [`rewriteSections`](#rewritesections) и [`markReviewNeeded`](#markreviewneeded) мутируют общий doc-индекс, поэтому `applyFileGenerationOutcome` и доменные волны применяются по одному.
-- Томбстоун пишет блоку `staleSince`, `staleReason`, `staleFacets` и скрывает его из рендера; [`restoreKeptBlocks`](#codeloreservicerestorekeptblocks) снимает эти поля, заново штампует `fingerprint` и оставляет секцию в статусе `review_needed`; [`stampUnwrittenBlocks`](#codeloreservicestampunwrittenblocks) штампует только блоки с пустым телом, чтобы пустой блок не запрашивался повторно.
-- Read-методы бросают типизированные ошибки: [`resolveSection`](#resolvesection) — `UNKNOWN_SECTION`, [`requireSectionState`](#requiresectionstate) — `UNKNOWN_DOC`/`UNKNOWN_SECTION`, [`readCodeEntity`](#readcodeentity) — `UNKNOWN_ENTITY`, [`readChange`](#readchange) — `UNKNOWN_CHANGE`; перед чтением индекс всегда загружается или пересобирается, так что ответ отражает состояние на диске.
+Контракты класса:
+- [`rewriteSections([])`](#rewritesections) возвращает `{ updatedSections: [] }`, не трогая хранилище и индексы; повторный `sectionId` в списке бросает [`CodeloreError`](../errors.codelore.md#codeloreerror) с кодом `DUPLICATE_SECTION` до первой записи.
+- LLM-вызовы идут параллельно, а запись строго последовательна: фаза apply — это поочный цикл по `settled`, и доменные волны тоже `Promise.all` затем применяют документы по одному, потому что [`rewriteSections`](#rewritesections) и [`markReviewNeeded`](#markreviewneeded) мутируют общий doc-индекс; два пишущих прогона в один момент не пересекаются.
+- Томбстоун и его откат сходятся: `applyTombstones` пишет блоку `staleSince`, `staleReason`, `staleFacets` и обновляет статус секции; [`restoreKeptBlocks`](#codeloreservicerestorekeptblocks) снимает эти поля и заново штампует `fingerprint`, при этом статус `review_needed` сохраняется; [`stampUnwrittenBlocks`](#codeloreservicestampunwrittenblocks) штампит только блоки с `body.trim() === ""`, чтобы постоянный отказ писателя не перезапрашивал блок в каждом следующем прогоне.
+- Read-методы отражают состояние на диске и бросают типизированные ошибки: [`resolveSection`](#resolvesection) — `UNKNOWN_SECTION`, [`requireSectionState`](#requiresectionstate) — `UNKNOWN_DOC`/`UNKNOWN_SECTION`, [`readCodeEntity`](#readcodeentity) — `UNKNOWN_ENTITY`, [`readChange`](#readchange) — `UNKNOWN_CHANGE`; каждый такой метод проходит через [`loadOrRebuildIndexes`](#loadorrebuildindexes) либо прямое чтение состояния/файла.
 
 ## От чего зависит
 
@@ -59,27 +62,24 @@ class CodeloreService
 
 ## Кто и как использует
 
-Главный вход — [`runCli`](../cli/run-cli.codelore.md#runcli): для каждой команды создаётся один `new CodeloreService(parsed.rootDir)`, а `runCommand` диспетчирует сценарии (`generate` → [`generateDocsForScope`](#generatedocsforscope), `fix-stale` → [`fixStaleDocs`](#fixstaledocs), `analize-change` → [`analyzeChange`](#analyzechange), `rebuild-index` → [`rebuildIndex`](#rebuildindex)); при этом `runtime.onProgress` получает интерфейс из CLI, поэтому прогресс-сообщения пишутся в stdout. Ошибки класса ловятся в [`runCli`](../cli/run-cli.codelore.md#runcli) и сериализуются в stderr.
-
-Второй путь — MCP: команда `mcp` запускает `startStdioServer({ rootDir })`, а [`createCodeloreServer`](../server/create-server.codelore.md#createcodeloreserver) (та же директория server) поднимает `McpServer` поверх того же сервиса, так что редактор обращается к тем же методам как к инструментам протокола.
-
-Третий путь есть внутри самого класса: [`verifyBlocksAgainstDeps`](../llm/file-pipeline.codelore.md#verifyblocksagainstdeps) получает экземпляр `service` как аргумент и сам читает `service.config.rootDir` и `service.config.llm.concurrency` — здесь класс выступает источником конфига для внешнего валидатора.
+Класс обслуживает три внешних контура:
+- CLI: [`runCli`](../cli/run-cli.codelore.md#runcli) создаёт ровно один экземпляр на команду (`new CodeloreService(parsed.rootDir)`) и разводит сценарии из `runCommand`: `generate` → [`generateDocsForScope`](#generatedocsforscope), `fix-stale` → [`fixStaleDocs`](#fixstaledocs), `analyze-change` → [`analyzeChange`](#analyzechange), `rebuild-index` → [`rebuildIndex`](#rebuildindex). Результат сериализуется в stdout, а общий `try/catch` в [`runCli`](../cli/run-cli.codelore.md#runcli) переводит вылетевшие ошибки в stderr как `CodeloreErrorPayload`.
+- MCP: [`createCodeloreServer`](../server/create-server.codelore.md#createcodeloreserver) поднимает `McpServer` поверх того же экземпляра, поэтому методы класса становятся инструментами для редактора; запускается это через команду `mcp` в [`runCli`](../cli/run-cli.codelore.md#runcli).
+- Внешний валидатор: [`verifyBlocksAgainstDeps`](../llm/file-pipeline.codelore.md#verifyblocksagainstdeps) получает экземпляр как параметр `service` и использует из него только `service.config.rootDir` (для `readFile` файла-источника) и `service.config.llm.concurrency` (для своего `pLimit`) — класс выступает для него источником конфигурации, а не хранилища.
 
 ## Чего не делает
 
-Три границы класса:
-
-- Доменная карта не создаётся автоматически: [`refreshDomainDocs`](#codeloreservicerefreshdomaindocs) и бесскоупный [`generateDocsForScope`](#generatedocsforscope) при отсутствии сохранённой карты выходят с пустым результатом без единого вызова partition — для появления доменов нужен явный запуск [`partitionDomainMap`](#codeloreservicepartitiondomainmap).
-- Переводы дозаполняются только для блоков, которые пропускает генератор `translatableBlocks`: блок должен быть `rendered`, не stale (`staleSince === undefined`) и с непустым телом; скрытые за томбстоун тексты и пустые блоки перевода не получают.
-- Параллельность LLM-вызовов упирается в единый лимит `pLimit(this.config.llm.concurrency)`: генерация и переводы делят этот кэп, сколько бы каналов ни запустил вызывающий.
+Действующие границы класса:
+- Доменная документация живёт только после явного разбиения: [`refreshDomainDocs`](#codeloreservicerefreshdomaindocs) и бесскоупный [`generateDocsForScope`](#generatedocsforscope) начинают с `if (!(await this.storage.loadDomainMap())) { return empty; }` — пока [`partitionDomainMap`](#codeloreservicepartitiondomainmap) не сохранил карту, обзорный и доменные документы не генерируются вовсе.
+- [`assignUncoveredFiles`](#codeloreserviceassignuncoveredfiles) распределяет неохваченные файлы только по существующим доменам: новых доменов она не создаёт (комментарий в коде: `A new domain is never created here — that is a deliberate full re-partition`), это может только полная перепартиционирование через [`partitionDomainMap`](#codeloreservicepartitiondomainmap).
+- Перевод дозаполняются лишь для блоков, допущенных генератором `translatableBlocks` (с `rendered`, без `staleSince`, с непустым `body`) — скрытые томбстоунами и пустые блоки перевода не получают.
+- Каждый параллельный проход имеет собственный пул `pLimit(this.config.llm.concurrency)` (обе фазы генерации, волны доменов, переводы), поэтому одновременно к модели уходит не أكثر этого значения вызовов.
 
 ## Как менять и что проверять
 
-- Целевые блоки ограничены разрешённым набором до любой записи: [`runPipelineForSections`](#runpipelineforsections) заранее применяет `const filtered = requested.filter((blockId) => allowed.has(blockId));`, а `resolveTargets` бросает `MISSING_BLOCK` лишь тогда, когда цель всё-таки туда долетела (конструкция `const invalid = requested.filter((id) => !allowed.has(id)); if (invalid.length > 0)`). 
-
-- Фингерпринт зависимостей-документов пишется только по завершении терминальной фазы: код выполняет `await this.recordDepDocsFingerprints(...)` строго под условием `if (phase === "terminal")` — этим держится контракт «depDocs-финпринт валиден только после перегенерации терминальных блоков». 
-
-- Сходимость томбсоундов обеспечивает двойная инконсистентная запись: [`restoreKeptBlocks`](#codeloreservicerestorekeptblocks) снимает stale-поля только если `block.staleSince !== undefined` и затем перетирает `block.fingerprint`, а [`stampUnwrittenBlocks`](#codeloreservicestampunwrittenblocks) штампит только пустые тело (`if (!sectionState || !block || block.body.trim() !== "") { continue; }`).
+- Инвариант «depDocs-фингепринт записывается только после терминальной фазы» держит код `if (phase === "terminal") { await this.recordDepDocsFingerprints(outcome.writtenSections); }` внутри `applyFileGenerationOutcome`.
+- Инвариант «запрошенные цели не попадают в неразрешённое множество» держит `const filtered = requested.filter((blockId) => allowed.has(blockId));` в [`runPipelineForSections`](#runpipelineforsections), а ветка `if (filtered.length === 0) { skipped.push(...); continue; }` превращает опустевшие цели в пропуск, а не в исключение.
+- Инвариант «явный провайдер прогона перекрывает дефолтный verify-провайдер» держит тернарник в [`createProviderPair`](#codeloreservicecreateproviderpair): `verifyName && !runtime.providerName ? createConfiguredProvider(this.config, verifyName, providerRuntime) : provider`.
 
 ## rebuildIndexes
 
@@ -101,15 +101,15 @@ CodeloreService.rebuildIndexes(options: RebuildIndexesOptions = {}): Promise<Pro
 
 ### От чего зависит
 
-Метод использует this.docStateStorage и this.config, а также функции normalizeGeneratedRewrite, groupRewritesByDoc, applyRewritesToDoc, patchDocIndexForDocs и класс CodeloreError.
+Единственная зависимость — вызов `this.indexManager.rebuild`: метод пробрасывает переданный `RebuildIndexesOptions` в `this.indexManager.rebuild(options)` без изменений. Ни состояния, ни конфиг, ни хранилище метод не трогает.
 
 ### Кто и как использует
 
-Метод вызывается извне сервиса для перезаписи секций. При пустом входе сразу возвращает пустой результат. При дубликате sectionId выбрасывает ошибку. Затем загружает или пересобирает индексы, нормализует входные данные, группирует по документам, применяет правки к каждому документу и обновляет индекс документации.
+Это общий вход для перестроек в классе. Аналитические пути ([`analyzeChange`](#analyzechange), [`validateDocs`](#validatedocs), [`refreshStaleDocs`](#refreshstaledocs)) вызывают его без параметров, то есть соглашаются на вариант по умолчанию. Пишущие пути — [`prepareInitialDocs`](#prepareinitialdocs), [`prepareDomainDocs`](#codeloreservicepreparedomaindocs), [`partitionDomainMap`](#codeloreservicepartitiondomainmap), [`assignUncoveredFiles`](#codeloreserviceassignuncoveredfiles), [`generateDomainDocs`](#codeloreservicegeneratedomaindocs), [`refreshDomainDocs`](#codeloreservicerefreshdomaindocs), [`reconcileScopedDocStates`](#codeloreservicereconcilescopeddocstates) — передают фиксированный флаг `{ renderDocs: false }`, потому что свои документы они уже отрендерили и им нужен только обновлённый индекс для последующих чтений и устарелости.
 
 ### Чего не делает
 
-Метод не обрабатывает пустой массив sections — он возвращает пустой результат без побочных эффектов. Также он не допускает дубликатов sectionId — выбрасывает CodeloreError. Для секций, не найденных в индексе, docPath возвращается как пустая строка.
+Метод перестраивает проект только целиком: из его кода виден лишь `this.indexManager.rebuild(options)`, а сконфренный по скоупу вариант существует отдельным входом — [`prepareInitialDocs`](#prepareinitialdocs) вызывает `this.indexManager.buildScopedIndex(codeIndexScopeFromPrepareScope(scope))`. Частичную перестройку через `rebuildIndexes` получить нельзя.
 
 ## rebuildIndex
 
@@ -131,11 +131,11 @@ CodeloreService.rebuildIndex(input: RebuildIndexInput = {}): Promise<RebuildInde
 
 ### От чего зависит
 
-Метод использует this.docStateStorage и this.config, а также функции normalizeGeneratedRewrite, groupRewritesByDoc, applyRewritesToDoc, patchDocIndexForDocs и класс CodeloreError.
+Метод опирается на две сущности: `this.indexManager.rebuild` (с привязанными сюда опциями) и локальный хелпер `summarizeProjectIndex`, который превращает пересобранный индекс в итоговую сводку. Состояние, хранилище и LLM-провайдеры не используются.
 
 ### Чего не делает
 
-Метод не обрабатывает пустой массив sections — он возвращает пустой результат без побочных эффектов. Также он не допускает дубликатов sectionId — выбрасывает CodeloreError. Для секций, не найденных в индексе, docPath возвращается как пустая строка.
+У метода нет параметров для сохранения: внутрижды зашит строго `this.indexManager.rebuild({ persist: true, renderDocs: true })`, поэтому перестроить индекс «на лету» — без записи на диск и без рендера — здесь не получается. Единственная степень свободы — `input.verbose ?? false`: она лишь добавляет полный `index` в сводку `summarizeProjectIndex`, а счётчики присутствуют всегда.
 
 ## patchDocIndexForDocs
 
@@ -157,15 +157,20 @@ CodeloreService.patchDocIndexForDocs(docPaths: string[]): Promise<void>
 
 ### От чего зависит
 
-Метод использует this.docStateStorage и this.config, а также функции normalizeGeneratedRewrite, groupRewritesByDoc, applyRewritesToDoc, patchDocIndexForDocs и класс CodeloreError.
+Единственная зависимость — внедрённый менеджер индексов: метод делегирует ему обновление индекса по списку `docPaths` без изменений и больше ничего не вызывает.
 
 ### Кто и как использует
 
-Метод вызывается извне сервиса для перезаписи секций. При пустом входе сразу возвращает пустой результат. При дубликате sectionId выбрасывает ошибку. Затем загружает или пересобирает индексы, нормализует входные данные, группирует по документам, применяет правки к каждому документу и обновляет индекс документации.
+Инкрементальное обновление doc-индекса после каждой записи документации, и вызывающие выдают уже сохранённые пути:
+- [`rewriteSections`](#rewritesections) — после `applyCoverageToDoc`, передаёт `[...byDoc.keys()]`;
+- [`refreshStaleDocs`](#refreshstaledocs) — после применения томбстоунов, передаёт `[...new Set(appliedTombstones.map((entry) => entry.docPath))]`;
+- [`markReviewNeeded`](#markreviewneeded) — после `stationedStorage.renderAndPersist(state)`, передаёт `[section.docPath]`;
+- [`reconcileRenderedDocs`](#codeloreservicereconcilerendereddocs) — после `docStateStorage.reconcileRenderedDocs()`, передаёт список `updated`.
+Во всех случаях вызов идёт до следующего чтения индекса, так что последующие чтения видят свежую doc-часть индекса без полной перестройки.
 
 ### Чего не делает
 
-Метод не обрабатывает пустой массив sections — он возвращает пустой результат без побочных эффектов. Также он не допускает дубликатов sectionId — выбрасывает CodeloreError. Для секций, не найденных в индексе, docPath возвращается как пустая строка.
+Метод не проверяет корректность набора: он полностью доверяет переданным `docPaths` и передаёт их менеджеру индексов как есть; ответственность за то, что пути действительно записаны в состоянии и на диске, лежит на вызывающих — сам метод не рендерит и не персистит контент.
 
 ## loadOrRebuildIndexes
 
@@ -329,15 +334,15 @@ The method returns a ProjectContext object containing project-level information 
 
 ### От чего зависит
 
-The method checks this.projectContextCache and calls this.readProjectContext() to build the ProjectContext.
+Метод опирается на приватный `this.readProjectContext` (собирает строки из `config.docs.writingRules` через `writingRulesContext`) и на кэш-поле `this.projectContextCache`. Сброс кэша привязан к перестройке индексов: в конструкторе передаётся колбэк `() => { this.projectContextCache = undefined; }`, поэтому каждая перестройка индексов делает кэш недействительным.
 
 ### Кто и как использует
 
-Called by getSectionContext when includeProjectContext is true (default), providing the project context for the section context. The caller uses the returned ProjectContext to populate the projectContext field of the SectionContext.
+Единственный вызывающий — [`getSectionContext`](#getsectioncontext): при `options.includeProjectContext ?? true` метод подставляет результат в поле `projectContext` возвращаемого `SectionContext`, а при `includeProjectContext: false` он вообще не зовётся (`includeProjectContext ? await this.getProjectContext() : undefined`). Так общие правила стиля попадают в контекст, который видят writer и редактор через API инструментов.
 
 ### Чего не делает
 
-The method only returns project-level information; it does not include any section-specific data.
+Кэш хранит ровно одно значение без каких-либо признаков давности: `if (this.projectContextCache) { return this.projectContextCache.value; }` отдаёт сохранённый объект до тех пор, пока колбэк в конструкторе не сбросит поле при перестройке индексов; вторичное чтение `readProjectContext` наступает только этим путём, а не по времени или изменению файла конфига.
 
 ## rewriteSection
 
@@ -359,11 +364,11 @@ CodeloreService.rewriteSection(sectionId: string, input: Omit<RewriteSectionInpu
 
 ### От чего зависит
 
-Использует вспомогательные функции для перезаписи секции.
+Вся работа делегируется методу [`rewriteSections`](#rewritesections) этого же класса: метод оборачивает вход в массив `[{ sectionId, ...input }]` и возвращает только первый элемент результата — `result.updatedSections[0]`.
 
 ### Чего не делает
 
-Не создаёт новые секции — только перезаписывает содержимое существующих.
+Метод перезаписывает ровно одну секцию за вызов: вход оборачивается в массив из одного элемента, и возвращается только `updatedSections[0]`. Для пакетной перезаписи нескольких секций нужно вызывать [`rewriteSections`](#rewritesections) напрямую с полным массивом — этот метод такой возможности не даёт.
 
 ## rewriteSections
 
@@ -529,11 +534,11 @@ CodeloreService.generateDocsForEntity(input: GenerateDocsForEntityInput, runtime
 
 ### От чего зависит
 
-Зависит от `resolveSectionsForId`, [`runPipelineForSections`](#runpipelineforsections), [`translateScope`](#codeloreservicetranslatescope) и `scopeFromParts`.
+Список секций получает через `resolveSectionsForId`: для id-секции возвращается `[id]`, для id-сущности — все секции, в чьём `owns` она присутствует, а для неизвестного id выбрасывается ошибка с кодом `UNKNOWN_ENTITY` или `UNKNOWN_SECTION`. Генерацию делегирует [`runPipelineForSections`](#runpipelineforsections) без ограничения целевых блоков — пустая карта `targetBlocksBySection` означает, что генерируются все разрешённые блоки. Переводы обновляет [`translateScope`](#codeloreservicetranslatescope) с областью из `scopeFromParts(sectionIds, [], [])`, которая охватывает только резолвленные секции.
 
 ### Чего не делает
 
-Не создаёт новые секции — только генерирует содержимое существующих.
+Работает только с уже существующими секциями: `resolveSectionsForId` бросает `UNKNOWN_SECTION` для сущности без секции документации и подсказывает создать её через `document` с `entityIds`. Принимает один id за вызов, а переводы обновляются лишь при настроенных `docs.translations` — [`translateScope`](#codeloreservicetranslatescope) выходит раньше, когда список языков пуст.
 
 ## generateDocsForScope
 
@@ -611,19 +616,20 @@ The method accepts docPath, sectionId, and entry. It loads the doc state, append
 
 ### От чего зависит
 
-Использует структуру `GenerateDocsResult` для хранения истории; не вызывает внешних модулей.
+Читает doc-состояние через `this.docStateStorage.loadDocState(docPath)` и пишет его обратно через `this.docStateStorage.renderAndPersist(state)`. Других зависимостей у метода нет.
 
 ### Кто и как использует
 
-Вызывается из трёх публичных методов сервиса после успешного выполнения генерации, чтобы зафиксировать факт операции.
+`applyFileGenerationOutcome` вызывает метод один раз на каждую записанную секцию после применения перезаписей, передавая `runId`, `timestamp`, `command`, имя и модель провайдера и массив `generatedBlocks`; `intent` и флаг `manualReviewNeeded` попадают в запись условно — только когда они заданы. Метод добавляет запись в конец `generationHistory` секции и обновляет `generatedAt` документа.
 
 ### Чего не делает
 
-Не выполняет дедупликацию: каждая запись добавляется в конец `generationHistory` без проверки на существование.
+Каждый вызов добавляет ровно одну запись без дедупликации: повторные вызовы с одинаковым `entry` накапливают дубли в `generationHistory`. Метод возвращает `Promise<void>` — факт записи можно проверить, только перечитав состояние.
 
 ### Как менять и что проверять
 
-Добавляет запись о завершённой генерации в массив `generationHistory` объекта результата, сохраняя метаданные операции для последующего аудита и отладки.
+- Запись добавляется копированием массива, а не мутацией прежнего: `sectionState.generationHistory = [...(sectionState.generationHistory ?? []), entry]` — предыдущая история сохраняется, отсутствующая трактуется как пустой массив.
+- Пустое состояние не приводит к записи: ранние возвраты `if (!state) { return; }` и `if (!sectionState) { return; }` гарантируют, что вызов для отсутствующего документа или секции не трогает хранилище.
 
 ## runPipelineForSections
 
@@ -679,19 +685,20 @@ The method accepts writtenSections. It stores fingerprints in doc state sections
 
 ### От чего зависит
 
-Не вызывает внешних зависимостей; оперирует только переданными данными.
+Считает отпечаток через `dependencyDocsFingerprint(collectDependencyDocs(index, [file]))` из `../llm/file-pipeline.js` — всегда по одному файлу. Индекс загружает через [`loadOrRebuildIndexes`](#loadorrebuildindexes), секции группирует по `docPath` через [`groupBy`](helpers.codelore.md#groupby) из `./helpers.js`, а состояние читает и пишет через `this.docStateStorage.loadDocState` и `this.docStateStorage.renderAndPersist`.
 
 ### Кто и как использует
 
-Вызывается после завершения перевода, чтобы сохранить отпечатки для будущих проверок.
+Вызывается из двух мест. `applyFileGenerationOutcome` вызывает метод после применения перезаписей только в фазе `terminal` (условие `if (phase === "terminal")`), передавая записанные секции, — потому что отпечаток осмыслен лишь после перегенерации терминальных блоков. `gateDepDocsCascade` вызывает метод для секций, которые верификатор подтвердил согласованными с новыми dependency-доками (`verifiedClean.has(target.sectionId)`), чтобы освежить их отпечаток и исключить из последующего tombstone-прохода.
 
 ### Чего не делает
 
-Не выполняет валидацию отпечатков; предполагает, что они уже корректны.
+Владелец секции берётся только по первому элементу `owns[0]`: для секции с несколькими owned-сущностями отпечаток dependency-доков вычисляется по файлу первой сущности, остальные владельцы не учитываются.
 
 ### Как менять и что проверять
 
-Записывает хэши или контрольные суммы документации зависимостей, чтобы позже определять устаревшие записи.
+- Отпечаток вычисляется один раз на файл и переиспользуется между секциями одного документа: `let fingerprint = fingerprintByFile.get(file); if (fingerprint === undefined) { ... fingerprintByFile.set(file, fingerprint); }` — секции одного файла делят один вызов [`dependencyDocsFingerprint`](../llm/file-pipeline.codelore.md#dependencydocsfingerprint).
+- Документ персистится только при реальном изменении: `if (mutated) { await this.docStateStorage.renderAndPersist(state); }` — вызов, где ни одна секция не прошла фильтры, ничего не пишет в хранилище.
 
 ## readDocSection
 
@@ -739,11 +746,11 @@ Returns the rendered entity content as a string, or null when the entity is not 
 
 ### От чего зависит
 
-The method depends on the service's own resolveSection and requireSectionState helpers and the imported renderSection function.
+Загружает индекс через [`loadOrRebuildIndexes`](#loadorrebuildindexes). Для неизвестного id бросает [`CodeloreError`](../errors.codelore.md#codeloreerror) с кодом `UNKNOWN_ENTITY` и деталями `{ entityId }` (класс из `../errors.ts`). Код сущности получает делегированием в `readEntityCode`, который читает файл `join(this.config.rootDir, entity.path)` и возвращает срез от `entity.range.startOffset` до `entity.range.endOffset`.
 
 ### Чего не делает
 
-The method only renders the section state; it does not modify any state or index. The early return in resolveSection when the section is not found prevents any rendering for unknown sections.
+Возвращает только фрагмент исходника в границах сущности: `readEntityCode` срезает прочитанный файл от `entity.range.startOffset` до `entity.range.endOffset`, поэтому код вне диапазона `entity.range` в результат не попадает.
 
 ## readImpact
 
@@ -765,11 +772,11 @@ Returns the rendered impact content as a string, or null when the impact is not 
 
 ### От чего зависит
 
-The method depends on the service's own resolveSection and requireSectionState helpers, the imported renderSection function, and the service's patchDocIndexForDocs method.
+Загружает актуальный индекс через [`loadOrRebuildIndexes`](#loadorrebuildindexes) и полностью делегирует вычисление [`getImpactForEntity(index.code, index.docs, entityId)`](../graph/impact.codelore.md#getimpactforentity) из `../graph/impact.js`, передавая индекс кода, индекс документации и id сущности. Собственной обработки результата метод не выполняет.
 
 ### Чего не делает
 
-The method only updates the section state and the doc index; it does not re-render the full document or update other sections. The early return in resolveSection when the section is not found prevents any state mutation for unknown sections.
+Метод принимает один `entityId` за вызов — пакетного запроса воздействия по нескольким сущностям нет. Валидации id в методе нет: результат для неизвестного id целиком определяется поведением [`getImpactForEntity`](../graph/impact.codelore.md#getimpactforentity), метод не добавляет собственных проверок или ошибок.
 
 ## readChange
 
@@ -817,7 +824,7 @@ Returns the rendered document content as a string, or null when the document is 
 
 ### От чего зависит
 
-The method depends on the service's own resolveSection and requireSectionState helpers, the imported renderSection function, and the service's patchDocIndexForDocs method.
+Собственных компонентов сервиса не использует: файл читает импортированный из `node:fs/promises` `readFile`, путь собирает `join` из `node:path`, а корень проекта берёт из `this.config.rootDir` (конфигурация подгружена в конструкторе). Индексы, doc-state-хранилище и методы рендеринга в вызове не участвуют.
 
 ### Чего не делает
 
@@ -825,8 +832,8 @@ The method only renders sections that have a non-empty state; sections without a
 
 ### Как менять и что проверять
 
-- The method enforces that only sections with a non-empty state are rendered, via the `filter(Boolean)` on `sectionStates`.
-- The method enforces that the document is rendered only if at least one section has a non-empty state, via the `if (renderedSections.length === 0) return ""` guard.
+- Путь всегда привязан к корню проекта через конструкцию `join(this.config.rootDir, docPath)`, поэтому чтение идёт только из репозитория, а не из index-кэша или state-хранилища.
+- Кодировка закошена вторым аргументом вызова — `"utf8"` в `readFile(join(this.config.rootDir, docPath), "utf8")`, содержимое всегда декодируется как UTF-8.
 
 ## resolveSection
 
@@ -848,20 +855,20 @@ Throws CodeloreError when the section is not found in the index. The index is lo
 
 ### От чего зависит
 
-The method depends on the service's own loadOrRebuildIndexes method and the imported CodeloreError class.
+Зависит от состояния индекса: метод вызывает `this.loadOrRebuildIndexes()` (загрузка кэша или пересборка) и из полученного `ProjectIndex` обращается к `index.docs.sections[sectionId]`. Ошибку `UNKNOWN_SECTION` строит из [`CodeloreError`](../errors.codelore.md#codeloreerror) с `src/errors.ts`; других модулей в lookup не участвует.
 
 ### Кто и как использует
 
-All read and write methods in the service call resolveSection first to obtain the section and index. The method is invoked by readDocSection, readDocFile, readCodeEntity, readImpact, and readCodeloreService, each passing a sectionId.
+Все три видимых вызова — [`getSectionContext`](#getsectioncontext), [`markReviewNeeded`](#markreviewneeded) и [`readDocSection`](#readdocsection) — начинаются с этого метода. [`getSectionContext`](#getsectioncontext) сразу разворачивает пару «index, section» в `section.owns/depends/docPath` и сущности `index.code`; [`markReviewNeeded`](#markreviewneeded) и [`readDocSection`](#readdocsection) из `section.docPath` и `sectionId` идут дальше к состоянию секции. Брошенный здесь [`CodeloreError`](../errors.codelore.md#codeloreerror) всплывает до любой записи: например, [`markReviewNeeded`](#markreviewneeded) не выставит `review_needed` секции, отсутствующей в индексе, — сбой виден раньше, чем начнётся правка состояния.
 
 ### Чего не делает
 
-The method throws an error if the section is not found; it does not return a fallback. The guard `if (!section) throw new CodeloreError(...)` enforces this.
+Узнаёт только секции, которые уже есть в `index.docs.sections`; для сущности, у которой секции нет (или она выпала из индекса), возвращается ошибка `UNKNOWN_SECTION`, а не заглушка. Подмену «id сущности → id секции» метод не делает — lookup строго по `sectionId`.
 
 ### Как менять и что проверять
 
-- The method enforces that the section must exist in the index, via the `if (!section) throw new CodeloreError(...)` guard.
-- The method enforces that the index is loaded or rebuilt before resolving, via the `await this.loadOrRebuildIndexes()` call.
+- Гервент «секция обязана существовать» закреплён `if (!section) { throw new CodeloreError("UNKNOWN_SECTION", ...) }` — после метода ни один вызывающий не получит `undefined`-секцию.
+- Lookup всегда по свежему снимку: `const index = await this.loadOrRebuildIndexes();` стоит перед обращением к `index.docs.sections[sectionId]`.
 
 ## requireSectionState
 
@@ -884,7 +891,7 @@ Returns a Promise resolving to `{ state, section }` where `section` is the `DocS
 
 ### От чего зависит
 
-The method relies on the `DocState` type and the [`CodeloreError`](../errors.codelore.md#codeloreerror) class, both defined in the same file, and on the `DocSection` type from the markdown module. It does not depend on any external modules beyond those already imported by the file.
+Читает состояние через `this.docStateStorage.loadDocState(docPath)` (хранилище из конструкции сервиса), которое возвращает `undefined` при отсутствующем файле состояния. Обе ошибки кодирует [`CodeloreError`](../errors.codelore.md#codeloreerror) из `src/errors.ts`: `UNKNOWN_DOC` для отсутствующего состояния и `UNKNOWN_SECTION` для отсутствия секции внутри него.
 
 ### Кто и как использует
 
@@ -892,11 +899,12 @@ Callers invoke this method when they need to read or mutate a section's blocks. 
 
 ### Чего не делает
 
-The method only works with sections that already exist in the doc's state; it does not create missing sections. If the section is absent, it rejects with a [`CodeloreError`](../errors.codelore.md#codeloreerror) rather than returning a default or empty section.
+Метод никогда не создаёт отсутствующее состояние: `UNKNOWN_DOC` (когда хранилище вернуло `undefined`) и `UNKNOWN_SECTION` (когда секции нет в загруженном состоянии) — это fail-fast исход, а не приглашение инициализировать пустое состояние или секцию-заглушку. Возвращаемый `state` — пришедший из хранилища объект, через который вызывающий может мутацировать секцию, но сам метод никаких изменений не вносит.
 
 ### Как менять и что проверять
 
-The method enforces a fail-fast contract: when the section is absent, it rejects with a [`CodeloreError`](../errors.codelore.md#codeloreerror) whose code is `"SECTION_NOT_FOUND"` and whose message includes the section id. The returned `state` is the `DocState` object that owns the section, so callers can mutate the section through it. The method never returns a section without its owning state, and never returns a state without the section — the two always come together.
+- Двухуровневая проверка отсутствия: `if (!state)` бросает `UNKNOWN_DOC`, `if (!sectionState)` бросает `UNKNOWN_SECTION` — секция не может быть возвращена без файла состояния, а файл без секции.
+- Секция всегда берётся из того же состояния, что и отдаётся: `const sectionState = state.sections[sectionId]` читает из того же `state`, который затем попадёт в результат.
 
 # CodeloreService.translateScope
 
@@ -914,7 +922,11 @@ The method filters sections by scope, groups by docPath, collects source paths, 
 
 ## На что можно положиться
 
-The method accepts scope (RefreshStaleScope | undefined) and runtime. It filters sections by scope, groups by docPath, and calls translateDoc per docPath. It returns Promise<void>.
+Границы работы метода:
+- Переводы не настроены (`config.docs.translations.length === 0`) — метод выходит до загрузки индекса и создания провайдера; то же происходит, когда после фильтрации по скоупу `docPaths` пуст.
+- Скоуп `undefined` означает «весь репозиторий», а не «ничего»: [`filterSectionsByScope`](stale-detection.codelore.md#filtersectionsbyscope) без фильтра пропускает все секции, так что `translateScope(undefined)` добирается и до уже свежих документов — это и есть механизм дозаполнения переводов для только что добавленного языка.
+- Источники терминов собираются по `section.owns[0]`: если первый владелец секции не имеет пути в индексе, секция пропускается; путь попадает в `sourcePathsByDoc` без дублей.
+- Документы переводятся параллельно под `pLimit(this.config.llm.concurrency)`, и сам метод ничего не пишет: запись выполняет только `translateDoc`, и только если что-то изменилось.
 
 ## От чего зависит
 
@@ -922,15 +934,16 @@ The method accepts scope (RefreshStaleScope | undefined) and runtime. It filters
 
 ## Кто и как использует
 
-Вызывается из [`generateDocsForScope`](#generatedocsforscope) после подготовки секций для запуска перевода.
+Три сценария генерации зовут метод после того, как текст новых блоков уже записан: [`generateDocsForEntity`](#generatedocsforentity) — с скоупом `scopeFromParts(sectionIds, [], [])` по секциям сгенерированного объекта; [`generateDocsForScope`](#generatedocsforscope) — со скоупом из путей/файлов/сущностей запроса (а при документировании без скоупа — `undefined`, что включает и документы вне списка изменённого); [`fixStaleDocs`](#fixstaledocs) — со скоупом `input.sectionIds/files/paths` сразу после пайплайна, до регенерации тир-доков. Внутри `translateDoc` пропускает блоки, перевод которых актуален (проверка `isCurrent`), поэтому повторный вызов с тем же скоупом после уже выполненного перевода не порождает новых LLM-запросов.
 
 ## Чего не делает
 
-Не предусматривает частичный успех: если одна секция завершается ошибкой, весь перевод области прерывается.
+Без настроенных языков метод не стартует совсем: `if (this.config.docs.translations.length === 0) { return; }` стоит до загрузки индекса и создания провайдера, а второй ранний выход — `if (docPaths.length === 0) { return; }` — отсекает пустой результат фильтрации до вызова LLM. Термины для переводчика собираются только из секций, первый владелец которой имеет путь в `index.code` (`if (!ownerPath) { continue; }`); секции без пути источник терминов своему документу не дают, сам документ всё равно переводится с пустым локальным списком путей.
 
 ## Как менять и что проверять
 
-Обрабатывает область: получает секции, применяет конвейер с ограничением параллельности и возвращает результат.
+- Ранний выход без конфигурации закреплён guard'ом `if (this.config.docs.translations.length === 0) { return; }`, который выполняется раньше [`loadOrRebuildIndexes`](#loadorrebuildindexes) и [`createConfiguredProvider`](../llm/provider.codelore.md#createconfiguredprovider).
+- Параллельные вызовы переводов ограничены: `const limit = pLimit(this.config.llm.concurrency);` — каждый документ уходит в работу через `limit(() => this.translateDoc(...))`, поэтому одновременные LLM-вызовы не превышают `llm.concurrency`.
 
 # CodeloreService.reconcileScopedDocStates
 
@@ -1009,11 +1022,20 @@ The method iterates the input map, checks each key against DOMAIN_ID_PREFIX, and
 
 ## На что можно положиться
 
-The method partitions a map of domain IDs to members into two maps: one for domain-prefixed keys and one for the rest.
+Инварианты работы метода:
+- Нет документированных файлов — [`CodeloreError`](../errors.codelore.md#codeloreerror) с кодом `NO_DOCUMENTED_FILES` бросается до создания провайдера и первого LLM-вызова.
+- В запрос на разбиение попадают только рёбра файлового DAG, у которых оба конца документированы: недокументированный источник или цель отсекается условиями `if (!knownFiles.has(from))` и `if (!knownFiles.has(to))`, поэтому граф вне документированного набора не влияет на разбиение.
+- На невалидный ответ LLM (`INVALID_LLM_RESPONSE`) метод переспрашивает ровно один раз через `appendPartitionRetry` — в сообщения добавляются предыдущий `assistant`-текст и `user`-просьба вернуть исправленный JSON; повторный parse стоит вне `try`, поэтому второй сбой прокидывает ошибку наверх без повторной подачи.
+- Успешный результат сразу сохраняется `storage.saveDomainMap(map)`, а возвращаемое число файлов — это `knownFiles.size`, то есть число отправленных на разбиение документированных файлов.
 
 ## Чего не делает
 
-Ограничений нет.
+Разбиение не умеет дробиться на части: весь набор файлов и рёбер уходит в один запрос, и перед первым (и единственным) вызовом провайдера `assertRequestFitsBudget` проверяет оценку токенов — при `estimatedTokens > maxPromptTokens` метод бросает [`CodeloreError("PARTITION_TOO_LARGE", ...)`](../errors.codelore.md#codeloreerror) с текстом, что батчинга ещё нет, так что крупный проект, не влезающий в контекст, остаётся неразбитым без автоматической запасной стратегии. Входными считаются только документированные файлы: все рёбра графа, у которых хотя бы один конец (источник или цель) вне `knownFiles`, отбрасываются до построения запроса, поэтому недокументированные части проекта в разбиение не попадают.
+
+## Как менять и что проверять
+
+- Провайдер не вызывается на пустом наборе: guard `if (files.length === 0) { throw new CodeloreError("NO_DOCUMENTED_FILES", ...) }` останавливает алгоритм до создания конфигурации провайдера.
+- Запрос не уходит с превышением контекста: `assertRequestFitsBudget(request, provider)` (внутренняя проверка `if (estimatedTokens > maxPromptTokens)`) срабатывает перед `provider.complete(request)`.
 
 # CodeloreService.generateDomainDocs
 
@@ -1035,11 +1057,15 @@ The method returns a Promise<DomainWriteResult> and is the public entry point th
 
 ## Кто и как использует
 
-Вызывается из `gatherTierMembers` для каждого идентификатора зависимости, начинающегося с `DOMAIN_ID_PREFIX`, чтобы получить сводку доменного документа.
+- [`refreshDomainDocs`](#codeloreservicerefreshdomaindocs) вызывает этот метод как последний этап автоматического обновления тира: сначала подготовительные шаги и [`prepareDomainDocs`](#codeloreservicepreparedomaindocs), затем список слагов тиров, и результат `{ generated, droppedBlocks, failed }` возвращается наружу без постобработки.
+- [`fixStaleDocs`](#fixstaledocs) обращается к методу только когда выделены tier-секции (`domain:<slug>` или `project:`), передаёт `slugs` тиров; возвращённые `failed` и счётчики `generated`/`droppedBlocks` метод заворачивает в запись запуска, поэтому лог запуска показывает работу тира даже когда файловый пайплайн ничего не написал.
+- Оба вызывающих опираются на то, что волны идут листьями вперёд: [`fixStaleDocs`](#fixstaledocs) обращается к summary зависимых доменов уже после того, как предыдущая волна записала их прозу, поэтому генератор зависимого тира не дёргает провайдер повторно за их содержимым.
 
 ## Чего не делает
 
-Ограничений нет.
+- Работает только при сохранённой карте доменов: `if (!map) throw new CodeloreError("NO_DOMAIN_MAP", ...)` срабатывает до всех обращений к провайдеру, поэтому прямой вызов до построения карты падает исключением; [`refreshDomainDocs`](#codeloreservicerefreshdomaindocs) заранее проверяет наличие карты и не вызывает метод без неё.
+- Упавший тир не ретраится в этом прогоне: `catch (error)` фиксирует `failed.push({slug: entity.path, ...})` и возвращает `answered: false` — такие блоки не включаются в `unsettled`, и домен перегенеряется в следующий запуск (скелет остаётся на диске).
+- Генерация тиров внутри волны параллельна (`Promise.all` + pLimit), но запись результатов — строго последовательный цикл `for (const { entity, blocks, dropped, answered } of results)`: комментарий в коде требует сериальной персистенции, потому что запись держит общий контекст рендера.
 
 # CodeloreService.domainDocSummary
 
@@ -1093,19 +1119,28 @@ CodeloreService.collectDocumentedFileLeads(index: ProjectIndex): Promise<Array<{
 
 ## От чего зависит
 
-Использует провайдера LLM для извлечения заголовков из файлов.
+- Перебирает состояния через `this.docStateStorage.listDocStates()` и `this.docStateStorage.loadDocState(docPath)`.
+- Извлекает lead из состояния через [`docResponsibilities(state)`](../markdown/linkify.codelore.md#docresponsibilities) из `src/markdown/linkify.ts`; документ без non-empty lead пропускается (`if (!lead) continue`).
+- Путь файла получает через локальный `sourceFilePathOf(entityId)` — ids вида `file:...` отдаёт путь напрямую, `symbol:...#` обрезает до `#`; остальные ids (доменные, проектные) возвращают `undefined` и отбрасываются.
+- Фильтрует результат по входящему индексу кода через `index.code.fileToEntities[filePath]`.
 
 ## Кто и как использует
 
-Вызывается в начале процесса для сбора заголовков; результаты используются для дальнейшей обработки.
+- [`partitionDomainMap`](#codeloreservicepartitiondomainmap) первым делом зовёт метод и, если `files.length === 0`, решает что делить нечего и бросает `NO_DOCUMENTED_FILES`; из полученных путей строится `knownFiles` и рёбра DAG для запроса разбиения.
+- [`assignUncoveredFiles`](#codeloreserviceassignuncoveredfiles) затем для каждого пути подставляет текст lead: файл, уже описанный файлом-доком, отправится с текстом lead в запрос к LLM, файл без lead — с пустой строкой.
+- `detectUncoveredFiles` использует список путей как источник для определения непокрытых файлов: непокрытые файлы становятся предупреждениями с кодом `uncovered_file` результата валидации.
 
 ## Чего не делает
 
-Не обрабатывает файлы, у которых отсутствует документация — они пропускаются.
+- «Первый выигрывает» для каждого файла: запись в `Map` ставится только по `!leadByFile.has(filePath)`, поэтому после первого встреченного состояния lead файла больше не меняется — какой из секций одного файла даст lead, определяется порядком `state.sectionOrder`.
+- В результат не попадают файлы, отсутствующие в индексе кода: guard `filePath && index.code.fileToEntities[filePath]` отбрасывает их, даже если они числятся в состоянии дока.
+- Результат не включает тир-секции (domain/project): `sourceFilePathOf` не возвращает для них путь, поэтому такие докумен теряются из списка целиком.
 
 ## Как менять и что проверять
 
-Собирает документационные заголовки файлов.
+- Одна запись на файл держится через `!leadByFile.has(filePath)` — изменение «первый выигрывает» возможно только отменив эту проверку.
+- Сортировка рабочего результата задана `.sort((a, b) => a.path.localeCompare(b.path))` — пути выходят в лексикографическом порядке независимо от порядка обхода.
+- Фильтр «документированного индекса» стоит в `filePath && index.code.fileToEntities[filePath]` — убрав эту проверку, в список попадут файлы, которых нет в кодовой стороне индекса.
 
 # CodeloreService.refreshDomainDocs
 
@@ -1169,19 +1204,28 @@ CodeloreService.assignUncoveredFiles(runtime: GenerateDocsRuntime): Promise<void
 
 ## От чего зависит
 
-Использует провайдера LLM, созданного через createConfiguredProvider, для генерации назначений.
+- Считывает и сохраняет карту доменов через storage.
+- Отыскивает непокрытые файлы через [`domainCoverage(map, paths)`](../domains/domain-map.codelore.md#domaincoverage) из `src/domains/domain-map.ts` на основе результата [`collectDocumentedFileLeads`](#codeloreservicecollectdocumentedfileleads).
+- Строит запрос [`buildAssignRequest`](../domains/assign.codelore.md#buildassignrequest) и разбирает ответ [`parseAssignResponse`](../domains/assign.codelore.md#parseassignresponse) из `src/domains/assign.ts`.
+- Провайдер для единственного LLM-вызова берёт из `createProviderPair(runtime).verifyProvider`, а исключения фильтрует по коду `INVALID_LLM_RESPONSE` из [`src/errors.ts`](../errors.codelore.md).
 
 ## Кто и как использует
 
-Вызывается из orchestration-слоя после сбора непокрытых файлов; результат передаётся дальше для исполнения.
+- [`fixStaleDocs`](#fixstaledocs) вызывает метод самым первым с прогресс-строкой «assigning uncovered files and rebuilding tier skeletons»: комментарий поясняет, что раз присваивание записано на диск до расчёта stale, последующая проверка stale в том же запуске заметит смену индексированного членства и перегенерирует принимающий домен, не отлавливая его спустя запуск.
+- [`refreshDomainDocs`](#codeloreservicerefreshdomaindocs) зовёт метод перед генерацией доменов: получивший файлы домен становится stale из-за смены membership, и последующий расчёт tier-слагов подхватит его для генерации.
+- Метод меняет только карту: сохраняет её с обновлённым `generatedAt`, а создание новых доменов оставляет отдельному шагу — в этом методе их никогда нет.
 
 ## Чего не делает
 
-Не обрабатывает случай, когда список непокрытых файлов пуст — метод завершается без действий.
+- Новых доменов метод не создаёт: `map.domains` остаётся исходным — это только распределение по существующим; создание новой границы домена — отдельный шаг (комментарий «A new domain is never created here»).
+- Ретрай выполнен ровно один: при `INVALID_LLM_RESPONSE` добавляется feedback-сообщение и второй `complete`, но повторный [`parseAssignResponse`](../domains/assign.codelore.md#parseassignresponse) стоит уже вне try, так что вторая невалидность пробрасывается наружу.
+- При отсутствии `uncovered` или карты метод делает ранний выход без вызовов LLM — это no-op для скоупа, где неприкрытых файлов нет.
 
 ## Как менять и что проверять
 
-Распределяет непокрытые файлы между участниками команды.
+- В файл домена путь попадает не более одного раза: `if (domain && !domain.files.includes(file))` перед добавлением.
+- Список `domain.files` в карте сразу приводится к сортированному виду выражением `domain.files = [...domain.files, file].sort()`.
+- Ретрай ограничен одним: первый parse внутри try, второй [`parseAssignResponse(retryCompletion.content, knownFiles, knownSlugs)`](../domains/assign.codelore.md#parseassignresponse) — уже за пределами try, поэтому вторая неудача не имеет защитной ветки.
 
 # CodeloreService.queueUnwrittenBlocks
 
@@ -1238,20 +1282,30 @@ CodeloreService.reconcileRenderedDocs(): Promise<void>
 
 ## От чего зависит
 
-Использует провайдера LLM для сверки сгенерированной документации с исходным кодом.
+- Делегирует перерисовку `this.docStateStorage.reconcileRenderedDocs()` — источник перечня `updated`.
+- Если перечень непуст, обновляет индекс пачт-каналом через собственный [`patchDocIndexForDocs(updated)`](#patchdocindexfordocs) (тот дергает `indexManager.patchDocs`).
 
 ## Кто и как использует
 
-Вызывается после генерации документации для проверки согласованности с кодом.
+- [`prepareDomainDocs`](#codeloreservicepreparedomaindocs) вызывает его в конце после сохранения скелетов и пересборки индекса; [`generateDomainDocs`](#codeloreservicegeneratedomaindocs) — после последней пересборки и stamping-подписей;
+- [`fixStaleDocs`](#fixstaledocs) — после файлового пайплайна и тир-генерации, и перед финальной проверкой каскада зависимых доков;
+- [`generateDocsForScope`](#generatedocsforscope) — после файлового пайплайна и перевода скоупа, но прежде общего обновления доменов.
+- Общий паттерн вызова: каждый из этих методов ставит его в конец своего прохода, чтобы доки, созданные в поздних шагах, имели финальный .md раньше, чем патчится индекс: рано перерисованный док ещё не видит зависимых доков этого же прогона.
 
 ## Чего не делает
 
-Не обрабатывает случаи, когда документация полностью совпадает с кодом — пропускает такие файлы.
+- У метода нет параметров, поэтому ограниченая выборочная пере-присота невозможна: он всегда спрашивает весь `docStateStorage` целиком (`reconcileRenderedDocs(): Promise<void>` без аргументов), и вызвающий не может исключить из обработки один док.
+- Патч индекса выполняется только когда перерисование действительно что-то вернуло: `if (updated.length > 0)` — при полностью свежем состоянии метод не трогает индекс, а принудительной пере-генерации здесь не предусмотрено.
 
 # CodeloreService.createProviderPair
 
 ```ts
-CodeloreService.createProviderPair(runtime: { providerName?: string; env: NodeJS.ProcessEnv; fetch?: typeof fetch }): {
+CodeloreService.createProviderPair(runtime: {
+    providerName?: string;
+    env: NodeJS.ProcessEnv;
+    fetch?: typeof fetch;
+    onProgress?: (message: string) => void;
+  }): {
     provider: ChatCompletionProvider;
     verifyProvider: ChatCompletionProvider;
   }
@@ -1259,17 +1313,19 @@ CodeloreService.createProviderPair(runtime: { providerName?: string; env: NodeJS
 
 ## Зачем это нужно
 
-Метод создает пару провайдеров для генерации и проверки документации, используя конфигурацию сервиса.
+Даёт вызывающим два провайдера — писателя и верификатора — так, чтобы факт-чекинг уходил на отдельный, обычно более дешёвый провайдер из конфигурации, а принудительный `runtime.providerName` отменял это расщепление и использовал одну модель для всего.
 
 ## Что делает
 
-- Создает основной провайдер, вызывая [`createConfiguredProvider`](../llm/provider.codelore.md#createconfiguredprovider) с конфигурацией `primary`.
-- Создает проверочный провайдер, вызывая [`createConfiguredProvider`](../llm/provider.codelore.md#createconfiguredprovider) с конфигурацией `verify`, если она задана.
-- Возвращает объект с полями `primary` и `verify`.
+- Создаёт писателя `provider` через [`createConfiguredProvider`](../llm/provider.codelore.md#createconfiguredprovider) с именем `runtime.providerName` и общим `providerRuntime` из `env`, `fetch` и `callReporter(runtime.onProgress)`.
+- Заводит верификатор отдельным экземпляром только при `config.llm.verifyProvider` и при отсутствии `runtime.providerName`; во всех остальных случаях `verifyProvider` — это тот же объект, что и `provider`.
+- Подключает телеметрию `onCall` к обоим провайдерам: репортер превращает длительность, объём промпта, токены вывода и ошибку вызова в одну progress-строку.
 
 ## На что можно положиться
 
-Метод возвращает объект с двумя свойствами: `primary` и `verify`, каждое из которых является экземпляром провайдера. При вызове с конфигурацией, в которой `verify` не задан, свойство `verify` будет равно `undefined`. Метод не изменяет состояние сервиса и не имеет побочных эффектов. Метод не проверяет корректность переданной конфигурации и полагается на [`createConfiguredProvider`](../llm/provider.codelore.md#createconfiguredprovider) для создания провайдеров.
+- При заданном `runtime.providerName` возвращается один экземпляр: условие `verifyName && !runtime.providerName` не выполняется, и `verifyProvider` присваивается ровно тот же `provider`.
+- При отсутствии `runtime.providerName` и заданном `config.llm.verifyProvider` возвращаются два разных экземпляра — только в этой комбинации пара может различаться.
+- Метод ничего не пишет: не трогает конфиг, хранилище или индексы, а только собирает провайдеры из переданного рантайма и конфигурации, поэтому повторный вызов даёт параллельные независимые объекты.
 
 ## От чего зависит
 
@@ -1277,15 +1333,20 @@ CodeloreService.createProviderPair(runtime: { providerName?: string; env: NodeJS
 
 ## Кто и как использует
 
-Вызывается при инициализации сервиса для подготовки провайдеров.
+- [`runPipelineForSections`](#runpipelineforsections) получает пару в начале и передаёт оба провайдера в обработку файловых групп на фазы `propagating` и `terminal` — writer генерирует текст, verify-провайдер проверяет факты на каждой фазе.
+- [`generateDomainDocs`](#codeloreservicegeneratedomaindocs) отдаёт пару в генерацию тир-доков: writer пишет раздел тира, verify-провайдер сверяет блоки против member evidence.
+- [`assignUncoveredFiles`](#codeloreserviceassignuncoveredfiles) и `gateDepDocsCascade` берут только `verifyProvider` — один «дешёвый» LLM-вызов для классификации файла в домен и для чистого факт-чека против dependency docs (комментарий кода: picking a domain from a fixed list is classification, не phase-переход).
+- Прогресс-репортер подключается ко всем созданным инстансам через один `callReporter(runtime.onProgress)` в общем `providerRuntime`.
 
 ## Чего не делает
 
-Не проверяет корректность конфигурации провайдеров — предполагается, что она валидна.
+- При заданном `runtime.providerName` полностью выключен отдельный verify: условие `verifyName && !runtime.providerName` ложно, `verifyProvider` становится тем же объектом, что и в ролях, поэтому «дешёвый» факт-чек силами `thin` модели в этом режиме недоступен.
+- Без `onProgress` у рантайма канал телемерии отключается целиком: `callReporter(runtime.onProgress)` при undefined возвращает `{}` (`if (!onProgress) return {}`), и ни один провайдер не получит `onCall`.
 
 ## Как менять и что проверять
 
-Создаёт пару провайдеров для разных задач.
+- Условие «разделять только без принудительного провайдера» заковано в выражении `verifyName && !runtime.providerName ? createConfiguredProvider(this.config, verifyName, providerRuntime) : provider`.
+- Тот же runtime-богат: `const providerRuntime = { env: runtime.env, fetch: runtime.fetch, ...callReporter(runtime.onTwelve) }` — `env`, `fetch` и репортер прокидываются в любой созданный экземпляр единым объектом.
 
 # CodeloreService.restoreKeptBlocks
 
@@ -1307,19 +1368,28 @@ CodeloreService.restoreKeptBlocks(kept: Array<{ sectionId: string; blockId: Bloc
 
 ## От чего зависит
 
-Метод использует this.docStateStorage и this.config, а также функции normalizeGeneratedRewrite, groupRewritesByDoc, applyRewritesToDoc, patchDocIndexForDocs и класс CodeloreError.
+- Группирует входные записи по док-путям через [`groupBy`](helpers.codelore.md#groupby) из `src/service/helpers.ts`.
+- Путь для записи ищет в текущем индексе: `index.docs.sections[entry.sectionId]?.docPath` после [`loadOrRebuildIndexes()`](#loadorrebuildindexes).
+- Вычисляет свежий отпечаток блока по коду через [`computeBlockFingerprint`](../markdown/block-facets.codelore.md#computeblockfingerprint) из `src/markdown/block-facets.ts`.
+- Читает и пишет состояния через storage состояний.
 
 ## Кто и как использует
 
-Метод вызывается извне сервиса для перезаписи секций. При пустом входе сразу возвращает пустой результат. При дубликате sectionId выбрасывает ошибку. Затем загружает или пересобирает индексы, нормализует входные данные, группирует по документам, применяет правки к каждому документу и обновляет индекс документации.
+- `applyFileGenerationOutcome` вызывает метод после того, как для каждого kept-блока выставил `review_needed`, а затем ещё отмечает незаписанные блоки: сохранённый текст возвращается на экран, но секция остаётся отмеченной — «может быть устаревшим» живёт именно здесь.
+- [`generateDomainDocs`](#codeloreservicegeneratedomaindocs) собирает `unsettled` — блоки, по которым writer ответил в волне, но текст не пришлось на место (включая «ничего»), — и после одной волны вызывает `restoreKeptBlocks(unsettled)` и отмечает незаписанные блоки.
+- Оба вызова опираются на то, что tombstone поднялся в том же запуске: ответ writer-отказ означает отложенный retain, а текст берётся из state, где он до сих пор лежит.
 
 ## Чего не делает
 
-Метод не обрабатывает пустой массив sections — он возвращает пустой результат без побочных эффектов. Также он не допускает дубликатов sectionId — выбрасывает CodeloreError. Для секций, не найденных в индексе, docPath возвращается как пустая строка.
+- Блоки без поднятого tombstone игнорируются: guard `!sectionState || !block || block.staleSince === undefined` переводит такой запрос в `continue` — повторная передача уже распакованного блока ничего не делает.
+- Записи ба без документа в текущем индексе отсекаются до работы: `.filter((entry) => entry.docPath !== "")` — если `index.docs.sections` не знает sectionId, пара не будет перерисовываться.
+- Свежий fingerprint записывается только если его удалось вычислить: `if (fingerprint !== undefined) { block.fingerprint = fingerprint; }` — stale-флаги снимутся и без него, но отпечаток может остаться старым.
 
 ## Как менять и что проверять
 
-Метод восстанавливает сохранённые блоки в секциях документации после перезаписи.
+- Тройное очищение stale-свойств в одном месте: `block.staleSince = undefined; block.staleReason = undefined; block.staleFacets = undefined;`.
+- Состояние перерисовывается один раз на док за вызов: `let mutated = false` + `if (mutated) { await this.docStateStorage.renderAndPersist(state); }` — объединяет записи многих блоков одного doc в один рендер.
+- Отсутствующее в индексе закрывается фильтром `entry.docPath !== ""` до группировки — тихий cherry-pick для tier-секций, у которых в этот прогон нет пути.
 
 # CodeloreService.stampUnwrittenBlocks
 
@@ -1339,18 +1409,16 @@ CodeloreService.stampUnwrittenBlocks(unwritten: Array<{ sectionId: string; block
 
 Метод всегда возвращает `Promise<void>` — он не возвращает данных, а только выполняет побочный эффект пометки незаписанных блоков. Он делегирует фактическую работу методу `stampUnwrittenBlocks`, не принимая аргументов.
 
-## От чего зависит
-
-Метод использует this.docStateStorage и this.config, а также функции normalizeGeneratedRewrite, groupRewritesByDoc, applyRewritesToDoc, patchDocIndexForDocs и класс CodeloreError.
-
 ## Кто и как использует
 
-Метод вызывается извне сервиса для перезаписи секций. При пустом входе сразу возвращает пустой результат. При дубликате sectionId выбрасывает ошибку. Затем загружает или пересобирает индексы, нормализует входные данные, группирует по документам, применяет правки к каждому документу и обновляет индекс документации.
+Метод вызывается из `applyFileGenerationOutcome` и из [`generateDomainDocs`](#codeloreservicegeneratedomaindocs) (в конце обработки волны для `unsettled`) — оба передают массив блоков, которые писатель отказался записывать. Метод загружает индекс, сопоставляет каждую запись с docPath, группирует по документам, для каждого блока с пустым телом вычисляет отпечаток и записывает его в состояние, затем рендерит и сохраняет изменённый документ. Благодаря этому на следующем запуске сохранённый отпечаток позволяет не запрашивать блок повторно, пока не изменится документируемый код.
 
 ## Чего не делает
 
-Метод не обрабатывает пустой массив sections — он возвращает пустой результат без побочных эффектов. Также он не допускает дубликатов sectionId — выбрасывает CodeloreError. Для секций, не найденных в индексе, docPath возвращается как пустая строка.
+Метод обрабатывает только блоки с пустым телом: блоки с непустым `body.trim()` пропускаются. Если [`computeBlockFingerprint`](../markdown/block-facets.codelore.md#computeblockfingerprint) возвращает `undefined`, блок остаётся без отпечатка. Если для документа нет сохранённого состояния, метод пропускает весь документ. Записи без определённого `docPath` (пустая строка) отфильтровываются до группировки.
 
 ## Как менять и что проверять
 
-Метод помечает блоки, которые не были записаны, как необработанные.
+- Инвариант: пустой блок получает отпечаток только если его тело пусто; конструкция `block.body.trim() !== ""` в условии `if (!sectionState || !block || block.body.trim() !== "")`.
+- Инвариант: блок без вычислимого отпечатка не штампуется; конструкция `if (fingerprint === undefined) { continue; }`.
+- Инвариант: пустой список записей завершает метод без побочных эффектов; конструкция `if (unwritten.length === 0) { return; }`.

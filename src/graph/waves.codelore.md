@@ -8,6 +8,10 @@ The module turns a file dependency graph into ordered waves of entities, support
 
 dependencyWaves groups the in-scope files into waves based on dependency depth, and stronglyConnectedComponents groups the in-scope files into strongly connected components (cycles). Both functions return each group as an array of node names. The module also exports the stronglyConnectedComponents helper, which is used internally by dependencyWaves to compute the depth-based grouping.
 
+## На что можно положиться
+
+Обе функции принимают scope как ReadonlySet<string> и граф как Map<string, Set<string>>; узлы вне scope игнорируются, а рёбра к узлам вне scope отбрасываются ещё до обхода. stronglyConnectedComponents возвращает компоненты в порядке завершения алгоритма Тарьяна, каждый компонент — массив имён узлов; для ациклического графа каждая компонента состоит ровно из одного узла. dependencyWaves возвращает массив волн, где уровень группы равен максимуму уровней зависимых групп плюс один, и группы одного уровня образуют волну; внутри волны группы отсортированы по первому элементу, а элементы каждой группы — по алфавиту. Пустой scope даёт пустой массив волн. Циклические зависимости не теряются: все узлы одного цикла попадают в одну группу и, следовательно, в одну волну.
+
 ## Чего не делает
 
 The module only groups files that are in scope; files outside the scope are ignored.

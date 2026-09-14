@@ -199,6 +199,22 @@ describe("OpenAiCompatibleProvider", () => {
     );
   });
 
+  it("retries an empty stream instead of dropping the work", async () => {
+    let calls = 0;
+    const provider = createConfiguredProvider(config(), undefined, {
+      env: {},
+      fetch: (async () => {
+        calls += 1;
+        return calls === 1 ? sseResponse([]) : sseResponse(["recovered"]);
+      }) as typeof fetch,
+    });
+
+    const result = await provider.complete({ messages: [{ role: "user", content: "hi" }] });
+
+    expect(result.content).toBe("recovered");
+    expect(calls).toBe(2);
+  });
+
   it("rejects a truncated answer instead of passing it off as complete", async () => {
     const truncated = new ReadableStream<Uint8Array>({
       start(controller) {

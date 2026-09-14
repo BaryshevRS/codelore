@@ -146,7 +146,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "1819703f2530d11054e772027e2bff8426ad8ce11c9fc559a81e20648a8d545d"
+      "depDocsFingerprint": "cce466cd9b741d5362b7f1faf14457f5b556ac3c2783639122751599e044d2ee"
     },
     "symbol:src/service/section-rewrite.ts#applyRewritesToDoc": {
       "heading": "applyRewritesToDoc",
@@ -307,7 +307,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "1819703f2530d11054e772027e2bff8426ad8ce11c9fc559a81e20648a8d545d",
+      "depDocsFingerprint": "cce466cd9b741d5362b7f1faf14457f5b556ac3c2783639122751599e044d2ee",
       "signature": "applyRewritesToDoc(docPath: string, rewrites: NormalizedRewriteSectionInput[], storage: DocStateStorage, entities: Record<string, CodeEntity>, config: CodeloreConfig, filteredBySection: Map<string, FilteredGeneratedBlock[]>): Promise<void>"
     },
     "symbol:src/service/section-rewrite.ts#collectFilteredBlocksForRewrites": {
@@ -427,7 +427,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "1819703f2530d11054e772027e2bff8426ad8ce11c9fc559a81e20648a8d545d"
+      "depDocsFingerprint": "cce466cd9b741d5362b7f1faf14457f5b556ac3c2783639122751599e044d2ee"
     },
     "symbol:src/service/section-rewrite.ts#mergeGeneratedBlocksIntoSection": {
       "heading": "mergeGeneratedBlocksIntoSection",
@@ -628,7 +628,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "1819703f2530d11054e772027e2bff8426ad8ce11c9fc559a81e20648a8d545d",
+      "depDocsFingerprint": "cce466cd9b741d5362b7f1faf14457f5b556ac3c2783639122751599e044d2ee",
       "signature": "mergeGeneratedBlocksIntoSection(sectionState: DocStateSection, rewrite: NormalizedRewriteSectionInput, entities: Record<string, CodeEntity>, config: CodeloreConfig): void"
     },
     "symbol:src/service/section-rewrite.ts#updateSectionStatusForBlocks": {
@@ -786,7 +786,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "1819703f2530d11054e772027e2bff8426ad8ce11c9fc559a81e20648a8d545d",
+      "depDocsFingerprint": "cce466cd9b741d5362b7f1faf14457f5b556ac3c2783639122751599e044d2ee",
       "signature": "updateSectionStatusForBlocks(sectionState: DocStateSection): void"
     },
     "symbol:src/service/section-rewrite.ts#updateStatusFromBlocks": {
@@ -920,7 +920,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "1819703f2530d11054e772027e2bff8426ad8ce11c9fc559a81e20648a8d545d"
+      "depDocsFingerprint": "cce466cd9b741d5362b7f1faf14457f5b556ac3c2783639122751599e044d2ee"
     },
     "symbol:src/service/section-rewrite.ts#normalizeGeneratedRewrite": {
       "heading": "normalizeGeneratedRewrite",
@@ -1082,7 +1082,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "1819703f2530d11054e772027e2bff8426ad8ce11c9fc559a81e20648a8d545d",
+      "depDocsFingerprint": "cce466cd9b741d5362b7f1faf14457f5b556ac3c2783639122751599e044d2ee",
       "signature": "normalizeGeneratedRewrite(input: RewriteSectionInput, _config: CodeloreConfig): NormalizedRewriteSectionInput"
     },
     "symbol:src/service/section-rewrite.ts#collectFilteredBlocksForResponse": {
@@ -1229,7 +1229,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "1819703f2530d11054e772027e2bff8426ad8ce11c9fc559a81e20648a8d545d",
+      "depDocsFingerprint": "cce466cd9b741d5362b7f1faf14457f5b556ac3c2783639122751599e044d2ee",
       "signature": "collectFilteredBlocksForResponse(sectionState: DocStateSection, config: CodeloreConfig, includeText: boolean): FilteredGeneratedBlock[]"
     }
   },

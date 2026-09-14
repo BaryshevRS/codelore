@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/llm/domain-pipeline.codelore.md",
-  "generatedAt": "2026-09-13T23:26:45.695Z",
+  "generatedAt": "2026-09-14T13:03:31.615Z",
   "sectionOrder": [
     "symbol:src/llm/domain-pipeline.ts#generateDomainDoc"
   ],
@@ -65,9 +65,16 @@
           "fingerprint": "signature=8ff57b19705a7a6154874153f770e555c67634bde35b95339f6a2f4a0edde51d,deps=3515f74c87b380e374d34c2da1d7bd5b5f0f60dff84b9342aeea3172bec2d1d0,usage=21f928f8d463d186071be40ead24c52a5847e1725fd3a4bc1ec66a58b16b7810"
         },
         "invariants": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "signature=8ff57b19705a7a6154874153f770e555c67634bde35b95339f6a2f4a0edde51d,body=585c0f56c0eaa6e2a526c6e91b818c72e95a6e0608de285d8f92ab33dfa4c904"
+          "body": "- Пустой результат: если writeWithRetries не вернул ни одного блока для секции (blockEntries(blocks).length === 0), функция сразу возвращает { blocks: {}, dropped: [] } и не обращается к verify-провайдеру.\n- Починка ограничена ровно одним раундом: после ремонта перепроверяются только отремонтированные id через blockSubset(blocks, repairedIds), а не весь набор, и для вновь найденных противоречий второй починки не происходит.\n- Итог делит блоки по последней проверке: из blocks выпадают только те, чей id попал в финальный contradicted, остальные возвращаются с исходным текстом без изменений — ремонт не трогает непротиворечивые блоки; в dropped лежат сами объекты ContradictedClaim (blockId, statement, evidence), а не идентификаторы.\n- Сбой ремонта не фатален: если repairContradictedBlocks вернул пустой объект (невалидный JSON в ответе), все помеченные блоки целиком уходят в dropped.",
+          "rendered": true,
+          "fingerprint": "signature=8ff57b19705a7a6154874153f770e555c67634bde35b95339f6a2f4a0edde51d,body=8618a4677356a2100e4d0d471df8b794113fde5248da67cdebca792d07889e5b",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Починка выполняется ровно один раунд, а перепроверка охватывает только отремонтированные блоки через blockSubset(blocks, repairedIds), а не весь набор."
+          }
         },
         "dependencies": {
           "body": "Depends on local helpers `writeWithRetries`, `verifyBlocks`, `repairContradictedBlocks`, `blockEntries`, `blockSubset`, and `currentBlocksForPrompt` from the same file.",
@@ -141,6 +148,16 @@
             "workflows",
             "limitations",
             "changeGuide"
+          ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:03:31.615Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "invariants"
           ]
         }
       ],

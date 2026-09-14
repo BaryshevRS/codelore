@@ -336,8 +336,12 @@ class OpenAiCompatibleProvider implements ChatCompletionProvider {
     }
     consume(buffer);
     if (content.trim().length === 0) {
-      throw new CodeloreError("INVALID_LLM_RESPONSE", `LLM provider "${this.name}" streamed no message content`, {
+      // An empty stream is never an answer the model meant to give, so it is a
+      // transport failure rather than a content one: raised as retryable, it costs a
+      // retry; raised as invalid, it drops the blocks and leaves them for a later run.
+      throw new CodeloreError("LLM_PROVIDER_ERROR", `LLM provider "${this.name}" streamed no message content`, {
         provider: this.name,
+        status: 503,
         ...(finishReason ? { finishReason } : {}),
       });
     }

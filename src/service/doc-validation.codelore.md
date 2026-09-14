@@ -59,40 +59,48 @@
 
 # staleValidationIssue
 
+```ts
+staleValidationIssue(section: DocSection, block: DocSection["blocks"][number], blockId: BlockId, presentOwns: string[], codeEntities: Record<string, CodeEntity>): DocValidationIssue | undefined
+```
+
 ## Зачем это нужно
 
 Определяет, является ли один блок документации устаревшим, сравнивая текущий отпечаток с сохранённым.
 
 ## Что делает
 
-- Вычисляет текущий отпечаток блока через [`computeBlockFingerprint`](../markdown/block-facets.codelore.md#computeblockfingerprint).
-- Если блок помечен как удалённый (`staleSince`), возвращает issue с `drift: "tombstoned"`.
-- Иначе сравнивает `storedValue` и `currentValue`; при расхождении определяет изменившиеся фасеты через [`diffFacetHashes`](../markdown/block-facets.codelore.md#difffacethashes).
-- Возвращает `undefined`, если отпечаток вычислить не удалось или значения совпадают.
+- Вычисляет текущий отпечаток блока через [`computeBlockFingerprint`](../markdown/block-facets.codelore.md#computeblockfingerprint) и сразу завершается, возвращая `undefined`, если отпечаток получить не удалось.
+- Для блока со `staleSince` возвращает предупреждение с `drift: "tombstoned"`: изменённые фасеты берёт из `block.staleFacets`, а при их отсутствии подставляет весь `[...BLOCK_FACETS[blockId]]`, в сообщение включает причину `block.staleReason` (по умолчанию `"code_changed"`) и дату `staleSince`.
+- Для остальных блоков при обнаруженном расхождении фасетов формирует предупреждение с `drift: "facet_changed"` и соответствующими фасетами.
+- Когда расхождения нет — `currentValue === undefined` или расхождение не обнаружено — возвращает `undefined`.
 
 ## На что можно положиться
 
-Не изменяет переданные объекты. Возвращает issue с кодом `stale_block` и уровнем `warning` при расхождении; `undefined` при совпадении.
+- Каждый возвращённый issue несёт `code: "stale_block"` и `severity: "warning"` — функция никогда не выдаёт ошибку, только предупреждение.
+- Поле `drift` принимает ровно одно из двух значений: `"tombstoned"` для блока со `staleSince` либо `"facet_changed"` для расхождения фасетов.
+- Сообщение для tombstoned-блока содержит причину `block.staleReason` (по умолчанию `"code_changed"`) и дату `staleSince`; для `facet_changed` — список фасетов, соединённый через `", "`.
+- Функция не мутирует `section`, `block` и `codeEntities` — только читает их и создаёт новый issue.
 
 ## От чего зависит
 
-- [`computeBlockFingerprint`](../markdown/block-facets.codelore.md#computeblockfingerprint) (`src/markdown/block-facets.ts`) — вычисляет текущий отпечаток блока.
-- [`diffFacetHashes`](../markdown/block-facets.codelore.md#difffacethashes) (`src/markdown/block-facets.ts`) — определяет изменившиеся фасеты.
-- [`parseBlockFingerprintValue`](../markdown/block-facets.codelore.md#parseblockfingerprintvalue) (`src/markdown/block-facets.ts`) — парсит сохранённую строку отпечатка.
+Опирается на два модуля. [`computeBlockFingerprint`](../markdown/block-facets.codelore.md#computeblockfingerprint) (src/markdown/block-facets.ts) вычисляет текущий отпечаток блока по фасетам владеющих сущностей; константа `BLOCK_FACETS` (src/markdown/block-facets.ts) даёт запасной набор фасетов для tombstoned-блока без `staleFacets`. [`staleBlockInfoFor`](stale-detection.codelore.md#staleblockinfofor) (src/service/stale-detection.ts) ищет изменившиеся фасеты для обычного блока и сообщает, есть ли расхождение.
 
 ## Кто и как использует
 
-Вызывается из [`detectStaleBlocks`](#detectstaleblocks) для каждого блока секции. Функция сначала пытается вычислить текущий отпечаток через [`computeBlockFingerprint`](../markdown/block-facets.codelore.md#computeblockfingerprint). Если он не вычислен, возвращает `undefined`. Иначе, если блок помечен как удалённый (`staleSince`), возвращает issue с типом `tombstoned`. В противном случае сравнивает сохранённый и текущий отпечатки; при расхождении вызывает [`diffFacetHashes`](../markdown/block-facets.codelore.md#difffacethashes) для определения изменившихся фасетов и формирует issue.
+Вызывается из [`detectStaleBlocks`](#detectstaleblocks) в цикле по блокам секции. Тот отсекает пустые случаи: если `section.owns` пуст или ни одна owned-сущность не найдена в `codeEntities`, функция не вызывается, поэтому `presentOwns` всегда содержит хотя бы одну живую сущность; обрабатываются только известные блоки секции. Сама функция вычисляет отпечаток и при недоступном значении молча пропускает блок. Для блока с уже установленным `staleSince` строит предупреждение из метаданных блока; иначе спрашивает [`staleBlockInfoFor`](stale-detection.codelore.md#staleblockinfofor) и выдаёт предупреждение только при найденном расхождении. Значение по умолчанию причины `block.staleReason ?? "code_changed"` в сообщении совпадает с конвенцией из `staleReasonFor` (src/service/stale-detection.ts), где `"code_changed"` выдаётся при изменении нескольких фасетов.
 
 ## Чего не делает
 
-- Не проверяет блоки, у которых отсутствует сохранённый отпечаток (`storedValue === undefined`): возвращает `undefined`, а не issue.
-- Не вычисляет отпечаток, если `presentOwns` не содержит owned-сущностей (`currentValue === undefined`): возвращает `undefined`.
+- Если [`computeBlockFingerprint`](../markdown/block-facets.codelore.md#computeblockfingerprint) вернул `undefined`, функция сразу возвращает `undefined`: блок без доступного отпечатка никогда не получает issue, даже если на самом деле устарел. Это ветвь `if (currentValue === undefined) { return undefined; }`.
+- Для не-tombstoned блока наличие расхождения целиком определяет [`staleBlockInfoFor`](stale-detection.codelore.md#staleblockinfofor): если он вернул `undefined`, функция молча завершается и собственную проверку «текущий отпечаток против сохранённого» не проводит.
+- В ветке tombstoned вычисленный `currentValue` не используется: предупреждение строится только из метаданных `block.staleSince`, `block.staleFacets` и `block.staleReason`, без сравнения с текущим состоянием кода.
 
 ## Как менять и что проверять
 
-1. При `currentValue === undefined` возвращает `undefined` — конструкция: `if (currentValue === undefined) { return undefined; }`.
-2. При совпадении отпечатков возвращает `undefined` — конструкция: `if (storedValue === undefined || storedValue === currentValue) { return undefined; }`.
+- Блок без доступного отпечатка молча пропускается: инвариант закреплён ранним выходом `if (currentValue === undefined) { return undefined; }`.
+- Tombstoned-блок всегда помечается `drift: "tombstoned"`, а не живым сравнением: инвариант закреплён условием `if (block.staleSince !== undefined)`.
+- Для tombstoned-блока без `staleFacets` в предупреждение попадает весь набор фасетов блока: инвариант закреплён выражением `block.staleFacets ?? [...BLOCK_FACETS[blockId]]`.
+- Функция возвращает только предупреждения с фиксированным кодом: инвариант закреплён литералами `code: "stale_block"` и `severity: "warning"`.
 
 # validateDependencies
 

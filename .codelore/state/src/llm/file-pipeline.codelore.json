@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/llm/file-pipeline.codelore.md",
-  "generatedAt": "2026-09-14T07:25:05.563Z",
+  "generatedAt": "2026-09-14T13:12:14.135Z",
   "sectionOrder": [
     "symbol:src/llm/file-pipeline.ts#generateFileGroup",
     "symbol:src/llm/file-pipeline.ts#dependencyDocsFingerprint",
@@ -2183,7 +2183,7 @@
         "symbol:src/service/codelore-service.ts#CodeloreService",
         "symbol:src/service/codelore-service.ts#CodeloreService.gateDepDocsCascade"
       ],
-      "status": "review_needed",
+      "status": "normal",
       "allowedBlocks": [
         "purpose",
         "responsibility",
@@ -2226,14 +2226,14 @@
           }
         },
         "invariants": {
-          "body": "- Для пустого массива `targets` функция возвращает пустое множество (не `null`, не `undefined`).\n- Если для файла `collectDependencyDocs` вернул пустой массив, функция не выполняет LLM-запрос для этого файла и не включает ни одну его секцию в возвращаемое множество.\n- Порядок обработки файлов детерминирован: итерация по записям `Map`, построенного из входного массива `targets` в порядке его обхода.\n- Функция не изменяет переданные объекты (`service`, `index`, `targets`, `provider`).\n- Загружает исходный код с диска при каждом вызове через `readFile`; ошибка чтения файла пробрасывается вызывающему.\n- Ошибка LLM-запроса (`provider.complete`) или парсинга ответа (`parseVerifyResponse`) пробрасывается без повторных попыток.\n- Возвращаемое множество содержит только идентификаторы секций, для которых не найдено противоречий; секции, для которых LLM не вызывался (нет зависимостей) или которые оказались в `contradicted`, в множество не попадают.",
+          "body": "- Пустой `targets` возвращает пустое множество: цикл группировки не создаёт ни одной записи в `byFile`, и `Promise.allSettled` обрабатывает пустой набор.\n- Секции файла, для которого `collectDependencyDocs` вернул пустой массив, никогда не попадают в результат — `continue` пропускает файл до вызова LLM.\n- Секции, у которых все целевые блоки имеют пустой текст, тоже не попадают в результат: блоки с `body.trim() === \"\"` исключаются фильтром `block.body.trim() !== \"\"`, и при отсутствии оставшихся блоков `continue` завершает обработку.\n- В результат включается секция целиком, только если ни один из проверенных блоков не оказался в множестве `contradicted` из `parseVerifyResponse`; противоречие в одном блоке исключает всю секцию, без детализации, какие блоки нарушены.\n- Функция не мутирует аргументы и не выполняет повторных попыток: ошибка `provider.complete`, `parseVerifyResponse` или `readFile` пробрасывается вызывающему, а не глотается через `allSettled` (он гасит только ошибки внутри самих обработчиков файлов).\n- Результат не зависит от порядка завершения файловых задач: `verifiedClean` наполняется решениями каждого файла независимо, хотя порядок добавления при `Promise.allSettled` не детерминирован.",
           "rendered": true,
-          "fingerprint": "signature=51057d9212493339da2e5c783a12ba4095fb5acc541f7b556e1340da952f7dcb,body=97985ecca66b2af25469946428565edf4695f17d0c20202813f9b3b0dc723d01",
+          "fingerprint": "signature=51057d9212493339da2e5c783a12ba4095fb5acc541f7b556e1340da952f7dcb,body=72e3dfb63fb8b7bd9587a3caa367f8366cdab34da76b6b1e436e0d8ce26cd569",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 1,
+            "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Для файла без зависимостей функция не выполняет LLM-запрос и не включает секции этого файла в возвращаемое множество."
+            "novelFact": "Противоречие в одном блоке исключает из результата всю секцию целиком, без детализации по блокам."
           },
           "language": "ru"
         },
@@ -2250,38 +2250,38 @@
           "language": "ru"
         },
         "workflows": {
-          "body": "Вызывается из `CodeloreService.gateDepDocsCascade` (`src/service/codelore-service.ts`) с целями — списком секций и идентификаторов блоков, которые нужно проверить. Функция группирует цели по файлу-владельцу: обходит входной массив `args.targets`, для каждой секции получает путь к файлу через `index.code.entities[ownerId]?.path`. Для каждого такого файла собирает документацию прямых зависимостей через `collectDependencyDocs(index, [file])`. Если массив зависимостей пуст — LLM не вызывается, секции не попадают в результат. Иначе загружает исходный код файла с диска через `readFile(join(service.config.rootDir, file), \"utf8\")`, формирует `VerifySectionInput` для каждой целевой секции с блоком `source`, построенным через `verificationSource` (включает исходный код сущности, оглавление файла и reachable helper-контекст). Передаёт запрос в LLM через `provider.complete(buildVerifyRequest({ sections: verifySections, dependencyDocs }))`. Извлекает противоречия через `parseVerifyResponse(response.content, verifySections)`. Возвращает множество идентификаторов секций, для которых set `contradicted` не содержит `sectionId`. Обработка файлов независима и ограничена `pLimit(service.config.llm.concurrency)`. Ошибка LLM-запроса или парсинга пробрасывается без retry.",
+          "body": "Единственный вызывающий — метод `CodeloreService.gateDepDocsCascade` (`src/service/codelore-service.ts`, сигнатура `gateDepDocsCascade(scope: RefreshStaleDocsInput[\"scope\"], runtime: GenerateDocsRuntime)`) — это финальный гейт каскада после переписывания зависимостей: по комментарию в коде он «fires after the last write, when a central file's rewrite has left depDocs drift on each of its dependents». Метод передаёт цели — пары `{ sectionId, blockIds }` — и использует возвращённое множество как список секций, которые верификатор подтвердил по текущей документации зависимостей; контракт зафиксирован в doc-комментарии функции: «only a section confirmed clean by the verifier is safe to clear with a fingerprint refresh». Секции вне множества (не подтверждённые, непроверенные или потерянные из-за сбоя) `gateDepDocsCascade` оставляет помеченными и пускает в обычную регенерацию.\n\nЧто происходит на стороне функции:\n- Цели группируются по файлу-владельцу (`owns[0]` → `path`), и каждый файл обрабатывается отдельной задачей; задачи файлов параллелятся пулом `pLimit(service.config.llm.concurrency)` — тем же лимитом, что и остальная генерация.\n- На каждый файл выполняется один запрос через переданный в вызове `args.provider` (отдельного «верифицирующего» провайдера у гейта нет).\n- Сбой провайдера — не ошибка всего прогона: `Promise.allSettled` гасит исключение задачи, секции этого файла просто не попадают в результат. Комментарий в коде описывает это как «absence of evidence»: секция остаётся помеченной и уходит в регенерацию, а не в исключение. Возвращённое множество не различает «проверено и чисто» и «не проверено из-за сбоя» — вызывающий видит только, надо ли ещё раз генерировать секцию.",
           "rendered": true,
-          "fingerprint": "body=97985ecca66b2af25469946428565edf4695f17d0c20202813f9b3b0dc723d01,deps=bd6bc3c3ae8e80a12fda7e0e9654118eb231654009ba6fbc6191eb8591be80b0",
+          "fingerprint": "body=72e3dfb63fb8b7bd9587a3caa367f8366cdab34da76b6b1e436e0d8ce26cd569,deps=bd6bc3c3ae8e80a12fda7e0e9654118eb231654009ba6fbc6191eb8591be80b0",
           "scores": {
-            "informativeness": 1,
-            "novelty": 0.5,
-            "specificity": 0.75,
-            "novelFact": "Секция попадает в возвращаемое множество только если LLM не обнаружил её среди contradicted; если зависимости пусты или LLM не вызывался, секция не включается."
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Вызывающий использует возвращённое множество как гейт каскада: только эти секции можно безопасно очистить со сбросом fingerprint, остальные — регенерировать."
           },
           "language": "ru"
         },
         "limitations": {
-          "body": "Отсутствие retry при ошибке LLM: если `provider.complete` выбрасывает исключение или `parseVerifyResponse` не удаётся, ошибка пробрасывается вызывающему без повторной попытки — строка `await provider.complete(buildVerifyRequest(…))` не обёрнута в цикл повторений. Если `collectDependencyDocs` возвращает пустой массив, `continue` пропускает файл — его секции гарантированно не попадают в возвращаемое множество. Функция не сообщает, какие именно блоки какой секции вызвали противоречие: возвращает только `Set<string>` идентификаторов секций, а не детализацию по блокам. Загрузка исходного кода с диска при каждом вызове через `readFile` без кэширования может повторно читать один и тот же файл для разных вызовов `verifyBlocksAgainstDeps`.",
+          "body": "- У каждого файла ровно одна попытка: `await provider.complete(buildVerifyRequest(…))` не обёрнуто в цикл ретраев. Исключение из `readFile`, `provider.complete` или `parseVerifyResponse` гасится `Promise.allSettled` — секции такого файла молча не попадают в `verifiedClean`, и вызывающий не узнаёт о самом сбое.\n- Верификатор видит усечённую документацию зависимостей: `collectDependencyDocs` режет блоки по `DEP_DOC_FILE_CAP` (2500) и останавливает сбор по `DEP_DOCS_TOTAL_CAP` (15000) с `break`. Утверждение, которое опирается на отрезанный кусок, провайдер не увидит и не сможет зафиксировать ни подтверждённым, ни противоречащим — секция может пройти как чистая лишь потому, что противоречащий текст не попал в запрос.",
           "rendered": true,
-          "fingerprint": "body=97985ecca66b2af25469946428565edf4695f17d0c20202813f9b3b0dc723d01",
+          "fingerprint": "body=72e3dfb63fb8b7bd9587a3caa367f8366cdab34da76b6b1e436e0d8ce26cd569",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
-            "specificity": 0.75,
-            "novelFact": "Ошибка LLM-запроса пробрасывается без retry, а пустой dependencyDocs приводит к пропуску файла без включения его секций в результат."
+            "specificity": 1,
+            "novelFact": "Проверка не повторяется: один запрос на файл без ретраев, и сбой любой части задачи гасится `Promise.allSettled`, после чего секции этого файла исчезают из результата без всякой диагностики."
           },
           "language": "ru"
         },
         "changeGuide": {
-          "body": "Два инварианта:\n1. Условие `if (dependencyDocs.length === 0) { continue; }` — при его удалении функция будет вызывать LLM с пустым массивом зависимостей, что приведёт к лишним запросам, подтверждающим все блоки.\n2. Вызов `readFile` с `join(service.config.rootDir, file)` пробрасывает ошибки чтения; при добавлении `try-catch` или замене на другой метод загрузки (например, кэширующий) изменится поведение при отсутствии файла.\n\nТесты: не видны.",
+          "body": "- Число LLM-обращений жёстко равно числу файлов-владельцев: каждая запись `byFile` образует ровно одну задачу через `limit(async () => {` внутри `[...byFile].map(...)`, и в ней один `await provider.complete(...)` — добавить повторную проверку или чанкинг значит менять этот один обработчик.\n- Проверяются только запрошенные блоки с непустым текстом: фильтр `wanted.has(block.id as BlockId) && block.body.trim() !== \"\"` в `section.blocks.filter(...)` и ранний `if (blocks.length === 0) { continue; }` — блок, не названный в `targets` или с пустым телом, никогда не попадёт в `VerifySectionInput` и не повлияет на результат.\n- Цель с отсутствующим владельцем в индексе молча исключается ещё до группировки: путь получается через `index.code.entities[ownerId]?.path`, и `if (!file) { continue; }` просто пропускает такую секцию — вызывающий не получит о ней ни подтверждения, ни ошибки, только «не проверена».",
           "rendered": true,
-          "fingerprint": "body=97985ecca66b2af25469946428565edf4695f17d0c20202813f9b3b0dc723d01,deps=bd6bc3c3ae8e80a12fda7e0e9654118eb231654009ba6fbc6191eb8591be80b0,usage=46eaf60c7cab95f3a837c65a65fe1d5b557a0374fe8a757112b1a94c58c06bca,placement=26f75ebed2a6c702e851abe3fe9c7d5da323593d5ee9075aedae13db2b8486cc",
+          "fingerprint": "body=72e3dfb63fb8b7bd9587a3caa367f8366cdab34da76b6b1e436e0d8ce26cd569,deps=bd6bc3c3ae8e80a12fda7e0e9654118eb231654009ba6fbc6191eb8591be80b0,usage=46eaf60c7cab95f3a837c65a65fe1d5b557a0374fe8a757112b1a94c58c06bca,placement=26f75ebed2a6c702e851abe3fe9c7d5da323593d5ee9075aedae13db2b8486cc",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.75,
-            "specificity": 0.75,
-            "novelFact": "Два инварианта: пропуск файлов без зависимостей и пробрасывание ошибок чтения файла."
+            "novelty": 0.5,
+            "specificity": 1,
+            "novelFact": "Структуру результата и число запросов держат три конструкции: одна задача на файл через `limit(async () => {`, фильтр `wanted.has(block.id as BlockId) && block.body.trim() !== \"\"` и молчаливый пропуск целей без владельца через `if (!file) { continue; }`."
           },
           "language": "ru"
         }
@@ -2462,6 +2462,28 @@
             "limitations"
           ],
           "manualReviewNeeded": true
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:03:31.492Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.134Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
       ],
       "signature": "verifyBlocksAgainstDeps(args: {\n  service: CodeloreService;\n  index: ProjectIndex;\n  targets: Array<{ sectionId: string; blockIds: BlockId[] }>;\n  provider: ChatCompletionProvider;\n}): Promise<Set<string>>"

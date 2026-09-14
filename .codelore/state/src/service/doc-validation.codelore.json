@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/service/doc-validation.codelore.md",
-  "generatedAt": "2026-06-20T13:35:27.964Z",
+  "generatedAt": "2026-09-14T13:12:14.417Z",
   "sectionOrder": [
     "symbol:src/service/doc-validation.ts#validateOwnedEntities",
     "symbol:src/service/doc-validation.ts#detectStaleBlocks",
@@ -141,7 +141,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "cc5ae4d50472ba2079f534a8db50b0925fdfc7ce82c9d7c7caaf136003ae7d72"
+      "depDocsFingerprint": "94e595768d3d42ad9b707e6142d0b10f332acb5a33bc9eb0e2afc24295cee707"
     },
     "symbol:src/service/doc-validation.ts#detectStaleBlocks": {
       "heading": "detectStaleBlocks",
@@ -277,7 +277,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "cc5ae4d50472ba2079f534a8db50b0925fdfc7ce82c9d7c7caaf136003ae7d72"
+      "depDocsFingerprint": "94e595768d3d42ad9b707e6142d0b10f332acb5a33bc9eb0e2afc24295cee707"
     },
     "symbol:src/service/doc-validation.ts#staleValidationIssue": {
       "heading": "staleValidationIssue",
@@ -288,8 +288,7 @@
       ],
       "depends": [
         "symbol:src/markdown/block-facets.ts#computeBlockFingerprint",
-        "symbol:src/markdown/block-facets.ts#diffFacetHashes",
-        "symbol:src/markdown/block-facets.ts#parseBlockFingerprintValue"
+        "symbol:src/service/stale-detection.ts#staleBlockInfoFor"
       ],
       "usedBy": [
         "symbol:src/service/doc-validation.ts#detectStaleBlocks"
@@ -326,70 +325,76 @@
           }
         },
         "responsibility": {
-          "body": "- Вычисляет текущий отпечаток блока через `computeBlockFingerprint`.\n- Если блок помечен как удалённый (`staleSince`), возвращает issue с `drift: \"tombstoned\"`.\n- Иначе сравнивает `storedValue` и `currentValue`; при расхождении определяет изменившиеся фасеты через `diffFacetHashes`.\n- Возвращает `undefined`, если отпечаток вычислить не удалось или значения совпадают.",
+          "body": "- Вычисляет текущий отпечаток блока через `computeBlockFingerprint` и сразу завершается, возвращая `undefined`, если отпечаток получить не удалось.\n- Для блока со `staleSince` возвращает предупреждение с `drift: \"tombstoned\"`: изменённые фасеты берёт из `block.staleFacets`, а при их отсутствии подставляет весь `[...BLOCK_FACETS[blockId]]`, в сообщение включает причину `block.staleReason` (по умолчанию `\"code_changed\"`) и дату `staleSince`.\n- Для остальных блоков при обнаруженном расхождении фасетов формирует предупреждение с `drift: \"facet_changed\"` и соответствующими фасетами.\n- Когда расхождения нет — `currentValue === undefined` или расхождение не обнаружено — возвращает `undefined`.",
           "rendered": true,
-          "fingerprint": "signature=14cd0edcbbfbfcb2477acc47de9d7fc7d7171e40804004bd94a80a1045d709e6,deps=13ce86bd942246fdbf29259fc73c46e330bbe376250d87c2eec84bc238e47d8c,usage=f8d90d89db5f3921228a05cd8618dcae0ac18dd69af5fba085cc5bf713ccb288",
+          "fingerprint": "signature=14cd0edcbbfbfcb2477acc47de9d7fc7d7171e40804004bd94a80a1045d709e6,deps=0a1a371827292bfccdcf1fc340eefd845e0b09a2c594660b126240af905c8fcc,usage=f8d90d89db5f3921228a05cd8618dcae0ac18dd69af5fba085cc5bf713ccb288",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Не возвращает issue для блоков с невычислимым отпечатком."
-          }
+            "novelFact": "Функция различает tombstoned-блоки (по `staleSince`) и блоки с изменившимися фасетами, возвращая для каждого свою форму предупреждения."
+          },
+          "language": "ru"
         },
         "invariants": {
-          "body": "Не изменяет переданные объекты. Возвращает issue с кодом `stale_block` и уровнем `warning` при расхождении; `undefined` при совпадении.",
+          "body": "- Каждый возвращённый issue несёт `code: \"stale_block\"` и `severity: \"warning\"` — функция никогда не выдаёт ошибку, только предупреждение.\n- Поле `drift` принимает ровно одно из двух значений: `\"tombstoned\"` для блока со `staleSince` либо `\"facet_changed\"` для расхождения фасетов.\n- Сообщение для tombstoned-блока содержит причину `block.staleReason` (по умолчанию `\"code_changed\"`) и дату `staleSince`; для `facet_changed` — список фасетов, соединённый через `\", \"`.\n- Функция не мутирует `section`, `block` и `codeEntities` — только читает их и создаёт новый issue.",
           "rendered": true,
-          "fingerprint": "signature=14cd0edcbbfbfcb2477acc47de9d7fc7d7171e40804004bd94a80a1045d709e6,body=6700b5777343d07297f12a26cd271aeede8857fb8560f6438931645da28e5885",
+          "fingerprint": "signature=14cd0edcbbfbfcb2477acc47de9d7fc7d7171e40804004bd94a80a1045d709e6,body=4ea0828afb01928f54a9dbec67ba93c5edc97921de043524a4d39f571411bfcc",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
+            "informativeness": 0.75,
+            "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Гарантирует неизменяемость входных данных."
-          }
+            "novelFact": "Все issue имеют код `stale_block` и severity `warning`, а `drift` принимает ровно одно из двух значений — `tombstoned` или `facet_changed`."
+          },
+          "language": "ru"
         },
         "dependencies": {
-          "body": "- `computeBlockFingerprint` (`src/markdown/block-facets.ts`) — вычисляет текущий отпечаток блока.\n- `diffFacetHashes` (`src/markdown/block-facets.ts`) — определяет изменившиеся фасеты.\n- `parseBlockFingerprintValue` (`src/markdown/block-facets.ts`) — парсит сохранённую строку отпечатка.",
+          "body": "Опирается на два модуля. `computeBlockFingerprint` (src/markdown/block-facets.ts) вычисляет текущий отпечаток блока по фасетам владеющих сущностей; константа `BLOCK_FACETS` (src/markdown/block-facets.ts) даёт запасной набор фасетов для tombstoned-блока без `staleFacets`. `staleBlockInfoFor` (src/service/stale-detection.ts) ищет изменившиеся фасеты для обычного блока и сообщает, есть ли расхождение.",
           "rendered": true,
-          "fingerprint": "deps=13ce86bd942246fdbf29259fc73c46e330bbe376250d87c2eec84bc238e47d8c",
+          "fingerprint": "deps=0a1a371827292bfccdcf1fc340eefd845e0b09a2c594660b126240af905c8fcc",
           "scores": {
-            "informativeness": 0.5,
+            "informativeness": 0.75,
             "novelty": 0.5,
             "specificity": 0.75,
-            "novelFact": "- `computeBlockFingerprint` (`src/markdown/block-facets.ts`) — вычисляет текущий отпечаток блока."
-          }
+            "novelFact": "Функция использует только computeBlockFingerprint и staleBlockInfoFor, а запасной набор фасетов tombstoned-блока берёт из константы BLOCK_FACETS."
+          },
+          "language": "ru"
         },
         "workflows": {
-          "body": "Вызывается из `detectStaleBlocks` для каждого блока секции. Функция сначала пытается вычислить текущий отпечаток через `computeBlockFingerprint`. Если он не вычислен, возвращает `undefined`. Иначе, если блок помечен как удалённый (`staleSince`), возвращает issue с типом `tombstoned`. В противном случае сравнивает сохранённый и текущий отпечатки; при расхождении вызывает `diffFacetHashes` для определения изменившихся фасетов и формирует issue.",
+          "body": "Вызывается из `detectStaleBlocks` в цикле по блокам секции. Тот отсекает пустые случаи: если `section.owns` пуст или ни одна owned-сущность не найдена в `codeEntities`, функция не вызывается, поэтому `presentOwns` всегда содержит хотя бы одну живую сущность; обрабатываются только известные блоки секции. Сама функция вычисляет отпечаток и при недоступном значении молча пропускает блок. Для блока с уже установленным `staleSince` строит предупреждение из метаданных блока; иначе спрашивает `staleBlockInfoFor` и выдаёт предупреждение только при найденном расхождении. Значение по умолчанию причины `block.staleReason ?? \"code_changed\"` в сообщении совпадает с конвенцией из `staleReasonFor` (src/service/stale-detection.ts), где `\"code_changed\"` выдаётся при изменении нескольких фасетов.",
           "rendered": true,
-          "fingerprint": "body=6700b5777343d07297f12a26cd271aeede8857fb8560f6438931645da28e5885,deps=13ce86bd942246fdbf29259fc73c46e330bbe376250d87c2eec84bc238e47d8c",
+          "fingerprint": "body=4ea0828afb01928f54a9dbec67ba93c5edc97921de043524a4d39f571411bfcc,deps=0a1a371827292bfccdcf1fc340eefd845e0b09a2c594660b126240af905c8fcc",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
-            "specificity": 1,
-            "novelFact": "Вызывается из `detectStaleBlocks` для каждого блока секции."
-          }
+            "specificity": 0.75,
+            "novelFact": "detectStaleBlocks вызывает её для каждого известного блока секции и гарантирует непустой presentOwns."
+          },
+          "language": "ru"
         },
         "limitations": {
-          "body": "- Не проверяет блоки, у которых отсутствует сохранённый отпечаток (`storedValue === undefined`): возвращает `undefined`, а не issue.\n- Не вычисляет отпечаток, если `presentOwns` не содержит owned-сущностей (`currentValue === undefined`): возвращает `undefined`.",
+          "body": "- Если `computeBlockFingerprint` вернул `undefined`, функция сразу возвращает `undefined`: блок без доступного отпечатка никогда не получает issue, даже если на самом деле устарел. Это ветвь `if (currentValue === undefined) { return undefined; }`.\n- Для не-tombstoned блока наличие расхождения целиком определяет `staleBlockInfoFor`: если он вернул `undefined`, функция молча завершается и собственную проверку «текущий отпечаток против сохранённого» не проводит.\n- В ветке tombstoned вычисленный `currentValue` не используется: предупреждение строится только из метаданных `block.staleSince`, `block.staleFacets` и `block.staleReason`, без сравнения с текущим состоянием кода.",
           "rendered": true,
-          "fingerprint": "body=6700b5777343d07297f12a26cd271aeede8857fb8560f6438931645da28e5885",
+          "fingerprint": "body=4ea0828afb01928f54a9dbec67ba93c5edc97921de043524a4d39f571411bfcc",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
-            "specificity": 1,
-            "novelFact": "- Не проверяет блоки, у которых отсутствует сохранённый отпечаток (`storedValue === undefined`): возвращает `undefined`, а не issue."
-          }
+            "specificity": 0.75,
+            "novelFact": "Если отпечаток недоступен (currentValue === undefined), функция молча пропускает блок, не выдавая issue."
+          },
+          "language": "ru"
         },
         "changeGuide": {
-          "body": "1. При `currentValue === undefined` возвращает `undefined` — конструкция: `if (currentValue === undefined) { return undefined; }`.\n2. При совпадении отпечатков возвращает `undefined` — конструкция: `if (storedValue === undefined || storedValue === currentValue) { return undefined; }`.",
+          "body": "- Блок без доступного отпечатка молча пропускается: инвариант закреплён ранним выходом `if (currentValue === undefined) { return undefined; }`.\n- Tombstoned-блок всегда помечается `drift: \"tombstoned\"`, а не живым сравнением: инвариант закреплён условием `if (block.staleSince !== undefined)`.\n- Для tombstoned-блока без `staleFacets` в предупреждение попадает весь набор фасетов блока: инвариант закреплён выражением `block.staleFacets ?? [...BLOCK_FACETS[blockId]]`.\n- Функция возвращает только предупреждения с фиксированным кодом: инвариант закреплён литералами `code: \"stale_block\"` и `severity: \"warning\"`.",
           "rendered": true,
-          "fingerprint": "body=6700b5777343d07297f12a26cd271aeede8857fb8560f6438931645da28e5885,deps=13ce86bd942246fdbf29259fc73c46e330bbe376250d87c2eec84bc238e47d8c,usage=f8d90d89db5f3921228a05cd8618dcae0ac18dd69af5fba085cc5bf713ccb288,placement=be79a70fc16bff30f28d3fca8a738e6477c4ced12839eee1ee3eef972d29d1d3",
+          "fingerprint": "body=4ea0828afb01928f54a9dbec67ba93c5edc97921de043524a4d39f571411bfcc,deps=0a1a371827292bfccdcf1fc340eefd845e0b09a2c594660b126240af905c8fcc,usage=f8d90d89db5f3921228a05cd8618dcae0ac18dd69af5fba085cc5bf713ccb288,placement=be79a70fc16bff30f28d3fca8a738e6477c4ced12839eee1ee3eef972d29d1d3",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
-            "specificity": 1,
-            "novelFact": "1."
-          }
+            "specificity": 0.75,
+            "novelFact": "Ветка tombstoned определяется условием block.staleSince !== undefined и не использует вычисленный отпечаток."
+          },
+          "language": "ru"
         }
       },
       "generationHistory": [
@@ -417,9 +422,34 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:03:31.571Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.417Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
       ],
-      "depDocsFingerprint": "cc5ae4d50472ba2079f534a8db50b0925fdfc7ce82c9d7c7caaf136003ae7d72"
+      "depDocsFingerprint": "94e595768d3d42ad9b707e6142d0b10f332acb5a33bc9eb0e2afc24295cee707",
+      "signature": "staleValidationIssue(section: DocSection, block: DocSection[\"blocks\"][number], blockId: BlockId, presentOwns: string[], codeEntities: Record<string, CodeEntity>): DocValidationIssue | undefined"
     },
     "symbol:src/service/doc-validation.ts#validateDependencies": {
       "heading": "validateDependencies",
@@ -552,7 +582,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "cc5ae4d50472ba2079f534a8db50b0925fdfc7ce82c9d7c7caaf136003ae7d72"
+      "depDocsFingerprint": "94e595768d3d42ad9b707e6142d0b10f332acb5a33bc9eb0e2afc24295cee707"
     },
     "symbol:src/service/doc-validation.ts#validateBlockQuality": {
       "heading": "validateBlockQuality",
@@ -685,7 +715,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "cc5ae4d50472ba2079f534a8db50b0925fdfc7ce82c9d7c7caaf136003ae7d72"
+      "depDocsFingerprint": "94e595768d3d42ad9b707e6142d0b10f332acb5a33bc9eb0e2afc24295cee707"
     }
   },
   "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"

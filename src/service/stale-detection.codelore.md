@@ -368,47 +368,48 @@ collectTombstonedBlocks(sections: DocSection[], entities: Record<string, CodeEnt
 
 # staleBlockInfoFor
 
+```ts
+staleBlockInfoFor(section: DocSection, block: DocSection["blocks"][number], presentOwns: string[], entities: Record<string, CodeEntity>): StaleBlockInfo | undefined
+```
+
 ## Зачем это нужно
 
 Определяет, изменился ли отпечаток отдельного блока по сравнению с сохранённым, и, если изменился, возвращает информацию о фасетах, которые стали неактуальны.
 
 ## Что делает
 
-- Пропускает блоки с неизвестным ID, пустым телом или уже установленным `staleSince`.
-- Вычисляет текущий отпечаток через [`computeBlockFingerprint`](../markdown/block-facets.codelore.md#computeblockfingerprint); если он `undefined`, возвращает `undefined`.
-- Сравнивает текущий отпечаток с сохранённым (`section.blockFingerprints[block.id]`).
-- Если отпечатки совпадают, возвращает `undefined`; иначе вычисляет изменившиеся фасеты через [`diffFacetHashes`](../markdown/block-facets.codelore.md#difffacethashes); если различие пусто, использует все фасеты для данного типа блока.
-- Возвращает `StaleBlockInfo` с `drift: "facet_changed"`.
+- Пропускает блоки, которым проверка не нужна: с неизвестным ID, пустым телом или установленным `staleSince` — для них возвращает `undefined`.
+- Вычисляет текущий отпечаток через [`computeBlockFingerprint`](../markdown/block-facets.codelore.md#computeblockfingerprint) и сравнивает с сохранённым в `section.blockFingerprints[block.id]`; возвращает `undefined`, если отпечаток не вычислился, сохранённого значения нет или значения совпали.
+- При расхождении разбирает сохранённый и текущий отпечатки через [`parseBlockFingerprintValue`](../markdown/block-facets.codelore.md#parseblockfingerprintvalue) и вычисляет изменившиеся фасеты через [`diffFacetHashes`](../markdown/block-facets.codelore.md#difffacethashes); если изменился только `body` и сохранённый body равен `legacyBodyHash(presentOwns, entities)`, считает блок не устаревшим — поменялась схема хеширования, а не код.
+- Для устаревшего блока возвращает `StaleBlockInfo` с `drift: "facet_changed"` и `changedFacets`: фасеты из diff, а при пустом diff — все фасеты типа блока из `BLOCK_FACETS[block.id]`.
 
 ## На что можно положиться
 
-- Не изменяет состояние.
-- Для блоков, у которых отпечаток не изменился, возвращает `undefined`.
+- Функция чистая: не мутирует `section`, `block` и `entities`.
+- Блок с пустым телом, неизвестным ID или установленным `staleSince` → `undefined`.
+- Отсутствие сохранённого отпечатка в `section.blockFingerprints` или его совпадение с текущим → `undefined`: блок без истории или без изменений не помечается.
+- Возвращённый `StaleBlockInfo` всегда имеет `drift: "facet_changed"` и непустой `changedFacets`.
 
 ## От чего зависит
 
-- [`computeBlockFingerprint`](../markdown/block-facets.codelore.md#computeblockfingerprint) (`src/markdown/block-facets.ts`) — вычисляет текущий отпечаток блока.
-- [`diffFacetHashes`](../markdown/block-facets.codelore.md#difffacethashes) (`src/markdown/block-facets.ts`) — определяет изменившиеся фасеты.
-- [`parseBlockFingerprintValue`](../markdown/block-facets.codelore.md#parseblockfingerprintvalue) (`src/markdown/block-facets.ts`) — преобразует строку отпечатка в объект.
-- [`isKnownBlockId`](helpers.codelore.md#isknownblockid) (`src/service/helpers.ts`) — проверяет известность идентификатора блока.
+- [`isKnownBlockId`](helpers.codelore.md#isknownblockid) (`src/service/helpers.ts`) проверяет, что `block.id` — известный тип блока; неизвестные id отсекает ещё до вычисления отпечатка, и функция сразу возвращает `undefined`.
+- [`computeBlockFingerprint`](../markdown/block-facets.codelore.md#computeblockfingerprint) (`src/markdown/block-facets.ts`) пересобирает текущий отпечаток по фасетам `BLOCK_FACETS[block.id]` для владельцев `presentOwns` из `entities`; если ни один владелец не присутствует в `entities`, возвращает `undefined`, и проверка завершается тем же `undefined`.
+- [`parseBlockFingerprintValue`](../markdown/block-facets.codelore.md#parseblockfingerprintvalue) (`src/markdown/block-facets.ts`) превращает строки сохранённого и текущего отпечатка вида `"фасет=хэш"` в объекты; затем [`diffFacetHashes`](../markdown/block-facets.codelore.md#difffacethashes) (там же) сверяет хэши по порядку `ALL_FACETS` и возвращает только фасеты со строго разошедшимися значениями — из этого массива формируется итоговый `changedFacets`.
+- `legacyBodyHash` ([`src/markdown/block-facets.ts`](../markdown/block-facets.codelore.md)) вычисляет body-хеш по прежней схеме хеширования; равенство с сохранённым `stored.body` — распознаватель миграции схемы.
+- `BLOCK_FACETS` ([`src/markdown/block-facets.ts`](../markdown/block-facets.codelore.md)) задаёт полный набор фасетов типа блока и подставляет его в `changedFacets`, когда diff пуст.
 
 ## Кто и как использует
 
-Вызывается из [`collectStaleBlocks`](#collectstaleblocks) для каждого блока секции, у которой есть owned-сущности.
-1. Пропускает блоки с неизвестным ID, пустым телом или `staleSince`.
-2. Вычисляет текущий отпечаток через [`computeBlockFingerprint`](../markdown/block-facets.codelore.md#computeblockfingerprint).
-3. Если отпечаток `undefined`, возвращает `undefined`.
-4. Сравнивает с сохранённым отпечатком из `section.blockFingerprints`.
-5. При несовпадении вычисляет изменившиеся фасеты через [`diffFacetHashes`](../markdown/block-facets.codelore.md#difffacethashes); если различие пусто, использует все фасеты для данного типа блока.
+[`collectStaleBlocks`](#collectstaleblocks) (в том же файле) вызывает её для каждого блока каждой секции, у которой остался хотя бы один живой владелец — секция с `presentOwns.length === 0` сюда не доходит. Возвращённый `StaleBlockInfo` используется для построения результата обновления. [`staleValidationIssue`](doc-validation.codelore.md#stalevalidationissue) в `src/service/doc-validation.ts` зовёт функцию для одного конкретного блока уже после собственной проверки `staleButted` (на tombstone-блоке валидатор выдаёт предупреждение сам, не вызывая функцию): `undefined` значит «предупреждение не нужно», объект — валидатор превращает его в `stale_block`-предупреждение с `drift: "boxes"`.`facet_changed"` и перечислением `changedFacets` в тексте «changed since last rewrite».
 
 ## Чего не делает
 
-Не обрабатывает блоки с `staleSince` — они считаются похороненными.
+Проверке подлежит только блок с телом и без `staleSince`: guard `if (block.staleSince !== undefined || block.body.trim() === "")` вырезает похороненные и пустые блоки, поэтому они никогда не получают от этой функции `StaleBlockInfo`. Миграционная защёлка срабатывает только в одной сигнатуре — `changedFacets.length === 2 && changedFacets[0] === "body" && stored.body === legacyBodyHash(presentOwns, entities)` — любой другой состав изменившихся фасетов помечает блок как `facet_changed`, даже если реальная причина та же: смена схемы хеширования, а не кода.
 
 ## Как менять и что проверять
 
-- Если изменить условие `block.staleSince !== undefined || block.body.trim() === ""`, блоки с пустым телом или staleSince будут включены в проверку — тест `staleBlockInfoFor` должен покрывать эти случаи.
-- Если убрать вызов [`diffFacetHashes`](../markdown/block-facets.codelore.md#difffacethashes), все блоки с изменившимся отпечатком будут помечены как stale со всеми фасетами — тест `staleBlockInfoFor` должен проверять точность определения изменившихся фасетов.
+- Итоговый `changedFacets` в `StaleBlockInfo` никогда не бывает пуст: когда [`diffFacetHashes`](../markdown/block-facets.codelore.md#difffacethashes) не нашёл разошедшихся фасет, список заполняется тернаром `changedFacets.length > 0 ? changedFacets : [...BLOCK_FACETS[block.id]]`.
+- Один узкий сбой можно не считать устареванием: при `changedFacets.length === 1 && changedFacets[0] === "body" && stored.body === legacyBodyHash(presentOwns, entities)` ранний return отдаёт `undefined`, не глядя на значение текущего отпечатка.
 
 # tombstonedBlockInfoFor
 

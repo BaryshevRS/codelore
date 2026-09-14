@@ -211,7 +211,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "bc26fff9bc8e6dfb09e4f3d10eeb1b9eec30f4c9ed6d375ef11ef56ef4ce6216",
+      "depDocsFingerprint": "4e82a54e252f394717c27371219b6a68cd36de4d0628e8ca0c1425051034a131",
       "signature": "renderDoc(state: DocState, config: CodeloreConfig, language?: string, links?: EntityLinkMap, docInfo?: DocInfoMap): string"
     },
     "symbol:src/markdown/render-doc.ts#renderSection": {
@@ -426,7 +426,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "bc26fff9bc8e6dfb09e4f3d10eeb1b9eec30f4c9ed6d375ef11ef56ef4ce6216",
+      "depDocsFingerprint": "4e82a54e252f394717c27371219b6a68cd36de4d0628e8ca0c1425051034a131",
       "signature": "renderSection(section: DocStateSection, config: CodeloreConfig, language?: string, linkContext?: BlockLinkContext, navLine?: string): string"
     }
   },

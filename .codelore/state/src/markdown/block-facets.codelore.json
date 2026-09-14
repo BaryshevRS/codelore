@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/markdown/block-facets.codelore.md",
-  "generatedAt": "2026-09-13T23:00:01.839Z",
+  "generatedAt": "2026-09-14T13:12:14.168Z",
   "sectionOrder": [
     "symbol:src/markdown/block-facets.ts#computeBlockFingerprint",
     "symbol:src/markdown/block-facets.ts#parseBlockFingerprintValue",
@@ -229,7 +229,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "36717df337effa09fe12a6a709ba92f1c6fbc1dda880a65be738af60b969dd34",
+      "depDocsFingerprint": "1c6f8f2174e2a43babb6ca62d91e74fb5dc1d82b4b53d42fbd628a076ef340a9",
       "signature": "computeBlockFingerprint(blockId: BlockId, ownedEntityIds: string[], entities: Record<string, CodeEntity>): string | undefined"
     },
     "symbol:src/markdown/block-facets.ts#parseBlockFingerprintValue": {
@@ -241,9 +241,7 @@
       ],
       "depends": [],
       "usedBy": [
-        "file:src/service/doc-validation.ts",
         "file:src/service/stale-detection.ts",
-        "symbol:src/service/doc-validation.ts#staleValidationIssue",
         "symbol:src/service/stale-detection.ts#staleBlockInfoFor"
       ],
       "status": "normal",
@@ -278,15 +276,16 @@
           }
         },
         "responsibility": {
-          "body": "Разделяет строку по запятым, извлекает пары фасет=хеш.\nПропускает части без знака `=` или с пустым хешем.",
+          "body": "- Делит строку по запятым и в каждой части находит первое вхождение `=`; фасет берёт из текста до знака, хеш — из текста после, у обоих обрезает концевые пробелы, сам `=` в хеше дальше не интерпретируется.\n- Пропускает часть целиком, если в ней нет `=` (или `=` стоит на первой позиции), если хеш после обрезки пуст или если фасет не признан валидным: «признан» означает, что локальный `isFacet` нашёл имя в `ALL_FACETS` — `signature`, `body`, `deps`, `usage`, `placement`.",
           "rendered": true,
-          "fingerprint": "signature=1bce48926076cdbd683eae934892fa698f08212f0fa476e234be5f7a05d2539b,deps=c0d538b682367e73b05cfa6637afc6e7267589095bc8ab0f386c320cb5888f40,usage=f650a1a4637475085f6a487d79f46b873b542d8accc59b348b436ad06574735d",
+          "fingerprint": "signature=1bce48926076cdbd683eae934892fa698f08212f0fa476e234be5f7a05d2539b,deps=c0d538b682367e73b05cfa6637afc6e7267589095bc8ab0f386c320cb5888f40,usage=627050ec0a9d7e9b026a56eb1eb0116dd3fe6e0d8007ee635445871287287316",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
+            "informativeness": 0.75,
+            "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Функция пропускает части строки без знака `=` или с пустым хешем."
-          }
+            "novelFact": "Части без `=`, с пустым после обрезки хешем или с фасетом вне `ALL_FACETS` отбрасываются; допустимость имени фасета проверяет локальный `isFacet`."
+          },
+          "language": "ru"
         },
         "invariants": {
           "body": "На пустой или невалидной строке возвращает пустой объект.\nРезультат содержит только ключи, являющиеся валидными AstFacet.\nПорядок следования фасетов не сохраняется (объект).",
@@ -327,15 +326,16 @@
           }
         },
         "changeGuide": {
-          "body": "- Пропуск частей без знака `=` — `if (eq <= 0) { continue; }` не включает такие части в результат. Тест: `block-facets.test.ts`.\n- Включение только валидных фасетов — `if (isFacet(facet) && hash.length > 0)` гарантирует, что в результат попадают только известные `AstFacet` с непустым хешем. Тест: `block-facets.test.ts`.",
+          "body": "- Части без `=` или с `=` на первой позиции не попадают в результат — `if (eq <= 0) { continue; }` пропускает их ещё до чтения имени и хеша.\n- В результат входят только известные `AstFacet` с непустым хешем — `if (isFacet(facet) && hash.length > 0)`; валидность имени решает локальный `isFacet`, сверяющий его с `ALL_FACETS`.\n- Пробелы вокруг имени и хеша обрезаются — `.trim()` в `part.slice(0, eq).trim()` и `part.slice(eq + 1).trim()`, иначе фрагмент с пробелом после запятой не совпал бы с именем фасета.",
           "rendered": true,
-          "fingerprint": "body=6f2f7026cd320976cbcc5e36f3181d50bd5f725f41fc112cb5edcda3835d0b4d,deps=c0d538b682367e73b05cfa6637afc6e7267589095bc8ab0f386c320cb5888f40,usage=f650a1a4637475085f6a487d79f46b873b542d8accc59b348b436ad06574735d,placement=87a9a28ca03d93376c8680f8a1f35d32a94e66c7086436d2eb7eaf11f9052c3e",
+          "fingerprint": "body=6f2f7026cd320976cbcc5e36f3181d50bd5f725f41fc112cb5edcda3835d0b4d,deps=c0d538b682367e73b05cfa6637afc6e7267589095bc8ab0f386c320cb5888f40,usage=627050ec0a9d7e9b026a56eb1eb0116dd3fe6e0d8007ee635445871287287316,placement=87a9a28ca03d93376c8680f8a1f35d32a94e66c7086436d2eb7eaf11f9052c3e",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "if (eq <= 0) continue пропускает части без =."
-          }
+            "novelFact": "Фрагменты без знака `=` полностью отбрасываются условием `eq <= 0`, а остальные впускает только фильтр `isFacet(facet) && hash.length > 0`."
+          },
+          "language": "ru"
         }
       },
       "generationHistory": [
@@ -382,9 +382,30 @@
           "generatedBlocks": [
             "changeGuide"
           ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:03:31.510Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.166Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "changeGuide"
+          ]
         }
       ],
-      "depDocsFingerprint": "36717df337effa09fe12a6a709ba92f1c6fbc1dda880a65be738af60b969dd34"
+      "depDocsFingerprint": "1c6f8f2174e2a43babb6ca62d91e74fb5dc1d82b4b53d42fbd628a076ef340a9",
+      "signature": "parseBlockFingerprintValue(value: string): Partial<Record<AstFacet, string>>"
     },
     "symbol:src/markdown/block-facets.ts#diffFacetHashes": {
       "heading": "diffFacetHashes",
@@ -395,9 +416,7 @@
       ],
       "depends": [],
       "usedBy": [
-        "file:src/service/doc-validation.ts",
         "file:src/service/stale-detection.ts",
-        "symbol:src/service/doc-validation.ts#staleValidationIssue",
         "symbol:src/service/stale-detection.ts#staleBlockInfoFor"
       ],
       "status": "normal",
@@ -432,15 +451,16 @@
           }
         },
         "responsibility": {
-          "body": "Сравнивает значения каждого фасета в двух объектах. Учитывает только те фасеты, которые присутствуют (не `undefined`) в обоих объектах. Возвращает массив фасетов, значения которых различаются. Не изменяет переданные объекты.",
+          "body": "- Для каждого фасета из `ALL_FACETS` достаёт хеши из обоих объектов и помечает его изменившимся только тогда, когда значения строго не равны (`left !== right`); содержимое хешей не интерпретируется.\n- Список сравниваемых фасетов берётся только из константы `ALL_FACET`, а не из ключей входных объектов: появившаяся в одном из объектов новая пара «фасет=хеш» не включает фасет в проверку, пока его нет в `ALL_FACETS`.\n- Входные объекты не модифицирует: читает их только по ключам и собирает результат в массив.",
           "rendered": true,
-          "fingerprint": "signature=0dd6668b972d451409be631bca5e579c1a159aa29a1a313447cf16190106bf6c,deps=a33a80d21ae2968730e08e8aa5be963aa727e5a571db3aaec233c1ba1724ab02,usage=e8701f0a1b142a9ec725532f6727fe1888aa0a37709a782a1592a65d4c241be7",
+          "fingerprint": "signature=0dd6668b972d451409be631bca5e579c1a159aa29a1a313447cf16190106bf6c,deps=a33a80d21ae2968730e08e8aa5be963aa727e5a571db3aaec233c1ba1724ab02,usage=b950ef0925cb923bef1169ff4939d731b0c03268185cd9cb8466b4308403ee3e",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
+            "informativeness": 0.75,
+            "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Функция учитывает только фасеты, присутствующие в обоих объектах."
-          }
+            "novelFact": "Набор сравниваемых фасетов жёстко задан константой `ALL_FACETS`, а не ключами входных объектов, а изменение фиксируется только строгим неравенством строк `left !== right`."
+          },
+          "language": "ru"
         },
         "invariants": {
           "body": "Возвращаемый массив содержит только фасеты из ALL_FACETS, порядок соответствует порядку ALL_FACETS.\nЕсли ни один фасет не изменился, возвращает пустой массив.\nЕсли фасет отсутствует в одном из объектов, он не включается в результат.",
@@ -481,15 +501,16 @@
           }
         },
         "changeGuide": {
-          "body": "- Порядок изменившихся фасетов соответствует `ALL_FACETS` — итерация `for (const facet of ALL_FACETS)` гарантирует фиксированный порядок. Тест: `block-facets.test.ts`.\n- Игнорирование фасетов, отсутствующих в одном из объектов — условие `if (left !== undefined && right !== undefined && left !== right)` не включает `undefined` значения в сравнение. Тест: `block-facets.test.ts`.",
+          "body": "- Порядок результата зафиксирован списком `ALL_FACETS` — цикл `for (const facet of ALL_FACETS)` перебирает фасеты в неизменном порядке, а не по ключам входных объектов.\n- Сравниваются только фасеты, присутствующие в обоих отпечатках — условие `if (left !== undefined && right !== undefined && left !== right)` исключает `undefined` и фасет, отсутствующий хотя бы в одном объекте, из результата.\n- Сравнение строго по значению — `left !== right` помечает фасет изменившимся только при неравных строках; одинаковые хеши не дают записи в массиве.",
           "rendered": true,
-          "fingerprint": "body=3caeb859da9eb3e03ae649573074930f023b42d959b043f60b4c51f91e4bb6b5,deps=a33a80d21ae2968730e08e8aa5be963aa727e5a571db3aaec233c1ba1724ab02,usage=e8701f0a1b142a9ec725532f6727fe1888aa0a37709a782a1592a65d4c241be7,placement=1cc4e59750c77aa613f8d2cc1366f6e1820b772f0badee6f4a4e1c7db3876c44",
+          "fingerprint": "body=3caeb859da9eb3e03ae649573074930f023b42d959b043f60b4c51f91e4bb6b5,deps=a33a80d21ae2968730e08e8aa5be963aa727e5a571db3aaec233c1ba1724ab02,usage=b950ef0925cb923bef1169ff4939d731b0c03268185cd9cb8466b4308403ee3e,placement=1cc4e59750c77aa613f8d2cc1366f6e1820b772f0badee6f4a4e1c7db3876c44",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Итерация по ALL_FACETS задаёт порядок изменившихся фасетов."
-          }
+            "novelFact": "Сравнивает только фасеты, присутствующие в обоих отпечатках, и только в порядке `ALL_FACETS`."
+          },
+          "language": "ru"
         }
       },
       "generationHistory": [
@@ -536,9 +557,30 @@
           "generatedBlocks": [
             "changeGuide"
           ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:03:31.513Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "69604190-2f17-4871-92b2-ba5594d2f44d",
+          "timestamp": "2026-09-14T13:12:14.168Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "changeGuide"
+          ]
         }
       ],
-      "depDocsFingerprint": "36717df337effa09fe12a6a709ba92f1c6fbc1dda880a65be738af60b969dd34"
+      "depDocsFingerprint": "1c6f8f2174e2a43babb6ca62d91e74fb5dc1d82b4b53d42fbd628a076ef340a9",
+      "signature": "diffFacetHashes(stored: Partial<Record<AstFacet, string>>, current: Partial<Record<AstFacet, string>>): Facet[]"
     },
     "symbol:src/markdown/block-facets.ts#translationSourceFingerprint": {
       "heading": "translationSourceFingerprint",
@@ -673,7 +715,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "36717df337effa09fe12a6a709ba92f1c6fbc1dda880a65be738af60b969dd34"
+      "depDocsFingerprint": "1c6f8f2174e2a43babb6ca62d91e74fb5dc1d82b4b53d42fbd628a076ef340a9"
     }
   },
   "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
