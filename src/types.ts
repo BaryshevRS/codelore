@@ -530,6 +530,12 @@ export interface OpenAiCompatibleProviderConfig {
    * It is a quality/latency trade and belongs to whoever picks the model: reasoning
    * earns its keep in the writer far more than in verification, which only checks a
    * claim against a slice it was handed.
+   *
+   * DeepSeek documents `reasoning_effort` as a level ("high"/"low") and a separate
+   * `thinking: {type}` object as the on/off switch. "none" is not in that contract —
+   * it is what the gateway in use actually honours, and measurably better than the
+   * documented switch (0 reasoning tokens against 19 for `thinking: disabled`). If a
+   * gateway stops honouring it, verification gets slow again rather than wrong.
    */
   reasoningEffort?: "none" | "low" | "medium" | "high";
 }

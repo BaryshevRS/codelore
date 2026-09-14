@@ -199,6 +199,60 @@ describe("OpenAiCompatibleProvider", () => {
     );
   });
 
+  it("rejects a truncated answer instead of passing it off as complete", async () => {
+    const truncated = new ReadableStream<Uint8Array>({
+      start(controller) {
+        const enc = new TextEncoder();
+        controller.enqueue(
+          enc.encode(`data: ${JSON.stringify({ choices: [{ delta: { content: "half a sen" } }] })}\n\n`)
+        );
+        controller.enqueue(enc.encode(`data: ${JSON.stringify({ choices: [{ finish_reason: "length" }] })}\n\n`));
+        controller.enqueue(enc.encode("data: [DONE]\n\n"));
+        controller.close();
+      },
+    });
+    const provider = createConfiguredProvider(config(), undefined, {
+      env: {},
+      fetch: (async () =>
+        new Response(truncated, { status: 200, headers: { "content-type": "text/event-stream" } })) as typeof fetch,
+    });
+
+    await expect(provider.complete({ messages: [{ role: "user", content: "hi" }] })).rejects.toThrow(
+      /stopped early \(finish_reason: length\)/
+    );
+  });
+
+  it("retries an answer the endpoint cut short for lack of capacity", async () => {
+    let calls = 0;
+    const provider = createConfiguredProvider(config(), undefined, {
+      env: {},
+      fetch: (async () => {
+        calls += 1;
+        if (calls === 1) {
+          const cut = new ReadableStream<Uint8Array>({
+            start(controller) {
+              const enc = new TextEncoder();
+              controller.enqueue(enc.encode(`data: ${JSON.stringify({ choices: [{ delta: { content: "x" } }] })}\n\n`));
+              controller.enqueue(
+                enc.encode(
+                  `data: ${JSON.stringify({ choices: [{ finish_reason: "insufficient_system_resource" }] })}\n\n`
+                )
+              );
+              controller.close();
+            },
+          });
+          return new Response(cut, { status: 200, headers: { "content-type": "text/event-stream" } });
+        }
+        return sseResponse(["done"]);
+      }) as typeof fetch,
+    });
+
+    const result = await provider.complete({ messages: [{ role: "user", content: "hi" }] });
+
+    expect(result.content).toBe("done");
+    expect(calls).toBe(2);
+  });
+
   it("retries a 429 with backoff and then succeeds", async () => {
     let calls = 0;
     const provider = createConfiguredProvider(config(), undefined, {

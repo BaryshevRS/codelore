@@ -313,10 +313,12 @@ class OpenAiCompatibleProvider implements ChatCompletionProvider {
     let buffer = "";
     let content = "";
     let usage: ChatUsage | undefined;
+    let finishReason: string | undefined;
     const consume = (line: string) => {
       const chunk = sseChunk(line);
       content += chunk.delta;
       usage = chunk.usage ?? usage;
+      finishReason = chunk.finishReason ?? finishReason;
     };
     const reader = response.body.getReader();
     for (;;) {
@@ -336,13 +338,40 @@ class OpenAiCompatibleProvider implements ChatCompletionProvider {
     if (content.trim().length === 0) {
       throw new CodeloreError("INVALID_LLM_RESPONSE", `LLM provider "${this.name}" streamed no message content`, {
         provider: this.name,
+        ...(finishReason ? { finishReason } : {}),
       });
     }
+    assertCompleteFinish(finishReason, this.name);
     return { content, ...(usage ? { usage } : {}) };
   }
 }
 
-function sseChunk(line: string): { delta: string; usage?: ChatUsage } {
+/**
+ * Rejects an answer the model did not actually finish. Without this a truncated
+ * generation is indistinguishable from a complete one: the content is returned as
+ * if whole, and whatever prose survived is written into a doc that no detector can
+ * tell is missing its ending. `insufficient_system_resource` is DeepSeek's way of
+ * saying the endpoint ran out of capacity mid-answer — transient, so it is raised as
+ * a retryable provider error rather than a content error.
+ */
+function assertCompleteFinish(finishReason: string | undefined, provider: string): void {
+  if (finishReason === "insufficient_system_resource") {
+    throw new CodeloreError("LLM_PROVIDER_ERROR", `LLM provider "${provider}" ran out of capacity mid-answer`, {
+      provider,
+      status: 503,
+      finishReason,
+    });
+  }
+  if (finishReason === "length" || finishReason === "content_filter") {
+    throw new CodeloreError(
+      "INVALID_LLM_RESPONSE",
+      `LLM provider "${provider}" stopped early (finish_reason: ${finishReason}); the answer is incomplete`,
+      { provider, finishReason }
+    );
+  }
+}
+
+function sseChunk(line: string): { delta: string; usage?: ChatUsage; finishReason?: string } {
   const trimmed = line.trim();
   if (!trimmed.startsWith("data:")) {
     return { delta: "" };
@@ -353,12 +382,17 @@ function sseChunk(line: string): { delta: string; usage?: ChatUsage } {
   }
   try {
     const parsed = JSON.parse(payload) as {
-      choices?: Array<{ delta?: { content?: unknown }; message?: { content?: unknown } }>;
+      choices?: Array<{ delta?: { content?: unknown }; message?: { content?: unknown }; finish_reason?: unknown }>;
       usage?: unknown;
     };
     const delta = parsed.choices?.[0]?.delta?.content ?? parsed.choices?.[0]?.message?.content;
     const usage = parseUsage(parsed.usage);
-    return { delta: typeof delta === "string" ? delta : "", ...(usage ? { usage } : {}) };
+    const finishReason = parsed.choices?.[0]?.finish_reason;
+    return {
+      delta: typeof delta === "string" ? delta : "",
+      ...(usage ? { usage } : {}),
+      ...(typeof finishReason === "string" ? { finishReason } : {}),
+    };
   } catch {
     // Malformed keep-alive or comment lines are ignorable; real corruption
     // surfaces as empty content and fails the final check.
@@ -407,9 +441,15 @@ function chatCompletionsUrl(baseUrl: string): string {
 }
 
 function extractOpenAiCompatibleResult(text: string, provider: string): ChatCompletionResult {
-  let parsed: { choices?: Array<{ message?: { content?: unknown } }>; usage?: unknown };
+  let parsed: {
+    choices?: Array<{ message?: { content?: unknown }; finish_reason?: unknown }>;
+    usage?: unknown;
+  };
   try {
-    parsed = JSON.parse(text) as { choices?: Array<{ message?: { content?: unknown } }>; usage?: unknown };
+    parsed = JSON.parse(text) as {
+      choices?: Array<{ message?: { content?: unknown }; finish_reason?: unknown }>;
+      usage?: unknown;
+    };
   } catch (error) {
     throw new CodeloreError("INVALID_LLM_RESPONSE", `LLM provider "${provider}" returned invalid JSON`, {
       provider,
@@ -425,6 +465,8 @@ function extractOpenAiCompatibleResult(text: string, provider: string): ChatComp
     });
   }
 
+  const finishReason = parsed.choices?.[0]?.finish_reason;
+  assertCompleteFinish(typeof finishReason === "string" ? finishReason : undefined, provider);
   const usage = parseUsage(parsed.usage);
   return { content, ...(usage ? { usage } : {}) };
 }
