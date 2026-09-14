@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/storage/json-storage.codelore.md",
-  "generatedAt": "2026-06-20T13:35:28.112Z",
+  "generatedAt": "2026-09-13T20:32:21.081Z",
   "sectionOrder": [
     "symbol:src/storage/json-storage.ts#JsonStorage"
   ],
@@ -15,11 +15,14 @@
       ],
       "depends": [
         "symbol:src/storage/json-storage.ts#JsonStorage.changePath",
+        "symbol:src/storage/json-storage.ts#JsonStorage.domainMapPath",
         "symbol:src/storage/json-storage.ts#JsonStorage.indexPath",
         "symbol:src/storage/json-storage.ts#JsonStorage.loadChangeAnalysis",
+        "symbol:src/storage/json-storage.ts#JsonStorage.loadDomainMap",
         "symbol:src/storage/json-storage.ts#JsonStorage.loadProjectIndex",
         "symbol:src/storage/json-storage.ts#JsonStorage.readJson",
         "symbol:src/storage/json-storage.ts#JsonStorage.saveChangeAnalysis",
+        "symbol:src/storage/json-storage.ts#JsonStorage.saveDomainMap",
         "symbol:src/storage/json-storage.ts#JsonStorage.saveProjectIndex",
         "symbol:src/storage/json-storage.ts#JsonStorage.writeJson"
       ],
@@ -61,70 +64,76 @@
           }
         },
         "responsibility": {
-          "body": "- Создаёт директории при записи через `mkdir` с `recursive: true`.\n- При отсутствии файла чтение возвращает `undefined`, а не выбрасывает исключение — обработка `ENOENT` в `readJson`.\n- Пути к файлам вычисляются из конфигурации через `indexPath` и `changePath`.",
+          "body": "- Сохраняет и загружает три вида данных (индекс проекта, карту доменов, анализ изменений) через приватные методы `writeJson` и `readJson`.\n- При записи рекурсивно создаёт целевую директорию через `mkdir(dirname(path), { recursive: true })`.\n- При чтении отсутствующего файла возвращает `undefined`; при несовпадении версии — также `undefined` для индекса и карты доменов.\n- Предоставляет публичные методы для получения путей к файлам (`indexPath`, `domainMapPath`, `changePath`).",
           "rendered": true,
-          "fingerprint": "signature=b14b240663e8d46b68dfd35acef84bd41bfb36b59db16bcf64fb7abdb41884c5,deps=e077ccdd193a4dcdcd3d40c9c5f4654e598d84dda3f85c2b77e7d614040c4589,usage=f96577581e2cd7d4d9d01b3c32550ec60984f3fc63382a6b4ce9ef5816990be7",
+          "fingerprint": "signature=b14b240663e8d46b68dfd35acef84bd41bfb36b59db16bcf64fb7abdb41884c5,deps=d596605dadf7a6b0273a529801f27cdcf5cfc38e4596d35e1cbed2412f8ff6c8,usage=f96577581e2cd7d4d9d01b3c32550ec60984f3fc63382a6b4ce9ef5816990be7",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Ответственность включает гарантию создания директорий и безопасное чтение отсутствующих файлов."
-          }
+            "novelFact": "Единый механизм сохранения и загрузки трёх видов данных через приватные методы `writeJson` и `readJson`, которые автоматически создают директории и возвращают `undefined` при отсутствии файла."
+          },
+          "language": "ru"
         },
         "invariants": {
-          "body": "- При отсутствии файла чтение возвращает `undefined`, а не выбрасывает исключение.\n- Запись всегда гарантирует существование целевой директории перед созданием файла.\n- Пути к файлам детерминировано вычисляются из конфигурации и не зависят от состояния.",
+          "body": "- Отсутствующий файл при чтении всегда даёт `undefined`, а не исключение — `readJson` перехватывает `ENOENT`.\n- Запись атомарна относительно директорий: `mkdir` с `recursive: true` гарантирует существование целевой директории перед `writeFile`.\n- `loadProjectIndex` возвращает `undefined` при `loaded.version !== INDEX_VERSION`.\n- `loadChangeAnalysis` возвращает данные без проверки версии — любое валидное JSON-содержимое файла принимается как `ChangeAnalysis`.\n- Все пути детерминированы: `indexPath` и `changePath` вычисляются только из `config.rootDir` и `config.indexDir`.",
           "rendered": true,
-          "fingerprint": "signature=b14b240663e8d46b68dfd35acef84bd41bfb36b59db16bcf64fb7abdb41884c5,body=e5078cf7d74e0baf122851992dd4b7b4cd7e53321e3334fe22a2e79fd8ce0968",
+          "fingerprint": "signature=b14b240663e8d46b68dfd35acef84bd41bfb36b59db16bcf64fb7abdb41884c5,body=ce0f28bc3acf51956f8a65c345a404240bcd4714ddd2dd012ef64f46e1825316",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "При отсутствии файла чтение возвращает `undefined`, а не выбрасывает исключение. Запись всегда гарантирует существование целевой директории перед созданием файла. Пути к файлам детерминировано вычисляются из конфигурации и не зависят от состояния."
-          }
+            "novelFact": "loadChangeAnalysis не проверяет версию данных, в отличие от loadProjectIndex."
+          },
+          "language": "ru"
         },
         "workflows": {
-          "body": "1. `CodeloreService` вызывает `saveProjectIndex` после анализа кода для сохранения индекса проекта.\n2. `CodeloreService` вызывает `loadProjectIndex` при старте для загрузки индекса.\n3. `CodeloreService` вызывает `saveChangeAnalysis` для сохранения результатов анализа изменений и `loadChangeAnalysis` для их загрузки по идентификатору.",
+          "body": "- `IndexManager` вызывает `saveProjectIndex` и `loadProjectIndex` для сохранения и восстановления индекса проекта.\n- `saveChangeAnalysis` и `loadChangeAnalysis` используются для сохранения и загрузки резултатов анализа изменений.\n- `saveDomainMap` и `loadDomainMap` используются для работы с картой доменов.",
           "rendered": true,
-          "fingerprint": "body=e5078cf7d74e0baf122851992dd4b7b4cd7e53321e3334fe22a2e79fd8ce0968,deps=e077ccdd193a4dcdcd3d40c9c5f4654e598d84dda3f85c2b77e7d614040c4589",
+          "fingerprint": "body=ce0f28bc3acf51956f8a65c345a404240bcd4714ddd2dd012ef64f46e1825316,deps=d596605dadf7a6b0273a529801f27cdcf5cfc38e4596d35e1cbed2412f8ff6c8",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "1. `CodeloreService` вызывает `saveProjectIndex` после анализа кода для сохранения индекса проекта. 2. `CodeloreService` вызывает `loadProjectIndex` при старте для загрузки индекса. 3. `CodeloreService` вызывает `saveChangeAnalysis` для сохранения результатов анализа изменений и `loadChangeAnalysis` для их загрузки по идентификатору."
-          }
+            "novelFact": "`IndexManager` отвечает за жизненный цикл индекса проекта; методи `saveChangeAnalysis`, `loadChangeAnalysis`, `saveDomainMap` и `loadDomainMap` предоставляют сохранение и загрузку анализа изменений и карты доменов."
+          },
+          "language": "ru"
         },
         "limitations": {
-          "body": "Нет дополнительных требований.",
-          "rendered": false,
-          "fingerprint": "body=e5078cf7d74e0baf122851992dd4b7b4cd7e53321e3334fe22a2e79fd8ce0968",
+          "body": "- `loadChangeAnalysis` не проверяет версию данных — любое валидное JSON-содержимое файла принимается как `ChangeAnalysis`, что может привести к загрузке несовместимых данных при изменении схемы.\n- `readJson` перехватывает только `ENOENT`; любые другие ошибки чтения (повреждённый файл, проблемы с правами) пробрасываются вызывающему коду как исключение.",
+          "rendered": true,
+          "fingerprint": "body=ce0f28bc3acf51956f8a65c345a404240bcd4714ddd2dd012ef64f46e1825316",
           "scores": {
-            "informativeness": 0,
-            "novelty": 0,
-            "specificity": 0,
-            "novelFact": "Нет дополнительных требований."
-          }
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "`loadChangeAnalysis` принимает любое валидное JSON-содержимое без проверки версии."
+          },
+          "language": "ru"
         },
         "changeGuide": {
-          "body": "1. При чтении отсутствующего файла возвращается `undefined`, а не выбрасывается исключение — обеспечивается веткой `if (error instanceof Error && \"code\" in error && error.code === \"ENOENT\") { return undefined; }` в `readJson`.\n2. При записи гарантируется создание целевой директории — вызывается `await mkdir(dirname(path), { recursive: true })` перед `writeFile` в `writeJson`.\n3. `loadProjectIndex` возвращает `undefined` при несовпадении версии — проверяется выражением `loaded.version !== INDEX_VERSION` в `loadProjectIndex`.",
+          "body": "- При чтении отсутствующего файла возвращается `undefined` — обеспечивается проверкой `error.code === \"ENOENT\"` в `readJson`.\n- При записи гарантируется создание целевой директории — вызывается `await mkdir(dirname(path), { recursive: true })` в `writeJson`.\n- `loadProjectIndex` возвращает `undefined` при несовпадении версии — проверяется выражением `loaded.version !== INDEX_VERSION`.\n- `loadDomainMap` возвращает `undefined` при несовпадении версии — проверяется выражением `loaded.version !== DOMAIN_MAP_VERSION`.",
           "rendered": true,
-          "fingerprint": "body=e5078cf7d74e0baf122851992dd4b7b4cd7e53321e3334fe22a2e79fd8ce0968,deps=e077ccdd193a4dcdcd3d40c9c5f4654e598d84dda3f85c2b77e7d614040c4589,usage=f96577581e2cd7d4d9d01b3c32550ec60984f3fc63382a6b4ce9ef5816990be7,placement=4cc5bb061a041daf2ed5de7f388e79dccb607ca13ddb853857799d98b2a034ff",
+          "fingerprint": "body=ce0f28bc3acf51956f8a65c345a404240bcd4714ddd2dd012ef64f46e1825316,deps=d596605dadf7a6b0273a529801f27cdcf5cfc38e4596d35e1cbed2412f8ff6c8,usage=f96577581e2cd7d4d9d01b3c32550ec60984f3fc63382a6b4ce9ef5816990be7,placement=4cc5bb061a041daf2ed5de7f388e79dccb607ca13ddb853857799d98b2a034ff",
           "scores": {
-            "informativeness": 1,
+            "informativeness": 0.75,
             "novelty": 0.75,
-            "specificity": 1,
-            "novelFact": "1."
-          }
+            "specificity": 0.75,
+            "novelFact": "Проверка версии `loadDomainMap` использует `DOMAIN_MAP_VERSION`, а не `INDEX_VERSION`."
+          },
+          "language": "ru"
         },
         "dependencies": {
-          "body": "- `node:fs/promises` (`mkdir`, `readFile`, `writeFile`) — операции с файловой системой.\n- `node:path` (`dirname`, `join`) — манипуляции с путями.\n- `../types.js` (`ChangeAnalysis`, `CodeloreConfig`, `INDEX_VERSION`, `ProjectIndex`) — типы данных для сериализации.",
+          "body": "- `node:fs/promises` (`mkdir`, `readFile`, `writeFile`) — файловые операции.\n- `node:path` (`dirname`, `join`) — построение путей.\n- `../domains/domain-map.js` (`DOMAIN_MAP_VERSION`, `DomainMap`) — тип и версия карты доменов для `saveDomainMap`/`loadDomainMap`.\n- `../types.js` (`ChangeAnalysis`, `CodeloreConfig`, `INDEX_VERSION`, `ProjectIndex`) — типы и константы версий для сериализации.",
           "rendered": true,
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Зависимости: `node:fs/promises` (`mkdir`, `readFile`, `writeFile`) — операции с файловой системой. `node:path` (`dirname`, `join`) — манипуляции с путями. `../types.js` (`ChangeAnalysis`, `CodeloreConfig`, `INDEX_VERSION`, `ProjectIndex`) — типы данных для сериализации."
+            "novelFact": "Зависит от `DOMAIN_MAP_VERSION` из `../domains/domain-map.js` для проверки версии карты доменов."
           },
-          "fingerprint": "deps=e077ccdd193a4dcdcd3d40c9c5f4654e598d84dda3f85c2b77e7d614040c4589"
+          "fingerprint": "deps=d596605dadf7a6b0273a529801f27cdcf5cfc38e4596d35e1cbed2412f8ff6c8",
+          "language": "ru"
         }
       },
       "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
@@ -164,8 +173,43 @@
           "generatedBlocks": [
             "changeGuide"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.143Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "invariants"
+          ],
+          "manualReviewNeeded": true
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:41:29.670Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "2e8a08ea-46d1-4f9e-93ac-0ef39d026053",
+          "timestamp": "2026-09-13T20:32:21.081Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility"
+          ]
         }
-      ]
+      ],
+      "signature": "class JsonStorage"
     }
   },
   "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"

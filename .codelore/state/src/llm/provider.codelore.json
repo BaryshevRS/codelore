@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/llm/provider.codelore.md",
-  "generatedAt": "2026-07-03T16:25:43.570Z",
+  "generatedAt": "2026-09-13T19:41:29.623Z",
   "sectionOrder": [
     "symbol:src/llm/provider.ts#createConfiguredProvider"
   ],
@@ -19,8 +19,8 @@
       "usedBy": [
         "file:src/service/codelore-service.ts",
         "symbol:src/service/codelore-service.ts#CodeloreService",
-        "symbol:src/service/codelore-service.ts#CodeloreService.gateDepDocsCascade",
-        "symbol:src/service/codelore-service.ts#CodeloreService.runPipelineForSections",
+        "symbol:src/service/codelore-service.ts#CodeloreService.createProviderPair",
+        "symbol:src/service/codelore-service.ts#CodeloreService.partitionDomainMap",
         "symbol:src/service/codelore-service.ts#CodeloreService.translateScope"
       ],
       "status": "normal",
@@ -55,27 +55,28 @@
           }
         },
         "responsibility": {
-          "body": "- Разрешает имя провайдера через `providerName ?? config.llm.provider`.\n- Валидирует наличие конфигурации для разрешённого имени в `config.llm.providers`, при отсутствии бросает `CodeloreError(\"UNKNOWN_LLM_PROVIDER\")`.\n- Делегирует создание `ChatCompletionProvider` внутренней функции `createProvider`, передавая ей имя, конфигурацию и runtime.\n- Предоставляет точку входа для внешних вызывающих, не управляя временем жизни возвращённого объекта и не обрабатывая ошибки вызова LLM — эти обязанности лежат на `OpenAiCompatibleProvider.complete`.",
+          "body": "- Вычисляет имя провайдера как `providerName ?? config.llm.provider`.\n- Ищет конфигурацию в `config.llm.providers`; если записи нет, собирает `Object.keys(config.llm.providers)` и бросает `CodeloreError(\"UNKNOWN_LLM_PROVIDER\")` с сообщением, которое различает пустой реестр и неизвестное имя.\n- При найденной конфигурации передаёт имя, конфигурацию и runtime в `createProvider` и возвращает полученный `ChatCompletionProvider`.",
           "rendered": true,
-          "fingerprint": "signature=f2a0bdd5d71093178e1c89076f2f4ffd7920e9ae8b75e40b4693c92c7b17d53d,deps=513f4b3b7c85c7c5d22ee4c1b2269175c849eeb89c6a26040220d559ccd2b92e,usage=a0c9adda44038bb7158b74603b91c71e77f0fcf22e2340f49d49c8bfce6bb166",
+          "fingerprint": "signature=f2a0bdd5d71093178e1c89076f2f4ffd7920e9ae8b75e40b4693c92c7b17d53d,deps=513f4b3b7c85c7c5d22ee4c1b2269175c849eeb89c6a26040220d559ccd2b92e,usage=925a3abdf7534a5b3790c770d7b871e4c0c887e169ac7660c6771617896bf0f8",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
-            "specificity": 1,
-            "novelFact": "Разрешает имя провайдера и валидирует его существование в конфигурации, затем делегирует создание реализации."
+            "specificity": 0.75,
+            "novelFact": "При отсутствии конфигурации бросает `CodeloreError(\"UNKNOWN_LLM_PROVIDER\")` с `details.provider` и `details.configuredProviders`."
           },
           "language": "ru"
         },
         "invariants": {
-          "body": "- Бросает `CodeloreError(\"UNKNOWN_LLM_PROVIDER\")`, если `providerName` или `config.llm.provider` не найден в `config.llm.providers`.\n- Для любого валидного имени возвращает объект, реализующий `ChatCompletionProvider`.\n- Не модифицирует `config` и `runtime`.",
+          "body": "- Если `providerName` задан, он имеет приоритет над `config.llm.provider`; если не задан, используется значение по умолчанию.\n- Для имени, отсутствующего в `config.llm.providers`, всегда бросает `CodeloreError` с кодом `UNKNOWN_LLM_PROVIDER`; `details.provider` равен выбранному имени, а `details.configuredProviders` — массив ключей реестра.\n- Для существующего имени возвращает объект, реализующий `ChatCompletionProvider`, и не изменяет `config` или `runtime`.",
           "rendered": true,
-          "fingerprint": "signature=f2a0bdd5d71093178e1c89076f2f4ffd7920e9ae8b75e40b4693c92c7b17d53d,body=f601fa2cab23c169eb2fe5d26d44a73a29eaac9517984f027119a4e31e9a7579",
+          "fingerprint": "signature=f2a0bdd5d71093178e1c89076f2f4ffd7920e9ae8b75e40b4693c92c7b17d53d,body=4c04d9e848a714036b1a15c3dccd1077210b10cd99dc06313e5b9e484620e372",
           "scores": {
-            "informativeness": 1,
-            "novelty": 1,
-            "specificity": 1,
-            "novelFact": "Гарантирует возврат провайдера для любого валидного имени и не модифицирует входные объекты."
-          }
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Для существующего имени возвращает `ChatCompletionProvider` и не изменяет `config` или `runtime`."
+          },
+          "language": "ru"
         },
         "dependencies": {
           "body": "- `CodeloreError` (`src/errors.ts`) — для структурированной ошибки при отсутствии конфигурации провайдера.",
@@ -90,43 +91,43 @@
           "language": "ru"
         },
         "workflows": {
-          "body": "Вызывается из `CodeloreService.gateDepDocsCascade`, `CodeloreService.runPipelineForSections` и `CodeloreService.translateScope` во время генерации документации. Каждый вызывающий передаёт `runtime.providerName`, `runtime.env` и `runtime.fetch`. Функция разрешает имя провайдера, проверяет наличие конфигурации в `config.llm.providers` и делегирует создание провайдера в `createProvider`. Возвращённый `ChatCompletionProvider` используется в каждом из этих методов для соответствующих этапов генерации. Порядок выполнения не гарантирован, так как вызовы идут из разных этапов пайплайна.",
+          "body": "Вызывается из `CodeloreService.createProviderPair`, `CodeloreService.partitionDomainMap` и `CodeloreService.translateScope` при создании LLM-провайдера для генерации документации. Каждый вызывающий передаёт `runtime.providerName`, `runtime.env` и `runtime.fetch`. Функция разрешает имя провайдера как `providerName ?? config.llm.provider`, проверяет наличие конфигурации в `config.llm.providers` и делегирует создание провайдера в `createProvider`. Возвращённый `ChatCompletionProvider` используется вызывающими для выполнения запросов к LLM на соответствующих этапах пайплайна.",
           "rendered": true,
-          "fingerprint": "body=f601fa2cab23c169eb2fe5d26d44a73a29eaac9517984f027119a4e31e9a7579,deps=513f4b3b7c85c7c5d22ee4c1b2269175c849eeb89c6a26040220d559ccd2b92e",
+          "fingerprint": "body=4c04d9e848a714036b1a15c3dccd1077210b10cd99dc06313e5b9e484620e372,deps=513f4b3b7c85c7c5d22ee4c1b2269175c849eeb89c6a26040220d559ccd2b92e",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Используется тремя различными методами CodeloreService для создания провайдера на разных этапах генерации."
+            "novelFact": "Вызывается из трёх методов CodeloreService для создания провайдера на каждом этапе генерации документации."
           },
           "language": "ru"
         },
         "limitations": {
           "body": "Поддерживает только провайдеры с типом `\"openai-compatible\"`; для других типов выбрасывает `CodeloreError(\"UNKNOWN_LLM_PROVIDER\")` через вызов `createProvider`. Ограничение накладывается внутренней функцией `createProvider`, которая проверяет `config.type === \"openai-compatible\"` и выбрасывает ошибку для других типов.",
           "rendered": true,
-          "fingerprint": "body=f601fa2cab23c169eb2fe5d26d44a73a29eaac9517984f027119a4e31e9a7579",
+          "fingerprint": "body=4c04d9e848a714036b1a15c3dccd1077210b10cd99dc06313e5b9e484620e372",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Ограничивает поддержку только openai-совместимыми провайдерами, что контролируется проверкой типа в createProvider."
+            "novelFact": "Ограничение на тип провайдера накладывается не самой функцией, а делегированным вызовом createProvider."
           },
           "language": "ru"
         },
         "changeGuide": {
-          "body": "1. Разрешение имени провайдера: инвариант закреплён в строке `const name = providerName ?? config.llm.provider;`. 2. Валидация наличия конфигурации: инвариант закреплён в проверке `if (!providerConfig) { throw new CodeloreError(\"UNKNOWN_LLM_PROVIDER\", ...) }`.",
+          "body": "- Разрешение имени провайдера: инвариант закреплён в строке `const name = providerName ?? config.llm.provider;`.\n- Валидация наличия конфигурации: инвариант закреплён в проверке `if (!providerConfig) { throw new CodeloreError(\"UNKNOWN_LLM_PROVIDER\", ...) }`.",
           "rendered": true,
-          "fingerprint": "body=f601fa2cab23c169eb2fe5d26d44a73a29eaac9517984f027119a4e31e9a7579,deps=513f4b3b7c85c7c5d22ee4c1b2269175c849eeb89c6a26040220d559ccd2b92e,usage=a0c9adda44038bb7158b74603b91c71e77f0fcf22e2340f49d49c8bfce6bb166,placement=a77eba084af621d9a5b330d7dc7f35253cfc7d0eb335ecc1996244b27413d72b",
+          "fingerprint": "body=4c04d9e848a714036b1a15c3dccd1077210b10cd99dc06313e5b9e484620e372,deps=513f4b3b7c85c7c5d22ee4c1b2269175c849eeb89c6a26040220d559ccd2b92e,usage=925a3abdf7534a5b3790c770d7b871e4c0c887e169ac7660c6771617896bf0f8,placement=a77eba084af621d9a5b330d7dc7f35253cfc7d0eb335ecc1996244b27413d72b",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Два ключевых инварианта: разрешение имени через оператор `??` и проверка существования конфигурации с выбрасыванием ошибки."
+            "novelFact": "Два ключевых инварианта закреплены в соседних строках тела функции: разрешение имени и проверка существования конфигурации."
           },
           "language": "ru"
         }
       },
-      "depDocsFingerprint": "043766bbe87cafd90b69d5fa9b9aabcb58c88f75a234363cd593c50bdf52ab50",
+      "depDocsFingerprint": "cd434b5dbddbf27f1f78d0135c968c616d3d79a93115b50eb4d4829d095b8db7",
       "generationHistory": [
         {
           "runId": "22bccca0-cf47-476d-bbf5-52789133117c",
@@ -223,8 +224,32 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.057Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:41:29.623Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
-      ]
+      ],
+      "signature": "createConfiguredProvider(config: CodeloreConfig, providerName: string | undefined, runtime: ProviderRuntime): ChatCompletionProvider"
     }
   },
   "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"

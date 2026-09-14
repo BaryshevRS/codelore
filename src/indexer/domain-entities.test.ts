@@ -92,6 +92,11 @@ describe("buildDomainEntities", () => {
     expect(domains["domain:generation"].metadata?.role).toBe("full_page");
   });
 
+  it("gives a one-file domain no prose blocks: its member doc already carries that story", () => {
+    expect(domains["domain:graph"].directDeps).toEqual(["file:src/graph/dag.ts"]);
+    expect(domains["domain:graph"].metadata?.allowedBlocks).toEqual([]);
+  });
+
   it("classifies tier entities as non-source", () => {
     expect(isSourceCodeEntity(domains["domain:generation"])).toBe(false);
     expect(isSourceCodeEntity(domains[PROJECT_ID])).toBe(false);

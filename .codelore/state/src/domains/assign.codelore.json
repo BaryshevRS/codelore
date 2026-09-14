@@ -1,0 +1,412 @@
+{
+  "version": 4,
+  "docPath": "src/domains/assign.codelore.md",
+  "generatedAt": "2026-09-13T23:26:45.637Z",
+  "sectionOrder": [
+    "file:src/domains/assign.ts",
+    "symbol:src/domains/assign.ts#buildAssignRequest",
+    "symbol:src/domains/assign.ts#parseAssignResponse"
+  ],
+  "sections": {
+    "file:src/domains/assign.ts": {
+      "heading": "assign.ts",
+      "depth": 1,
+      "anchor": "assignts",
+      "owns": [
+        "file:src/domains/assign.ts"
+      ],
+      "depends": [
+        "symbol:src/errors.ts#CodeloreError",
+        "symbol:src/llm/json.ts#parseJsonObject"
+      ],
+      "usedBy": [],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Модуль существует, чтобы изолировать два направления контракта API назначения: построение исходящего запроса и разбор входящего ответа. Он предоставляет две чистые функции, которые вместе покрывают весь жизненный цикл обмена данными с сервером назначений — от формирования полезной нагрузки до фильтрации полученных элементов. Благодаря этому вызывающий код не работает с сырыми форматами провода напрямую, а опирается на стабильные сигнатуры.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The module exists to isolate the two directions of the assignment API contract — building a request payload and parsing a response — so callers never touch raw wire shapes."
+          },
+          "fingerprint": "signature=b72fcdc909139b817cf32fc9278773480a70d907ad54c7d8b9939cf6d03a956a,placement=b72fcdc909139b817cf32fc9278773480a70d907ad54c7d8b9939cf6d03a956a"
+        },
+        "responsibility": {
+          "body": "Модуль выполняет два раздельных действия: 1) сериализует данные назначения в объект запроса с фиксированными ключами `responseSchema` и `messages`; 2) десериализует ответ, возвращая `Map<string,string>`. Обе функции делегируют всю работу своим телам и не имеют побочных эффектов.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The module performs two separable effects: serializing assignment data into a request payload and deserializing a response array by filtering active items."
+          },
+          "fingerprint": "signature=b72fcdc909139b817cf32fc9278773480a70d907ad54c7d8b9939cf6d03a956a,deps=d9703f4f54c728d847eb97026e691275c04c09da43043b2ee50177f00a918eb4,usage=f2350c5f7cd91d6a019101d29b8b1ae6c5accdb8ca3edfcdf08fd7448f990f7d"
+        },
+        "invariants": {
+          "body": "Both exported functions are pure and deterministic: they never mutate their inputs and always return a fresh object or array. `buildAssignRequest` returns a plain object with exactly the keys `responseSchema` and `messages`; it does not include any other properties. `parseAssignResponse` returns a new `Map<string,string>`; it never modifies the input and never returns a reference to it.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The module's two exported functions are pure and deterministic: they never mutate their inputs and always return a fresh object or array."
+          },
+          "fingerprint": "signature=b72fcdc909139b817cf32fc9278773480a70d907ad54c7d8b9939cf6d03a956a,body=152e79d5506bb142861c6e48151168996246cff626e9ee55c02c8baa375884d8"
+        },
+        "dependencies": {
+          "body": "The module constructs the request object from the provided `AssignInput` fields and a static system prompt.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The module composes a request object from a base URL, a path, and a payload, relying on the caller to supply the base URL and path."
+          },
+          "fingerprint": "deps=d9703f4f54c728d847eb97026e691275c04c09da43043b2ee50177f00a918eb4"
+        },
+        "limitations": {
+          "body": "The module performs no validation of the payload; it trusts the caller to pass valid inputs.",
+          "rendered": false,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.25,
+            "specificity": 0.25,
+            "novelFact": "The module does not validate the payload or the URL; it assumes the caller has already ensured correctness."
+          },
+          "fingerprint": "body=152e79d5506bb142861c6e48151168996246cff626e9ee55c02c8baa375884d8"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.723Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.631Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "237299e4da9d9e16d5087fab2336dee8492592d2695d736f4a97fd4087b2de8e"
+    },
+    "symbol:src/domains/assign.ts#buildAssignRequest": {
+      "heading": "buildAssignRequest",
+      "depth": 1,
+      "anchor": "buildassignrequest",
+      "signature": "buildAssignRequest(input: AssignInput): ChatCompletionInput",
+      "owns": [
+        "symbol:src/domains/assign.ts#buildAssignRequest"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.assignUncoveredFiles"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Функция существует, чтобы преобразовать данные назначения в точный формат, ожидаемый сервером. Она принимает объект `AssignInput` и возвращает объект, который можно напрямую отправить как тело запроса.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function exists to convert assignment data into the exact wire format expected by the server."
+          },
+          "fingerprint": "signature=9b2cd08217d3ca5e5fc5a9302eb08cc145e1f8d9dcd9faf58bfb0db2fecdfbb3,placement=2a46c1bd176447238189602e1fa0d8c4b10d75c7e7856a46cd45f9b843c08df9"
+        },
+        "responsibility": {
+          "body": "Единственный эффект функции — создание объекта полезной нагрузки запроса с ключами `responseSchema` и `messages`. Она не выполняет никаких других действий: не валидирует входные данные, не обращается к внешним ресурсам и не изменяет состояние.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function's sole effect is to produce a request payload object with the three fixed keys."
+          },
+          "fingerprint": "signature=9b2cd08217d3ca5e5fc5a9302eb08cc145e1f8d9dcd9faf58bfb0db2fecdfbb3,deps=79bd348bd4b30ff1aa595e768dc7efec9cf76ece755c7a1ce58a0d1c35924e75,usage=cf53ac67790dcc9105739a519fb5edff63778805ba3dfe214e4c1057abce4ff6"
+        },
+        "invariants": {
+          "body": "Функция всегда возвращает новый объект с ключами `responseSchema` и `messages`. Она не изменяет переданные аргументы и не добавляет никаких других свойств. Порядок ключей в объекте не гарантируется, но это не влияет на контракт, так как доступ осуществляется по именам.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function returns a new object with exactly three keys and never mutates the input."
+          },
+          "fingerprint": "signature=9b2cd08217d3ca5e5fc5a9302eb08cc145e1f8d9dcd9faf58bfb0db2fecdfbb3,body=c6409192967b704c240c38d69ea82e2883933867748134fee059d8eb92e36ecb"
+        },
+        "dependencies": {
+          "body": "The function constructs the request object solely from the `AssignInput` parameter and the static `SYSTEM_PROMPT`.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The function depends on the caller to supply the base URL and path; it only assembles the request object."
+          },
+          "fingerprint": "deps=79bd348bd4b30ff1aa595e768dc7efec9cf76ece755c7a1ce58a0d1c35924e75"
+        },
+        "workflows": {
+          "body": "The caller invokes this function to obtain a request object, which it then uses to perform the actual network call.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The function is called by the caller to produce a request object that is then sent over the network."
+          },
+          "fingerprint": "body=c6409192967b704c240c38d69ea82e2883933867748134fee059d8eb92e36ecb,deps=79bd348bd4b30ff1aa595e768dc7efec9cf76ece755c7a1ce58a0d1c35924e75"
+        },
+        "limitations": {
+          "body": "The function performs no validation of the payload or the URL; it trusts the caller to pass valid inputs.",
+          "rendered": false,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.25,
+            "specificity": 0.25,
+            "novelFact": "The function does not validate the payload or the URL; it assumes the caller has already ensured correctness."
+          },
+          "fingerprint": "body=c6409192967b704c240c38d69ea82e2883933867748134fee059d8eb92e36ecb"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.725Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.634Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "237299e4da9d9e16d5087fab2336dee8492592d2695d736f4a97fd4087b2de8e"
+    },
+    "symbol:src/domains/assign.ts#parseAssignResponse": {
+      "heading": "parseAssignResponse",
+      "depth": 1,
+      "anchor": "parseassignresponse",
+      "signature": "parseAssignResponse(content: string, knownFiles: ReadonlySet<string>, knownSlugs: ReadonlySet<string>): Map<string, string>",
+      "owns": [
+        "symbol:src/domains/assign.ts#parseAssignResponse"
+      ],
+      "depends": [
+        "symbol:src/llm/json.ts#parseJsonObject"
+      ],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.assignUncoveredFiles"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Функция существует, чтобы преобразовать ответ сервера в удобную структуру. Она принимает строку JSON и два набора, и возвращает `Map<string,string>`, скрывая от вызывающего кода детали разбора.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function exists to filter the server response down to active assignments, hiding the raw array shape from callers."
+          },
+          "fingerprint": "signature=cc9f48e7461d39717322baf16be0b5881770183041289919193b04799202d19a,placement=0b9e59905b8146d775126c702a11295f1b9e5a4ba9bce0c64929a8779b24dbf5"
+        },
+        "responsibility": {
+          "body": "Единственный эффект функции — разбор JSON и валидация пар файл-слаг. Она не выполняет никаких других действий: не изменяет элементы, не сортирует и не обращается к внешним ресурсам.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function's sole effect is to filter the input array by the 'active' status predicate."
+          },
+          "fingerprint": "signature=cc9f48e7461d39717322baf16be0b5881770183041289919193b04799202d19a,deps=8447432e13ec6651b1c005b3a9a4dea521c52e15aab4496048309ad0901800a4,usage=a7bd0ac3113859cdb9d90e707504db92dc1487fce6446efaead6443dd5cb2e6c"
+        },
+        "invariants": {
+          "body": "Функция возвращает новый `Map<string,string>`, содержащий только те пары, которые прошли валидацию. Она никогда не изменяет входные данные и не возвращает ссылку на них. Если входные данные пусты, возвращается пустой `Map`.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function returns a new array containing only items with status 'active'; it never mutates the input array."
+          },
+          "fingerprint": "signature=cc9f48e7461d39717322baf16be0b5881770183041289919193b04799202d19a,body=cc19d80de8fa2a73febe936135bc68d1650c34bfe9ba6f088ba2881ded1bcabe"
+        },
+        "dependencies": {
+          "body": "The function relies on the caller to supply the response object; it does not perform the network request.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The function depends on the caller to provide a response object; it does not fetch the response itself."
+          },
+          "fingerprint": "deps=8447432e13ec6651b1c005b3a9a4dea521c52e15aab4496048309ad0901800a4"
+        },
+        "workflows": {
+          "body": "The caller calls this function with the response object and uses the returned `data` for further processing.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The caller invokes this function after receiving a response, to extract the `data` field."
+          },
+          "fingerprint": "body=cc19d80de8fa2a73febe936135bc68d1650c34bfe9ba6f088ba2881ded1bcabe,deps=8447432e13ec6651b1c005b3a9a4dea521c52e15aab4496048309ad0901800a4"
+        },
+        "limitations": {
+          "body": "The function validates the `assignments` array and each entry's `file` and `slug` against known sets, and rejects duplicates.",
+          "rendered": false,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.25,
+            "specificity": 0.25,
+            "novelFact": "The function does not validate the shape of the `data` property beyond its existence."
+          },
+          "fingerprint": "body=cc19d80de8fa2a73febe936135bc68d1650c34bfe9ba6f088ba2881ded1bcabe"
+        },
+        "changeGuide": {
+          "body": "The function enforces that the response object must contain an `assignments` array; if it is absent or invalid, it throws an error.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The function enforces that the response must have a `data` property; if missing, it throws an error."
+          },
+          "fingerprint": "body=cc19d80de8fa2a73febe936135bc68d1650c34bfe9ba6f088ba2881ded1bcabe,deps=8447432e13ec6651b1c005b3a9a4dea521c52e15aab4496048309ad0901800a4,usage=a7bd0ac3113859cdb9d90e707504db92dc1487fce6446efaead6443dd5cb2e6c,placement=0b9e59905b8146d775126c702a11295f1b9e5a4ba9bce0c64929a8779b24dbf5"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.727Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.637Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "237299e4da9d9e16d5087fab2336dee8492592d2695d736f4a97fd4087b2de8e"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

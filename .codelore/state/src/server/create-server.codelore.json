@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/server/create-server.codelore.md",
-  "generatedAt": "2026-07-03T17:19:50.687Z",
+  "generatedAt": "2026-09-13T19:41:29.636Z",
   "sectionOrder": [
     "symbol:src/server/create-server.ts#createCodeloreServer"
   ],
@@ -75,14 +75,14 @@
           }
         },
         "invariants": {
-          "body": "Имя сервера всегда \"codelore\", версия \"0.1.0\". При каждом вызове создаётся новый экземпляр CodeloreService; состояние между вызовами не разделяется. Инструкции сервера всегда содержат baseInstructions. Все ресурсы и инструменты зарегистрированы до возврата сервера.",
+          "body": "- Имя сервера всегда `\"codelore\"` (жёстко задано в первом аргументе конструктора `McpServer`).\n- Версия извлекается из `package.json` через `createRequire` при загрузке модуля; между вызовами функции не меняется.\n- Каждый вызов создаёт отдельный экземпляр `CodeloreService` — состояние документации между серверами не разделяется.\n- Инструкции сервера (`instructions`) всегда содержат неизменный текст `baseInstructions`, описывающий полный пайплайн.\n- К моменту возврата `McpServer` все ресурсы и инструменты уже зарегистрированы вызовами `registerResources` и `registerTools`; сервер готов к подключению.\n- Ошибки конструктора `McpServer` или функций регистрации не перехватываются и пробрасываются вызывающему коду.",
           "rendered": true,
-          "fingerprint": "signature=b299dfc385476faf9e3ee210ec9e2d7ff3b40588458601c92f05967824b719a3,body=a63ed5de972c1d46fca5ad971f6597da92eef3792f994fde6367db15b16a23d7",
+          "fingerprint": "signature=b299dfc385476faf9e3ee210ec9e2d7ff3b40588458601c92f05967824b719a3,body=ed3384fabb874ffbb8c6a3f4f6f711803791e2d6210340241321b1f5a8718658",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.75,
+            "novelty": 1,
             "specificity": 0.75,
-            "novelFact": "При каждом вызове создаётся новый экземпляр CodeloreService; состояние между вызовами не разделяется."
+            "novelFact": "К моменту возврата McpServer все ресурсы и инструменты зарегистрированы, поэтому сервер готов к подключению без дополнительной настройки."
           },
           "translations": {
             "en": {
@@ -111,14 +111,14 @@
           }
         },
         "workflows": {
-          "body": "Вызывается функцией `startStdioServer` (`src/server/start-stdio-server.ts`):\n1. `startStdioServer` вызывает `createCodeloreServer({ rootDir })` и ожидает возврата `McpServer`.\n2. Внутри `createCodeloreServer` создаётся экземпляр `new CodeloreService(rootDir)`, определяются инструкции `baseInstructions` как строковый литерал, создаётся `new McpServer` с именем `\"codelore\"` и версией `\"0.1.0\"`.\n3. Регистрируются пять ресурсов (`doc-section`, `code-entity`, `impact-graph`, `change-analysis`, `doc-file`) и четыре инструмента (`document`, `update`, `mark_stale`, `check`) через функции `registerResources` и `registerTools`.\n4. Сервер возвращается.\n5. `startStdioServer` создаёт `StdioServerTransport` и вызывает `server.connect(transport)`.",
+          "body": "Вызывается функцией `startStdioServer` (`src/server/start-stdio-server.ts`):\n1. `startStdioServer` вызывает `createCodeloreServer({ rootDir })` и ожидает возврата `McpServer`.\n2. Внутри `createCodeloreServer` создаётся экземпляр `new CodeloreService(rootDir)`, определяется строка `baseInstructions`, создаётся `new McpServer` с именем `\"codelore\"` и версией из `package.json`.\n3. Вызываются `registerResources` и `registerTools`, которые регистрируют пять ресурсов (`doc-section`, `code-entity`, `impact-graph`, `change-analysis`, `doc-file`) и четыре инструмента (`document`, `update`, `mark_stale`, `check`).\n4. Сервер возвращается.\n5. `startStdioServer` создаёт `StdioServerTransport` и вызывает `server.connect(transport)`.",
           "rendered": true,
-          "fingerprint": "body=a63ed5de972c1d46fca5ad971f6597da92eef3792f994fde6367db15b16a23d7,deps=4ede692bd3b3a7d10036209aa049c19a04ba4f3247803392793ca232bbda7c2a",
+          "fingerprint": "body=ed3384fabb874ffbb8c6a3f4f6f711803791e2d6210340241321b1f5a8718658,deps=4ede692bd3b3a7d10036209aa049c19a04ba4f3247803392793ca232bbda7c2a",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Вызывается `startStdioServer`, которая после получения сервера подключает его к `StdioServerTransport`."
+            "novelFact": "Функция создаёт и полностью настраивает MCP-сервер, регистрируя пять ресурсов и четыре инструмента, после чего он готов к подключению через транспорт."
           },
           "language": "ru",
           "translations": {
@@ -131,12 +131,12 @@
         "limitations": {
           "body": "- Не проверяет существование `rootDir`; ошибки ввода-вывода возникают только при первом обращении к методам `CodeloreService` (конструкция: отсутствие guards).\n- Ошибки при регистрации ресурсов или инструментов не перехватываются; исключение в `registerResources` или `registerTools` вызывает необработанное отклонение промиса (конструкция: отсутствие `try-catch`).",
           "rendered": true,
-          "fingerprint": "body=a63ed5de972c1d46fca5ad971f6597da92eef3792f994fde6367db15b16a23d7",
+          "fingerprint": "body=ed3384fabb874ffbb8c6a3f4f6f711803791e2d6210340241321b1f5a8718658",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Отсутствует проверка существования rootDir; отсутствует обработка ошибок при регистрации ресурсов."
+            "novelFact": "Функция не перехватывает ошибки регистрации ресурсов и инструментов, пробрасывая их вызывающему коду."
           },
           "language": "ru",
           "translations": {
@@ -149,12 +149,12 @@
         "changeGuide": {
           "body": "- Сервис `CodeloreService` всегда создаётся с параметром `rootDir` из аргументов, что гарантируется вызовом `new CodeloreService(options.rootDir)`. Изменение параметров вызова изменит корневую директорию сервера.\n- Функция всегда возвращает новый экземпляр `McpServer`, так как оператор `return server;` выполняется без условной логики или кэширующего механизма. Изменение этой строки на условный возврат или кэш повлияет на поведение вызова.",
           "rendered": true,
-          "fingerprint": "body=a63ed5de972c1d46fca5ad971f6597da92eef3792f994fde6367db15b16a23d7,deps=4ede692bd3b3a7d10036209aa049c19a04ba4f3247803392793ca232bbda7c2a,usage=373d60f100381ae2f53a72135de26854e6abe9c3649fba55cd89c492e2b2e578,placement=fc643b46efafa9ff00358c9b3a15476bc474e4d912d52b74e349b37b53af3d74",
+          "fingerprint": "body=ed3384fabb874ffbb8c6a3f4f6f711803791e2d6210340241321b1f5a8718658,deps=4ede692bd3b3a7d10036209aa049c19a04ba4f3247803392793ca232bbda7c2a,usage=373d60f100381ae2f53a72135de26854e6abe9c3649fba55cd89c492e2b2e578,placement=fc643b46efafa9ff00358c9b3a15476bc474e4d912d52b74e349b37b53af3d74",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Сервис всегда создаётся с переданным rootDir; функция всегда возвращает новый экземпляр McpServer."
+            "novelFact": "Создание `CodeloreService` с `options.rootDir` и возврат `McpServer` без условий — два ключевых контракта, закреплённых прямыми вызовами."
           },
           "language": "ru",
           "translations": {
@@ -310,9 +310,32 @@
           "generatedBlocks": [
             "invariants"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.067Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:41:29.636Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
       ],
-      "depDocsFingerprint": "9fa3ab46f4a1d008504e62caafef3bf56be39f4ebaca6fe85389920d6c1b3523"
+      "depDocsFingerprint": "ce1886a1e6a4b567b33975340d86c15307a237ac4da72793b9e2acc0f66e31b7",
+      "signature": "createCodeloreServer(options: { rootDir: string }): Promise<McpServer>"
     }
   },
   "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"

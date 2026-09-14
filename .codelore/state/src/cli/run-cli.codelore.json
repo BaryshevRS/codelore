@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/cli/run-cli.codelore.md",
-  "generatedAt": "2026-07-03T17:42:56.842Z",
+  "generatedAt": "2026-09-13T19:41:29.553Z",
   "sectionOrder": [
     "symbol:src/cli/run-cli.ts#runCli"
   ],
@@ -19,6 +19,7 @@
         "symbol:src/service/codelore-service.ts#CodeloreService"
       ],
       "usedBy": [
+        "file:src/bin/codelore-mcp.ts",
         "file:src/bin/codelore.ts"
       ],
       "status": "normal",
@@ -53,26 +54,28 @@
           }
         },
         "responsibility": {
-          "body": "- Не выполняет бизнес-логику команд — делегирует `CodeloreService` или `startStdioServer`.\n- Не управляет MCP-сервером после запуска — `startStdioServer` управляет своим жизненным циклом.\n- Не валидирует аргументы каждой команды — это делают `assertExpectedArgs` и `parse*` функции.\n- Форматирует вывод: сериализует результат в JSON с отступами и выводит в `stdout`.",
+          "body": "- Если команда `help`, `--help` или `-h` — выводит справочный текст и возвращает 0, не обрабатывая остальные опции.\n- Если команда `mcp`, запускает `startStdioServer` и возвращает 0, не создавая `CodeloreService`.\n- Для всех остальных команд создаётся `CodeloreService` и выполняется `runCommand`, который проверяет аргументы, выполняет метод сервиса и возвращает результат; результат (не `undefined`) сериализуется в JSON и пишется в stdout.\n- При любом исключении ошибка через `toCodeloreErrorPayload` записывается в stderr и возвращается 1; при успехе, если результат содержит непустые `failed` или `issues`, возвращается 2, иначе 0.\n\nrunCli всегда сериализует результат работы команды как JSON в stdout, ошибки — в stderr, и возвращает один из трёх кодов выхода: 0, 1, 2.",
           "rendered": true,
-          "fingerprint": "signature=f41f15035411df3604289b2c4a1c70cdab1561b32a1baf095723b7933bcafe2d,deps=d1216775679b741d8e0128aefefea87b568c26c2b55a8dab0e2763a27a86491e,usage=9fc2aba204c1adc55be228a56bc564e2af92b9d9448ce5a1f894cac070b03cd5",
+          "fingerprint": "signature=f41f15035411df3604289b2c4a1c70cdab1561b32a1baf095723b7933bcafe2d,deps=d1216775679b741d8e0128aefefea87b568c26c2b55a8dab0e2763a27a86491e,usage=21f2e8b2f60cb40f7aea8b55fcd924a4934360234e3c7733acf8f8a14e044533",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.5,
-            "specificity": 0.75,
-            "novelFact": "Делегирует выполнение команд сервису или серверу, не содержа бизнес-логики."
-          }
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "runCli всегда сериализует резултат работы комманды как JSON в stdout, ошибки — в stderr, и возвращает один из трёх кодов выхода: 0, 1, 2."
+          },
+          "language": "ru"
         },
         "invariants": {
-          "body": "- Всегда возвращает 0 при успешном выполнении, 1 при непредвиденной ошибке, 2 при наличии секций с `failed` в результате.\n- Любое исключение перехватывается и выводится в `stderr` как JSON с полями `ok: false` и `error` через `toCodeloreErrorPayload`.\n- Результат (если не `undefined`) выводится в `stdout` как JSON.",
+          "body": "- При пустом `argv` (аргументов нет) команда подразумевается `help`: выводится справочный текст, возвращается 0.\n- Код возврата детерминирован: 0 при успехе, 1 при любом исключении, 2 при налии в резултате непустого масива `failed` или `issues`.\n- Резултат комманды (не `undefined`) всегда выводится в stdout как отформатированный JSON с двумя пробелами отступа.\n- Каждое неперехваченное исключение выводится в stderr в виде `{ ok: false, error: <toCodeloreErrorPayload> }`.\n- Запуск `mcp` не порождает вывода в stdout, не требует `CodeloreService` и завершается только после остаовки сервера.\n\nГарантирует детерминированный код возврата: 0 при успехе, 1 при исключении, 2 при непустых `failed` или `issues`, и всегда записывает ошибку в stderr как `{ ok: false, error: ... }`.",
           "rendered": true,
-          "fingerprint": "signature=f41f15035411df3604289b2c4a1c70cdab1561b32a1baf095723b7933bcafe2d,body=85438a4b2d7dc494906c8a021f1910e09bdfe5314a0a7c3b596e6ec7ba7b0da7",
+          "fingerprint": "signature=f41f15035411df3604289b2c4a1c70cdab1561b32a1baf095723b7933bcafe2d,body=9993804a61c37f3b66fba8adc54cfd22f43162afde3254cfd5291e14dd1acab6",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.5,
-            "specificity": 0.75,
-            "novelFact": "Код возврата 2 сигнализирует о частичном успехе с неудачными секциями, что позволяет вызывающему различать полный и частичный успех."
-          }
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Гарантирует детерминированный код возврата: 0 при успехе, 1 при исключении, 2 при непустых `failed` или `issues`, и всегда записывает ошибку в stderr как `{ ok: false, error: ... }`."
+          },
+          "language": "ru"
         },
         "dependencies": {
           "body": "runCli использует три внешних модуля: `toCodeloreErrorPayload` из `src/errors.ts` — сериализует перехваченные исключения в JSON для вывода в `stderr`; `startStdioServer` из `src/server/start-stdio-server.ts` — запускает MCP-сервер для команды `mcp`; `CodeloreService` из `src/service/codelore-service.ts` — предоставляет методы для всех остальных команд (делегируется через `runCommand`).",
@@ -87,43 +90,43 @@
           "language": "ru"
         },
         "workflows": {
-          "body": "Файл `src/bin/codelore.ts` вызывает `runCli`, передавая `process.argv.slice(2)` и объект `runtime` с `cwd`, `env`, `stdout`, `stderr`. После возврата `process.exitCode` устанавливается в результат `runCli`.\n\nВнутри `runCli`:\n1. `parseGlobalArgs` извлекает `--root` (или `cwd` по умолчанию), `--provider` и команду; при отсутствии команды по умолчанию `help`.\n2. Если команда `help` или `--help`/`-h` — выводит `helpText()` в `stdout` и возвращает 0.\n3. Если команда `mcp` — вызывает `startStdioServer` и после его успешного завершения возвращает 0.\n4. Для остальных команд создаётся `CodeloreService`, вызывается `runCommand`, который проверяет аргументы через `assertExpectedArgs`, парсит специфичные аргументы (через `parseScope`, `parseAnalyzeChangeInput`, `parseRefreshStaleDocsInput`) и вызывает соответствующий метод сервиса.\n5. Результат (если не `undefined`) сериализуется в JSON с отступами и выводится в `stdout`.\n6. Если в результате есть секции с `failed` (проверка `hasFailedSections`), возвращается 2, иначе 0.\n7. Любое исключение перехватывается, сериализуется через `toCodeloreErrorPayload` и выводится в `stderr` как JSON с полями `{ ok: false, error: ... }`, возвращается 1.",
+          "body": "Два бинарных файла вызывают `runCli`:\n- `src/bin/codelore.ts` передаёт `process.argv.slice(2)` и `runtime` с `cwd`, `env`, `stdout`, `stderr`; после возврата присваивает `process.exitCode`.\n- `src/bin/codelore-mcp.ts` делает то же самое, но предваряет аргументы командой `\"mcp\"`, поэтому `runCli` сразу переходит к запуску `startStdioServer`.\n\nВнутри `runCli`:\n1. `parseGlobalArgs` извлекает `--root` (или `cwd` по умолчанию), `--provider` и команду; при отсутствии команды по умолчанию `help`.\n2. Если команда `help`, `--help` или `-h` — выводит `helpText()` в `stdout` и возвращает 0.\n3. Если команда `mcp` — вызывает `startStdioServer` и после его успешного завершения возвращает 0.\n4. Для остальных команд создаётся `CodeloreService`, вызывается `runCommand`, который проверяет аргументы через `assertExpectedArgs`, парсит специфичные аргументы и вызывает соответствующий метод сервиса.\n5. Результат (если не `undefined`) сериализуется в JSON с отступами и выводится в `stdout`.\n6. Если в результате есть непустые `failed` или `issues` (проверка `isUnclean`), возвращается 2, иначе 0.\n7. Любое исключение перехватывается, сериализуется через `toCodeloreErrorPayload` и выводится в `stderr` как JSON с полями `{ ok: false, error: ... }`, возвращается 1.",
           "rendered": true,
-          "fingerprint": "body=85438a4b2d7dc494906c8a021f1910e09bdfe5314a0a7c3b596e6ec7ba7b0da7,deps=d1216775679b741d8e0128aefefea87b568c26c2b55a8dab0e2763a27a86491e",
-          "scores": {
-            "informativeness": 0.5,
-            "novelty": 1,
-            "specificity": 0.5,
-            "novelFact": "runCli перехватывает все исключения, сериализует их через toCodeloreErrorPayload и выводит в stderr с единым форматом { ok: false, error }."
-          },
-          "language": "ru"
-        },
-        "limitations": {
-          "body": "- Команда `mcp` блокирует процесс навсегда — конструкция `await startStdioServer({ rootDir: parsed.rootDir })` без таймаута или graceful shutdown.\n- Для `graph --html` путь вывода фиксирован: `join(parsed.rootDir, '.codelore', 'render-graph', 'index.html')`, без опции переопределения.\n- Нет поддержки конфигурационных файлов — параметры `--root` и `--provider` читаются только из CLI-аргументов.\n- Обрабатывается только девять команд — `switch` в `runCommand` покрывает эти случаи; остальное выдаёт сообщение об ошибке.",
-          "rendered": true,
-          "fingerprint": "body=85438a4b2d7dc494906c8a021f1910e09bdfe5314a0a7c3b596e6ec7ba7b0da7",
+          "fingerprint": "body=9993804a61c37f3b66fba8adc54cfd22f43162afde3254cfd5291e14dd1acab6,deps=d1216775679b741d8e0128aefefea87b568c26c2b55a8dab0e2763a27a86491e",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Команда mcp блокирует процесс навсегда из-за await startStdioServer без таймаута."
+            "novelFact": "Два бинарных файла вызывают `runCli`, причём `codelore-mcp.ts` предваряет аргументы командой `\"mcp\"`, поэтому `runCli` сразу переходит к запуску `startStdioServer`."
+          },
+          "language": "ru"
+        },
+        "limitations": {
+          "body": "- Команда `mcp` блокирует процесс навсегда — конструкция `await startStdioServer({ rootDir: parsed.rootDir })` без таймаута или graceful shutdown.\n- Нет поддержки конфигурационных файлов — параметры `--root` и `--provider` читаются только из CLI-аргументов.\n- Обрабатывается только девят команд — `switch` в `runCommand` покрывает эти случаи; остальное выдает сообщеные об ошибке.",
+          "rendered": true,
+          "fingerprint": "body=9993804a61c37f3b66fba8adc54cfd22f43162afde3254cfd5291e14dd1acab6",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Команда `mcp` блокирует процесс навсегда — конструкция `await startStdioServer({ rootDir: parsed.rootDir })` без таймаута или graceful shutdown."
           },
           "language": "ru"
         },
         "changeGuide": {
-          "body": "- Формат вывода ошибки в stderr фиксирован: JSON с полями `ok` и `error`. Конструкция: `runtime.stderr.write(\\`\\${JSON.stringify({ ok: false, error: toCodeloreErrorPayload(error) }, null, 2)}\\n\\`)`.\n- Код возврата для успеха (0), исключения (1), и наличия секций с `failed` (2) зафиксирован. Конструкции: `return 0;`, `return 1;`, `return 2;` в соответствующих ветвях.",
+          "body": "- Формат вывода ошибки в stderr фиксирован: JSON с полями `ok` и `error`. Конструкция: `runtime.stderr.write(\\`${JSON.stringify({ ok: false, error: toCodeloreErrorPayload(error) }, null, 2)}\\n\\`)`.\n- Код возврата для успеха (0), исключения (1), и наличия непустых `failed` или `issues` (2) зафиксирован. Конструкции: `return 0;`, `return 1;`, `return 2;` в соответствующих ветвях.",
           "rendered": true,
-          "fingerprint": "body=85438a4b2d7dc494906c8a021f1910e09bdfe5314a0a7c3b596e6ec7ba7b0da7,deps=d1216775679b741d8e0128aefefea87b568c26c2b55a8dab0e2763a27a86491e,usage=9fc2aba204c1adc55be228a56bc564e2af92b9d9448ce5a1f894cac070b03cd5,placement=e1399646d6cbb2f2a808d5a003e1147c33a937b826eff47117e0d1a5700dac1f",
+          "fingerprint": "body=9993804a61c37f3b66fba8adc54cfd22f43162afde3254cfd5291e14dd1acab6,deps=d1216775679b741d8e0128aefefea87b568c26c2b55a8dab0e2763a27a86491e,usage=21f2e8b2f60cb40f7aea8b55fcd924a4934360234e3c7733acf8f8a14e044533,placement=e1399646d6cbb2f2a808d5a003e1147c33a937b826eff47117e0d1a5700dac1f",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.5,
-            "specificity": 1,
-            "novelFact": "Формат вывода ошибки в stderr зафиксирован конструкцией runtime.stderr.write с toCodeloreErrorPayload."
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Код возврата для успеха (0), исключения (1), и наличия непустых `failed` или `issues` (2) зафиксирован."
           },
           "language": "ru"
         }
       },
-      "depDocsFingerprint": "402bc9e922bb6bf0e89b844fe75708a422f5509d1a2227ef9a813cd73e6af761",
+      "depDocsFingerprint": "d1bded5da59b16201cf6fd860232ee02810a56a4379b779cb2f24d0ba60e3b5f",
       "generationHistory": [
         {
           "runId": "ee069a72-0d61-4285-b9c9-6103b0868625",
@@ -322,8 +325,32 @@
             "dependencies",
             "workflows"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:56.976Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:41:29.553Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
-      ]
+      ],
+      "signature": "runCli(argv: string[], runtime: CliRuntime): Promise<number>"
     }
   },
   "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"

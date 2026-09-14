@@ -1,0 +1,346 @@
+{
+  "version": 4,
+  "docPath": "src/domains/domain-map.codelore.md",
+  "generatedAt": "2026-09-13T23:26:45.651Z",
+  "sectionOrder": [
+    "file:src/domains/domain-map.ts",
+    "symbol:src/domains/domain-map.ts#fileToDomainSlug",
+    "symbol:src/domains/domain-map.ts#domainCoverage"
+  ],
+  "sections": {
+    "file:src/domains/domain-map.ts": {
+      "heading": "domain-map.ts",
+      "depth": 1,
+      "anchor": "domain-mapts",
+      "owns": [
+        "file:src/domains/domain-map.ts"
+      ],
+      "depends": [],
+      "usedBy": [],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "This file exists to translate file paths into domain identifiers and to determine which domains are covered by a set of files, so that downstream indexing can group entities by domain.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The file provides the mapping from file paths to domain slugs and computes the transitive closure of domain dependencies for coverage."
+          },
+          "fingerprint": "signature=5a08a34455fda73b0f089c364e62c6f5dd1701b98a1a68292190f35b1b79b962,placement=5a08a34455fda73b0f089c364e62c6f5dd1701b98a1a68292190f35b1b79b962"
+        },
+        "responsibility": {
+          "body": "The file provides two pure functions.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The file implements two functions: one extracts a domain slug from a file path, the other computes the transitive closure of domain dependencies."
+          },
+          "fingerprint": "signature=5a08a34455fda73b0f089c364e62c6f5dd1701b98a1a68292190f35b1b79b962,deps=c9ec89fe95c34f4b80ed04752362d1f470d13cd568d9f20c2da71f01afe3ecf1,usage=c9ec89fe95c34f4b80ed04752362d1f470d13cd568d9f20c2da71f01afe3ecf1"
+        },
+        "invariants": {
+          "body": "The file defines two pure functions that operate on domain metadata.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The file maps each domain to a slug and computes domain coverage from member files and dependency domains, with deterministic sorting."
+          },
+          "fingerprint": "signature=5a08a34455fda73b0f089c364e62c6f5dd1701b98a1a68292190f35b1b79b962,body=2c112f841495036493aa6460c2edd28b2cfdd846a38b472838b310cfe564263b"
+        },
+        "limitations": {
+          "body": "The file exposes no state, no side effects, and no error handling beyond what the functions themselves define.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The file has no state or side effects."
+          },
+          "fingerprint": "body=2c112f841495036493aa6460c2edd28b2cfdd846a38b472838b310cfe564263b"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.730Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.649Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "symbol:src/domains/domain-map.ts#fileToDomainSlug": {
+      "heading": "fileToDomainSlug",
+      "depth": 1,
+      "anchor": "filetodomainslug",
+      "signature": "fileToDomainSlug(map: DomainMap): Map<string, string>",
+      "owns": [
+        "symbol:src/domains/domain-map.ts#fileToDomainSlug"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/indexer/domain-entities.ts",
+        "file:src/service/codelore-service.ts",
+        "symbol:src/indexer/domain-entities.ts#buildDomainEntities",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.tierGenerationWaves"
+      ],
+      "status": "review_needed",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "This function exists to map files to domain slugs, enabling grouping of files by their top-level directory.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function extracts the domain identifier from a file path by taking the top-level directory name."
+          },
+          "fingerprint": "signature=1039f649838979bca040b0c810cb4fd56665ec5315dc44ae78252106f18ea356,placement=3c56eb68aeb340dfb6478d1019d45bcb3120417d66bc8c5cfd1d7b74a77fdb08"
+        },
+        "responsibility": {
+          "body": "The function takes a DomainMap and returns a Map<string, string> mapping files to domain slugs.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function splits the path on the separator and returns the first segment, or an empty string if none exists."
+          },
+          "fingerprint": "signature=1039f649838979bca040b0c810cb4fd56665ec5315dc44ae78252106f18ea356,deps=b63b94e53ae5402f4e0a1814e018299efe59528ab91fef8cdabc521455c19363,usage=b4deada62f7fadacdd8255ed70ef0db3182593d7efecb78a98a6e5d54448edb1"
+        },
+        "invariants": {
+          "body": "The function maps files to domain slugs based on the domain entries.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function returns the first path segment as the domain slug, or an empty string if the path has no segments."
+          },
+          "fingerprint": "signature=1039f649838979bca040b0c810cb4fd56665ec5315dc44ae78252106f18ea356,body=e1db6b720d3188ebc09a4dbea8213df953f5b76198daaf4bab49a680f6ce3678"
+        },
+        "workflows": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=e1db6b720d3188ebc09a4dbea8213df953f5b76198daaf4bab49a680f6ce3678,deps=b63b94e53ae5402f4e0a1814e018299efe59528ab91fef8cdabc521455c19363"
+        },
+        "limitations": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=e1db6b720d3188ebc09a4dbea8213df953f5b76198daaf4bab49a680f6ce3678"
+        },
+        "changeGuide": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=e1db6b720d3188ebc09a4dbea8213df953f5b76198daaf4bab49a680f6ce3678,deps=b63b94e53ae5402f4e0a1814e018299efe59528ab91fef8cdabc521455c19363,usage=b4deada62f7fadacdd8255ed70ef0db3182593d7efecb78a98a6e5d54448edb1,placement=3c56eb68aeb340dfb6478d1019d45bcb3120417d66bc8c5cfd1d7b74a77fdb08"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.732Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        }
+      ]
+    },
+    "symbol:src/domains/domain-map.ts#domainCoverage": {
+      "heading": "domainCoverage",
+      "depth": 1,
+      "anchor": "domaincoverage",
+      "signature": "domainCoverage(map: DomainMap, documentedFiles: Iterable<string>): DomainCoverage",
+      "owns": [
+        "symbol:src/domains/domain-map.ts#domainCoverage"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.assignUncoveredFiles",
+        "symbol:src/service/codelore-service.ts#CodeloreService.detectUncoveredFiles"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "This function exists to check file coverage within domains.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function computes the transitive closure of domain dependencies to determine which domains are covered by a set of files."
+          },
+          "fingerprint": "signature=3094544d852530a84c297fcc6b9e0767190a95ea276e2d88f07a6ca506e9d559,placement=3665a94034cc3b975712678bfb64835c85839e889e900fe774f459dcf4561797"
+        },
+        "responsibility": {
+          "body": "The function takes a DomainMap and an iterable of documented file paths, and returns a DomainCoverage object with properties uncovered, doubleAssigned, danglingFiles.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function performs a breadth-first traversal over the dependency graph, collecting all reachable domain IDs."
+          },
+          "fingerprint": "signature=3094544d852530a84c297fcc6b9e0767190a95ea276e2d88f07a6ca506e9d559,deps=3000cd1c3193e9c844f748d0ca7bfebe08f08ad0f08f73789d4d80dae8028cc3,usage=334d85887fd5f0920959c25796992ae00e0235172d56ce1f4ad8b40132d8fc6a"
+        },
+        "invariants": {
+          "body": "The function returns a DomainCoverage object with three arrays: uncovered, doubleAssigned, danglingFiles.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function returns a sorted array of all reachable domain IDs, including the input set, with duplicates collapsed."
+          },
+          "fingerprint": "signature=3094544d852530a84c297fcc6b9e0767190a95ea276e2d88f07a6ca506e9d559,body=aef0496c3c8f401b70a12892c5506f7d0891c98955ca672f751c692c138dd861"
+        },
+        "workflows": {
+          "body": "The indexer calls `domainCoverage` with the map of all files and the list of documented file leads; the returned `uncovered` array is then mapped to warning diagnostics with code `uncovered_file`.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function is called by the indexer to compute uncovered files for warning diagnostics."
+          },
+          "fingerprint": "body=aef0496c3c8f401b70a12892c5506f7d0891c98955ca672f751c692c138dd861,deps=3000cd1c3193e9c844f748d0ca7bfebe08f08ad0f08f73789d4d80dae8028cc3"
+        },
+        "limitations": {
+          "body": "The function only considers files that are explicitly passed in; it does not scan the filesystem, so any file not present in the `files` argument is ignored.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The function only considers files that are explicitly passed in; it does not scan the filesystem."
+          },
+          "fingerprint": "body=aef0496c3c8f401b70a12892c5506f7d0891c98955ca672f751c692c138dd861"
+        },
+        "changeGuide": {
+          "body": "- The function returns an object with an `uncovered` array of file paths that are not covered by any domain; the array is built by filtering the input `files` against the set of covered paths.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function returns an object with an `uncovered` array of file paths that are not covered by any domain."
+          },
+          "fingerprint": "body=aef0496c3c8f401b70a12892c5506f7d0891c98955ca672f751c692c138dd861,deps=3000cd1c3193e9c844f748d0ca7bfebe08f08ad0f08f73789d4d80dae8028cc3,usage=334d85887fd5f0920959c25796992ae00e0235172d56ce1f4ad8b40132d8fc6a,placement=3665a94034cc3b975712678bfb64835c85839e889e900fe774f459dcf4561797"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.733Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.651Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

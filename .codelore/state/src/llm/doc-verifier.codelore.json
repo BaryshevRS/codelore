@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/llm/doc-verifier.codelore.md",
-  "generatedAt": "2026-07-03T17:41:18.918Z",
+  "generatedAt": "2026-09-13T19:41:29.587Z",
   "sectionOrder": [
     "symbol:src/llm/doc-verifier.ts#buildVerifyRequest",
     "symbol:src/llm/doc-verifier.ts#parseVerifyResponse"
@@ -16,6 +16,7 @@
       ],
       "depends": [],
       "usedBy": [
+        "file:src/llm/domain-pipeline.ts",
         "file:src/llm/file-pipeline.ts",
         "symbol:src/llm/file-pipeline.ts#verifyBlocksAgainstDeps",
         "symbol:src/llm/file-pipeline.ts#verifyChunkFacts"
@@ -50,25 +51,26 @@
           }
         },
         "responsibility": {
-          "body": "- Не выполняет сам факт-чекинг — только строит запрос.\n- Не валидирует входные `sections` и `dependencyDocs` — предполагает корректные данные от вызывающего.\n- Не фильтрует `dependencyDocs` по релевантности — передаёт все полученные.\n- Добавляет `typeContext` в промпт только при его наличии в `input`, иначе опускает соответствующую секцию.",
+          "body": "- Формирует системное сообщение с инструкциями для LLM: проверять утверждения на противоречия, возвращать только JSON, игнорировать неинструктивный текст.\n- Строит пользовательское сообщение, включая секцию `<sections>` с JSON-сериализованными данными разделов, и при необходимости — секции `<dependency-docs>` и `<type-context>`.\n- Определяет схему ответа через `verifyResponseSchema`, требуя от LLM возвращать объект с массивом `contradictions`, где каждый элемент содержит `sectionId`, `blockId`, `statement`, `evidence`.\n- Не выполняет сам факт-чекинг и не валидирует входные данные — только формирует запрос.",
           "rendered": true,
-          "fingerprint": "signature=634425219a722dc0079fba5cdee2fb36d56955da62e16c7bd33b6097e7bde8bc,deps=6fb0a9992257e46917fa5132c972d4e67e2473f48a54459e59f0001450ad5cdb,usage=3708aa41e358abb5832a2f306ded16335cdd79f70ca3b046b5381b307fc5ce6d",
+          "fingerprint": "signature=634425219a722dc0079fba5cdee2fb36d56955da62e16c7bd33b6097e7bde8bc,deps=6fb0a9992257e46917fa5132c972d4e67e2473f48a54459e59f0001450ad5cdb,usage=04ce800dc372375e97f737d2318f851eba0672589bdd932e76eeda78f9fe6453",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Границы делегирования и условия включения typeContext."
-          }
+            "novelFact": "Строит LLM-запрос, который инструктирует модель проверять утверждения на противоречия и возвращать структурированный JSON с массивом `contradictions`."
+          },
+          "language": "ru"
         },
         "invariants": {
-          "body": "- Возвращаемый `ChatCompletionInput` всегда содержит ровно два сообщения: system и user.\n- Строка `system.content` константна при всех вызовах.\n- Промпт всегда включает секцию `<sections>` с JSON-сериализованными данными входных разделов.\n- Секция `<dependency-docs>` в `user.content` присутствует только при непустом `dependencyDocs`.",
+          "body": "- Возвращаемый `ChatCompletionInput` всегда содержит ровно два сообщения: `system` и `user`.\n- Содержимое `system.content` — константная строка инструкций, не зависящая от входных параметров.\n- `user.content` всегда включает секцию `<sections>` с JSON-сериализованными данными из `input.sections`.\n- Секция `<dependency-docs>` добавляется в `user.content` только если `input.dependencyDocs` не пуст.\n- Секция `<type-context>` добавляется только если `input.typeContext` передан и не пуст.\n- Схема ответа (`responseSchema`) всегда одинакова и задаётся вызовом `verifyResponseSchema()`.",
           "rendered": true,
-          "fingerprint": "signature=634425219a722dc0079fba5cdee2fb36d56955da62e16c7bd33b6097e7bde8bc,body=7e4e4111a40428b6056d759c690659c65f1e06627379ff8553935de5c9410d9f",
+          "fingerprint": "signature=634425219a722dc0079fba5cdee2fb36d56955da62e16c7bd33b6097e7bde8bc,body=13e62835b30488be0a6e6205a64902f7ae72891caa7f7d9e3c052ce05bba6dc7",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Промпт всегда включает секцию `<sections>` с JSON-сериализованными данными входных разделов."
+            "novelFact": "Гарантирует, что запрос всегда содержит два сообщения, а секции зависимостей и типов включаются только при наличии данных."
           },
           "language": "ru"
         },
@@ -85,31 +87,31 @@
           "language": "ru"
         },
         "workflows": {
-          "body": "Вызывается из `verifyChunkFacts` (статическая, `src/llm/file-pipeline.ts`), `verifyBlocksAgainstDeps` (статическая, там же) и `buildRepairRequest` (там же, с `runtimeEvidence` совпадающей строки инструкции \"Return only valid JSON. Do not include Markdown fences.\"). Построенный `ChatCompletionInput` передаётся в `provider.complete`. Промпт собирается для каждого файла отдельно в цикле по `fileTargets` внутри `verifyBlocksAgainstDeps`.",
+          "body": "Вызывается из `verifyBlocksAgainstDeps` и `verifyChunkFacts` (оба в `src/llm/file-pipeline.ts`). В `verifyBlocksAgainstDeps` для каждого файла собираются `VerifySectionInput` из целевых секций и их исходного кода, затем `buildVerifyRequest` формирует запрос с этими секциями и документацией зависимостей; результат передаётся в `provider.complete`, а ответ парсится — секции без противоречий помечаются как проверенные. В `verifyChunkFacts` запрос строится аналогично, но дополнительно может включать `typeContext` с объявлениями импортированных типов; после парсинга ответа противоречия преобразуются в `DocViolation` и запускается цикл ремонта.",
           "rendered": true,
-          "fingerprint": "body=7e4e4111a40428b6056d759c690659c65f1e06627379ff8553935de5c9410d9f,deps=6fb0a9992257e46917fa5132c972d4e67e2473f48a54459e59f0001450ad5cdb",
-          "scores": {
-            "informativeness": 1,
-            "novelty": 0.75,
-            "specificity": 1,
-            "novelFact": "buildVerifyRequest — единая точка построения запроса для всех сценариев верификации; её вызывают три функции пайплайна, каждая со своим набором секций."
-          },
-          "language": "ru"
-        },
-        "limitations": {
-          "body": "- Не валидирует входные массивы `sections`, `dependencyDocs` и `typeContext` — пустые массивы принимаются и передаются в промпт, что может привести к пустому запросу без блоков.\n- Промпт требует от LLM возврата строго JSON без Markdown-ограждений; любое отклонение от этого формата вызовет ошибку парсинга.",
-          "rendered": true,
-          "fingerprint": "body=7e4e4111a40428b6056d759c690659c65f1e06627379ff8553935de5c9410d9f",
+          "fingerprint": "body=13e62835b30488be0a6e6205a64902f7ae72891caa7f7d9e3c052ce05bba6dc7,deps=6fb0a9992257e46917fa5132c972d4e67e2473f48a54459e59f0001450ad5cdb",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Функция не проверяет, что в input передан хотя бы один элемент sections — пустой массив приводит к промпту без блоков для проверки."
+            "novelFact": "Формирует запрос для факт-чекинга, который затем передаётся в `provider.complete` и парсится вызывающим кодом."
+          },
+          "language": "ru"
+        },
+        "limitations": {
+          "body": "- Не проверяет, что `input.sections` не пуст — при пустом массиве формирует промпт без блоков для проверки, полагаясь на то, что вызывающий код (например, `verifyBlocksAgainstDeps`) уже отфильтровал пустые наборы.\n- Не содержит защитных проверок на наличие или типы полей входного объекта — код напрямую обращается к `input.dependencyDocs.length` и `input.sections.map(...)`, поэтому передача `undefined` или отсутствующих полей во время выполнения приведёт к исключению.",
+          "rendered": true,
+          "fingerprint": "body=13e62835b30488be0a6e6205a64902f7ae72891caa7f7d9e3c052ce05bba6dc7",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Не проверяет входные данные — при пустых секциях или некорректных полях возможны исключения во время выполнения."
           },
           "language": "ru"
         }
       },
-      "depDocsFingerprint": "3fb47a74aeac622655b15fede520b1b5b3e7b5cd155e00670fe4b869ef7de9b5",
+      "depDocsFingerprint": "237299e4da9d9e16d5087fab2336dee8492592d2695d736f4a97fd4087b2de8e",
       "generationHistory": [
         {
           "runId": "3e35cbd2-e377-4402-9f1a-b777a898105d",
@@ -214,8 +216,31 @@
           "generatedBlocks": [
             "dependencies"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.018Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:41:29.585Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "workflows",
+            "limitations"
+          ]
         }
-      ]
+      ],
+      "signature": "buildVerifyRequest(input: {\n  sections: VerifySectionInput[];\n  dependencyDocs: DependencyDoc[];\n  typeContext?: VerifyTypeDeclaration[];\n}): ChatCompletionInput"
     },
     "symbol:src/llm/doc-verifier.ts#parseVerifyResponse": {
       "heading": "parseVerifyResponse",
@@ -229,6 +254,7 @@
         "symbol:src/llm/json.ts#parseJsonObject"
       ],
       "usedBy": [
+        "file:src/llm/domain-pipeline.ts",
         "file:src/llm/file-pipeline.ts",
         "symbol:src/llm/file-pipeline.ts#verifyBlocksAgainstDeps",
         "symbol:src/llm/file-pipeline.ts#verifyChunkFacts"
@@ -265,15 +291,16 @@
           }
         },
         "responsibility": {
-          "body": "- Не проверяет полноту охвата — LLM может пропустить часть блоков.\n- Не валидирует `evidence` — только извлекает как строку.\n- Игнорирует записи с `sectionId` или `blockId`, не входящими в переданные `sections` — считает их шумом модели.\n- Выбрасывает `CodeloreError` с кодом `INVALID_LLM_RESPONSE`, если `contradictions` не является массивом.",
+          "body": "- Парсит JSON из `content` с помощью `parseJsonObject`; при ошибке парсинга выбрасывает исключение.\n- Проверяет, что поле `contradictions` является массивом; если нет — выбрасывает `CodeloreError` с кодом `INVALID_LLM_RESPONSE`.\n- Игнорирует записи, у которых `sectionId` или `blockId` отсутствуют в переданных `sections` (фильтрует по `blocksBySection`).\n- Пропускает элементы массива, не являющиеся объектами с обязательными строковыми полями `sectionId`, `blockId`, `statement` (молча, через `continue`).\n- Если `contradictions` отсутствует или равен `null`, возвращает пустой массив.\n- Для каждого валидного элемента формирует `ContradictedClaim`, подставляя `evidence` как строку (или пустую строку, если поле не строка).",
           "rendered": true,
-          "fingerprint": "signature=2637c921669bc6b71747a3ce1ceac74a7318842301e5e4538e1a369363b00588,deps=fb265155ad6a9df1c66a8148b2207e3f8e13b789f19084ba38cf922b4c1d4f07,usage=65fe0d3c54670522848ad69631a27d0c4fe5b9f30fb17d4e45eb5f7f4d7d8841",
+          "fingerprint": "signature=2637c921669bc6b71747a3ce1ceac74a7318842301e5e4538e1a369363b00588,deps=fb265155ad6a9df1c66a8148b2207e3f8e13b789f19084ba38cf922b4c1d4f07,usage=c901a45cef024e4420b1eaef4a08880418fc4fe4775bfe613e15bddc866c7bc0",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Границы обработки ответа LLM и реакция на невалидный формат."
-          }
+            "novelFact": "Извлекает и фильтрует противоречия из JSON-ответа LLM, отбрасывая записи, не соответствующие проверяемым разделам, и игнорируя некорректные элементы."
+          },
+          "language": "ru"
         },
         "invariants": {
           "body": "- Возвращает только утверждения, чьи `sectionId` и `blockId` присутствуют в переданных `sections`.\n- Если `contradictions` отсутствует или равен `null`, возвращает пустой массив.\n- Если элемент массива `contradictions` не является объектом с строковыми полями `sectionId`, `blockId`, `statement`, он молча пропускается.\n- Если `contradictions` — не массив, выбрасывает `CodeloreError` с кодом `INVALID_LLM_RESPONSE`.",
@@ -323,19 +350,19 @@
           "language": "ru"
         },
         "changeGuide": {
-          "body": "- Инвариант «при null/undefined contradictions возвращается пустой массив» обеспечивается конструкцией `if (raw === undefined || raw === null) { return []; }`.\n- Инвариант «элементы с нестроковыми sectionId/blockId/statement молча пропускаются» обеспечивается проверкой `if (typeof sectionId !== \"string\" || typeof blockId !== \"string\" || typeof statement !== \"string\") { continue; }`.\n- Инвариант «запись с sectionId/blockId, отсутствующими в переданных sections, отфильтровывается» обеспечивается конструкцией `if (!blocksBySection.get(sectionId)?.has(blockId as BlockId)) { continue; }`.",
+          "body": "- Инвариант «при `null` или `undefined` в `contradictions` возвращается пустой массив» обеспечивается конструкцией `if (raw === undefined || raw === null) { return []; }`.\n- Инвариант «элементы с нестроковыми `sectionId`, `blockId` или `statement` молча пропускаются» обеспечивается проверкой `if (typeof sectionId !== \"string\" || typeof blockId !== \"string\" || typeof statement !== \"string\") { continue; }`.",
           "rendered": true,
-          "fingerprint": "body=20637fe8be912fcd4c9b3c46c8164c22432373be26cc580dcd546cfb6134674f,deps=fb265155ad6a9df1c66a8148b2207e3f8e13b789f19084ba38cf922b4c1d4f07,usage=65fe0d3c54670522848ad69631a27d0c4fe5b9f30fb17d4e45eb5f7f4d7d8841,placement=ddebb320c4185e18671e4076420a68a4e6e22ffeff2100225acacf508c6962e0",
+          "fingerprint": "body=20637fe8be912fcd4c9b3c46c8164c22432373be26cc580dcd546cfb6134674f,deps=fb265155ad6a9df1c66a8148b2207e3f8e13b789f19084ba38cf922b4c1d4f07,usage=c901a45cef024e4420b1eaef4a08880418fc4fe4775bfe613e15bddc866c7bc0,placement=ddebb320c4185e18671e4076420a68a4e6e22ffeff2100225acacf508c6962e0",
           "scores": {
-            "informativeness": 1,
-            "novelty": 1,
-            "specificity": 1,
-            "novelFact": "Главные инварианты защищены тремя явными проверками: null/undefined, тип массива, строковые поля элементов; при изменении схемы ответа LLM эти проверки определяют корректность парсинга."
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Фильтрует ответ LLM, оставляя только утверждения, соответствующие переданным секциям, и молча пропускает некорректные записи."
           },
           "language": "ru"
         }
       },
-      "depDocsFingerprint": "3fb47a74aeac622655b15fede520b1b5b3e7b5cd155e00670fe4b869ef7de9b5",
+      "depDocsFingerprint": "237299e4da9d9e16d5087fab2336dee8492592d2695d736f4a97fd4087b2de8e",
       "generationHistory": [
         {
           "runId": "3e35cbd2-e377-4402-9f1a-b777a898105d",
@@ -422,8 +449,29 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.034Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:41:29.587Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "changeGuide"
+          ]
         }
-      ]
+      ],
+      "signature": "parseVerifyResponse(content: string, sections: VerifySectionInput[]): ContradictedClaim[]"
     }
   },
   "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"

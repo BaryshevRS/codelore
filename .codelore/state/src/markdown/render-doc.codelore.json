@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/markdown/render-doc.codelore.md",
-  "generatedAt": "2026-07-03T16:25:43.576Z",
+  "generatedAt": "2026-09-13T23:30:54.596Z",
   "sectionOrder": [
     "symbol:src/markdown/render-doc.ts#renderDoc",
     "symbol:src/markdown/render-doc.ts#renderSection"
@@ -15,11 +15,18 @@
         "symbol:src/markdown/render-doc.ts#renderDoc"
       ],
       "depends": [
+        "symbol:src/markdown/doc-paths.ts#translationDocPath",
+        "symbol:src/markdown/linkify.ts#buildDomainComposition",
+        "symbol:src/markdown/linkify.ts#buildDomainRelations",
+        "symbol:src/markdown/linkify.ts#buildPathTargets",
+        "symbol:src/markdown/linkify.ts#sectionLinkTargets",
+        "symbol:src/markdown/locales.ts#localeBundle",
         "symbol:src/markdown/render-doc.ts#renderSection"
       ],
       "usedBy": [
         "file:src/storage/doc-state-storage.ts",
         "symbol:src/storage/doc-state-storage.ts#DocStateStorage",
+        "symbol:src/storage/doc-state-storage.ts#DocStateStorage.reconcileRenderedDocs",
         "symbol:src/storage/doc-state-storage.ts#DocStateStorage.renderAndPersist"
       ],
       "status": "normal",
@@ -43,86 +50,86 @@
       ],
       "blocks": {
         "purpose": {
-          "body": "Формирует итоговый Markdown-документ, объединяя результаты рендера каждой секции из state.sectionOrder, и возвращает пустую строку при пустом списке секций.",
+          "body": "Собирает итоговый Markdown-документ из отрендеренных секций, формируя для каждой контекст ссылок и навигационную строку для доменных секций, а при пустом списке секций возвращает пустую строку.",
           "rendered": true,
-          "fingerprint": "signature=7f24ed7db3e5383dac4b2c087c602a541c9ef80d6d6760071c9bcca070538ef2,placement=328ba5883cc9c04245c50969474d07e94acbc63ee73da129eeb70883992a8f96",
+          "fingerprint": "signature=c682fe13dddce318d873be3935b1c8b957f99496456e47c04ee2e10556628b73,placement=328ba5883cc9c04245c50969474d07e94acbc63ee73da129eeb70883992a8f96",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Объединяет результаты рендера каждой секции в единый документ, добавляя разделитель \\n\\n и завершающий \\n."
+            "novelFact": "Для доменных и проектных секций вычисляет навигационную строку tierLead на основе зависимостей и обратных ссылок."
           },
           "language": "ru"
         },
         "responsibility": {
-          "body": "- Перебирает state.sectionOrder, для каждого идентификатора получает секцию из state.sections и пропускает отсутствующие секции.\n- Делегирует рендер каждой секции функции renderSection с переданными config и language.\n- Соединяет результаты рендера двойным переводом строки и добавляет завершающий перевод строки.\n- Возвращает пустую строку при пустом state.sectionOrder.",
+          "body": "- При пустом `state.sectionOrder` немедленно возвращает `\"\"`, не вычисляя контекст ссылок и не вызывая `renderSection`.\n- Для каждой секции из `state.sectionOrder` строит `linkContext` с целями символов и путей, если переданы `links`; для доменных и проектных секций (определяемых с помощю `isTierSection`) дополнительно формирует навигационную строку `tierLead`.\n- Делегирует рендер каждой секции функии `renderSection`, передавая ей `linkContext` и `tierLead`.\n- Склеивает резултаты рендера двойным переводом строки и добавляет завершающий `\\n`.",
           "rendered": true,
-          "fingerprint": "signature=7f24ed7db3e5383dac4b2c087c602a541c9ef80d6d6760071c9bcca070538ef2,deps=44b04d223370cc5eed8f2c61de19f189e8ba3382947d173fe158c6f8f526a7b8,usage=fe13bf984ef9f1905cc59fc238b63f908e32f3107f0fc747301f482ffc64e05b",
+          "fingerprint": "signature=c682fe13dddce318d873be3935b1c8b957f99496456e47c04ee2e10556628b73,deps=ede8ec3df1ebca72b89e1e06227067f3b54fcd4fbd71b7a7c61ced084809e404,usage=caec7fac26c133cb7c6e420d77b021e53c2d9d2352d92091d63ff54b16f87e7d",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Делегирует рендер каждой секции renderSection, а разделение секций происходит через \\n\\n."
+            "novelFact": "Навигационная строка tierLead вычисляется только при наличии links, pathTargets и docInfo, и только для секций, чей владелец начинается с `domain:` или `project:`."
           },
           "language": "ru"
         },
         "invariants": {
-          "body": "- Порядок секций в итоговом документе соответствует порядку их идентификаторов в state.sectionOrder.\n- При пустом state.sectionOrder возвращает пустую строку.\n- Функция не изменяет переданные объекты state и config.",
+          "body": "- При пустом `state.sectionOrder` возвращает `\"\"` без завершающего `\\n`.\n- Порядок секций в итоговом документе соответствует порядку идентификаторов в `state.sectionOrder`.\n- Секции разделяются ровно двумя переводами строки, документ завершается одним `\\n`.\n- Функция не изменяет переданные объекты `state` и `config`.",
           "rendered": true,
-          "fingerprint": "signature=7f24ed7db3e5383dac4b2c087c602a541c9ef80d6d6760071c9bcca070538ef2,body=c245dcd11c926a60895c67e5e6d229f5a73dc6a0b395ab5ae09067d223e3f757",
+          "fingerprint": "signature=c682fe13dddce318d873be3935b1c8b957f99496456e47c04ee2e10556628b73,body=5db447369eb2ad658bbacbcf47bcf00181c3bf6c2690995186ceb52ac5a1693d",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Сохраняет порядок секций из state.sectionOrder и возвращает пустую строку при пустом списке."
+            "novelFact": "Документ всегда завершается ровно одним `\\n`, даже если состоит из единственной секции."
           },
           "language": "ru"
         },
         "dependencies": {
-          "body": "Зависит от renderSection, определённой в том же файле, которая рендерит каждую секцию из state.",
-          "rendered": false,
-          "fingerprint": "deps=44b04d223370cc5eed8f2c61de19f189e8ba3382947d173fe158c6f8f526a7b8",
+          "body": "Зависит от `renderSection` (тот же файл) для рендера каждой секции; от `localeBundle` для получения навигационных меток; от `buildPathTargets`, `sectionLinkTargets`, `buildDomainComposition`, `buildDomainRelations` для построения контекста ссылок и навигационной строки доменных секций; от `translationDocPath` для определения пути переводного документа; от внутренних хелперов `isTranslationLanguage` и `isTierSection`.",
+          "rendered": true,
+          "fingerprint": "deps=ede8ec3df1ebca72b89e1e06227067f3b54fcd4fbd71b7a7c61ced084809e404",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.25,
+            "informativeness": 0.75,
+            "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "renderDoc напрямую не использует никаких импортированных модулей; вся логика рендера делегирована renderSection."
+            "novelFact": "Делегирует рендер каждой секции функции renderSection, предварительно строя для неё контекст ссылок и навигационную строку."
           },
           "language": "ru"
         },
         "workflows": {
-          "body": "DocStateStorage.renderAndPersist вызывает renderDoc(state, this.config) для канонического языка и renderDoc(state, this.config, language) для каждого языка из config.docs.translations. После рендера результат записывается в файл state.docPath (для канонического) и в файл с суффиксом языка (для переводов).",
+          "body": "Вызывается из `DocStateStorage.reconcileRenderedDocs` и `DocStateStorage.renderAndPersist` для формирования итогового Markdown-документа. При пустом `state.sectionOrder` сразу возвращает `\"\"`. Иначе определяет `translationLanguage` (если язык перевода), строит `pathTargets` и `navLabels`, затем для каждой секции из `state.sectionOrder`: если секция отсутствует — пропускает; строит `linkContext` (если переданы `links`); для доменных/проектных секций формирует `tierLead` из `buildDomainComposition` и `buildDomainRelations`; вызывает `renderSection` с этими параметрами. Результаты склеивает двойным переводом строки и добавляет завершающий `\\n`.",
           "rendered": true,
-          "fingerprint": "body=c245dcd11c926a60895c67e5e6d229f5a73dc6a0b395ab5ae09067d223e3f757,deps=44b04d223370cc5eed8f2c61de19f189e8ba3382947d173fe158c6f8f526a7b8",
+          "fingerprint": "body=5db447369eb2ad658bbacbcf47bcf00181c3bf6c2690995186ceb52ac5a1693d,deps=ede8ec3df1ebca72b89e1e06227067f3b54fcd4fbd71b7a7c61ced084809e404",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "renderDoc вызывается из DocStateStorage.renderAndPersist отдельно для канонического языка и для каждого языка переводов, что обеспечивает генерацию всех версий документа за один вызов."
+            "novelFact": "При пустом списке секций возвращает пустую строку без вызова renderSection."
           },
           "language": "ru"
         },
         "limitations": {
-          "body": "- При `state.sectionOrder.length === 0` возвращается пустая строка без завершающего `\\n` — конструкция `return \"\"`.\n- Секция, отсутствующая в `state.sections`, молча пропускается — проверка `if (!section) { continue; }` не генерирует ошибку.\n- Дубликаты идентификаторов в `state.sectionOrder` приводят к повторному рендеру одной и той же секции, без дедупликации.",
+          "body": "- При `state.sectionOrder.length === 0` возвращается `\"\"` без завершающего `\\n` — конструкция `return \"\";`.\n- Секция, отсутствующая в `state.sections`, молча пропускается (`if (!section) { continue; }`).\n- Дубликаты идентификаторов в `state.sectionOrder` приводят к повторному рендеру одной и той же секции, без дедупликации.",
           "rendered": true,
-          "fingerprint": "body=c245dcd11c926a60895c67e5e6d229f5a73dc6a0b395ab5ae09067d223e3f757",
+          "fingerprint": "body=5db447369eb2ad658bbacbcf47bcf00181c3bf6c2690995186ceb52ac5a1693d",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "При пустом sectionOrder функция возвращает пустую строку без завершающего переноса, в отличие от нормального вывода."
+            "novelFact": "Дубликаты в sectionOrder не дедуплицируются, что может привести к повторному выводу одной секции."
           },
           "language": "ru"
         },
         "changeGuide": {
-          "body": "- Пустой `sectionOrder` возвращает пустую строку без завершающего `\\n`. Конструкция: `if (state.sectionOrder.length === 0) { return \"\"; }`. Тест на пустой документ.\n- Секции разделяются двумя переводами строки и завершаются одним `\\n`. Конструкция: `` return `${parts.join(\"\\n\\n\")}\\n`; ``. Тест на документ с несколькими секциями.",
+          "body": "- Пустой `sectionOrder` возвращает пустую строку без завершающего `\\n`. Конструкция: `if (state.sectionOrder.length === 0) { return \"\"; }`.\n- Секции разделяются двумя переводами строки, документ завершается одним `\\n`. Конструкция: `` return `${parts.join(\"\\n\\n\")}\\n`; ``.",
           "rendered": true,
-          "fingerprint": "body=c245dcd11c926a60895c67e5e6d229f5a73dc6a0b395ab5ae09067d223e3f757,deps=44b04d223370cc5eed8f2c61de19f189e8ba3382947d173fe158c6f8f526a7b8,usage=fe13bf984ef9f1905cc59fc238b63f908e32f3107f0fc747301f482ffc64e05b,placement=328ba5883cc9c04245c50969474d07e94acbc63ee73da129eeb70883992a8f96",
+          "fingerprint": "body=5db447369eb2ad658bbacbcf47bcf00181c3bf6c2690995186ceb52ac5a1693d,deps=ede8ec3df1ebca72b89e1e06227067f3b54fcd4fbd71b7a7c61ced084809e404,usage=caec7fac26c133cb7c6e420d77b021e53c2d9d2352d92091d63ff54b16f87e7d,placement=328ba5883cc9c04245c50969474d07e94acbc63ee73da129eeb70883992a8f96",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Изменение разделителя между секциями или завершающего переноса сломает все сгенерированные документы, что закреплено тестами."
+            "novelFact": "Документ всегда завершается одним символом новой строки."
           },
           "language": "ru"
         }
@@ -177,9 +184,35 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.064Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:41:29.631Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
       ],
-      "depDocsFingerprint": "3aeb8978d0e891430d6680c7932583e5031dec9381f1f1f7a617ae3627b99f23"
+      "depDocsFingerprint": "bc26fff9bc8e6dfb09e4f3d10eeb1b9eec30f4c9ed6d375ef11ef56ef4ce6216",
+      "signature": "renderDoc(state: DocState, config: CodeloreConfig, language?: string, links?: EntityLinkMap, docInfo?: DocInfoMap): string"
     },
     "symbol:src/markdown/render-doc.ts#renderSection": {
       "heading": "renderSection",
@@ -189,7 +222,8 @@
         "symbol:src/markdown/render-doc.ts#renderSection"
       ],
       "depends": [
-        "symbol:src/markdown/callouts.ts#staleCalloutText"
+        "symbol:src/markdown/callouts.ts#staleCalloutText",
+        "symbol:src/markdown/linkify.ts#linkifyBlockBody"
       ],
       "usedBy": [
         "file:src/service/codelore-service.ts",
@@ -218,86 +252,86 @@
       ],
       "blocks": {
         "purpose": {
-          "body": "Формирует Markdown-подраздел из состояния одной секции, управляя порядком и отображением блоков (свежие и устаревшие).",
+          "body": "Превращает состояние одной секции документа в Markdown-подраздел, управляя заголовками, группировкой устаревших блоков в сводный callout и локализацией заголовков для переводных языков.",
           "rendered": true,
-          "fingerprint": "signature=5b6b677478b89af4bd3bd610f9f8f27e4d83217876cee17d7b8b0bff4fc8bb26,placement=b8da5c7992c01e162230e72236d6310d84f3ecd8cb861c1b279d594f7574340e",
+          "fingerprint": "signature=976dddb6783793e47292b2d3caee7957f8c0140a09fbae024acfa98eb94f4fe3,placement=b8da5c7992c01e162230e72236d6310d84f3ecd8cb861c1b279d594f7574340e",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Упорядочивает блоки согласно section.blockOrder и BLOCK_IDS, выводит свежие блоки и группирует устаревшие в callout."
+            "novelFact": "Устаревшие блоки не рендерятся как отдельные заголовки, а сворачиваются в один callout на группу с одинаковыми причиной и датой устаревания."
           },
           "language": "ru"
         },
         "responsibility": {
-          "body": "- Формирует заголовок секции и определяет заголовки блоков для нужного языка.\n- Упорядочивает блоки (сначала section.blockOrder, затем BLOCK_IDS) и для каждого проверяет rendered.\n- Для свежих блоков выводит подзаголовок и тело; для устаревших группирует в staleCallout по паре (staleReason, staleSince).\n- Игнорирует блоки с rendered: false.",
+          "body": "- Определяет язык перевода через `isTranslationLanguage` и выбирает заголовки блоков: локализованные из `config.docs.blockHeadingsByLanguage`, если переводной язык, иначе канонические из `config.docs.blockHeadings`.\n- Формирует заголовок секции с уровнем вложенности `section.depth` и опционально добавляет сигнатуру и навигационную строку `navLine`.\n- Для каждого блока из `orderedRenderableBlocks` проверяет наличие и флаг `rendered`: пропускает отсутствующие и неотрендеренные блоки.\n- Блоки с `staleSince` группирует в `Map` по ключу `staleReason + staleSince` и выводит перед свежими блоками одним `staleCalloutText` на группу.\n- Для свежих блоков выводит подзаголовок и тело, полученное через `blockBody`; если перевод отсутствует или устарел, `blockBody` вставляет `translationPendingCallout` вместо тела.",
           "rendered": true,
-          "fingerprint": "signature=5b6b677478b89af4bd3bd610f9f8f27e4d83217876cee17d7b8b0bff4fc8bb26,deps=5b9f2583fde0cab7bb8e525e649f05e8bcbbd909edff49611c9f46342389c358,usage=0024002b123780bda0de0265dcd4aa04fb2f06e6b84496f150ed18d890da993b",
+          "fingerprint": "signature=976dddb6783793e47292b2d3caee7957f8c0140a09fbae024acfa98eb94f4fe3,deps=d2caffe8a0b2e1079dd3df109a2980ea4e21019a41f3d5fd4428257d01099c91,usage=0024002b123780bda0de0265dcd4aa04fb2f06e6b84496f150ed18d890da993b",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Устаревшие блоки группируются по паре (staleReason, staleSince) и заменяются одним callout, а их тела никогда не рендерятся."
+            "novelFact": "Stale-блоки группируются по составному ключу из `staleReason` и `staleSince`, а их тела никогда не попадают в вывод — только сводный callout."
           },
           "language": "ru"
         },
         "invariants": {
-          "body": "- Результат всегда начинается с заголовка секции, даже если ни один блок не выведен.\n- Stale-блоки выводятся в виде одного callout на группу (одинаковые staleReason и staleSince), их тела не отображаются.\n- Пропущенные блоки (rendered: false) не выводятся и не влияют на порядок.\n- Функция не изменяет переданные section и config.",
+          "body": "- Результат всегда начинается с заголовка секции, даже если ни один блок не выведен.\n- Stale-блоки выводятся до свежих, сгруппированные по одинаковым `staleReason` и `staleSince`, одним callout на группу.\n- Блоки с `rendered: false` или отсутствующие в `section.blocks` не выводятся и не влияют на порядок остальных.\n- Порядок свежих блоков: сначала идентификаторы из `section.blockOrder`, затем оставшиеся из `BLOCK_IDS`, оба списка фильтруются по `section.allowedBlocks`.\n- Функция не изменяет переданные `section` и `config`.",
           "rendered": true,
-          "fingerprint": "signature=5b6b677478b89af4bd3bd610f9f8f27e4d83217876cee17d7b8b0bff4fc8bb26,body=ee0c3eb6a6aaede94ecf373f815752d000428ca88a656a67863714303ad2e703",
+          "fingerprint": "signature=976dddb6783793e47292b2d3caee7957f8c0140a09fbae024acfa98eb94f4fe3,body=979785957876e69a9ef3b567c16394a18eee344ead1827e7e7016882dfee4494",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Устаревшие блоки группируются по (staleReason, staleSince) и заменяются одним callout, тело не отображается."
+            "novelFact": "Stale-блоки всегда предшествуют свежим в выводе, независимо от их позиции в `blockOrder`."
           },
           "language": "ru"
         },
         "dependencies": {
-          "body": "Использует `staleCalloutText` из `src/markdown/callouts.ts` для вывода callout об устаревших блоках. Также опирается на внутренние функции `orderedRenderableBlocks` и `blockBody`.",
-          "rendered": false,
-          "fingerprint": "deps=5b9f2583fde0cab7bb8e525e649f05e8bcbbd909edff49611c9f46342389c358",
+          "body": "- Uses `BLOCK_IDS` from `block-ids.js` as the fallback order for blocks not explicitly listed in `section.blockOrder`.\n- Delegates to `staleCalloutText` from `callouts.ts` to produce the summary banner text for stale blocks.\n- Delegates to `linkifyBlockBody` from `linkify.ts` to process links in the block body.\n- Uses `isTranslationLanguage` and `orderedRenderableBlocks` from the same file to determine the rendering language and the block order.\n- Uses `blockBody` from the same file to obtain the rendered body of a fresh block.",
+          "rendered": true,
+          "fingerprint": "deps=d2caffe8a0b2e1079dd3df109a2980ea4e21019a41f3d5fd4428257d01099c91",
           "scores": {
-            "informativeness": 0.25,
-            "novelty": 0.25,
+            "informativeness": 0.75,
+            "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "renderSection использует staleCalloutText для вывода callout об устаревших блоках."
+            "novelFact": "The function depends on `translationSourceFingerprint` from `block-facets.js` to detect stale translations, and on `BLOCK_IDS` from `block-ids.js` for the fallback block order."
           },
           "language": "ru"
         },
         "workflows": {
-          "body": "renderDoc вызывает renderSection для каждой секции из sectionOrder. CodeloreService.readDocSection вызывает renderSection для одной секции по идентификатору после загрузки её состояния из хранилища. Внутри: определяется translationLanguage — если язык является переводным, используются локализованные заголовки блоков. Для каждого блока из orderedRenderableBlocks: если block.rendered === false, блок пропускается; если block.staleSince задан, блок помещается в группу stale и не выводится; иначе выводится подзаголовок из headings[blockId] и тело через blockBody. blockBody проверяет актуальность перевода через translationSourceFingerprint; при устаревании или отсутствии перевода вставляется translationPendingCallout.",
+          "body": "1. `renderDoc` iterates over `state.sectionOrder` and calls `renderSection` for each section that exists in `state.sections`.\n2. The function receives the section, config, language, link context, and tier lead from the caller, and returns the rendered Markdown string.\n3. The caller joins the rendered sections with double newlines and appends a trailing newline to produce the final document.",
           "rendered": true,
-          "fingerprint": "body=ee0c3eb6a6aaede94ecf373f815752d000428ca88a656a67863714303ad2e703,deps=5b9f2583fde0cab7bb8e525e649f05e8bcbbd909edff49611c9f46342389c358",
+          "fingerprint": "body=979785957876e69a9ef3b567c16394a18eee344ead1827e7e7016882dfee4494,deps=d2caffe8a0b2e1079dd3df109a2980ea4e21019a41f3d5fd4428257d01099c91",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "renderSection вызывается как из renderDoc для всех секций, так и напрямую из CodeloreService для одной секции, обслуживая разные сценарии — полную генерацию документа и чтение конкретной секции."
+            "novelFact": "The function is called by `renderDoc` for each section in `state.sectionOrder`, and it produces the section's Markdown including the heading, signature, and block bodies."
           },
           "language": "ru"
         },
         "limitations": {
-          "body": "- При отсутствии блока в `section.blocks` обращение `section.blocks[blockId]` даёт `undefined`, и блок молча пропускается (проверка `!block?.rendered`).\n- Группировка stale-блоков использует ключ `` `${block.staleReason ?? \"\"}\\x00${block.staleSince}` ``; если `staleReason` равен `undefined`, пустая строка может сгруппировать блоки с разными причинами при одинаковой дате.\n- Не проверяется, что идентификаторы в `section.blockOrder` присутствуют в `BLOCK_IDS` — несуществующие id игнорируются в `orderedRenderableBlocks`.",
+          "body": "- Blocks that are missing from `section.blocks` or have `rendered` falsy are silently skipped (the `!block?.rendered` check), so they do not appear in the output and do not affect the order of other blocks.\n- Stale blocks are never rendered as empty headings; they are collapsed into a per-reason summary banner below the section heading, as enforced by the `if (block.staleSince)` branch.\n- The function does not handle the case where `section` is undefined; the caller `renderDoc` checks `if (!section) continue` before calling this function.",
           "rendered": true,
-          "fingerprint": "body=ee0c3eb6a6aaede94ecf373f815752d000428ca88a656a67863714303ad2e703",
+          "fingerprint": "body=979785957876e69a9ef3b567c16394a18eee344ead1827e7e7016882dfee4494",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Группировка stale-блоков по ключу может некорректно объединять блоки с разными причинами устаревания, если staleReason равен undefined."
+            "novelFact": "The function silently skips blocks that are missing from `section.blocks` or have `rendered` falsy, and it does not render stale blocks as headings."
           },
           "language": "ru"
         },
         "changeGuide": {
-          "body": "- Stale-блоки группируются по ключу `` `${block.staleReason ?? \"\"}\\x00${block.staleSince}` ``. Изменение разделителя или логики группировки изменит отображение callout. Тест на несколько stale-блоков с одинаковой датой.\n- Определение переводного языка: `const translationLanguage = isTranslationLanguage(language, config) ? language : undefined;`. Изменение предиката `isTranslationLanguage` повлияет на использование локализованных заголовков и вызов blockBody. Тест на переводной язык.",
+          "body": "- The function enforces a deterministic block order by combining `section.blockOrder` with `BLOCK_IDS`, both filtered by `section.allowedBlocks`.\n- The function enforces that stale blocks are collapsed into a summary banner instead of being rendered as empty headings, using the `block.staleSince` check and the `staleCalloutText` call.",
           "rendered": true,
-          "fingerprint": "body=ee0c3eb6a6aaede94ecf373f815752d000428ca88a656a67863714303ad2e703,deps=5b9f2583fde0cab7bb8e525e649f05e8bcbbd909edff49611c9f46342389c358,usage=0024002b123780bda0de0265dcd4aa04fb2f06e6b84496f150ed18d890da993b,placement=b8da5c7992c01e162230e72236d6310d84f3ecd8cb861c1b279d594f7574340e",
+          "fingerprint": "body=979785957876e69a9ef3b567c16394a18eee344ead1827e7e7016882dfee4494,deps=d2caffe8a0b2e1079dd3df109a2980ea4e21019a41f3d5fd4428257d01099c91,usage=0024002b123780bda0de0265dcd4aa04fb2f06e6b84496f150ed18d890da993b,placement=b8da5c7992c01e162230e72236d6310d84f3ecd8cb861c1b279d594f7574340e",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Ключ группировки stale-блоков использует нулевой символ для разделения staleReason и staleSince; изменение этого разделителя требует обновления тестов."
+            "novelFact": "The function enforces a deterministic block order by combining `section.blockOrder` with `BLOCK_IDS`, both filtered by `section.allowedBlocks`."
           },
           "language": "ru"
         }
@@ -352,9 +386,48 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.065Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:41:29.632Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "2380c46e-0f32-412a-8188-8dba67f352f2",
+          "timestamp": "2026-09-13T23:30:54.596Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
       ],
-      "depDocsFingerprint": "3aeb8978d0e891430d6680c7932583e5031dec9381f1f1f7a617ae3627b99f23"
+      "depDocsFingerprint": "bc26fff9bc8e6dfb09e4f3d10eeb1b9eec30f4c9ed6d375ef11ef56ef4ce6216",
+      "signature": "renderSection(section: DocStateSection, config: CodeloreConfig, language?: string, linkContext?: BlockLinkContext, navLine?: string): string"
     }
   },
   "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"

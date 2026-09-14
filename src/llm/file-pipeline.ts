@@ -112,6 +112,13 @@ export interface FileGenerationOutcome {
   writtenSections: Array<{ sectionId: string; docPath: string; blocks: BlockId[] }>;
   keptBlocks: Array<{ sectionId: string; blockId: BlockId; reason: string }>;
   reviewSections: Array<{ sectionId: string; reason: string }>;
+  /**
+   * Target blocks the writer was asked for and returned nothing for, with no
+   * previous text to keep. The caller stamps them with the current fingerprint so
+   * `collectUnwrittenBlocks` stops offering them until the code changes again;
+   * without that a block the writer keeps declining is re-requested every run.
+   */
+  unwrittenBlocks: Array<{ sectionId: string; blockId: BlockId }>;
   debugPathByDoc: Record<string, string>;
 }
 
@@ -345,6 +352,7 @@ function emptyOutcome(): FileGenerationOutcome {
     writtenSections: [],
     keptBlocks: [],
     reviewSections: [],
+    unwrittenBlocks: [],
     debugPathByDoc: {},
   };
 }
@@ -358,6 +366,7 @@ function buildOutcome(
   const writtenSections: FileGenerationOutcome["writtenSections"] = [];
   const keptBlocks: FileGenerationOutcome["keptBlocks"] = [];
   const reviewSections: FileGenerationOutcome["reviewSections"] = [];
+  const unwrittenBlocks: FileGenerationOutcome["unwrittenBlocks"] = [];
 
   for (const section of sections) {
     const docSection = docSections.get(section.sectionId);
@@ -394,6 +403,10 @@ function buildOutcome(
       rewrites.push({ sectionId: section.sectionId, generatedBlocks: blocks, showFiltered: true });
       writtenSections.push({ sectionId: section.sectionId, docPath: docSection.docPath, blocks: writtenIds });
     }
+    for (const blockId of missing) {
+      unwrittenBlocks.push({ sectionId: section.sectionId, blockId });
+    }
+
     if (missing.length > 0 && writtenIds.length === 0) {
       reviewSections.push({
         sectionId: section.sectionId,
@@ -407,6 +420,7 @@ function buildOutcome(
     writtenSections,
     keptBlocks,
     reviewSections,
+    unwrittenBlocks,
   };
 }
 

@@ -229,6 +229,69 @@ export function collectStaleBlocks(sections: DocSection[], entities: Record<stri
   return stale;
 }
 
+/**
+ * Allowed blocks that hold no text at all while the code under them has moved on.
+ * `staleBlockInfoFor` ignores an empty block on purpose — there is no prose to go
+ * stale — but the work queue is built from staleness alone, so a skeleton nobody
+ * filled is never offered to the writer again. An empty block whose fingerprint
+ * diverged means "no text here, and the code changed since it was last looked at",
+ * which is worth asking about however it ended up empty: an interrupted run, a
+ * block the verifier dropped, or one the writer declined. A block the writer
+ * declines again has the current fingerprint stamped by the generation pass, so it
+ * falls silent until the code moves again.
+ */
+export function collectUnwrittenBlocks(sections: DocSection[], entities: Record<string, CodeEntity>): StaleBlockInfo[] {
+  const unwritten: StaleBlockInfo[] = [];
+  for (const section of sections) {
+    const presentOwns = section.owns.filter((id) => entities[id]);
+    if (presentOwns.length === 0) {
+      continue;
+    }
+    for (const block of section.blocks) {
+      const info = unwrittenBlockInfoFor(section, block, presentOwns, entities);
+      if (info) {
+        unwritten.push(info);
+      }
+    }
+  }
+  return unwritten;
+}
+
+function unwrittenBlockInfoFor(
+  section: DocSection,
+  block: DocSection["blocks"][number],
+  presentOwns: string[],
+  entities: Record<string, CodeEntity>
+): StaleBlockInfo | undefined {
+  if (!isKnownBlockId(block.id) || block.staleSince !== undefined || block.body.trim() !== "") {
+    return undefined;
+  }
+  const currentValue = computeBlockFingerprint(block.id, presentOwns, entities);
+  if (currentValue === undefined) {
+    return undefined;
+  }
+  const storedValue = section.blockFingerprints[block.id];
+  // No stored fingerprint means nobody has looked at this block yet — a skeleton
+  // straight out of prepare. A stored one that still matches means the writer was
+  // asked about exactly this code and produced nothing; asking again would get the
+  // same answer, so leave it until the code moves.
+  if (storedValue === currentValue) {
+    return undefined;
+  }
+  const changedFacets =
+    storedValue === undefined
+      ? []
+      : diffFacetHashes(parseBlockFingerprintValue(storedValue), parseBlockFingerprintValue(currentValue));
+  return {
+    sectionId: section.id,
+    docPath: section.docPath,
+    blockId: block.id,
+    blockHeading: block.heading,
+    changedFacets: changedFacets.length > 0 ? changedFacets : [...BLOCK_FACETS[block.id]],
+    drift: "facet_changed",
+  };
+}
+
 export function collectTombstonedBlocks(
   sections: DocSection[],
   entities: Record<string, CodeEntity>

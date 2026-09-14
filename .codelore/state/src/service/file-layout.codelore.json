@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/service/file-layout.codelore.md",
-  "generatedAt": "2026-06-20T13:35:28.106Z",
+  "generatedAt": "2026-09-13T19:41:29.639Z",
   "sectionOrder": [
     "symbol:src/service/file-layout.ts#planFileLayout"
   ],
@@ -61,48 +61,52 @@
           }
         },
         "invariants": {
-          "body": "- Возвращённые `PlannedSection` расположены в порядке возрастания `startOffset` исходных сущностей.\n- Для метода класса заголовком является только имя метода (без префикса класса), глубина 2.\n- Для всех прочих сущностей заголовком является полное имя сущности, глубина 1.\n- Результат не сохраняется и не сериализуется — только возвращается.",
+          "body": "- При пустом входном массиве возвращает пустой массив.\n- Каждая сущность из входного массива порождает ровно один PlannedSection, даже если сущности дублируются.\n- Возвращённый массив отсортирован по возрастанию `startOffset` сущностей.\n- Входной массив не изменяется — функция создаёт копию и возвращает новый массив.\n- Для файловых сущностей (`type === \"file\"`) глубина секции — 1, заголовок — последний компонент имени после `/` (или полное имя, если `/` отсутствует).\n- Для методов, чей класс присутствует в том же наборе сущностей, глубина — 2, заголовок — только имя метода (часть после последней точки).\n- Для всех остальных сущностей глубина — 1, заголовок — полное имя сущности.",
           "rendered": true,
-          "fingerprint": "signature=c86e1177f61e5e5ecc94aabdab86d57853516a46607c7dec0bcf1b5302fc5404,body=780ca3b11da23f093d1f2953fe56737bd69f09f4cb90e111c2282c666a229fa2",
+          "fingerprint": "signature=c86e1177f61e5e5ecc94aabdab86d57853516a46607c7dec0bcf1b5302fc5404,body=063de1b724089224698eba56cb8230d620bfa054e2ac103d0924872ca9267960",
           "scores": {
-            "informativeness": 0.75,
+            "informativeness": 1,
             "novelty": 1,
             "specificity": 1,
-            "novelFact": "Контракты на порядок вывода и формат заголовка не упоминаются в других блоках."
-          }
+            "novelFact": "Возвращает массив PlannedSection, отсортированный по возрастанию startOffset, где для файловых сущностей заголовком является имя файла, а для методов класса — только имя метода."
+          },
+          "language": "ru"
         },
         "workflows": {
-          "body": "- Вызывается из `CodeloreService.prepareInitialDocs` для каждой группы сущностей, сгруппированных по исходному файлу.\n- Результат используется для заполнения `DocState.sectionOrder` и создания свежих `DocStateSection` для каждой запланированной сущности.\n- Если сущность уже существовала в состоянии, её блоки не перезаписываются — сохраняются через `withPreservedBlockBodies`.",
+          "body": "Принимает массив сущностей, сортирует их по `startOffset` и для каждой возвращает `PlannedSection` с заголовком, основанным на типе сущности и наличии владеющего класса.",
           "rendered": true,
-          "fingerprint": "body=780ca3b11da23f093d1f2953fe56737bd69f09f4cb90e111c2282c666a229fa2,deps=f38e10a9fc461ed148ed8740d0753d07c351013a03392947816ec0eb496d1270",
+          "fingerprint": "body=063de1b724089224698eba56cb8230d620bfa054e2ac103d0924872ca9267960,deps=f38e10a9fc461ed148ed8740d0753d07c351013a03392947816ec0eb496d1270",
           "scores": {
             "informativeness": 0.75,
             "novelty": 1,
             "specificity": 1,
-            "novelFact": "Раскрывает конкретный вызов и как результат используется в `DocState`."
-          }
+            "novelFact": "Принимает массив сущностей, сортирует их по startOffset и для каждой возвращает PlannedSection с заголовком, основанным на типе сущности и наличии владеющего класса."
+          },
+          "language": "ru"
         },
         "limitations": {
-          "body": "- Не обрабатывает сущности с именами, содержащими точку, если они не являются методами классов (например, вложенные сущности).\n- Определение владеющего класса основывается только на именах классов из того же набора `entities` — если метод относится к классу из другого файла, он не будет распознан.\n- Не поддерживает пользовательские заголовки или переопределение глубины.",
+          "body": "- Сущности с точкой в имени, не являющиеся методами (например, вложенные пространства имён), не получают глубину 2 — условие `entity.type === \"method\" && hasOwningClassInBatch(entity, classNames)` срабатывает только для методов.\n- Класс-владелец метода определяется исключительно по именам классов из того же массива `entities`; если метод принадлежит классу из другого файла, `hasOwningClassInBatch` вернёт `false`, и метод будет задокументирован с глубиной 1 и полным именем.",
           "rendered": true,
-          "fingerprint": "body=780ca3b11da23f093d1f2953fe56737bd69f09f4cb90e111c2282c666a229fa2",
+          "fingerprint": "body=063de1b724089224698eba56cb8230d620bfa054e2ac103d0924872ca9267960",
           "scores": {
             "informativeness": 0.75,
             "novelty": 1,
             "specificity": 1,
-            "novelFact": "Ограничения на распознавание методов из других файлов и вложенных сущностей не упоминаются в других блоках."
-          }
+            "novelFact": "Определение класса-владельца метода ограничено сущностями из того же вызова — методы классов из других файлов не распознаются."
+          },
+          "language": "ru"
         },
         "changeGuide": {
-          "body": "- Сортировка по `startOffset`: секции располагаются в порядке возрастания начального смещения. Конструкция: `[...entities].sort((left, right) => left.range.startOffset - right.range.startOffset)`. Тестовый файл: не указан.\n- Заголовок метода класса: для методов класса заголовком является только имя метода (без префикса класса). Конструкция: `entity.name.slice(lastDot + 1)` внутри условия `entity.type === \"method\" && hasOwningClassInBatch(entity, classNames)`. Тестовый файл: не указан.",
+          "body": "- Сортировка по `startOffset`: порядок секций соответствует возрастанию начального смещения сущностей в исходном файле. Конструкция: `[...entities].sort((left, right) => left.range.startOffset - right.range.startOffset)`.\n- Заголовок метода класса: для методов, чей класс присутствует в наборе, заголовком становится только имя метода (без префикса класса). Конструкция: `entity.name.slice(lastDot + 1)` внутри условия `entity.type === \"method\" && hasOwningClassInBatch(entity, classNames)`.",
           "rendered": true,
-          "fingerprint": "body=780ca3b11da23f093d1f2953fe56737bd69f09f4cb90e111c2282c666a229fa2,deps=f38e10a9fc461ed148ed8740d0753d07c351013a03392947816ec0eb496d1270,usage=cc1b27a34abdbf0cb431fa941a322c4f24f408be3380787274d675515d408739,placement=4146977b4f0ddd31a1edd4f1dd69aa7420e9a4c1d86ef63faa35a84fe1eab085",
+          "fingerprint": "body=063de1b724089224698eba56cb8230d620bfa054e2ac103d0924872ca9267960,deps=f38e10a9fc461ed148ed8740d0753d07c351013a03392947816ec0eb496d1270,usage=cc1b27a34abdbf0cb431fa941a322c4f24f408be3380787274d675515d408739,placement=4146977b4f0ddd31a1edd4f1dd69aa7420e9a4c1d86ef63faa35a84fe1eab085",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.75,
-            "specificity": 0.75,
-            "novelFact": "changeGuide заменяет устаревший блок с причиной usage_changed; оба инварианта подтверждены текущим кодом."
-          }
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "Сортировка по startOffset реализована через `[...entities].sort((left, right) => left.range.startOffset - right.range.startOffset)`."
+          },
+          "language": "ru"
         }
       },
       "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
@@ -141,8 +145,31 @@
           "generatedBlocks": [
             "changeGuide"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.111Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:41:29.639Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
-      ]
+      ],
+      "signature": "planFileLayout(entities: CodeEntity[]): PlannedSection[]"
     }
   },
   "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"

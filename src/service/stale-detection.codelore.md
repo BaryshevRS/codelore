@@ -1,5 +1,9 @@
 # targetBlocksFromTombstones
 
+```ts
+targetBlocksFromTombstones(tombstoned: Array<{ sectionId: string; blockId: string }>): Map<string, BlockId[]>
+```
+
 ## Зачем это нужно
 
 Преобразует массив записей о "похороненных" блоках в карту, группируя идентификаторы блоков по идентификатору секции для последующей перезаписи.
@@ -15,11 +19,20 @@
 - Каждый раздел сопоставляется с массивом уникальных `BlockId` (дубликаты не допускаются).
 - Неизвестные идентификаторы блоков молча пропускаются через [`addTargetBlock`](#addtargetblock).
 
+## От чего зависит
+
+- Uses a function from [`src/service/helpers.ts`](helpers.codelore.md) to check whether a block ID is known.
+- Operates on `BlockId` type imported from `../markdown/block-ids.js`.
+
 ## Кто и как использует
 
 Вызывается из [`CodeloreService.fixStaleDocs`](codelore-service.codelore.md#fixstaledocs) для преобразования массива `tombstoned` (списка похороненных блоков) в карту `Map<sectionId, BlockId[]>`. Каждая запись передаётся в [`addTargetBlock`](#addtargetblock), которая вставляет идентификатор блока в карту или пропускает неизвестные блоки. Результат используется для генерации документации только целевых блоков.
 
 # addTargetBlock
+
+```ts
+addTargetBlock(targets: Map<string, BlockId[]>, sectionId: string, blockId: string): void
+```
 
 ## Зачем это нужно
 
@@ -27,9 +40,7 @@
 
 ## Что делает
 
-- Мутирует существующую `Map` на месте.
-- Отфильтровывает неизвестные идентификаторы блоков с помощью [`isKnownBlockId`](helpers.codelore.md#isknownblockid).
-- Предотвращает дублирование записи в пределах одного раздела.
+The function records a block as a target only when it is a known block ID — otherwise it silently skips the entry. It mutates the provided targets map in place, appending the blockId to the array for the given sectionId, creating the array if absent. It does not validate the sectionId or blockId beyond the known-ID check, and it does not return any value or signal whether the entry was added.
 
 ## На что можно положиться
 
@@ -38,25 +49,28 @@
 
 ## От чего зависит
 
-[`isKnownBlockId`](helpers.codelore.md#isknownblockid) (`./helpers.js`) — проверяет, что `blockId` является известным идентификатором блока.
+- Uses [`isKnownBlockId`](helpers.codelore.md#isknownblockid) from `src/service/helpers.ts` to check whether a block ID is known.
+- Operates on `BlockId` type imported from `../markdown/block-ids.js`.
 
 ## Кто и как использует
 
-1. Вызывается из [`CodeloreService.generateDocsForScope`](codelore-service.codelore.md#generatedocsforscope) при построении `targetBlocksBySection`: для каждого похороненного блока вызывает `addTargetBlock` в цикле.
-2. Вызывается из [`targetBlocksFromTombstones`](#targetblocksfromtombstones) для каждой записи массива `tombstoned`.
-Мутирует переданную карту `targets`, вставляя `blockId` в массив для `sectionId` при условии, что блок известен и ещё не добавлен.
+- Called by [`CodeloreService.generateDocsForScope`](codelore-service.codelore.md#generatedocsforscope) to add target blocks for scoped sections.
+- Called by `CodeloreService.queueUnwrittenBlocks` to add target blocks for unwritten blocks.
 
 ## Чего не делает
 
-Не проверяет, что переданный `sectionId` существует в индексе документации — вызывающий гарантирует корректность.
-Не обрабатывает случай, когда `targets` уже содержит секцию с другим типом (всегда ожидается массив `BlockId[]`).
+- The function does not validate the sectionId or blockId beyond the known-ID check, and it does not return any value or signal whether the entry was added.
 
 ## Как менять и что проверять
 
-- Неизвестные идентификаторы блоков игнорируются: конструкция `if (!isKnownBlockId(blockId)) { return; }`.
-- Дубликаты в пределах одной секции предотвращаются: условие `if (!existing.includes(blockId))` перед вставкой.
+- The function enforces that only known block IDs are added to the target set, via the guard `if (!isKnownBlockId(block.id) || block.staleSince !== undefined || block.body.trim() === "")`.
+- The function enforces that blocks with a `staleSince` timestamp or an empty body are skipped, via the same guard expression.
 
 # filterSectionsByScope
+
+```ts
+filterSectionsByScope(sections: DocSection[], scope: RefreshStaleScope | undefined, entities: Record<string, CodeEntity>): DocSection[]
+```
 
 ## Зачем это нужно
 
@@ -64,10 +78,9 @@
 
 ## Что делает
 
-- Возвращает неизменённый массив секций при отсутствии scope или пустых критериях.
-- Проверяет совпадение секции по её идентификатору с элементами `scope.sectionIds`.
-- Проверяет совпадение путей файлов сущностей секции (через `entities[ownId]?.path` с запасным вариантом [`sourcePathFromEntityId`](#sourcepathfromentityid)) с элементами `scope.files`.
-- Проверяет, начинается ли путь любого файла сущности секции с префикса из `scope.paths`.
+- The function filters sections by two independent rules: a section is kept when its ID is in the scope's section set (`sectionIds.has(section.id)`), or when its owning entity path matches one of the scope's paths.
+- The path match accepts both an exact equality (`path === prefix`) and a prefix relationship (`path.startsWith(`${prefix}/`)`), so a section whose entity lives under a scope-owned directory is included.
+- The function relies on the scope's `sectionIds` and `paths` fields; when the scope is undefined, the function returns all sections unchanged.
 
 ## На что можно положиться
 
@@ -89,8 +102,8 @@
 
 ## Как менять и что проверять
 
-- При отсутствии `scope` или пустых критериях все секции возвращаются без фильтрации — это обеспечивается условием `if (!scope || (!scope.sectionIds?.length && !scope.files?.length && !scope.paths?.length)) { return sections; }`.
-- Для сопоставления с `scope.files` используется `Set` для константного времени проверки принадлежности: `const files = new Set(scope.files ?? []);` и `ownedPaths.some((path) => files.has(path))`.
+- The function enforces that a section is included only when its owning entity path matches one of the scope's owned paths, via the expression `ownedPaths.some((path) => files.has(path))` and the prefix check `path.startsWith(`${prefix}/`)`.
+- The function enforces that a section is included only when its section ID is in the scope's section set, via the check `sectionIds.has(section.id)`.
 
 # sourcePathFromEntityId
 

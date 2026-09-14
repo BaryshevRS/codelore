@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/service/stale-detection.codelore.md",
-  "generatedAt": "2026-07-03T16:25:43.502Z",
+  "generatedAt": "2026-09-13T23:30:54.633Z",
   "sectionOrder": [
     "symbol:src/service/stale-detection.ts#targetBlocksFromTombstones",
     "symbol:src/service/stale-detection.ts#addTargetBlock",
@@ -35,7 +35,7 @@
         "symbol:src/service/codelore-service.ts#CodeloreService",
         "symbol:src/service/codelore-service.ts#CodeloreService.fixStaleDocs"
       ],
-      "status": "normal",
+      "status": "review_needed",
       "allowedBlocks": [
         "purpose",
         "responsibility",
@@ -89,15 +89,16 @@
           }
         },
         "dependencies": {
-          "body": "`addTargetBlock` (внутренняя) — добавляет блок в карту.",
-          "rendered": false,
+          "body": "- Uses a function from `src/service/helpers.ts` to check whether a block ID is known.\n- Operates on `BlockId` type imported from `../markdown/block-ids.js`.",
+          "rendered": true,
           "fingerprint": "deps=bde467c6dcaed666f0d5f8720b047957d24a1bd305b6bbcb49140fe0122c400e",
           "scores": {
-            "informativeness": 0.25,
-            "novelty": 0,
-            "specificity": 0.25,
-            "novelFact": "`addTargetBlock` (внутренняя) — добавляет блок в карту."
-          }
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The function depends on a helper from src/service/helpers.ts to validate block IDs."
+          },
+          "language": "ru"
         },
         "workflows": {
           "body": "Вызывается из `CodeloreService.fixStaleDocs` для преобразования массива `tombstoned` (списка похороненных блоков) в карту `Map<sectionId, BlockId[]>`. Каждая запись передаётся в `addTargetBlock`, которая вставляет идентификатор блока в карту или пропускает неизвестные блоки. Результат используется для генерации документации только целевых блоков.",
@@ -144,9 +145,21 @@
             "dependencies",
             "workflows"
           ]
+        },
+        {
+          "runId": "2380c46e-0f32-412a-8188-8dba67f352f2",
+          "timestamp": "2026-09-13T23:30:54.629Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies"
+          ],
+          "manualReviewNeeded": true
         }
       ],
-      "depDocsFingerprint": "8dc7f5cfe22b47bac5ae896d3b479fdafc7e90e74f0deb483403e8eca53fbee2"
+      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234",
+      "signature": "targetBlocksFromTombstones(tombstoned: Array<{ sectionId: string; blockId: string }>): Map<string, BlockId[]>"
     },
     "symbol:src/service/stale-detection.ts#addTargetBlock": {
       "heading": "addTargetBlock",
@@ -162,9 +175,10 @@
         "file:src/service/codelore-service.ts",
         "symbol:src/service/codelore-service.ts#CodeloreService",
         "symbol:src/service/codelore-service.ts#CodeloreService.generateDocsForScope",
+        "symbol:src/service/codelore-service.ts#CodeloreService.queueUnwrittenBlocks",
         "symbol:src/service/stale-detection.ts#targetBlocksFromTombstones"
       ],
-      "status": "normal",
+      "status": "review_needed",
       "allowedBlocks": [
         "purpose",
         "responsibility",
@@ -196,15 +210,16 @@
           }
         },
         "responsibility": {
-          "body": "- Мутирует существующую `Map` на месте.\n- Отфильтровывает неизвестные идентификаторы блоков с помощью `isKnownBlockId`.\n- Предотвращает дублирование записи в пределах одного раздела.",
+          "body": "The function records a block as a target only when it is a known block ID — otherwise it silently skips the entry. It mutates the provided targets map in place, appending the blockId to the array for the given sectionId, creating the array if absent. It does not validate the sectionId or blockId beyond the known-ID check, and it does not return any value or signal whether the entry was added.",
           "rendered": true,
-          "fingerprint": "signature=660216a6236a716903ee1cfd6c53cbd0a4af5838c8cf591c19412019384f7d8b,deps=6e8139665fde3cb891afbec30c81447d801d2279ffb900854b7b0125ce95e42d,usage=69152ab0b3cbf5032ad54e88f17f61f9be4bbf6fec418375968e2d2741e49f08",
+          "fingerprint": "signature=660216a6236a716903ee1cfd6c53cbd0a4af5838c8cf591c19412019384f7d8b,deps=6e8139665fde3cb891afbec30c81447d801d2279ffb900854b7b0125ce95e42d,usage=6e5a807cd4a12a1981b9925abfd1cff93752356fa7eb9c48aaee64882dcfea5d",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Мутирует, пропускает неизвестные, не дублирует."
-          }
+            "novelFact": "The function silently ignores blocks that are not known, so callers can rely on it to only record blocks that are currently documented."
+          },
+          "language": "ru"
         },
         "invariants": {
           "body": "- Если `blockId` не является известным идентификатором блока, функция ничего не делает.\n- После вызова `targets` для данного раздела будет содержать `blockId` не более одного раза.",
@@ -218,48 +233,52 @@
           }
         },
         "dependencies": {
-          "body": "`isKnownBlockId` (`./helpers.js`) — проверяет, что `blockId` является известным идентификатором блока.",
+          "body": "- Uses `isKnownBlockId` from `src/service/helpers.ts` to check whether a block ID is known.\n- Operates on `BlockId` type imported from `../markdown/block-ids.js`.",
           "rendered": true,
           "fingerprint": "deps=6e8139665fde3cb891afbec30c81447d801d2279ffb900854b7b0125ce95e42d",
           "scores": {
-            "informativeness": 0.75,
+            "informativeness": 0.5,
             "novelty": 0.5,
-            "specificity": 0.75,
-            "novelFact": "`isKnownBlockId` (`./helpers.js`) — проверяет, что `blockId` является известным идентификатором блока."
-          }
+            "specificity": 0.5,
+            "novelFact": "The function depends on `isKnownBlockId` from `src/service/helpers.ts` to validate block IDs."
+          },
+          "language": "ru"
         },
         "workflows": {
-          "body": "1. Вызывается из `CodeloreService.generateDocsForScope` при построении `targetBlocksBySection`: для каждого похороненного блока вызывает `addTargetBlock` в цикле.\n2. Вызывается из `targetBlocksFromTombstones` для каждой записи массива `tombstoned`.\nМутирует переданную карту `targets`, вставляя `blockId` в массив для `sectionId` при условии, что блок известен и ещё не добавлен.",
+          "body": "- Called by `CodeloreService.generateDocsForScope` to add target blocks for scoped sections.\n- Called by `CodeloreService.queueUnwrittenBlocks` to add target blocks for unwritten blocks.",
           "rendered": true,
           "fingerprint": "body=36c14f562378afb202eefbd0ae7adc634f6cccbc5c5f1dbb43e1e72426bfe8fa,deps=6e8139665fde3cb891afbec30c81447d801d2279ffb900854b7b0125ce95e42d",
           "scores": {
-            "informativeness": 0.75,
-            "novelty": 0.75,
-            "specificity": 0.75,
-            "novelFact": "1."
-          }
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The function is called by `CodeloreService.generateDocsForScope` and `CodeloreService.queueUnwrittenBlocks` to record blocks that need documentation generation."
+          },
+          "language": "ru"
         },
         "limitations": {
-          "body": "Не проверяет, что переданный `sectionId` существует в индексе документации — вызывающий гарантирует корректность.\nНе обрабатывает случай, когда `targets` уже содержит секцию с другим типом (всегда ожидается массив `BlockId[]`).",
+          "body": "- The function does not validate the sectionId or blockId beyond the known-ID check, and it does not return any value or signal whether the entry was added.",
           "rendered": true,
           "fingerprint": "body=36c14f562378afb202eefbd0ae7adc634f6cccbc5c5f1dbb43e1e72426bfe8fa",
           "scores": {
             "informativeness": 0.5,
-            "novelty": 0.75,
-            "specificity": 0.75,
-            "novelFact": "Не проверяет, что переданный `sectionId` существует в индексе документации — вызывающий гарантирует корректность."
-          }
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The function does not validate the sectionId or blockId beyond the known-ID check, and it does not return any value or signal whether the entry was added."
+          },
+          "language": "ru"
         },
         "changeGuide": {
-          "body": "- Неизвестные идентификаторы блоков игнорируются: конструкция `if (!isKnownBlockId(blockId)) { return; }`.\n- Дубликаты в пределах одной секции предотвращаются: условие `if (!existing.includes(blockId))` перед вставкой.",
+          "body": "- The function enforces that only known block IDs are added to the target set, via the guard `if (!isKnownBlockId(block.id) || block.staleSince !== undefined || block.body.trim() === \"\")`.\n- The function enforces that blocks with a `staleSince` timestamp or an empty body are skipped, via the same guard expression.",
           "rendered": true,
-          "fingerprint": "body=36c14f562378afb202eefbd0ae7adc634f6cccbc5c5f1dbb43e1e72426bfe8fa,deps=6e8139665fde3cb891afbec30c81447d801d2279ffb900854b7b0125ce95e42d,usage=69152ab0b3cbf5032ad54e88f17f61f9be4bbf6fec418375968e2d2741e49f08,placement=7bef3df6eba8b8c3e67f5704126cd0cc655657f6ebb318076223213f55bd442a",
+          "fingerprint": "body=36c14f562378afb202eefbd0ae7adc634f6cccbc5c5f1dbb43e1e72426bfe8fa,deps=6e8139665fde3cb891afbec30c81447d801d2279ffb900854b7b0125ce95e42d,usage=6e5a807cd4a12a1981b9925abfd1cff93752356fa7eb9c48aaee64882dcfea5d,placement=7bef3df6eba8b8c3e67f5704126cd0cc655657f6ebb318076223213f55bd442a",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "- Неизвестные идентификаторы блоков игнорируются: конструкция `if (!isKnownBlockId(blockId)) { return; }`."
-          }
+            "novelFact": "The function enforces that only known block IDs are added to the target set, and that blocks with a staleSince timestamp or empty body are skipped."
+          },
+          "language": "ru"
         }
       },
       "generationHistory": [
@@ -287,9 +306,43 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "62857847-d626-48e6-877b-c4bf306b56e4",
+          "timestamp": "2026-09-13T22:20:00.066Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "55b12cfb-a086-477b-b289-838ba97ffaa0",
+          "timestamp": "2026-09-13T22:58:55.392Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "2380c46e-0f32-412a-8188-8dba67f352f2",
+          "timestamp": "2026-09-13T23:30:54.632Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ],
+          "manualReviewNeeded": true
         }
       ],
-      "depDocsFingerprint": "8dc7f5cfe22b47bac5ae896d3b479fdafc7e90e74f0deb483403e8eca53fbee2"
+      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234",
+      "signature": "addTargetBlock(targets: Map<string, BlockId[]>, sectionId: string, blockId: string): void"
     },
     "symbol:src/service/stale-detection.ts#filterSectionsByScope": {
       "heading": "filterSectionsByScope",
@@ -304,6 +357,7 @@
       "usedBy": [
         "file:src/service/codelore-service.ts",
         "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.queueUnwrittenBlocks",
         "symbol:src/service/codelore-service.ts#CodeloreService.reconcileScopedDocStates",
         "symbol:src/service/codelore-service.ts#CodeloreService.refreshStaleDocs",
         "symbol:src/service/codelore-service.ts#CodeloreService.translateScope"
@@ -340,14 +394,14 @@
           }
         },
         "responsibility": {
-          "body": "- Возвращает неизменённый массив секций при отсутствии scope или пустых критериях.\n- Проверяет совпадение секции по её идентификатору с элементами `scope.sectionIds`.\n- Проверяет совпадение путей файлов сущностей секции (через `entities[ownId]?.path` с запасным вариантом `sourcePathFromEntityId`) с элементами `scope.files`.\n- Проверяет, начинается ли путь любого файла сущности секции с префикса из `scope.paths`.",
+          "body": "- The function filters sections by two independent rules: a section is kept when its ID is in the scope's section set (`sectionIds.has(section.id)`), or when its owning entity path matches one of the scope's paths.\n- The path match accepts both an exact equality (`path === prefix`) and a prefix relationship (`path.startsWith(`${prefix}/`)`), so a section whose entity lives under a scope-owned directory is included.\n- The function relies on the scope's `sectionIds` and `paths` fields; when the scope is undefined, the function returns all sections unchanged.",
           "rendered": true,
-          "fingerprint": "signature=ce23a0eaeffa03ab51bcd56bef35e88fc8d5b24521af146fbf8339a5f517ccb8,deps=49e21ee45a250a452cdc55df7135e36455b303f18c2b6d2abef991320b9f3bf5,usage=ace08ab99e2155caefcc847a27e457a94d173ae8e2619f84aaca22cc600f07f8",
+          "fingerprint": "signature=ce23a0eaeffa03ab51bcd56bef35e88fc8d5b24521af146fbf8339a5f517ccb8,deps=49e21ee45a250a452cdc55df7135e36455b303f18c2b6d2abef991320b9f3bf5,usage=d770f43ed8c2a1220540cf2223884b302ea1b7f1363d9a80cee7fa41bdf0d927",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Поддерживает три вида фильтрации: по идентификатору секции, по пути файла и по префиксу пути."
+            "novelFact": "The function enforces two inclusion rules: a section must be in the scope's section set, or its owning entity path must match one of the scope's paths either exactly or as a prefix."
           },
           "language": "ru"
         },
@@ -396,14 +450,14 @@
           }
         },
         "changeGuide": {
-          "body": "- При отсутствии `scope` или пустых критериях все секции возвращаются без фильтрации — это обеспечивается условием `if (!scope || (!scope.sectionIds?.length && !scope.files?.length && !scope.paths?.length)) { return sections; }`.\n- Для сопоставления с `scope.files` используется `Set` для константного времени проверки принадлежности: `const files = new Set(scope.files ?? []);` и `ownedPaths.some((path) => files.has(path))`.",
+          "body": "- The function enforces that a section is included only when its owning entity path matches one of the scope's owned paths, via the expression `ownedPaths.some((path) => files.has(path))` and the prefix check `path.startsWith(`${prefix}/`)`.\n- The function enforces that a section is included only when its section ID is in the scope's section set, via the check `sectionIds.has(section.id)`.",
           "rendered": true,
-          "fingerprint": "body=027f996736b6772471ef212d9f73d83f2ae6e54ad647de57d53d5919f677cd7a,deps=49e21ee45a250a452cdc55df7135e36455b303f18c2b6d2abef991320b9f3bf5,usage=ace08ab99e2155caefcc847a27e457a94d173ae8e2619f84aaca22cc600f07f8,placement=7b2ad5929fa541e486ec599c12e17659f0f1a737b7b96eb8aeff3481b1449059",
+          "fingerprint": "body=027f996736b6772471ef212d9f73d83f2ae6e54ad647de57d53d5919f677cd7a,deps=49e21ee45a250a452cdc55df7135e36455b303f18c2b6d2abef991320b9f3bf5,usage=d770f43ed8c2a1220540cf2223884b302ea1b7f1363d9a80cee7fa41bdf0d927,placement=7b2ad5929fa541e486ec599c12e17659f0f1a737b7b96eb8aeff3481b1449059",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Ранний возврат при пустом scope предотвращает фильтрацию, возвращая все секции."
+            "novelFact": "The function enforces that sections are included only when their owning entity path matches the scope's owned paths, using a prefix match."
           },
           "language": "ru"
         }
@@ -453,9 +507,30 @@
           "generatedBlocks": [
             "changeGuide"
           ]
+        },
+        {
+          "runId": "62857847-d626-48e6-877b-c4bf306b56e4",
+          "timestamp": "2026-09-13T22:20:00.069Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "431f5f8b-2ca3-4792-bc88-7c992c2088d3",
+          "timestamp": "2026-09-13T22:30:43.568Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility"
+          ]
         }
       ],
-      "depDocsFingerprint": "e96d18680381084d7bd12718f9f15473da635a298d9d7a668156acbb42574ca4"
+      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234",
+      "signature": "filterSectionsByScope(sections: DocSection[], scope: RefreshStaleScope | undefined, entities: Record<string, CodeEntity>): DocSection[]"
     },
     "symbol:src/service/stale-detection.ts#sourcePathFromEntityId": {
       "heading": "sourcePathFromEntityId",
@@ -580,7 +655,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "8dc7f5cfe22b47bac5ae896d3b479fdafc7e90e74f0deb483403e8eca53fbee2"
+      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234"
     },
     "symbol:src/service/stale-detection.ts#collectDepDocStaleBlocks": {
       "heading": "collectDepDocStaleBlocks",
@@ -724,7 +799,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "8dc7f5cfe22b47bac5ae896d3b479fdafc7e90e74f0deb483403e8eca53fbee2"
+      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234"
     },
     "symbol:src/service/stale-detection.ts#mergeStaleBlocks": {
       "heading": "mergeStaleBlocks",
@@ -864,7 +939,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "8dc7f5cfe22b47bac5ae896d3b479fdafc7e90e74f0deb483403e8eca53fbee2"
+      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234"
     },
     "symbol:src/service/stale-detection.ts#collectStaleBlocks": {
       "heading": "collectStaleBlocks",
@@ -1007,7 +1082,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "8dc7f5cfe22b47bac5ae896d3b479fdafc7e90e74f0deb483403e8eca53fbee2"
+      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234"
     },
     "symbol:src/service/stale-detection.ts#collectTombstonedBlocks": {
       "heading": "collectTombstonedBlocks",
@@ -1150,7 +1225,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "8dc7f5cfe22b47bac5ae896d3b479fdafc7e90e74f0deb483403e8eca53fbee2"
+      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234"
     },
     "symbol:src/service/stale-detection.ts#deletedOwnedEntityBlocks": {
       "heading": "deletedOwnedEntityBlocks",
@@ -1291,7 +1366,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "8dc7f5cfe22b47bac5ae896d3b479fdafc7e90e74f0deb483403e8eca53fbee2"
+      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234"
     },
     "symbol:src/service/stale-detection.ts#staleReasonFor": {
       "heading": "staleReasonFor",
@@ -1417,7 +1492,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "8dc7f5cfe22b47bac5ae896d3b479fdafc7e90e74f0deb483403e8eca53fbee2"
+      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234"
     },
     "symbol:src/service/stale-detection.ts#staleBlockInfoFor": {
       "heading": "staleBlockInfoFor",
@@ -1560,7 +1635,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "8dc7f5cfe22b47bac5ae896d3b479fdafc7e90e74f0deb483403e8eca53fbee2"
+      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234"
     },
     "symbol:src/service/stale-detection.ts#tombstonedBlockInfoFor": {
       "heading": "tombstonedBlockInfoFor",
@@ -1686,7 +1761,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "8dc7f5cfe22b47bac5ae896d3b479fdafc7e90e74f0deb483403e8eca53fbee2"
+      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234"
     },
     "symbol:src/service/stale-detection.ts#buildRewriteContextBundle": {
       "heading": "buildRewriteContextBundle",
@@ -1821,7 +1896,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "8dc7f5cfe22b47bac5ae896d3b479fdafc7e90e74f0deb483403e8eca53fbee2"
+      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234"
     },
     "symbol:src/service/stale-detection.ts#refreshStaleResult": {
       "heading": "refreshStaleResult",
@@ -1947,7 +2022,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "8dc7f5cfe22b47bac5ae896d3b479fdafc7e90e74f0deb483403e8eca53fbee2"
+      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234"
     },
     "symbol:src/service/stale-detection.ts#collectLanguageStaleBlocks": {
       "heading": "collectLanguageStaleBlocks",
@@ -2096,7 +2171,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "e96d18680381084d7bd12718f9f15473da635a298d9d7a668156acbb42574ca4"
+      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234"
     }
   },
   "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"

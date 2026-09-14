@@ -1,5 +1,9 @@
 # createCodeloreServer
 
+```ts
+createCodeloreServer(options: { rootDir: string }): Promise<McpServer>
+```
+
 ## Зачем это нужно
 
 Точка входа для создания MCP-сервера Codelore с полной настройкой ресурсов, инструментов и навыков.
@@ -13,7 +17,12 @@
 
 ## На что можно положиться
 
-Имя сервера всегда "codelore", версия "0.1.0". При каждом вызове создаётся новый экземпляр CodeloreService; состояние между вызовами не разделяется. Инструкции сервера всегда содержат baseInstructions. Все ресурсы и инструменты зарегистрированы до возврата сервера.
+- Имя сервера всегда `"codelore"` (жёстко задано в первом аргументе конструктора `McpServer`).
+- Версия извлекается из `package.json` через `createRequire` при загрузке модуля; между вызовами функции не меняется.
+- Каждый вызов создаёт отдельный экземпляр [`CodeloreService`](../service/codelore-service.codelore.md#codeloreservice) — состояние документации между серверами не разделяется.
+- Инструкции сервера (`instructions`) всегда содержат неизменный текст `baseInstructions`, описывающий полный пайплайн.
+- К моменту возврата `McpServer` все ресурсы и инструменты уже зарегистрированы вызовами `registerResources` и `registerTools`; сервер готов к подключению.
+- Ошибки конструктора `McpServer` или функций регистрации не перехватываются и пробрасываются вызывающему коду.
 
 ## От чего зависит
 
@@ -23,8 +32,8 @@
 
 Вызывается функцией [`startStdioServer`](start-stdio-server.codelore.md#startstdioserver) (`src/server/start-stdio-server.ts`):
 1. [`startStdioServer`](start-stdio-server.codelore.md#startstdioserver) вызывает `createCodeloreServer({ rootDir })` и ожидает возврата `McpServer`.
-2. Внутри `createCodeloreServer` создаётся экземпляр `new CodeloreService(rootDir)`, определяются инструкции `baseInstructions` как строковый литерал, создаётся `new McpServer` с именем `"codelore"` и версией `"0.1.0"`.
-3. Регистрируются пять ресурсов (`doc-section`, `code-entity`, `impact-graph`, `change-analysis`, `doc-file`) и четыре инструмента (`document`, `update`, `mark_stale`, `check`) через функции `registerResources` и `registerTools`.
+2. Внутри `createCodeloreServer` создаётся экземпляр `new CodeloreService(rootDir)`, определяется строка `baseInstructions`, создаётся `new McpServer` с именем `"codelore"` и версией из `package.json`.
+3. Вызываются `registerResources` и `registerTools`, которые регистрируют пять ресурсов (`doc-section`, `code-entity`, `impact-graph`, `change-analysis`, `doc-file`) и четыре инструмента (`document`, `update`, `mark_stale`, `check`).
 4. Сервер возвращается.
 5. [`startStdioServer`](start-stdio-server.codelore.md#startstdioserver) создаёт `StdioServerTransport` и вызывает `server.connect(transport)`.
 

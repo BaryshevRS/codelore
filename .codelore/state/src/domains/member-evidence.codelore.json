@@ -1,0 +1,401 @@
+{
+  "version": 4,
+  "docPath": "src/domains/member-evidence.codelore.md",
+  "generatedAt": "2026-09-13T23:26:45.661Z",
+  "sectionOrder": [
+    "file:src/domains/member-evidence.ts",
+    "symbol:src/domains/member-evidence.ts#collectDomainMemberEvidence",
+    "symbol:src/domains/member-evidence.ts#domainMemberFingerprint"
+  ],
+  "sections": {
+    "file:src/domains/member-evidence.ts": {
+      "heading": "member-evidence.ts",
+      "depth": 1,
+      "anchor": "member-evidencets",
+      "owns": [
+        "file:src/domains/member-evidence.ts"
+      ],
+      "depends": [
+        "symbol:src/utils/hash.ts#sha256"
+      ],
+      "usedBy": [],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "The file exists to compute a stable fingerprint of a domain member's evidence, so that the doc's dependency facet and skeleton can be updated only when the member's membership or cross-domain edges change, avoiding unnecessary re-renders.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The file exists to compute a stable fingerprint of a domain member's evidence so that the doc's dependency facet and skeleton can be updated only when the member's membership or cross-domain edges change."
+          },
+          "fingerprint": "signature=650f8ed4626688243ce084aadfc5ff699c8825d5e245a0d5d6e682e8c2d0d192,placement=650f8ed4626688243ce084aadfc5ff699c8825d5e245a0d5d6e682e8c2d0d192"
+        },
+        "responsibility": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "signature=650f8ed4626688243ce084aadfc5ff699c8825d5e245a0d5d6e682e8c2d0d192,deps=662819ccc3400ac0a18482c3e78fd10d51bb805661db4c646720f17881f61cda,usage=3548338f1fd3f402a979d84e959d5ab45cb9c969930a9e3efabca4ceed485738"
+        },
+        "invariants": {
+          "body": "The exported functions are pure and deterministic: `collectDomainMemberEvidence` returns a new string without mutating the index or the section, and `domainMemberFingerprint` produces a stable hash string for identical evidence inputs. The fingerprint is computed over the string returned by `collectDomainMemberEvidence`, so equal evidence yields equal fingerprints.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The file's exported functions are pure and deterministic: the fingerprint is a stable hash of the collected evidence string, and the evidence collection never mutates the index or the section."
+          },
+          "fingerprint": "signature=650f8ed4626688243ce084aadfc5ff699c8825d5e245a0d5d6e682e8c2d0d192,body=20ca5a9e3ab52cc2bc2cbce51ff307ccf2aa071945aff6746bf2f5bc6b3f4d68"
+        },
+        "dependencies": {
+          "body": "The file defines `collectDomainMemberEvidence` and `domainMemberFingerprint` as local helpers; the caller `src/markdown/block-ids.ts` imports `domainMemberFingerprint` to compute fingerprints for domain members.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The file imports `collectDomainMemberEvidence` and `domainMemberFingerprint` from the same module, and uses `domainMemberFingerprint` in the caller `src/markdown/block-ids.ts`."
+          },
+          "fingerprint": "deps=662819ccc3400ac0a18482c3e78fd10d51bb805661db4c646720f17881f61cda"
+        },
+        "limitations": {
+          "body": "The file's scope is limited to fingerprint computation; it does not address other documentation concerns.",
+          "rendered": false,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.25,
+            "specificity": 0.25,
+            "novelFact": "The file's behavior is limited to computing fingerprints from evidence; it does not handle other aspects of documentation generation."
+          },
+          "fingerprint": "body=20ca5a9e3ab52cc2bc2cbce51ff307ccf2aa071945aff6746bf2f5bc6b3f4d68"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.737Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.658Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "36717df337effa09fe12a6a709ba92f1c6fbc1dda880a65be738af60b969dd34"
+    },
+    "symbol:src/domains/member-evidence.ts#collectDomainMemberEvidence": {
+      "heading": "collectDomainMemberEvidence",
+      "depth": 1,
+      "anchor": "collectdomainmemberevidence",
+      "signature": "collectDomainMemberEvidence(entity: CodeEntity, index: ProjectIndex): string",
+      "owns": [
+        "symbol:src/domains/member-evidence.ts#collectDomainMemberEvidence"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "file:src/service/stale-detection.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.staleDomainSlugs",
+        "symbol:src/service/codelore-service.ts#CodeloreService.stampMemberFingerprints",
+        "symbol:src/service/stale-detection.ts#collectMemberDocStaleBlocks"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "It exists to gather the evidence needed to compute a fingerprint for a domain member, so that the doc's dependency facet and skeleton can be updated only when the member's membership or cross-domain edges change.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "It exists to gather the evidence needed to compute a fingerprint for a domain member, so that the doc's dependency facet and skeleton can be updated only when the member's membership or cross-domain edges change."
+          },
+          "fingerprint": "signature=9244aa2ea772d6468b9e04b4aaa8f0f8d44e73a165115f31e5283b90406a7f01,placement=55d8f8ca98efaa154b2a448047001aa24c5add45076a92ff4d97d58ff908064a"
+        },
+        "responsibility": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "signature=9244aa2ea772d6468b9e04b4aaa8f0f8d44e73a165115f31e5283b90406a7f01,deps=0ccb16e200e04ce3fd33a7b50b841fcf543f1389efcb0e2b6a3314aa3a749e73,usage=3a15ad43883fa07a4d48b19d03671d88276120a5c294f59c6f99a24bf2b84110"
+        },
+        "invariants": {
+          "body": "The function returns a string of concatenated dependency information. It does not mutate the index or the section.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function returns a string of concatenated dependency information and does not mutate the index or the section."
+          },
+          "fingerprint": "signature=9244aa2ea772d6468b9e04b4aaa8f0f8d44e73a165115f31e5283b90406a7f01,body=e29545c0e13c936a3697a21e2be4e6a4eb801bdc8637653458af5874163ef097"
+        },
+        "dependencies": {
+          "body": "The function depends on the `index` parameter to determine which evidence is present.",
+          "rendered": false,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.25,
+            "specificity": 0.25,
+            "novelFact": "The function depends on the `index` parameter to determine which evidence is present."
+          },
+          "fingerprint": "deps=0ccb16e200e04ce3fd33a7b50b841fcf543f1389efcb0e2b6a3314aa3a749e73"
+        },
+        "workflows": {
+          "body": "The function gathers evidence before computing the fingerprint.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The function is called by `domainMemberFingerprint` to gather evidence before computing the fingerprint."
+          },
+          "fingerprint": "body=e29545c0e13c936a3697a21e2be4e6a4eb801bdc8637653458af5874163ef097,deps=0ccb16e200e04ce3fd33a7b50b841fcf543f1389efcb0e2b6a3314aa3a749e73"
+        },
+        "limitations": {
+          "body": "The function only collects evidence for sections that have a slug; sections without a slug are skipped.",
+          "rendered": false,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.25,
+            "specificity": 0.25,
+            "novelFact": "The function only collects evidence for sections that have a slug; sections without a slug are skipped."
+          },
+          "fingerprint": "body=e29545c0e13c936a3697a21e2be4e6a4eb801bdc8637653458af5874163ef097"
+        },
+        "changeGuide": {
+          "body": "- The function enforces that only evidence present in the index is included, via the check `if (slug === undefined) { continue; }`.\n- The function enforces that the purpose block is considered filled only when its body is non-empty, via the check `block.body.trim() !== \"\"`.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The function enforces that only evidence present in the index is included, via the check `if (slug === undefined) { continue; }`."
+          },
+          "fingerprint": "body=e29545c0e13c936a3697a21e2be4e6a4eb801bdc8637653458af5874163ef097,deps=0ccb16e200e04ce3fd33a7b50b841fcf543f1389efcb0e2b6a3314aa3a749e73,usage=3a15ad43883fa07a4d48b19d03671d88276120a5c294f59c6f99a24bf2b84110,placement=55d8f8ca98efaa154b2a448047001aa24c5add45076a92ff4d97d58ff908064a"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.739Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.659Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "36717df337effa09fe12a6a709ba92f1c6fbc1dda880a65be738af60b969dd34"
+    },
+    "symbol:src/domains/member-evidence.ts#domainMemberFingerprint": {
+      "heading": "domainMemberFingerprint",
+      "depth": 1,
+      "anchor": "domainmemberfingerprint",
+      "signature": "domainMemberFingerprint(evidence: string): string",
+      "owns": [
+        "symbol:src/domains/member-evidence.ts#domainMemberFingerprint"
+      ],
+      "depends": [
+        "symbol:src/utils/hash.ts#sha256"
+      ],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "file:src/service/stale-detection.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.staleDomainSlugs",
+        "symbol:src/service/codelore-service.ts#CodeloreService.stampMemberFingerprints",
+        "symbol:src/service/stale-detection.ts#collectMemberDocStaleBlocks"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "It exists to produce a stable fingerprint of the evidence, so that the doc's dependency facet and skeleton can be updated only when the member's membership or cross-domain edges change.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "It exists to produce a stable fingerprint of the evidence, so that the doc's dependency facet and skeleton can be updated only when the member's membership or cross-domain edges change."
+          },
+          "fingerprint": "signature=b3231f5d69828472f90967c31438ff8b6f32e71eeef107601e49843993d47253,placement=696fbc1b5be3e0547971a60fabf59c9091bb1a390a6c1b882c286942734a322b"
+        },
+        "responsibility": {
+          "body": "Hashes the serialized evidence to produce a fingerprint. The fingerprint is stable for identical evidence inputs, and it does not mutate the evidence.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "It hashes the serialized evidence to produce a fingerprint."
+          },
+          "fingerprint": "signature=b3231f5d69828472f90967c31438ff8b6f32e71eeef107601e49843993d47253,deps=5e182653abf487336051b0302906e43ba6f5f145cb916ea5d994652905484a96,usage=833d917d850a63f43c8da97e9633faac66f24bd677e6b365537b2dd5fcc7f7d8"
+        },
+        "invariants": {
+          "body": "The function returns a stable hash string for identical evidence inputs, and it does not mutate the evidence.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function returns a stable hash string for identical evidence inputs, and it does not mutate the evidence."
+          },
+          "fingerprint": "signature=b3231f5d69828472f90967c31438ff8b6f32e71eeef107601e49843993d47253,body=32aae90345893376e3e358959d853faae5cde539f5c17e26952805e173c74498"
+        },
+        "dependencies": {
+          "body": "The function depends on gathering evidence.",
+          "rendered": false,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.25,
+            "specificity": 0.25,
+            "novelFact": "The function depends on `collectDomainMemberEvidence` to gather evidence."
+          },
+          "fingerprint": "deps=5e182653abf487336051b0302906e43ba6f5f145cb916ea5d994652905484a96"
+        },
+        "workflows": {
+          "body": "The function is called by `src/markdown/block-ids.ts` to compute fingerprints for domain members.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The function is called by `src/markdown/block-ids.ts` to compute fingerprints for domain members."
+          },
+          "fingerprint": "body=32aae90345893376e3e358959d853faae5cde539f5c17e26952805e173c74498,deps=5e182653abf487336051b0302906e43ba6f5f145cb916ea5d994652905484a96"
+        },
+        "limitations": {
+          "body": "The function only computes a fingerprint; it does not update the doc itself.",
+          "rendered": false,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.25,
+            "specificity": 0.25,
+            "novelFact": "The function only computes a fingerprint; it does not update the doc itself."
+          },
+          "fingerprint": "body=32aae90345893376e3e358959d853faae5cde539f5c17e26952805e173c74498"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.745Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.661Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "36717df337effa09fe12a6a709ba92f1c6fbc1dda880a65be738af60b969dd34"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

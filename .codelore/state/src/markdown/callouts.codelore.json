@@ -130,7 +130,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "687a21b97204e4d2cef21663d19a128e8aeff463a8572f83d76a25a507d94f82"
+      "depDocsFingerprint": "59fab132865b8a4c667d0aa63a60a9b84e4cb0473b211c6a28e405154ef57e5a"
     },
     "symbol:src/markdown/callouts.ts#translationPendingCalloutText": {
       "heading": "translationPendingCalloutText",
@@ -254,7 +254,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "687a21b97204e4d2cef21663d19a128e8aeff463a8572f83d76a25a507d94f82"
+      "depDocsFingerprint": "59fab132865b8a4c667d0aa63a60a9b84e4cb0473b211c6a28e405154ef57e5a"
     }
   },
   "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"

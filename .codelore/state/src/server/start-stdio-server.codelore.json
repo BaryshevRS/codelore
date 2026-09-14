@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/server/start-stdio-server.codelore.md",
-  "generatedAt": "2026-07-03T16:19:56.880Z",
+  "generatedAt": "2026-09-13T19:41:29.677Z",
   "sectionOrder": [
     "symbol:src/server/start-stdio-server.ts#startStdioServer"
   ],
@@ -91,46 +91,49 @@
           }
         },
         "dependencies": {
-          "body": "- `createCodeloreServer` (`src/server/create-server.ts`) — создание и настройка MCP-сервера с регистрацией всех ресурсов и инструментов.\n- `StdioServerTransport` (`@modelcontextprotocol/server`) — транспорт для общения через стандартные потоки ввода-вывода.",
-          "rendered": false,
+          "body": "- `createCodeloreServer` (`src/server/create-server.ts`) — создаёт и настраивает экземпляр `McpServer` с зарегистрированными ресурсами и инструментами.\n- `StdioServerTransport` (`@modelcontextprotocol/server`) — транспорт, который читает JSON-RPC сообщения из stdin и пишет ответы в stdout.",
+          "rendered": true,
           "fingerprint": "deps=1248151ef900e18707d1fc667a85249db86e92f56deac055d19941e813450650",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.25,
+            "informativeness": 0.75,
+            "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Зависимости не изменились относительно существующего блока."
-          }
+            "novelFact": "Функция связывает настроенный MCP-сервер со стандартными потоками ввода-вывода через StdioServerTransport."
+          },
+          "language": "ru"
         },
         "workflows": {
-          "body": "1. Прямой вызов из `file:src/bin/codelore-mcp.ts` через `#!/usr/bin/env node` — запускается как CLI-утилита с `rootDir: process.cwd()`.\n2. Вызов из `symbol:src/cli/run-cli.ts#runCli` при значении `parsed.command === \"mcp\"` — передаётся `rootDir` из разобранных глобальных аргументов.\n3. `createCodeloreServer` создаёт сервер и регистрирует ресурсы, затем `StdioServerTransport` подключается через `server.connect(transport)`, после чего сервер начинает обработку сообщений через stdin/stdout.",
+          "body": "1. CLI-утилита `src/cli/run-cli.ts` вызывает `startStdioServer` при команде `mcp`, передавая `rootDir` из разобранных глобальных аргументов.\n2. Функция создаёт сервер через `createCodeloreServer(options)` — на этом этапе регистрируются все ресурсы и инструменты.\n3. Создаётся `StdioServerTransport`, и сервер подключается к нему вызовом `server.connect(transport)`, после чего начинает обрабатывать JSON-RPC сообщения через stdin/stdout.",
           "rendered": true,
           "fingerprint": "body=115b976661c1dc28b6ef8fd262b1adaf5dc52b59c5abd0c0a591e4e9f4dc02c6,deps=1248151ef900e18707d1fc667a85249db86e92f56deac055d19941e813450650",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.5,
+            "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Оба вызывающих места передают `rootDir`; `runCli` использует `parsed.rootDir`."
+            "novelFact": "Единственный вызывающий код — CLI-команда `mcp`, которая передаёт корневую директорию проекта из аргументов командной строки."
           },
           "translations": {
             "en": {
               "body": "1. Direct invocation from `file:src/bin/codelore-mcp.ts` via `#!/usr/bin/env node` — runs as a CLI utility with `rootDir: process.cwd()`.\n2. Invocation from `symbol:src/cli/run-cli.ts#runCli` when `parsed.command === \"mcp\"` — passes `rootDir` from the parsed global arguments.\n3. `createCodeloreServer` creates the server and registers resources, then `StdioServerTransport` connects via `server.connect(transport)`, after which the server starts processing messages through stdin/stdout.",
               "sourceFingerprint": "0c0685e5ac15b45b5156861e2714d4d0db824f6d1c6a2dc9df05b9b2fbbfd43e"
             }
-          }
+          },
+          "language": "ru"
         },
         "limitations": {
-          "body": "- Работает только со stdio-транспортом; для сетевого доступа требуется другой entry point.\n- Не обрабатывает сигналы завершения процесса — полагается на стандартное поведение Node.js.",
-          "rendered": false,
+          "body": "- Не обрабатывает сигналы завершения процесса — после `server.connect` управление не возвращается до закрытия транспорта.\n- Не поддерживает другие транспорты — `StdioServerTransport` жёстко задан в теле функции.",
+          "rendered": true,
           "fingerprint": "body=115b976661c1dc28b6ef8fd262b1adaf5dc52b59c5abd0c0a591e4e9f4dc02c6",
           "scores": {
             "informativeness": 0.5,
-            "novelty": 0.25,
-            "specificity": 0.75,
-            "novelFact": "Ограничения вытекают из использования `StdioServerTransport` и отсутствия обработчиков сигналов."
-          }
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Функция не содержит обработчиков сигналов или graceful shutdown — полагается на стандартное поведение Node.js при завершении процесса."
+          },
+          "language": "ru"
         }
       },
-      "depDocsFingerprint": "3f903d736c68641b044c1730a27553a0f0bbace2304a5feff1f299dca9acc397",
+      "depDocsFingerprint": "0e4d3c46db67a8681e3371429e4d4f651d77713104958de28490fe03e4f3a9ec",
       "generationHistory": [
         {
           "runId": "d6af7e22-9c12-4834-a862-ef390bc3048c",
@@ -202,8 +205,21 @@
           "generatedBlocks": [
             "responsibility"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:41:29.677Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
         }
-      ]
+      ],
+      "signature": "startStdioServer(options: { rootDir: string }): Promise<void>"
     }
   },
   "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"

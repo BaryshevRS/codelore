@@ -41,17 +41,20 @@
 
 # allowedRefsForSection
 
+```ts
+allowedRefsForSection(section: FileWriteSection, input: Pick<ValidateFileWriteInput, "dependencyDocPaths" | "groupFiles">): Set<string>
+```
+
 ## Зачем это нужно
 
 Вычисляет множество идентификаторов, которые разрешено указывать в `refs` блока документации для данной секции.
 
 ## Что делает
 
-- Включает в множество идентификатор самой сущности секции.
-- Включает идентификаторы и пути всех вызывающих (`section.callers`).
-- Включает идентификаторы всех прямых зависимостей (`section.dependencyEntityIds`) и их пути.
-- Включает пути из `dependencyDocPaths` и `groupFiles`.
-- Не проверяет, что возвращённые идентификаторы действительно существуют в индексе — это задача вызывающего.
+- Добавляет идентификатор сущности секции (`section.entity.id`) и, если из него извлекается путь к файлу, добавляет этот путь в двух формах: как есть и с префиксом `file:`.
+- Для каждого вызывающего (`section.callers`) добавляет его идентификатор и путь к файлу.
+- Для каждой прямой зависимости (`section.dependencyEntityIds`) добавляет идентификатор зависимости и, если из него извлекается путь, добавляет этот путь в двух формах.
+- Добавляет все пути из `input.dependencyDocPaths` и `input.groupFiles`, каждый в двух формах: как есть и с префиксом `file:`.
 
 ## На что можно положиться
 
@@ -66,10 +69,14 @@
 
 ## Как менять и что проверять
 
-1. Собственный идентификатор сущности всегда добавляется первым в множество. Конструкт: `allowed.add(section.entity.id);`.
-2. Для каждой прямой зависимости добавляется как её идентификатор, так и путь к файлу (если определён). Конструкты: цикл `for (const depId of section.dependencyEntityIds) { ... }` и условие `if (path) { allowed.add(path); allowed.add(`file:${path}`); }`.
+- Для каждого вызывающего (`section.callers`) в множество добавляются и его идентификатор, и путь к файлу. Конструкт: `allowed.add(caller.id); allowed.add(caller.path);` внутри цикла `for (const caller of section.callers)`.
+- Каждый путь, добавляемый в множество (из зависимостей, вызывающих, собственной сущности, dependencyDocPaths, groupFiles), дублируется с префиксом `file:`. Конструкт: `allowed.add(path); allowed.add(`file:${path}`);` (например, в блоке обработки зависимостей).
 
 # buildEntityNameToIds
+
+```ts
+buildEntityNameToIds(entities: Record<string, { name: string }>): Map<string, string[]>
+```
 
 ## Зачем это нужно
 
@@ -91,6 +98,10 @@
 ## Кто и как использует
 
 Вызывается из [`src/llm/file-pipeline.ts`](file-pipeline.codelore.md) для построения обратного индекса имён сущностей.
+
+## Чего не делает
+
+The function registers an alias only for the segment after the last dot when that segment is non-empty; a name ending with a dot (e.g. `"foo."`) gets no alias because the guard `dot < entity.name.length - 1` fails. The alias is always the full name plus the last segment, never an intermediate segment; a name with multiple dots (e.g. `"a.b.c"`) yields only `"a.b.c"` and `"c"`, not `"b"`.
 
 ## Как менять и что проверять
 

@@ -1,0 +1,163 @@
+{
+  "version": 4,
+  "docPath": "src/graph/domain-dag.codelore.md",
+  "generatedAt": "2026-09-13T23:26:45.679Z",
+  "sectionOrder": [
+    "symbol:src/graph/domain-dag.ts#buildDomainDag"
+  ],
+  "sections": {
+    "symbol:src/graph/domain-dag.ts#buildDomainDag": {
+      "heading": "buildDomainDag",
+      "depth": 1,
+      "anchor": "builddomaindag",
+      "signature": "buildDomainDag(code: CodeIndex, fileToDomain: ReadonlyMap<string, string>): DepGraph",
+      "owns": [
+        "symbol:src/graph/domain-dag.ts#buildDomainDag"
+      ],
+      "depends": [
+        "symbol:src/graph/file-dag.ts#buildFileDag"
+      ],
+      "usedBy": [
+        "file:src/indexer/domain-entities.ts",
+        "file:src/service/codelore-service.ts",
+        "symbol:src/indexer/domain-entities.ts#buildDomainEntities",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.tierGenerationWaves"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Превращает граф зависимостей между файлами в граф зависимостей между доменами, сопоставляя каждый файл его домену через fileToDomain.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция превращает граф зависимостей между файлами в граф зависимостей между доменами, сопоставляя каждый файл его домену."
+          },
+          "fingerprint": "signature=eb5f84a41264bb9b01510d95870a443c4d395fafc78b45ef06bac305f922cd2f,placement=f10e04b603f864998bcb8ea813d6f22c9a127e68532890889449ec99f8a5870a"
+        },
+        "responsibility": {
+          "body": "Создаёт запись в графе для каждого домена, который встречается в fileToDomain, даже если у него нет исходящих рёбер. Для каждого файла из buildFileDag(code) определяет домен-источник через fileToDomain.get(file) и пропускает файл, если домен не найден. Для каждой зависимости файла определяет домен-цель и добавляет ребро от домена-источника к домену-цели, если цель существует и отличается от источника.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция инициализирует запись для каждого домена, даже если у него нет исходящих рёбер, и пропускает файлы без домена."
+          },
+          "fingerprint": "signature=eb5f84a41264bb9b01510d95870a443c4d395fafc78b45ef06bac305f922cd2f,deps=5dcb38c36daa72038397b13115a7069506a88f2be8052e3fb63cd9258feb144c,usage=3056f6acf9cbd374607050b2be5df279989837e26996ae29c97109d7d86419c8"
+        },
+        "invariants": {
+          "body": "Функция возвращает граф зависимостей между доменами: для каждого домена — множество доменов, от которых он зависит. Файлы, не сопоставленные ни с одним доменом (fileToDomain.get(file) === undefined), пропускаются и не порождают рёбер. Рёбра от домена к самому себе (to === from) не добавляются. Домены, которые не встречаются ни в одном файле, не получают записей в графе.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция пропускает файлы, не сопоставленные ни с одним доменом, и не создаёт рёбер от домена к самому себе."
+          },
+          "fingerprint": "signature=eb5f84a41264bb9b01510d95870a443c4d395fafc78b45ef06bac305f922cd2f,body=060fd6a27c33f51986c131b1d5864a2066a4aa6990bc2c0b516ba619b0e0c34d"
+        },
+        "dependencies": {
+          "body": "- `buildFileDag` from `src/graph/file-dag.ts` — computes the file-level dependency graph used to derive domain dependencies.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function depends on `buildFileDag` from `src/graph/file-dag.ts` to compute file-level dependencies."
+          },
+          "fingerprint": "deps=5dcb38c36daa72038397b13115a7069506a88f2be8052e3fb63cd9258feb144c"
+        },
+        "workflows": {
+          "body": "- Called by `buildDomainEntities` in `src/indexer/domain-entities.ts` to compute the domain dependency graph; the caller then inverts the DAG to build a dependents map and iterates over `dag.keys()` to construct domain entities.\n- Called by `CodeloreService.tierGenerationWaves` in `src/service/codelore-service.ts` to compute the domain DAG for wave generation.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function is called by `buildDomainEntities` in `src/indexer/domain-entities.ts` to build the domain DAG before constructing the final entity map."
+          },
+          "fingerprint": "body=060fd6a27c33f51986c131b1d5864a2066a4aa6990bc2c0b516ba619b0e0c34d,deps=5dcb38c36daa72038397b13115a7069506a88f2be8052e3fb63cd9258feb144c"
+        },
+        "limitations": {
+          "body": "- The function only includes domains that are present in the `fileToDomain` mapping, so domains without any associated file are not represented.\n- The function does not emit a project entity; it returns only the domain dependency graph without creating any project entities.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function only includes domains that are present in the fileToDomain mapping, meaning domains without files are omitted."
+          },
+          "fingerprint": "body=060fd6a27c33f51986c131b1d5864a2066a4aa6990bc2c0b516ba619b0e0c34d"
+        },
+        "changeGuide": {
+          "body": "- The function enforces that each domain appears exactly once as a key in the graph, using a Set to collect unique domain IDs from the input mapping.\n- The function enforces that self-dependencies are not added, by checking that the file's domain differs from the import's domain.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function enforces that self-dependencies are not added to the graph, preventing direct cycles."
+          },
+          "fingerprint": "body=060fd6a27c33f51986c131b1d5864a2066a4aa6990bc2c0b516ba619b0e0c34d,deps=5dcb38c36daa72038397b13115a7069506a88f2be8052e3fb63cd9258feb144c,usage=3056f6acf9cbd374607050b2be5df279989837e26996ae29c97109d7d86419c8,placement=f10e04b603f864998bcb8ea813d6f22c9a127e68532890889449ec99f8a5870a"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.762Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.679Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "b201cdd0c7745d9309f51c2d8aa32ac2c24c3c10b1cfa20d37a0aa6120cf9ac9"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

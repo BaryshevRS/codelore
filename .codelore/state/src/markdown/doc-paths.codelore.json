@@ -1,0 +1,139 @@
+{
+  "version": 4,
+  "docPath": "src/markdown/doc-paths.codelore.md",
+  "generatedAt": "2026-09-13T23:26:45.705Z",
+  "sectionOrder": [
+    "symbol:src/markdown/doc-paths.ts#translationDocPath"
+  ],
+  "sections": {
+    "symbol:src/markdown/doc-paths.ts#translationDocPath": {
+      "heading": "translationDocPath",
+      "depth": 1,
+      "anchor": "translationdocpath",
+      "signature": "translationDocPath(docPath: string, language: string): string",
+      "owns": [
+        "symbol:src/markdown/doc-paths.ts#translationDocPath"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/markdown/render-doc.ts",
+        "file:src/storage/doc-state-storage.ts",
+        "symbol:src/markdown/render-doc.ts#renderDoc",
+        "symbol:src/storage/doc-state-storage.ts#DocStateStorage",
+        "symbol:src/storage/doc-state-storage.ts#DocStateStorage.reconcileRenderedDocs",
+        "symbol:src/storage/doc-state-storage.ts#DocStateStorage.renderAndPersist"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Строит путь файла перевода для документа, вставляя код языка в имя файла так, чтобы перевод сохранялся рядом с оригиналом и имел предсказуемое имя.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция формирует путь переведённого документа, вставляя код языка в имя файла в зависимости от суффикса."
+          },
+          "fingerprint": "signature=ae7ed021368c08528203145d7d7fad1030510983aa531cf40a1f1e91349de4b4,placement=87bf44da1eed698cf81d0bdfb2f8f61ad789764a75e1c13882de3a4b1704ed0d"
+        },
+        "responsibility": {
+          "body": "Проверяет, оканчивается ли путь на `.codelore.md`; если да, заменяет суффикс на `.${language}.codelore.md`. Иначе проверяет окончание `.md` и заменяет его на `.${language}.md`. Если ни одно из окончаний не совпало, добавляет `.${language}` в конец пути. Возвращает полученную строку.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция различает три формата пути: .codelore.md, .md и прочие, и для каждого применяет своё правило вставки языка."
+          },
+          "fingerprint": "signature=ae7ed021368c08528203145d7d7fad1030510983aa531cf40a1f1e91349de4b4,deps=f1e34a4c642da63c15b0242189b3531e66d822a99e4381057476eaaa16562e3c,usage=518b07d01eb1de970332b205202101fde6c26248878099257d8a86608574728a"
+        },
+        "invariants": {
+          "body": "Для пути, оканчивающегося на `.codelore.md`, возвращает путь с языком, вставленным перед суффиксом: `doc.codelore.md` → `doc.ru.codelore.md`. Для пути, оканчивающегося на `.md`, возвращает путь с языком перед `.md`: `doc.md` → `doc.ru.md`. Для любого другого пути возвращает путь с языком, добавленным в конец: `doc` → `doc.ru`. Функция всегда возвращает строку с языком, независимо от исходного формата пути.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Для путей, оканчивающихся на .codelore.md, функция вставляет язык перед суффиксом, а для обычных .md — перед .md, и всегда возвращает путь с языком."
+          },
+          "fingerprint": "signature=ae7ed021368c08528203145d7d7fad1030510983aa531cf40a1f1e91349de4b4,body=8a58969deab1edd7002deaaa623e36ef9aa52caeeee6e09a027b12278a5367af"
+        },
+        "workflows": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "body=8a58969deab1edd7002deaaa623e36ef9aa52caeeee6e09a027b12278a5367af,deps=f1e34a4c642da63c15b0242189b3531e66d822a99e4381057476eaaa16562e3c"
+        },
+        "limitations": {
+          "body": "The function only handles paths ending in `.codelore.md` or `.md`; for any other path it appends the language at the end, as enforced by the two `endsWith` checks and the final fallback return.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "The function only recognizes paths ending in `.codelore.md` or `.md`; any other path gets the language appended at the end."
+          },
+          "fingerprint": "body=8a58969deab1edd7002deaaa623e36ef9aa52caeeee6e09a027b12278a5367af"
+        },
+        "changeGuide": {
+          "body": "- The suffix check uses `docPath.endsWith(CODELORE_MD_SUFFIX)` to decide the `.codelore.md` branch, and `docPath.endsWith(\".md\")` for the generic `.md` branch — both are literal in the source.\n- The fallback branch appends the language with `${docPath}.${language}` when neither suffix matches, as written in the source.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The suffix check uses `docPath.endsWith(CODELORE_MD_SUFFIX)` and the fallback uses `docPath.endsWith(\".md\")`, both of which pin the exact suffix matching behavior."
+          },
+          "fingerprint": "body=8a58969deab1edd7002deaaa623e36ef9aa52caeeee6e09a027b12278a5367af,deps=f1e34a4c642da63c15b0242189b3531e66d822a99e4381057476eaaa16562e3c,usage=518b07d01eb1de970332b205202101fde6c26248878099257d8a86608574728a,placement=87bf44da1eed698cf81d0bdfb2f8f61ad789764a75e1c13882de3a4b1704ed0d"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.776Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.705Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

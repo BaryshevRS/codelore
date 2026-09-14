@@ -1,0 +1,386 @@
+{
+  "version": 4,
+  "docPath": "src/graph/waves.codelore.md",
+  "generatedAt": "2026-09-13T23:13:44.451Z",
+  "sectionOrder": [
+    "file:src/graph/waves.ts",
+    "symbol:src/graph/waves.ts#dependencyWaves",
+    "symbol:src/graph/waves.ts#stronglyConnectedComponents"
+  ],
+  "sections": {
+    "file:src/graph/waves.ts": {
+      "heading": "waves.ts",
+      "depth": 1,
+      "anchor": "wavests",
+      "owns": [
+        "file:src/graph/waves.ts"
+      ],
+      "depends": [],
+      "usedBy": [],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "The module turns a file dependency graph into ordered waves of entities, supporting two grouping strategies — by dependency depth and by strongly connected components — and provides the underlying strongly-connected-component extraction used by one of them.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The module computes dependency waves from a DAG, either by grouping files by their dependency depth or by grouping strongly connected components, and it also exposes a helper to extract strongly connected components from the DAG."
+          },
+          "fingerprint": "signature=0f8d07ebd5c6523c417b0dd3481b33cef8d1da22d8ff3eea5c920dbfc6898454,placement=0f8d07ebd5c6523c417b0dd3481b33cef8d1da22d8ff3eea5c920dbfc6898454"
+        },
+        "responsibility": {
+          "body": "dependencyWaves groups the in-scope files into waves based on dependency depth, and stronglyConnectedComponents groups the in-scope files into strongly connected components (cycles). Both functions return each group as an array of node names. The module also exports the stronglyConnectedComponents helper, which is used internally by dependencyWaves to compute the depth-based grouping.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "dependencyWaves groups files by their dependency depth (files with no dependencies first), while stronglyConnectedComponents groups files into cycles; both then map each group to its entities and append the project entity last if it is in scope."
+          },
+          "fingerprint": "signature=0f8d07ebd5c6523c417b0dd3481b33cef8d1da22d8ff3eea5c920dbfc6898454,deps=160eda62563635b7175b51e4cc60f10bb6f956f5d28c8378ec491bd34216c11a,usage=160eda62563635b7175b51e4cc60f10bb6f956f5d28c8378ec491bd34216c11a"
+        },
+        "invariants": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "signature=0f8d07ebd5c6523c417b0dd3481b33cef8d1da22d8ff3eea5c920dbfc6898454,body=9fac1299377c629ed0da004d1e36d64eb2fe4365b57d96fba86fd1489e538f95"
+        },
+        "limitations": {
+          "body": "The module only groups files that are in scope; files outside the scope are ignored.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The module only groups files that are in scope; files outside the scope are ignored."
+          },
+          "fingerprint": "body=9fac1299377c629ed0da004d1e36d64eb2fe4365b57d96fba86fd1489e538f95"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "8e8a873a-696b-4169-aa33-4aa6b0b71a03",
+          "timestamp": "2026-09-13T23:13:00.409Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "8e8a873a-696b-4169-aa33-4aa6b0b71a03",
+          "timestamp": "2026-09-13T23:13:44.448Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "symbol:src/graph/waves.ts#dependencyWaves": {
+      "heading": "dependencyWaves",
+      "depth": 1,
+      "anchor": "dependencywaves",
+      "signature": "dependencyWaves(graph: DepGraph, scope: ReadonlySet<string>): string[][][]",
+      "owns": [
+        "symbol:src/graph/waves.ts#dependencyWaves"
+      ],
+      "depends": [
+        "symbol:src/graph/waves.ts#stronglyConnectedComponents"
+      ],
+      "usedBy": [
+        "file:src/graph/file-dag.ts",
+        "file:src/service/codelore-service.ts",
+        "symbol:src/graph/file-dag.ts#generationWaves",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.tierGenerationWaves"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "dependencyWaves produces a topologically ordered list of entity waves from a file DAG, so that consumers can process entities in dependency order.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "dependencyWaves produces a topologically ordered list of entity waves from a file DAG, so that consumers can process entities in dependency order."
+          },
+          "fingerprint": "signature=ad5d7864f7c863aaefa113b7ff9fd0021670812bd00f5510594f24e474d4284c,placement=a06c15f5e3754dbb6f01b98d0993e1b64238159e8e9cc473e2bb5f8a5abe661b"
+        },
+        "responsibility": {
+          "body": "dependencyWaves groups the in-scope files into waves based on dependency depth using the stronglyConnectedComponents helper, and returns each group as an array of node names.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "dependencyWaves filters the input file list to those present in the DAG, groups them by dependency depth using stronglyConnectedComponents, maps each group to its entities, and appends the project entity last if it is in scope."
+          },
+          "fingerprint": "signature=ad5d7864f7c863aaefa113b7ff9fd0021670812bd00f5510594f24e474d4284c,deps=8ed74039263f11a64fe6610c9e9ee1dd0db87311bd58fec43685a8dcbc68420d,usage=299ede554008b7b367bc08e07adc361fbbbf45e9c0832a699e029275c0599af7"
+        },
+        "invariants": {
+          "body": "The returned waves are ordered by dependency depth: the first wave contains files with no external dependencies, and each subsequent wave contains files whose external dependencies are all in earlier waves. The function does not mutate the input graph or the node set.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "dependencyWaves returns waves ordered by dependency depth: files with no dependencies come first, and files that depend only on earlier waves come later; the project entity is appended last when in scope."
+          },
+          "fingerprint": "signature=ad5d7864f7c863aaefa113b7ff9fd0021670812bd00f5510594f24e474d4284c,body=cfc6c4eae419912a52a37d04daa34185c65ccce3a20ac690fa9fdc409110dc82"
+        },
+        "dependencies": {
+          "body": "The function depends on the stronglyConnectedComponents helper from the same module.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "The function depends on the stronglyConnectedComponents helper from the same module."
+          },
+          "fingerprint": "deps=8ed74039263f11a64fe6610c9e9ee1dd0db87311bd58fec43685a8dcbc68420d"
+        },
+        "workflows": {
+          "body": "The function is called by consumers that need to process entities in dependency order, such as a build or analysis pipeline. The caller can rely on the returned waves to be topologically ordered, so it can process each wave only after all its dependencies have been processed.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function is called by consumers that need to process entities in dependency order, such as a build or analysis pipeline."
+          },
+          "fingerprint": "body=cfc6c4eae419912a52a37d04daa34185c65ccce3a20ac690fa9fdc409110dc82,deps=8ed74039263f11a64fe6610c9e9ee1dd0db87311bd58fec43685a8dcbc68420d"
+        },
+        "limitations": {
+          "body": "The function only processes files that are in scope; files outside the scope are ignored.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function only processes files that are in scope; files outside the scope are ignored."
+          },
+          "fingerprint": "body=cfc6c4eae419912a52a37d04daa34185c65ccce3a20ac690fa9fdc409110dc82"
+        },
+        "changeGuide": {
+          "body": "- The wave ordering is enforced by the depth computation that uses stronglyConnectedComponents to find cycles.\n- The non-mutation guarantee is enforced by the function not modifying the input graph or node set.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The wave ordering is enforced by the depth computation that uses stronglyConnectedComponents to find cycles."
+          },
+          "fingerprint": "body=cfc6c4eae419912a52a37d04daa34185c65ccce3a20ac690fa9fdc409110dc82,deps=8ed74039263f11a64fe6610c9e9ee1dd0db87311bd58fec43685a8dcbc68420d,usage=299ede554008b7b367bc08e07adc361fbbbf45e9c0832a699e029275c0599af7,placement=a06c15f5e3754dbb6f01b98d0993e1b64238159e8e9cc473e2bb5f8a5abe661b"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "8e8a873a-696b-4169-aa33-4aa6b0b71a03",
+          "timestamp": "2026-09-13T23:13:00.412Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "8e8a873a-696b-4169-aa33-4aa6b0b71a03",
+          "timestamp": "2026-09-13T23:13:44.449Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "symbol:src/graph/waves.ts#stronglyConnectedComponents": {
+      "heading": "stronglyConnectedComponents",
+      "depth": 1,
+      "anchor": "stronglyconnectedcomponents",
+      "signature": "stronglyConnectedComponents(scope: ReadonlySet<string>, graph: DepGraph): string[][]",
+      "owns": [
+        "symbol:src/graph/waves.ts#stronglyConnectedComponents"
+      ],
+      "depends": [],
+      "usedBy": [
+        "symbol:src/graph/waves.ts#dependencyWaves"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "stronglyConnectedComponents extracts the strongly connected components (cycles) from a file DAG, which is the building block that dependencyWaves uses to compute dependency-depth waves.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "stronglyConnectedComponents extracts cycles from a file DAG, which is used by dependencyWaves to group files by dependency depth."
+          },
+          "fingerprint": "signature=cf93e2e1f2d2907e639907fc02f46e033f2077e329feab0d4689ed44b2038e78,placement=2130adabf5836a0c24d1e0cedd9c6f593c0ca0eb58e55de923b5b80b4d111220"
+        },
+        "responsibility": {
+          "body": "stronglyConnectedComponents computes the strongly connected components of the DAG using a standard algorithm (e.g., Tarjan's) and returns them as an array of arrays of file paths. Each component is a maximal set of files where every file is reachable from every other file in the set.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "stronglyConnectedComponents computes strongly connected components using Tarjan's algorithm (or an equivalent) and returns them as an array of path arrays."
+          },
+          "fingerprint": "signature=cf93e2e1f2d2907e639907fc02f46e033f2077e329feab0d4689ed44b2038e78,deps=35894735848b30aad208d5813fa9b511dc9c57e15d53578c0a68597a315efed7,usage=365fb65ea43a24735c112e4e4ad636f62f4a383a7d7e46d17217a734394057ab"
+        },
+        "invariants": {
+          "body": "The function returns an array of strongly connected components, each represented as an array of file paths. The order of components and the order of paths within each component follow the DAG's internal iteration order, so the result is deterministic for a given DAG. The function does not modify the input DAG.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "stronglyConnectedComponents returns an array of strongly connected components, each as an array of file paths, and the order of components is deterministic (based on the DAG's iteration order)."
+          },
+          "fingerprint": "signature=cf93e2e1f2d2907e639907fc02f46e033f2077e329feab0d4689ed44b2038e78,body=e2920f9e5acc142f9c7de1a03026074eebf6593fbf258cdc0bc4a68cd92f32cc"
+        },
+        "workflows": {
+          "body": "The function is called by dependencyWaves to compute the depth-based grouping, and can also be called directly by consumers that need to identify cycles in the dependency graph. The caller can rely on the returned components to be maximal and deterministic for a given DAG.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function is called by dependencyWaves to compute the depth-based grouping, and can also be called directly by consumers that need to identify cycles in the dependency graph."
+          },
+          "fingerprint": "body=e2920f9e5acc142f9c7de1a03026074eebf6593fbf258cdc0bc4a68cd92f32cc,deps=35894735848b30aad208d5813fa9b511dc9c57e15d53578c0a68597a315efed7"
+        },
+        "limitations": {
+          "body": "The function only processes files that are in scope; files outside the scope are ignored.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function only processes files that are in scope; files outside the scope are ignored."
+          },
+          "fingerprint": "body=e2920f9e5acc142f9c7de1a03026074eebf6593fbf258cdc0bc4a68cd92f32cc"
+        },
+        "changeGuide": {
+          "body": "- The deterministic ordering is enforced by the algorithm following the DAG's internal iteration order.\n- The maximality of each component is enforced by the standard algorithm (e.g., Tarjan's) that computes strongly connected components.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The deterministic ordering is enforced by the algorithm following the DAG's internal iteration order."
+          },
+          "fingerprint": "body=e2920f9e5acc142f9c7de1a03026074eebf6593fbf258cdc0bc4a68cd92f32cc,deps=35894735848b30aad208d5813fa9b511dc9c57e15d53578c0a68597a315efed7,usage=365fb65ea43a24735c112e4e4ad636f62f4a383a7d7e46d17217a734394057ab,placement=2130adabf5836a0c24d1e0cedd9c6f593c0ca0eb58e55de923b5b80b4d111220"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "8e8a873a-696b-4169-aa33-4aa6b0b71a03",
+          "timestamp": "2026-09-13T23:13:00.423Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "8e8a873a-696b-4169-aa33-4aa6b0b71a03",
+          "timestamp": "2026-09-13T23:13:44.451Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

@@ -6,7 +6,10 @@ import {
   buildGenerationDebugEntry,
   generationDebugEnabled,
   generationDebugPathForStatePath,
+  type RunDecisionsEntry,
+  runDecisionsPath,
   writeGenerationDebug,
+  writeRunDecisions,
 } from "./generation-debug.js";
 
 describe("generation debug", () => {
@@ -72,6 +75,46 @@ describe("generation debug", () => {
       vi.stubEnv("CODELORE_DEBUG", "1");
       await writeGenerationDebug({ statePath, entry });
       expect(JSON.parse(await readFile(debugPath, "utf8"))).toMatchObject({ version: 4 });
+    } finally {
+      vi.unstubAllEnvs();
+      await rm(rootDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("writeRunDecisions", () => {
+  const entry = {
+    version: 1,
+    runId: "run-1",
+    timestamp: "2026-09-14T00:00:00.000Z",
+    command: "fix-stale",
+    found: {
+      stale: [{ sectionId: "s1", blockId: "purpose", drift: "facet_changed", changedFacets: ["body"] }],
+      tombstoned: [],
+    },
+    queued: [{ sectionId: "s1", blocks: ["purpose"] }],
+    outcome: { updated: [], skipped: [{ sectionId: "s1", reason: "no targets" }], failed: [] },
+  } satisfies RunDecisionsEntry;
+
+  it("stays silent without CODELORE_DEBUG and records the decisions with it", async () => {
+    const rootDir = await mkdtemp(join(tmpdir(), "codelore-runs-"));
+    const decisionsPath = runDecisionsPath(rootDir, ".codelore", entry);
+
+    try {
+      vi.stubEnv("CODELORE_DEBUG", "");
+      await writeRunDecisions({ rootDir, indexDir: ".codelore", entry });
+      await expect(access(decisionsPath)).rejects.toThrow();
+
+      vi.stubEnv("CODELORE_DEBUG", "1");
+      await writeRunDecisions({ rootDir, indexDir: ".codelore", entry });
+      const written = JSON.parse(await readFile(decisionsPath, "utf8"));
+      expect(written).toMatchObject({
+        runId: "run-1",
+        queued: [{ sectionId: "s1", blocks: ["purpose"] }],
+        outcome: { skipped: [{ sectionId: "s1", reason: "no targets" }] },
+      });
+      // The point of the record: a block that was found but never queued is visible.
+      expect(written.found.stale).toHaveLength(1);
     } finally {
       vi.unstubAllEnvs();
       await rm(rootDir, { recursive: true, force: true });

@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/markdown/block-facets.codelore.md",
-  "generatedAt": "2026-07-03T16:25:43.471Z",
+  "generatedAt": "2026-09-13T23:00:01.839Z",
   "sectionOrder": [
     "symbol:src/markdown/block-facets.ts#computeBlockFingerprint",
     "symbol:src/markdown/block-facets.ts#parseBlockFingerprintValue",
@@ -18,12 +18,14 @@
       ],
       "depends": [],
       "usedBy": [
+        "file:src/service/codelore-service.ts",
         "file:src/service/doc-validation.ts",
-        "file:src/service/prepare-docs.ts",
         "file:src/service/section-rewrite.ts",
         "file:src/service/stale-detection.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.restoreKeptBlocks",
+        "symbol:src/service/codelore-service.ts#CodeloreService.stampUnwrittenBlocks",
         "symbol:src/service/doc-validation.ts#staleValidationIssue",
-        "symbol:src/service/prepare-docs.ts#docStateSectionForPlannedEntity",
         "symbol:src/service/section-rewrite.ts#mergeGeneratedBlocksIntoSection",
         "symbol:src/service/stale-detection.ts#staleBlockInfoFor"
       ],
@@ -59,15 +61,16 @@
           }
         },
         "responsibility": {
-          "body": "Собирает фасеты для каждой owned сущности. Игнорирует идентификаторы сущностей, отсутствующие в `entities`. Возвращает `undefined`, если список owned сущностей пуст или ни одна не найдена.",
+          "body": "Вычисляет отпечаток блока, хэшируя конкатенацию значений фасетов всех сущностей, которыми владеет секция, через `hashFacetAcrossEntities`; возвращает `undefined`, если нет владеющих сущностей или если ни одна из них не имеет записи в словаре entities. Определяет набор фасетов, участвующих в хэше, по фиксированному отображению `BLOCK_FACETS[blockId]`. Возвращает `undefined`, если нет владеющих сущностей или ни одна из них не присутствует в entities, иначе — строку отпечатка.",
           "rendered": true,
-          "fingerprint": "signature=4605f044082f8afe2217dc4ea1c66c84d26afa9bb219d6fa93d2e06bd59329d3,deps=348df03cf22f9d11b167214eb17c19bc041d14494c4b0b5cf1897d55d6499362,usage=f55a0886a0073023774973f4ba1838dd82daf03109981f7ff8e3f53d344b01fa",
+          "fingerprint": "signature=4605f044082f8afe2217dc4ea1c66c84d26afa9bb219d6fa93d2e06bd59329d3,deps=348df03cf22f9d11b167214eb17c19bc041d14494c4b0b5cf1897d55d6499362,usage=552c265f4f84dd5cf20c9a361f879cf088a3132466d4f430657a413aadf24816",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.5,
+            "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Функция возвращает undefined, если ownedEntityIds пуст или ни одна сущность не найдена в entities."
-          }
+            "novelFact": "The fingerprint is computed by hashing the concatenation of each entity's facet value for the block, and it returns undefined when the block is not allowed for the entity."
+          },
+          "language": "ru"
         },
         "invariants": {
           "body": "Результат детерминирован при одинаковых входных данных.\nЕсли ownedEntityIds пуст, возвращает undefined.\nЕсли все переданные идентификаторы отсутствуют в entities, возвращает undefined.",
@@ -108,15 +111,16 @@
           }
         },
         "changeGuide": {
-          "body": "- Возврат `undefined` при пустом `ownedEntityIds` — конструкция `if (ownedEntityIds.length === 0) { return undefined; }` гарантирует, что функция не вычисляет хеш для пустого списка. Тест: `block-facets.test.ts`.\n- Игнорирование отсутствующих сущностей — `const presentIds = sortedIds.filter((id) => entities[id]);` отфильтровывает идентификаторы, не представленные в словаре, что предотвращает ошибки обращения к `undefined`. Тест: `block-facets.test.ts`.",
+          "body": "When the set of facets that contribute to a block's fingerprint changes (e.g., adding a new facet to `BLOCK_FACETS[blockId]`), the fingerprint value changes for all entities, causing `staleBlockInfoFor` to report `drift: \"facet_changed\"` with the updated `changedFacets` list. The fingerprint is undefined when the block is not allowed for the entity, so callers like `staleBlockInfoFor` and `CodeloreService.stampUnwrittenBlocks` must handle the undefined case by skipping the block.",
           "rendered": true,
-          "fingerprint": "body=6d657bc4dec7639dd6ad5e3b03e4554937e44afd717a60c4a5162c1f1a5b1c8a,deps=348df03cf22f9d11b167214eb17c19bc041d14494c4b0b5cf1897d55d6499362,usage=f55a0886a0073023774973f4ba1838dd82daf03109981f7ff8e3f53d344b01fa,placement=39a2cdaf33bb9d188e8d8256d1dc96508c2ca78970b3c9712ba5814038125311",
+          "fingerprint": "body=6d657bc4dec7639dd6ad5e3b03e4554937e44afd717a60c4a5162c1f1a5b1c8a,deps=348df03cf22f9d11b167214eb17c19bc041d14494c4b0b5cf1897d55d6499362,usage=552c265f4f84dd5cf20c9a361f879cf088a3132466d4f430657a413aadf24816,placement=39a2cdaf33bb9d188e8d8256d1dc96508c2ca78970b3c9712ba5814038125311",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Конструкция if (ownedEntityIds.length === 0) return undefined защищает от пустого списка."
-          }
+            "novelFact": "The fingerprint is computed over raw facet values without normalization, so whitespace changes do not invalidate a translation."
+          },
+          "language": "ru"
         }
       },
       "generationHistory": [
@@ -163,9 +167,70 @@
           "generatedBlocks": [
             "changeGuide"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.060Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:41:29.627Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "d1241d4a-6f75-4dba-a943-9b4d3fd432cf",
+          "timestamp": "2026-09-13T21:51:21.161Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "62857847-d626-48e6-877b-c4bf306b56e4",
+          "timestamp": "2026-09-13T22:17:37.851Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "55b12cfb-a086-477b-b289-838ba97ffaa0",
+          "timestamp": "2026-09-13T22:58:55.398Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "55b12cfb-a086-477b-b289-838ba97ffaa0",
+          "timestamp": "2026-09-13T23:00:01.839Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "changeGuide"
+          ]
         }
       ],
-      "depDocsFingerprint": "e984b3aecae5cca621935a67ef5baa81a56f3569524c62653fbd001c4566f4d9"
+      "depDocsFingerprint": "36717df337effa09fe12a6a709ba92f1c6fbc1dda880a65be738af60b969dd34",
+      "signature": "computeBlockFingerprint(blockId: BlockId, ownedEntityIds: string[], entities: Record<string, CodeEntity>): string | undefined"
     },
     "symbol:src/markdown/block-facets.ts#parseBlockFingerprintValue": {
       "heading": "parseBlockFingerprintValue",
@@ -319,7 +384,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "e984b3aecae5cca621935a67ef5baa81a56f3569524c62653fbd001c4566f4d9"
+      "depDocsFingerprint": "36717df337effa09fe12a6a709ba92f1c6fbc1dda880a65be738af60b969dd34"
     },
     "symbol:src/markdown/block-facets.ts#diffFacetHashes": {
       "heading": "diffFacetHashes",
@@ -473,7 +538,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "e984b3aecae5cca621935a67ef5baa81a56f3569524c62653fbd001c4566f4d9"
+      "depDocsFingerprint": "36717df337effa09fe12a6a709ba92f1c6fbc1dda880a65be738af60b969dd34"
     },
     "symbol:src/markdown/block-facets.ts#translationSourceFingerprint": {
       "heading": "translationSourceFingerprint",
@@ -608,7 +673,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "983849e86336b494de3d7384407f4a56e6e36e37c220760fcbb355e16e9d85b8"
+      "depDocsFingerprint": "36717df337effa09fe12a6a709ba92f1c6fbc1dda880a65be738af60b969dd34"
     }
   },
   "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"

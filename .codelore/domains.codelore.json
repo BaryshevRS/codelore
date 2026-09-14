@@ -1,11 +1,12 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-07T18:02:20.533Z",
+  "generatedAt": "2026-09-14T06:40:20.280Z",
   "domains": [
     {
       "slug": "block-fingerprinting",
       "name": "Отпечатки блоков документации",
       "files": [
+        "src/domains/member-evidence.ts",
         "src/markdown/block-facets.ts"
       ],
       "rationale": "Вычисляет и сравнивает хеши фасетов блока, определяя, что именно изменилось в коде и устарел ли перевод."
@@ -15,8 +16,10 @@
       "name": "Граф зависимостей и влияние изменений",
       "files": [
         "src/graph/diff.ts",
+        "src/graph/domain-dag.ts",
         "src/graph/file-dag.ts",
-        "src/graph/impact.ts"
+        "src/graph/impact.ts",
+        "src/graph/waves.ts"
       ],
       "rationale": "Разбирает unified diff, строит файловый граф зависимостей с волнами генерации и вычисляет, какие секции документации затронуты изменением сущностей."
     },
@@ -32,7 +35,9 @@
       "slug": "code-doc-indexing",
       "name": "Индексация кода и документации",
       "files": [
+        "src/domains/domain-map.ts",
         "src/indexer/code-indexer.ts",
+        "src/indexer/domain-entities.ts",
         "src/indexer/state-indexer.ts"
       ],
       "rationale": "Строит полный индекс сущностей проекта и индекс существующих секций документации для поиска по файлу, идентификатору и сущности."
@@ -61,6 +66,7 @@
       "slug": "common-utils",
       "name": "Общие низкоуровневые утилиты",
       "files": [
+        "src/domains/assign.ts",
         "src/utils/hash.ts",
         "src/utils/path.ts"
       ],
@@ -95,7 +101,8 @@
       "slug": "doc-translation",
       "name": "Перевод документации",
       "files": [
-        "src/llm/translator.ts"
+        "src/llm/translator.ts",
+        "src/markdown/doc-paths.ts"
       ],
       "rationale": "Переводит канонические тела блоков документации на другие языки через LLM, сохраняя кодовые вставки и отслеживая устаревшие переводы."
     },
@@ -111,6 +118,7 @@
       "slug": "initial-docs-preparation",
       "name": "Подготовка первичной документации",
       "files": [
+        "src/service/domain-docs.ts",
         "src/service/file-layout.ts",
         "src/service/prepare-docs.ts"
       ],
@@ -137,6 +145,7 @@
       "slug": "llm-generation-pipeline",
       "name": "Пайплайн генерации документации файлов",
       "files": [
+        "src/llm/domain-pipeline.ts",
         "src/llm/file-chunks.ts",
         "src/llm/file-pipeline.ts",
         "src/llm/file-writer.ts",
@@ -148,7 +157,9 @@
       "slug": "llm-json-response-parsing",
       "name": "Разбор JSON-ответов LLM с повтором запроса",
       "files": [
+        "src/domains/partition.ts",
         "src/llm/complete-and-parse.ts",
+        "src/llm/domain-writer.ts",
         "src/llm/json.ts"
       ],
       "rationale": "Парсит JSON из ответа модели и, если разбор не удался, повторяет запрос с обратной связью до успеха или исчерпания попыток."
@@ -175,6 +186,7 @@
       "name": "Рендеринг и локализация Markdown-документов",
       "files": [
         "src/markdown/callouts.ts",
+        "src/markdown/linkify.ts",
         "src/markdown/locales.ts",
         "src/markdown/render-doc.ts"
       ],

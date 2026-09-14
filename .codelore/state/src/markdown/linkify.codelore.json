@@ -1,0 +1,1448 @@
+{
+  "version": 4,
+  "docPath": "src/markdown/linkify.codelore.md",
+  "generatedAt": "2026-09-13T23:26:45.729Z",
+  "sectionOrder": [
+    "file:src/markdown/linkify.ts",
+    "symbol:src/markdown/linkify.ts#buildEntityLinkMap",
+    "symbol:src/markdown/linkify.ts#removeDocFromLinkMap",
+    "symbol:src/markdown/linkify.ts#addDocToLinkMap",
+    "symbol:src/markdown/linkify.ts#buildPathTargets",
+    "symbol:src/markdown/linkify.ts#sectionLinkTargets",
+    "symbol:src/markdown/linkify.ts#linkifyBlockBody",
+    "symbol:src/markdown/linkify.ts#docLead",
+    "symbol:src/markdown/linkify.ts#docResponsibilities",
+    "symbol:src/markdown/linkify.ts#buildDomainComposition",
+    "symbol:src/markdown/linkify.ts#buildDomainRelations"
+  ],
+  "sections": {
+    "file:src/markdown/linkify.ts": {
+      "heading": "linkify.ts",
+      "depth": 1,
+      "anchor": "linkifyts",
+      "owns": [
+        "file:src/markdown/linkify.ts"
+      ],
+      "depends": [],
+      "usedBy": [],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Преобразует ссылки вида file: в абсолютные пути, чтобы они корректно работали в сгенерированной документации, и оставляет все остальные ссылки без изменений.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Преобразует ссылки file: в абсолютные пути, чтобы они корректно работали в сгенерированной документации."
+          },
+          "fingerprint": "signature=241fb8ddfb42df0b305b7856624b912e8f9f1ceffb6c7e3842071b33419c8423,placement=241fb8ddfb42df0b305b7856624b912e8f9f1ceffb6c7e3842071b33419c8423"
+        },
+        "responsibility": {
+          "body": "- Определяет, является ли ссылка ссылкой file: по префиксу.\n- Извлекает путь из URL и преобразует его в абсолютный путь, если он относительный.\n- Возвращает исходную ссылку без изменений для всех не-file: ссылок.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция различает ссылки file: и остальные, преобразует только первые, а вторые пропускает."
+          },
+          "fingerprint": "signature=241fb8ddfb42df0b305b7856624b912e8f9f1ceffb6c7e3842071b33419c8423,deps=829b3b4d314f00d0e1b63da103a709f6d598c10a825f97a28a449fde41e7a94f,usage=829b3b4d314f00d0e1b63da103a709f6d598c10a825f97a28a449fde41e7a94f"
+        },
+        "invariants": {
+          "body": "Функция обрабатывает только ссылки, начинающиеся с префикса file:; все остальные ссылки (например, http:, https:, mailto:) возвращает без изменений. Для ссылок file: она извлекает путь из URL и преобразует его в абсолютный путь, если он относительный. Если путь не может быть преобразован (например, из-за недопустимых символов), функция возвращает исходную ссылку без изменений.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция обрабатывает только ссылки с префиксом file:, а остальные ссылки оставляет без изменений."
+          },
+          "fingerprint": "signature=241fb8ddfb42df0b305b7856624b912e8f9f1ceffb6c7e3842071b33419c8423,body=dfbef8ad3ad8954703b7c3997f554c8a1308277623441f829ae009301c965203"
+        },
+        "limitations": {
+          "body": "Функция не обрабатывает ссылки, в которых отсутствует символ '#', так как она ищет якорь только после этого разделителя. Она также не проверяет, существует ли целевой файл на диске, и не разрешает относительные пути — предполагается, что docPath уже корректен.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.5,
+            "novelFact": "Функция не обрабатывает ссылки с якорем, если в них нет символа '#', и не проверяет существование целевого файла."
+          },
+          "fingerprint": "body=dfbef8ad3ad8954703b7c3997f554c8a1308277623441f829ae009301c965203"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.779Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.711Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "symbol:src/markdown/linkify.ts#buildEntityLinkMap": {
+      "heading": "buildEntityLinkMap",
+      "depth": 1,
+      "anchor": "buildentitylinkmap",
+      "signature": "buildEntityLinkMap(states: Iterable<DocState>): Map<string, LinkTarget>",
+      "owns": [
+        "symbol:src/markdown/linkify.ts#buildEntityLinkMap"
+      ],
+      "depends": [
+        "symbol:src/markdown/linkify.ts#addDocToLinkMap"
+      ],
+      "usedBy": [
+        "file:src/storage/doc-state-storage.ts",
+        "symbol:src/storage/doc-state-storage.ts#DocStateStorage",
+        "symbol:src/storage/doc-state-storage.ts#DocStateStorage.buildRenderContext"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Создаёт карту ссылок на сущности, сопоставляя имя сущности с её ссылкой, чтобы впоследствии по имени можно было найти ссылку.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Создаёт карту ссылок на сущности, чтобы по имени сущности можно было найти её ссылку."
+          },
+          "fingerprint": "signature=f9df30e5efa13a2410cf158089deadea83c3c4c30a3b88d7b82ff3ca56e9f31b,placement=6f7b8747be62a5035faf56f9458a71b5bfea4c5440141f93657afb72ba47087c"
+        },
+        "responsibility": {
+          "body": "- Перебирает все сущности.\n- Для каждой сущности с ссылкой добавляет запись в карту.\n- Пропускает сущности без ссылки.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция перебирает все сущности и добавляет в карту только те, у которых есть ссылка."
+          },
+          "fingerprint": "signature=f9df30e5efa13a2410cf158089deadea83c3c4c30a3b88d7b82ff3ca56e9f31b,deps=db09ee93ca53b6a66014e052f2de2a6b851d597f9ed4baa6c233c04598bccbb7,usage=cc036e983ede2653f234c6281f851cb57174a3d3ca0aa306c004bcd879916460"
+        },
+        "invariants": {
+          "body": "Функция строит карту ссылок для всех сущностей, пропуская те, у которых нет ссылки. Для каждой сущности с ссылкой она добавляет запись в карту, используя имя сущности в качестве ключа.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция строит карту ссылок для всех сущностей, пропуская те, у которых нет ссылки."
+          },
+          "fingerprint": "signature=f9df30e5efa13a2410cf158089deadea83c3c4c30a3b88d7b82ff3ca56e9f31b,body=0f89d0449ceed0524b15b19fc11a1d86fe6b3b7e4d0f266f6cff61d6112321a5"
+        },
+        "dependencies": {
+          "body": "Функция не использует внешние модули; она опирается только на локальный тип LinkTarget, определённый в этом же файле.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Функция не имеет внешних зависимостей, кроме собственного типа LinkTarget."
+          },
+          "fingerprint": "deps=db09ee93ca53b6a66014e052f2de2a6b851d597f9ed4baa6c233c04598bccbb7"
+        },
+        "workflows": {
+          "body": "Функция вызывается из linkify для каждой ссылки, найденной в документе, и добавляет её в общую карту ссылок. Это происходит в процессе обработки всех документов, когда linkify собирает все ссылки для последующего разрешения.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция вызывается из linkify для каждой ссылки, найденной в документе, и добавляет её в общую карту."
+          },
+          "fingerprint": "body=0f89d0449ceed0524b15b19fc11a1d86fe6b3b7e4d0f266f6cff61d6112321a5,deps=db09ee93ca53b6a66014e052f2de2a6b851d597f9ed4baa6c233c04598bccbb7"
+        },
+        "limitations": {
+          "body": "Функция не проверяет, существует ли уже запись с таким ключом в карте, и при повторном вызове с тем же ключом перезаписывает предыдущее значение. Она также не проверяет, что docPath является валидным путём.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.5,
+            "novelFact": "Функция не проверяет, существует ли уже запись с таким ключом, и перезаписывает её."
+          },
+          "fingerprint": "body=0f89d0449ceed0524b15b19fc11a1d86fe6b3b7e4d0f266f6cff61d6112321a5"
+        },
+        "changeGuide": {
+          "body": "- Функция группирует ссылки по имени сущности, используя `entityName` как ключ карты, что гарантирует уникальность записей для каждой сущности.\\n- Если anchor задан, он используется как ключ внутри группы, иначе ключом становится пустая строка; это поведение закреплено в выражении `anchor ?? \"\"`.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция строит карту ссылок, группируя их по имени сущности, и использует anchor как ключ, если он задан."
+          },
+          "fingerprint": "body=0f89d0449ceed0524b15b19fc11a1d86fe6b3b7e4d0f266f6cff61d6112321a5,deps=db09ee93ca53b6a66014e052f2de2a6b851d597f9ed4baa6c233c04598bccbb7,usage=cc036e983ede2653f234c6281f851cb57174a3d3ca0aa306c004bcd879916460,placement=6f7b8747be62a5035faf56f9458a71b5bfea4c5440141f93657afb72ba47087c"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.781Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.712Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "symbol:src/markdown/linkify.ts#removeDocFromLinkMap": {
+      "heading": "removeDocFromLinkMap",
+      "depth": 1,
+      "anchor": "removedocfromlinkmap",
+      "signature": "removeDocFromLinkMap(links: Map<string, LinkTarget>, docPath: string): void",
+      "owns": [
+        "symbol:src/markdown/linkify.ts#removeDocFromLinkMap"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/storage/doc-state-storage.ts",
+        "symbol:src/markdown/linkify.ts#addDocToLinkMap",
+        "symbol:src/storage/doc-state-storage.ts#DocStateStorage",
+        "symbol:src/storage/doc-state-storage.ts#DocStateStorage.deleteDocState"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Удаляет документ из карты ссылок по ключу, чтобы освободить место и избежать устаревших ссылок.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Удаляет документ из карты ссылок, чтобы освободить место и избежать устаревших ссылок."
+          },
+          "fingerprint": "signature=c8618a6dfa1dd4baf42891cb5122e4cb459a5463e76950933444871eb0b8bde0,placement=44339fdc7696116b25513d61d97c98f4818f4337f2ec0e0429f2d1f4d7c96882"
+        },
+        "responsibility": {
+          "body": "- Проверяет, существует ли ключ в карте.\n- Если существует, удаляет запись.\n- Если нет, ничего не делает.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция удаляет запись из карты, если ключ существует."
+          },
+          "fingerprint": "signature=c8618a6dfa1dd4baf42891cb5122e4cb459a5463e76950933444871eb0b8bde0,deps=7f5b2a612a3ca9022b288144f67074b46728c481aaf36571d725d1ec2a1c04c9,usage=401ad42eac0a9aacae7b3db610eb03c50548c4450dd0058aff5ed47170ce58ef"
+        },
+        "invariants": {
+          "body": "Функция удаляет запись из карты ссылок по ключу, если она существует. Если ключа нет, ничего не делает.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция удаляет запись из карты ссылок по ключу, если она существует."
+          },
+          "fingerprint": "signature=c8618a6dfa1dd4baf42891cb5122e4cb459a5463e76950933444871eb0b8bde0,body=81ebde19d8456c11d7a0c7b3258e1e4440418ba89c4b03156ff5badef64bc1dc"
+        },
+        "workflows": {
+          "body": "Функция вызывается из linkify для каждой ссылки, найденной в документе, и добавляет её в общую карту ссылок. Это происходит в процессе обработки всех документов, когда linkify собирает все ссылки для последующего разрешения.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция вызывается из linkify для каждой ссылки, найденной в документе, и добавляет её в общую карту."
+          },
+          "fingerprint": "body=81ebde19d8456c11d7a0c7b3258e1e4440418ba89c4b03156ff5badef64bc1dc,deps=7f5b2a612a3ca9022b288144f67074b46728c481aaf36571d725d1ec2a1c04c9"
+        },
+        "limitations": {
+          "body": "Функция не проверяет, существует ли запись с таким ключом в карте, и просто удаляет её, если она есть. Она также не проверяет, что docPath является валидным путём.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.5,
+            "novelFact": "Функция не проверяет, существует ли запись с таким ключом, и просто удаляет её, если она есть."
+          },
+          "fingerprint": "body=81ebde19d8456c11d7a0c7b3258e1e4440418ba89c4b03156ff5badef64bc1dc"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.782Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.714Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "symbol:src/markdown/linkify.ts#addDocToLinkMap": {
+      "heading": "addDocToLinkMap",
+      "depth": 1,
+      "anchor": "adddoctolinkmap",
+      "signature": "addDocToLinkMap(links: Map<string, LinkTarget>, state: DocState): void",
+      "owns": [
+        "symbol:src/markdown/linkify.ts#addDocToLinkMap"
+      ],
+      "depends": [
+        "symbol:src/markdown/linkify.ts#removeDocFromLinkMap"
+      ],
+      "usedBy": [
+        "file:src/storage/doc-state-storage.ts",
+        "symbol:src/markdown/linkify.ts#buildEntityLinkMap",
+        "symbol:src/storage/doc-state-storage.ts#DocStateStorage",
+        "symbol:src/storage/doc-state-storage.ts#DocStateStorage.saveDocState"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Регистрирует документ в карте ссылок, сопоставляя ключ с путём документа, чтобы впоследствии по ключу можно было найти путь.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Регистрирует документ в карте ссылок, чтобы по ключу можно было найти его путь."
+          },
+          "fingerprint": "signature=acbeecb9c606accde2e400ca4f788dd61907ebc8c8e595c2eeb4d61a1cc24794,placement=934e6a61c36096e61ba4eeb744a6861232ec5ec269a0a74e7c977b991e4e161e"
+        },
+        "responsibility": {
+          "body": "- Проверяет, существует ли ключ в карте.\n- Если ключа нет, добавляет запись с путём документа.\n- Если ключ уже есть, ничего не делает.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция добавляет запись в карту, но не перезаписывает существующие ключи."
+          },
+          "fingerprint": "signature=acbeecb9c606accde2e400ca4f788dd61907ebc8c8e595c2eeb4d61a1cc24794,deps=4fd08b5c1878061b7ebc74e911c4d245e474b767da1de4c0111b2dcf67852897,usage=003dc61afa1b7dd86c51a7d0a1bd12454a9445e27ea10df7aa4518d77cf2e2c7"
+        },
+        "invariants": {
+          "body": "Функция добавляет запись в карту ссылок только если ключ ещё не существует; если ключ уже присутствует, запись не перезаписывается. Это гарантирует, что первая добавленная ссылка для данного ключа остаётся неизменной.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция добавляет запись в карту ссылок только если ключ ещё не существует; дубликаты игнорируются."
+          },
+          "fingerprint": "signature=acbeecb9c606accde2e400ca4f788dd61907ebc8c8e595c2eeb4d61a1cc24794,body=39a940aea4a45c6d5cb921d071a9e62c1abfe9c36e593d94323abd3f629a2678"
+        },
+        "dependencies": {
+          "body": "Функция не использует внешние модули; она опирается только на локальный тип LinkTarget, определённый в этом же файле.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Функция не имеет внешних зависимостей, кроме собственного типа LinkTarget."
+          },
+          "fingerprint": "deps=4fd08b5c1878061b7ebc74e911c4d245e474b767da1de4c0111b2dcf67852897"
+        },
+        "workflows": {
+          "body": "Функция вызывается из linkify для каждой ссылки, найденной в документе, и добавляет её в общую карту ссылок. Это происходит в процессе обработки всех документов, когда linkify собирает все ссылки для последующего разрешения.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция вызывается из linkify для каждой ссылки, найденной в документе, и добавляет её в общую карту."
+          },
+          "fingerprint": "body=39a940aea4a45c6d5cb921d071a9e62c1abfe9c36e593d94323abd3f629a2678,deps=4fd08b5c1878061b7ebc74e911c4d245e474b767da1de4c0111b2dcf67852897"
+        },
+        "limitations": {
+          "body": "Функция не проверяет, существует ли уже запись с таким ключом в карте, и при повторном вызове с тем же ключом перезаписывает предыдущее значение. Она также не проверяет, что docPath является валидным путём.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.5,
+            "novelFact": "Функция не проверяет, существует ли уже запись с таким ключом, и перезаписывает её."
+          },
+          "fingerprint": "body=39a940aea4a45c6d5cb921d071a9e62c1abfe9c36e593d94323abd3f629a2678"
+        },
+        "changeGuide": {
+          "body": "- Функция добавляет запись в карту ссылок только при непустом docPath, что гарантирует отсутствие пустых ключей; это условие проверяется оператором `if (docPath)`.\\n- Если anchor задан, он используется как ключ записи, иначе ключом становится пустая строка; это поведение закреплено в выражении `anchor ?? \"\"`.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция добавляет запись в карту ссылок только если docPath не пуст, и использует anchor как ключ, если он задан."
+          },
+          "fingerprint": "body=39a940aea4a45c6d5cb921d071a9e62c1abfe9c36e593d94323abd3f629a2678,deps=4fd08b5c1878061b7ebc74e911c4d245e474b767da1de4c0111b2dcf67852897,usage=003dc61afa1b7dd86c51a7d0a1bd12454a9445e27ea10df7aa4518d77cf2e2c7,placement=934e6a61c36096e61ba4eeb744a6861232ec5ec269a0a74e7c977b991e4e161e"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.784Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.716Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "symbol:src/markdown/linkify.ts#buildPathTargets": {
+      "heading": "buildPathTargets",
+      "depth": 1,
+      "anchor": "buildpathtargets",
+      "signature": "buildPathTargets(links: EntityLinkMap): Map<string, FileDocTarget>",
+      "owns": [
+        "symbol:src/markdown/linkify.ts#buildPathTargets"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/markdown/render-doc.ts",
+        "symbol:src/markdown/render-doc.ts#renderDoc"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Создаёт карту путей, сопоставляя каждый путь с его целевой ссылкой, чтобы впоследствии по пути можно было найти целевую ссылку.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Создаёт карту путей, чтобы по пути можно было найти целевую ссылку."
+          },
+          "fingerprint": "signature=6584fab5f066c2a2a8cf8fede3011fb42df403b866c654b9eb47120cb47548d4,placement=bc1109b997281d1630a2ed9b5d583b81d389d07ad664eabd556161e7d524e7b5"
+        },
+        "responsibility": {
+          "body": "- Перебирает все пути.\n- Для каждого пути добавляет запись в карту.\n- Использует путь в качестве ключа.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция перебирает все пути и добавляет в карту запись для каждого."
+          },
+          "fingerprint": "signature=6584fab5f066c2a2a8cf8fede3011fb42df403b866c654b9eb47120cb47548d4,deps=347932a91a080ca8a1d243134371ed49b644af0e679620ef4c3142df1be2f3ed,usage=5003dc49dfcd5b3ad566400d6087c22913adfb2f2d62d805d731f685aa5ba4cc"
+        },
+        "invariants": {
+          "body": "Функция строит карту путей, сопоставляя каждый путь с его целевой ссылкой. Для каждого пути она добавляет запись в карту, используя путь в качестве ключа.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция строит карту путей, сопоставляя каждый путь с его целевой ссылкой."
+          },
+          "fingerprint": "signature=6584fab5f066c2a2a8cf8fede3011fb42df403b866c654b9eb47120cb47548d4,body=7c44af5369c82baa8058f17cffc147a65abcd0fb79a6b1a001c4e5b8216d188d"
+        },
+        "workflows": {
+          "body": "Функция вызывается из linkify для каждой ссылки, найденной в документе, и добавляет её в общую карту ссылок. Это происходит в процессе обработки всех документов, когда linkify собирает все ссылки для последующего разрешения.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция вызывается из linkify для каждой ссылки, найденной в документе, и добавляет её в общую карту."
+          },
+          "fingerprint": "body=7c44af5369c82baa8058f17cffc147a65abcd0fb79a6b1a001c4e5b8216d188d,deps=347932a91a080ca8a1d243134371ed49b644af0e679620ef4c3142df1be2f3ed"
+        },
+        "limitations": {
+          "body": "Функция не проверяет, существует ли уже запись с таким ключом в карте, и при повторном вызове с тем же ключом перезаписывает предыдущее значение. Она также не проверяет, что docPath является валидным путём.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.5,
+            "novelFact": "Функция не проверяет, существует ли уже запись с таким ключом, и перезаписывает её."
+          },
+          "fingerprint": "body=7c44af5369c82baa8058f17cffc147a65abcd0fb79a6b1a001c4e5b8216d188d"
+        },
+        "changeGuide": {
+          "body": "- Функция группирует ссылки по имени сущности, используя `entityName` как ключ карты, что гарантирует уникальность записей для каждой сущности.\\n- Если anchor задан, он используется как ключ внутри группы, иначе ключом становится пустая строка; это поведение закреплено в выражении `anchor ?? \"\"`.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция строит карту ссылок, группируя их по имени сущности, и использует anchor как ключ, если он задан."
+          },
+          "fingerprint": "body=7c44af5369c82baa8058f17cffc147a65abcd0fb79a6b1a001c4e5b8216d188d,deps=347932a91a080ca8a1d243134371ed49b644af0e679620ef4c3142df1be2f3ed,usage=5003dc49dfcd5b3ad566400d6087c22913adfb2f2d62d805d731f685aa5ba4cc,placement=bc1109b997281d1630a2ed9b5d583b81d389d07ad664eabd556161e7d524e7b5"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.785Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.718Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "symbol:src/markdown/linkify.ts#sectionLinkTargets": {
+      "heading": "sectionLinkTargets",
+      "depth": 1,
+      "anchor": "sectionlinktargets",
+      "signature": "sectionLinkTargets(state: DocState, section: DocStateSection, links: EntityLinkMap): Map<string, LinkTarget>",
+      "owns": [
+        "symbol:src/markdown/linkify.ts#sectionLinkTargets"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/markdown/render-doc.ts",
+        "symbol:src/markdown/render-doc.ts#renderDoc"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Создаёт карту ссылок на разделы, сопоставляя имя раздела с его ссылкой, чтобы впоследствии по имени можно было найти ссылку.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Создаёт карту ссылок на разделы, чтобы по имени раздела можно было найти его ссылку."
+          },
+          "fingerprint": "signature=a0d6a0922744192268f25c2cfbea8f6930ea1423b4fe3b9b93b74c9b7d7f231b,placement=1bbf28f3d1809e6ee3aa9fcaadae75b472baf72be20f0ac3e806c8ee0e1a401c"
+        },
+        "responsibility": {
+          "body": "- Перебирает все разделы.\n- Для каждого раздела добавляет запись в карту.\n- Использует имя раздела в качестве ключа.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция перебирает все разделы и добавляет в карту запись для каждого."
+          },
+          "fingerprint": "signature=a0d6a0922744192268f25c2cfbea8f6930ea1423b4fe3b9b93b74c9b7d7f231b,deps=e91b7d1620cadf0d250aed0e052d5340ca9dbf92fb2ae48ea4bc4d8878175691,usage=f01e8ba99c58203254d03c98bf00d677a70438128bf0dc29c4071eaf0e773ec0"
+        },
+        "invariants": {
+          "body": "Функция строит карту ссылок на разделы, сопоставляя имя раздела с его ссылкой. Для каждого раздела она добавляет запись в карту, используя имя раздела в качестве ключа.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция строит карту ссылок на разделы, сопоставляя имя раздела с его ссылкой."
+          },
+          "fingerprint": "signature=a0d6a0922744192268f25c2cfbea8f6930ea1423b4fe3b9b93b74c9b7d7f231b,body=e71ca7694b07fd5f1892d4489e29602504521e13fc900a2a101c7c6887f257ea"
+        },
+        "workflows": {
+          "body": "Функция вызывается из linkify для каждой ссылки, найденной в документе, и добавляет её в общую карту ссылок. Это происходит в процессе обработки всех документов, когда linkify собирает все ссылки для последующего разрешения.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция вызывается из linkify для каждой ссылки, найденной в документе, и добавляет её в общую карту."
+          },
+          "fingerprint": "body=e71ca7694b07fd5f1892d4489e29602504521e13fc900a2a101c7c6887f257ea,deps=e91b7d1620cadf0d250aed0e052d5340ca9dbf92fb2ae48ea4bc4d8878175691"
+        },
+        "limitations": {
+          "body": "Функция не проверяет, существует ли уже запись с таким ключом в карте, и при повторном вызове с тем же ключом перезаписывает предыдущее значение. Она также не проверяет, что docPath является валидным путём.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.5,
+            "novelFact": "Функция не проверяет, существует ли уже запись с таким ключом, и перезаписывает её."
+          },
+          "fingerprint": "body=e71ca7694b07fd5f1892d4489e29602504521e13fc900a2a101c7c6887f257ea"
+        },
+        "changeGuide": {
+          "body": "- Функция группирует ссылки по имени сущности, используя `entityName` как ключ карты, что гарантирует уникальность записей для каждой сущности.\\n- Если anchor задан, он используется как ключ внутри группы, иначе ключом становится пустая строка; это поведение закреплено в выражении `anchor ?? \"\"`.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция строит карту ссылок, группируя их по имени сущности, и использует anchor как ключ, если он задан."
+          },
+          "fingerprint": "body=e71ca7694b07fd5f1892d4489e29602504521e13fc900a2a101c7c6887f257ea,deps=e91b7d1620cadf0d250aed0e052d5340ca9dbf92fb2ae48ea4bc4d8878175691,usage=f01e8ba99c58203254d03c98bf00d677a70438128bf0dc29c4071eaf0e773ec0,placement=1bbf28f3d1809e6ee3aa9fcaadae75b472baf72be20f0ac3e806c8ee0e1a401c"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.786Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.720Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "symbol:src/markdown/linkify.ts#linkifyBlockBody": {
+      "heading": "linkifyBlockBody",
+      "depth": 1,
+      "anchor": "linkifyblockbody",
+      "signature": "linkifyBlockBody(body: string, context: BlockLinkContext): string",
+      "owns": [
+        "symbol:src/markdown/linkify.ts#linkifyBlockBody"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/markdown/render-doc.ts",
+        "symbol:src/markdown/render-doc.ts#renderSection"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Назначение — взять тело блока и обернуть его в синтаксис ссылки, чтобы оно стало кликабельным.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Функция создаёт ссылку из содержимого блока."
+          },
+          "fingerprint": "signature=95a875ba7b749bda198ead03315a042f39d14caf6767da60a18189a0ec8c4776,placement=d1f6a77e25e6cdb89d03e02fbd78529d39e9fc7174e0b598e8b1a2ecca410638"
+        },
+        "responsibility": {
+          "body": "Отвечает за формирование строки ссылки на основе тела блока. Не изменяет исходный текст.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Ответственность — генерация ссылки из переданного текста."
+          },
+          "fingerprint": "signature=95a875ba7b749bda198ead03315a042f39d14caf6767da60a18189a0ec8c4776,deps=ee706f522802be7add09f1963fdbc21fce2c5b68a78a52269be29964de9e457a,usage=e8a40ec1d45b0fbc84ec0e6a77dfbaf53fe9d1b949213a8a8c2d70089eba5dfc"
+        },
+        "invariants": {
+          "body": "Принимает тело блока (строку) и возвращает строку, содержащую ссылку, сформированную на основе этого тела.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Преобразует тело блока в ссылку."
+          },
+          "fingerprint": "signature=95a875ba7b749bda198ead03315a042f39d14caf6767da60a18189a0ec8c4776,body=ba16b3a7700e262c905da27418af8e6f326527f9ddb9b9d87ab1f59610be859e"
+        },
+        "workflows": {
+          "body": "The function composes a domain object from a raw packet, but the packet's internal structure is not documented here; see the packet schema in the dependency docs.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The function composes a domain object from a raw packet, but the packet's internal structure is not documented here; see the packet schema in the dependency docs."
+          },
+          "fingerprint": "body=ba16b3a7700e262c905da27418af8e6f326527f9ddb9b9d87ab1f59610be859e,deps=ee706f522802be7add09f1963fdbc21fce2c5b68a78a52269be29964de9e457a"
+        },
+        "limitations": {
+          "body": "The function composes a domain object from a raw packet, but the packet's internal structure is not documented here; see the packet schema in the dependency docs.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The function composes a domain object from a raw packet, but the packet's internal structure is not documented here; see the packet schema in the dependency docs."
+          },
+          "fingerprint": "body=ba16b3a7700e262c905da27418af8e6f326527f9ddb9b9d87ab1f59610be859e"
+        },
+        "changeGuide": {
+          "body": "The function composes a domain object from a raw packet, but the packet's internal structure is not documented here; see the packet schema in the dependency docs.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The function composes a domain object from a raw packet, but the packet's internal structure is not documented here; see the packet schema in the dependency docs."
+          },
+          "fingerprint": "body=ba16b3a7700e262c905da27418af8e6f326527f9ddb9b9d87ab1f59610be859e,deps=ee706f522802be7add09f1963fdbc21fce2c5b68a78a52269be29964de9e457a,usage=e8a40ec1d45b0fbc84ec0e6a77dfbaf53fe9d1b949213a8a8c2d70089eba5dfc,placement=d1f6a77e25e6cdb89d03e02fbd78529d39e9fc7174e0b598e8b1a2ecca410638"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.788Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.722Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "symbol:src/markdown/linkify.ts#docLead": {
+      "heading": "docLead",
+      "depth": 1,
+      "anchor": "doclead",
+      "signature": "docLead(state: DocState): string | undefined",
+      "owns": [
+        "symbol:src/markdown/linkify.ts#docLead"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/storage/doc-state-storage.ts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Назначение — извлечь из документации её вводную часть, чтобы использовать её отдельно от остального содержимого.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Функция выделяет основной комментарий из полного текста документации."
+          },
+          "fingerprint": "signature=271a4a9d99f5d4851fd13d0731d5760a5f25d82c12d98c16028f05d60a9c6a06,placement=f0211e4bd2995307a435c2d1e296597d3bcd3f1873fa43e6d4bbc2c924a1aaa5"
+        },
+        "responsibility": {
+          "body": "Отвечает за выделение ведущего комментария из переданной строки. Не изменяет исходную строку.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Ответственность — парсинг строки документации и возврат первого блока."
+          },
+          "fingerprint": "signature=271a4a9d99f5d4851fd13d0731d5760a5f25d82c12d98c16028f05d60a9c6a06,deps=19157bb5f5c7b4c44bb507de9547fb0550d5b16b5f02f9fe11c91b13e4fbd8b1,usage=15ee498e3beb799baaba8555272757822334b7751563f8306eb836dd08760db1"
+        },
+        "invariants": {
+          "body": "Принимает строку документации и возвращает её первую часть — ведущий комментарий, который обычно описывает суть документа.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Извлекает ведущий комментарий из документации."
+          },
+          "fingerprint": "signature=271a4a9d99f5d4851fd13d0731d5760a5f25d82c12d98c16028f05d60a9c6a06,body=4ea4dd3f66cb14ebc191c9d20015d02590b9bfe6335fb57f926dedcacde22f05"
+        },
+        "workflows": {
+          "body": "The function composes a domain object from a raw packet, but the packet's internal structure is not documented here; see the packet schema in the dependency docs.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The function composes a domain object from a raw packet, but the packet's internal structure is not documented here; see the packet schema in the dependency docs."
+          },
+          "fingerprint": "body=4ea4dd3f66cb14ebc191c9d20015d02590b9bfe6335fb57f926dedcacde22f05,deps=19157bb5f5c7b4c44bb507de9547fb0550d5b16b5f02f9fe11c91b13e4fbd8b1"
+        },
+        "limitations": {
+          "body": "The function composes a domain object from a raw packet, but the packet's internal structure is not documented here; see the packet schema in the dependency docs.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The function composes a domain object from a raw packet, but the packet's internal structure is not documented here; see the packet schema in the dependency docs."
+          },
+          "fingerprint": "body=4ea4dd3f66cb14ebc191c9d20015d02590b9bfe6335fb57f926dedcacde22f05"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.790Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.724Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "symbol:src/markdown/linkify.ts#docResponsibilities": {
+      "heading": "docResponsibilities",
+      "depth": 1,
+      "anchor": "docresponsibilities",
+      "signature": "docResponsibilities(state: DocState): string | undefined",
+      "owns": [
+        "symbol:src/markdown/linkify.ts#docResponsibilities"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.collectDocumentedFileLeads"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Назначение — разобрать документацию и выделить из неё перечень обязанностей, чтобы их можно было обрабатывать по отдельности.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Функция предназначена для получения структурированного списка обязанностей из текста документации."
+          },
+          "fingerprint": "signature=430bb7cb61a6e7e728374037523a2fd9494473328a32a33afa53c3a42d754ea9,placement=847467abdd6e62891cd501a5171a6d6624cbe9f4a7d5f794ffba63036be67fe8"
+        },
+        "responsibility": {
+          "body": "Отвечает за преобразование текста документации в массив обязанностей. Не изменяет входные данные.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Ответственность — парсинг документации и извлечение списка обязанностей."
+          },
+          "fingerprint": "signature=430bb7cb61a6e7e728374037523a2fd9494473328a32a33afa53c3a42d754ea9,deps=a8a7164d0556266b4c0dfc4525cd191851c7dfd4250d5748c303c3cfde153d92,usage=15f8c1036d712cc13d01d1bc05955f5d7bdf80f42d1a7802ca8edc6377831f8f"
+        },
+        "invariants": {
+          "body": "Принимает строку документации и возвращает массив строк, представляющих обязанности, описанные в документе.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Извлекает список обязанностей из документации."
+          },
+          "fingerprint": "signature=430bb7cb61a6e7e728374037523a2fd9494473328a32a33afa53c3a42d754ea9,body=a36a76564f6ff01ce185474ef52af526e6aa2c9b89d9745c47632e0ed543b3a7"
+        },
+        "workflows": {
+          "body": "The function composes a domain object from a raw packet, but the packet's internal structure is not documented here; see the packet schema in the dependency docs.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The function composes a domain object from a raw packet, but the packet's internal structure is not documented here; see the packet schema in the dependency docs."
+          },
+          "fingerprint": "body=a36a76564f6ff01ce185474ef52af526e6aa2c9b89d9745c47632e0ed543b3a7,deps=a8a7164d0556266b4c0dfc4525cd191851c7dfd4250d5748c303c3cfde153d92"
+        },
+        "limitations": {
+          "body": "The function composes a domain object from a raw packet, but the packet's internal structure is not documented here; see the packet schema in the dependency docs.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The function composes a domain object from a raw packet, but the packet's internal structure is not documented here; see the packet schema in the dependency docs."
+          },
+          "fingerprint": "body=a36a76564f6ff01ce185474ef52af526e6aa2c9b89d9745c47632e0ed543b3a7"
+        },
+        "changeGuide": {
+          "body": "The function composes a domain object from a raw packet, but the packet's internal structure is not documented here; see the packet schema in the dependency docs.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The function composes a domain object from a raw packet, but the packet's internal structure is not documented here; see the packet schema in the dependency docs."
+          },
+          "fingerprint": "body=a36a76564f6ff01ce185474ef52af526e6aa2c9b89d9745c47632e0ed543b3a7,deps=a8a7164d0556266b4c0dfc4525cd191851c7dfd4250d5748c303c3cfde153d92,usage=15f8c1036d712cc13d01d1bc05955f5d7bdf80f42d1a7802ca8edc6377831f8f,placement=847467abdd6e62891cd501a5171a6d6624cbe9f4a7d5f794ffba63036be67fe8"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.792Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.725Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "symbol:src/markdown/linkify.ts#buildDomainComposition": {
+      "heading": "buildDomainComposition",
+      "depth": 1,
+      "anchor": "builddomaincomposition",
+      "signature": "buildDomainComposition(depends: readonly string[], links: EntityLinkMap, pathTargets: FileDocMap, docInfo: DocInfoMap, renderedDocPath: string, renderedPathFor: (docPath: string) => string, membersLabel: string): string",
+      "owns": [
+        "symbol:src/markdown/linkify.ts#buildDomainComposition"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/markdown/render-doc.ts",
+        "symbol:src/markdown/render-doc.ts#renderDoc"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Назначение — собрать из массива строк единое доменное имя, разделяя сегменты точкой. Это вспомогательная операция для конструирования адресов.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Функция существует для формирования составного доменного имени из списка сегментов."
+          },
+          "fingerprint": "signature=a2f1c6c5f8d9ea40c7556002e6b020f275193a36b12f02bf3db414a3eb3504d8,placement=4f3184ba9c44b0e61b189f6431ab23df08e02a45c800d87503722318f72a33b3"
+        },
+        "responsibility": {
+          "body": "Отвечает только за конкатенацию переданных сегментов с точкой в качестве разделителя. Не выполняет валидацию или нормализацию доменов.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Ответственность ограничена объединением строк с разделителем-точкой."
+          },
+          "fingerprint": "signature=a2f1c6c5f8d9ea40c7556002e6b020f275193a36b12f02bf3db414a3eb3504d8,deps=3fa14cbfdd176df2dcd06ed12d24970ce115197c983584c86660ea55dc04b5e6,usage=fdc6ab4c31bdb395509997539856b3f076b3426b0ef68acb498f492449dc1bf2"
+        },
+        "invariants": {
+          "body": "Принимает массив строк, представляющих домены, и возвращает строку — их композицию, где элементы соединяются точкой. Если массив пуст, возвращает пустую строку. Это поведение используется при построении полных доменных имён из частей.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Собирает композицию доменов из переданного массива строк, объединяя их через точку."
+          },
+          "fingerprint": "signature=a2f1c6c5f8d9ea40c7556002e6b020f275193a36b12f02bf3db414a3eb3504d8,body=13ea3056e82d56ad5a82b95f0b25c50decc142ff31c78098d79c680996bf595b"
+        },
+        "workflows": {
+          "body": "The function composes a domain object from a raw packet, but the packet's internal structure is not documented here; see the packet schema in the dependency docs.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The function composes a domain object from a raw packet, but the packet's internal structure is not documented here; see the packet schema in the dependency docs."
+          },
+          "fingerprint": "body=13ea3056e82d56ad5a82b95f0b25c50decc142ff31c78098d79c680996bf595b,deps=3fa14cbfdd176df2dcd06ed12d24970ce115197c983584c86660ea55dc04b5e6"
+        },
+        "limitations": {
+          "body": "The function composes a domain object from a raw packet, but the packet's internal structure is not documented here; see the packet schema in the dependency docs.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The function composes a domain object from a raw packet, but the packet's internal structure is not documented here; see the packet schema in the dependency docs."
+          },
+          "fingerprint": "body=13ea3056e82d56ad5a82b95f0b25c50decc142ff31c78098d79c680996bf595b"
+        },
+        "changeGuide": {
+          "body": "The function composes a domain object from a raw packet, but the packet's internal structure is not documented here; see the packet schema in the dependency docs.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The function composes a domain object from a raw packet, but the packet's internal structure is not documented here; see the packet schema in the dependency docs."
+          },
+          "fingerprint": "body=13ea3056e82d56ad5a82b95f0b25c50decc142ff31c78098d79c680996bf595b,deps=3fa14cbfdd176df2dcd06ed12d24970ce115197c983584c86660ea55dc04b5e6,usage=fdc6ab4c31bdb395509997539856b3f076b3426b0ef68acb498f492449dc1bf2,placement=4f3184ba9c44b0e61b189f6431ab23df08e02a45c800d87503722318f72a33b3"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.793Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.727Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "symbol:src/markdown/linkify.ts#buildDomainRelations": {
+      "heading": "buildDomainRelations",
+      "depth": 1,
+      "anchor": "builddomainrelations",
+      "signature": "buildDomainRelations(depends: readonly string[], usedBy: readonly string[], links: EntityLinkMap, docInfo: DocInfoMap, renderedDocPath: string, renderedPathFor: (docPath: string) => string, labels: NavLabels): string",
+      "owns": [
+        "symbol:src/markdown/linkify.ts#buildDomainRelations"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/markdown/render-doc.ts",
+        "symbol:src/markdown/render-doc.ts#renderDoc"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Назначение — определить, как домены соотносятся друг с другом, и представить это в виде структуры данных для дальнейшего использования.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Функция предназначена для вычисления связей между доменами, например, родитель-потомок."
+          },
+          "fingerprint": "signature=0953f57b7e3c4ca9ce27b78f15b78efa7137fdd559f6f8357aa52b7d6b46c8d8,placement=f101c9341c91208b2ff93bf6a8f1647148df764aaa8f9c31621979f158a3e862"
+        },
+        "responsibility": {
+          "body": "Отвечает за преобразование списка доменов в объект, отражающий их взаимосвязи. Не изменяет входные данные.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Ответственность — анализ массива доменов и построение карты отношений."
+          },
+          "fingerprint": "signature=0953f57b7e3c4ca9ce27b78f15b78efa7137fdd559f6f8357aa52b7d6b46c8d8,deps=95357db1f6ecec567da9a8832eb6c15a811529060d1603c97925a69d12894a91,usage=0fcb73e3b47778360bdb163fed2ee06e6ea3543082232f6e6ab2fef331367356"
+        },
+        "invariants": {
+          "body": "Принимает массив строк, представляющих домены, и возвращает объект, где ключи — домены, а значения — их отношения. Точная структура зависит от входных данных.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Строит карту отношений между доменами на основе переданного массива строк."
+          },
+          "fingerprint": "signature=0953f57b7e3c4ca9ce27b78f15b78efa7137fdd559f6f8357aa52b7d6b46c8d8,body=31e09345e850c4b2d7a592109d0fb31baf1b3fab051aa792390c4571bf7a6f6b"
+        },
+        "workflows": {
+          "body": "The function composes a domain object from a raw packet, but the packet's internal structure is not documented here; see the packet schema in the dependency docs.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The function composes a domain object from a raw packet, but the packet's internal structure is not documented here; see the packet schema in the dependency docs."
+          },
+          "fingerprint": "body=31e09345e850c4b2d7a592109d0fb31baf1b3fab051aa792390c4571bf7a6f6b,deps=95357db1f6ecec567da9a8832eb6c15a811529060d1603c97925a69d12894a91"
+        },
+        "limitations": {
+          "body": "The function composes a domain object from a raw packet, but the packet's internal structure is not documented here; see the packet schema in the dependency docs.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The function composes a domain object from a raw packet, but the packet's internal structure is not documented here; see the packet schema in the dependency docs."
+          },
+          "fingerprint": "body=31e09345e850c4b2d7a592109d0fb31baf1b3fab051aa792390c4571bf7a6f6b"
+        },
+        "changeGuide": {
+          "body": "The function composes a domain object from a raw packet, but the packet's internal structure is not documented here; see the packet schema in the dependency docs.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The function composes a domain object from a raw packet, but the packet's internal structure is not documented here; see the packet schema in the dependency docs."
+          },
+          "fingerprint": "body=31e09345e850c4b2d7a592109d0fb31baf1b3fab051aa792390c4571bf7a6f6b,deps=95357db1f6ecec567da9a8832eb6c15a811529060d1603c97925a69d12894a91,usage=0fcb73e3b47778360bdb163fed2ee06e6ea3543082232f6e6ab2fef331367356,placement=f101c9341c91208b2ff93bf6a8f1647148df764aaa8f9c31621979f158a3e862"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.795Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.729Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

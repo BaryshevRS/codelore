@@ -1,22 +1,27 @@
 # IndexManager
 
+```ts
+class IndexManager
+```
+
 ## Зачем это нужно
 
 Управляет сборкой, кэшированием и проверкой свежести `ProjectIndex`.
 
 ## Что делает
 
-- Координирует параллельную сборку код- и док-индексов через [`buildCodeIndex`](../indexer/code-indexer.codelore.md#buildcodeindex) и [`buildDocIndex`](../indexer/state-indexer.codelore.md#builddocindex).
-- Проверяет свежесть загруженного индекса по времени модификации файлов относительно `generatedAt` (`persistedIndexIsFresh`).
-- Хранит кэш индекса в приватном поле `cache`, сбрасывает его при ребилде через колбэк `onIndexChanged`.
-- Делегирует точечное обновление документации методу [`patchDocIndexPaths`](../indexer/state-indexer.codelore.md#patchdocindexpaths).
+- Организует параллельную сборку кодового и док-индексов через [`buildCodeIndex`](../indexer/code-indexer.codelore.md#buildcodeindex) и [`buildDocIndex`](../indexer/state-indexer.codelore.md#builddocindex), при необходимости достраивая сущности предметной области из `domainMap`.
+- При загрузке (`loadOrRebuild`) возвращает сохранённый кэш, если он есть; иначе проверяет актуальность персистентного индекса по временам модификации исходных файлов и файлов состояний (`persistedIndexIsFresh`) и перестраивает индекс, если запись устарела.
+- Метод `patchDocs` при отсутствующем кэше запускает полный ребилд; при наличии — инкрементально обновляет документацию через [`patchDocIndexPaths`](../indexer/state-indexer.codelore.md#patchdocindexpaths) и синхронизирует `generatedAt`.
+- Строит скоупированный индекс (`buildScopedIndex`) без использования кэша и без сохранения на диск.
 
 ## На что можно положиться
 
-- После вызова `rebuild` или `loadOrRebuild` поле `cache` содержит актуальный индекс.
-- `loadOrRebuild` возвращает существующий кэш без повторной сборки, если он есть.
-- `patchDocs` при отсутствующем кэше вызывает полный `rebuild`.
-- `persistedIndexIsFresh` возвращает `false` при невалидной дате или наличии более нового файла.
+- После любого вызова `rebuild` или `loadOrRebuild` поле `cache` содержит новейший инстанс `ProjectIndex`, а геттер `cached` возвращает именно его.
+- `persistedIndexIsFresh` возвращает `true` только если все существующие файлы (исходные и состояний) не новее `generatedAt`; любое отсутсвие файла или ошибка `stat` приводят к считанию времени 0, что может сделть индекс устаревшим.
+- `patchDocs` гарантирует, что поле `cache` остаётся актуальным: при отсуствии предварительного индекса вызывается полный ребилд, после чего можно безопасно обращаться к `cached`.
+- `buildScopedIndex` не влияет на кэш и не вызывет побочных эффэктов — результат возвращается напрямую.
+- Методы `rebuild` и `patchDocs` вызывают колбек `onIndexChanged` (предоставленный извне), чтобы клиент мог сбросить производные кэши.
 
 ## От чего зависит
 
@@ -30,12 +35,12 @@
 
 ## Кто и как использует
 
-1. `IndexManager.rebuild` вызывается с `persist: true` и `renderDocs: true` — запускает полную перестройку индекса с сохранением на диск и перерендерингом документов.
-2. `IndexManager.loadOrRebuild` используется для загрузки сохранённого индекса или перестройки, если кэш пуст.
-3. `IndexManager.patchDocs` вызывается для инкрементального обновления индекса документации по переданным путям.
-4. `IndexManager.rebuild` вызывается для перестройки индекса перед анализом изменений.
-5. `IndexManager.loadOrRebuild` вызывается для загрузки или перестройки индекса при поиске затронутых секций.
-6. `IndexManager.buildScopedIndex` вызывается для построения индекса только для указанной области видимости.
+- [`CodeloreService`](codelore-service.codelore.md#codeloreservice) использует `rebuild` с `persist: true` и `renderDocs: true` для полной перестройки индекса с сохранением на диск и перерендерингом документов.
+- [`CodeloreService`](codelore-service.codelore.md#codeloreservice) использует `loadOrRebuild` для загрузки сохранённого индекса или перестройки, если кэш пуст.
+- [`CodeloreService`](codelore-service.codelore.md#codeloreservice) использует `patchDocs` для инкрементального обновления индекса документации по переданным путям.
+- [`CodeloreService`](codelore-service.codelore.md#codeloreservice) использует `rebuild` для перестройки индекса перед анализом изменений.
+- [`CodeloreService`](codelore-service.codelore.md#codeloreservice) использует `loadOrRebuild` для загрузки или перестройки индекса при поиске затронутых секций.
+- [`CodeloreService`](codelore-service.codelore.md#codeloreservice) использует `buildScopedIndex` для построения индекса только для указанной области видимости.
 
 ## Чего не делает
 

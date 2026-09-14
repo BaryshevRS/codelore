@@ -1,0 +1,395 @@
+{
+  "version": 4,
+  "docPath": "src/llm/domain-writer.codelore.md",
+  "generatedAt": "2026-09-13T23:26:45.701Z",
+  "sectionOrder": [
+    "file:src/llm/domain-writer.ts",
+    "symbol:src/llm/domain-writer.ts#buildDomainWriteRequest",
+    "symbol:src/llm/domain-writer.ts#parseDomainWriteResponse"
+  ],
+  "sections": {
+    "file:src/llm/domain-writer.ts": {
+      "heading": "domain-writer.ts",
+      "depth": 1,
+      "anchor": "domain-writerts",
+      "owns": [
+        "file:src/llm/domain-writer.ts"
+      ],
+      "depends": [
+        "symbol:src/llm/file-writer.ts#fileWriteResponseSchema",
+        "symbol:src/llm/file-writer.ts#parseFileWriteResponse"
+      ],
+      "usedBy": [],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Модуль предоставляет набор чистых функций для работы с доменными данными: преобразование объектов в текстовые строки, разбор текста обратно в объекты, а также проверка корректности данных. Все функции не имеют побочных эффектов и не изменяют входные данные.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Файл объединяет функции, которые преобразуют доменные данные в текстовые представления и обратно, а также валидируют их."
+          },
+          "fingerprint": "signature=affdb3bd938b01c9a17fc4b1ea3193f6b21e168c677f99718d7038e5996efbee,placement=affdb3bd938b01c9a17fc4b1ea3193f6b21e168c677f99718d7038e5996efbee"
+        },
+        "responsibility": {
+          "body": "Модуль выполняет три группы операций: сериализация доменных объектов в текст (для передачи в LLM), десериализация текста обратно в объекты (для обработки ответов LLM), и валидация структуры данных (для проверки целостности перед использованием). Каждая группа реализована отдельными функциями, которые не вызывают друг друга.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функции группируются по поведению: преобразование в текст, разбор из текста, валидация."
+          },
+          "fingerprint": "signature=affdb3bd938b01c9a17fc4b1ea3193f6b21e168c677f99718d7038e5996efbee,deps=424f566970cd02cba0c2a9762e6632b339a6620e00969b7dc9370e515c42e631,usage=f358436fe85b3caad6c7223aa46edb3be6cfe6a13c7122551bea56d619fa4013"
+        },
+        "invariants": {
+          "body": "Все экспортируемые функции файла работают только с сериализуемыми данными (строки, числа, массивы, объекты без циклических ссылок). Это гарантирует, что результаты можно безопасно передавать через IPC-мост между процессами.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Все функции файла принимают и возвращают только сериализуемые данные (строки, числа, массивы, объекты без циклических ссылок), что гарантирует безопасность передачи через IPC-мост."
+          },
+          "fingerprint": "signature=affdb3bd938b01c9a17fc4b1ea3193f6b21e168c677f99718d7038e5996efbee,body=0b63409514252f5d28c9a0c78d0325207e877ed756b35f7b645ba2484cc964fb"
+        },
+        "dependencies": {
+          "body": "Зависит от клиента LLM и типов доменной модели.",
+          "rendered": false,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.25,
+            "novelFact": "The module imports the LLM client and the domain model types."
+          },
+          "fingerprint": "deps=424f566970cd02cba0c2a9762e6632b339a6620e00969b7dc9370e515c42e631"
+        },
+        "limitations": {
+          "body": "Не реализует повторные попытки или резервные стратегии при сбоях LLM.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The module does not handle retries or fallback logic."
+          },
+          "fingerprint": "body=0b63409514252f5d28c9a0c78d0325207e877ed756b35f7b645ba2484cc964fb"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.773Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.699Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "f8a1a9bd893ce60446ba7848aa8a574ca25aa2376defb5565ec7a77bc96d77b7"
+    },
+    "symbol:src/llm/domain-writer.ts#buildDomainWriteRequest": {
+      "heading": "buildDomainWriteRequest",
+      "depth": 1,
+      "anchor": "builddomainwriterequest",
+      "signature": "buildDomainWriteRequest(input: BuildDomainWriteRequestInput): ChatCompletionInput",
+      "owns": [
+        "symbol:src/llm/domain-writer.ts#buildDomainWriteRequest"
+      ],
+      "depends": [
+        "symbol:src/llm/file-writer.ts#fileWriteResponseSchema"
+      ],
+      "usedBy": [
+        "file:src/llm/domain-pipeline.ts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Функция создает структуру запроса для LLM: принимает объект домена и возвращает объект с полем `instruction`, содержащим текстовую инструкцию. Инструкция формируется на основе шаблона, в который подставляется JSON-представление домена.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция формирует запрос к LLM для генерации описания домена."
+          },
+          "fingerprint": "signature=2cdff57564e8f88d4d06f11cbfaaf4586adbab1fb35083338ac9f87eb1c591f3,placement=f08bb7927b6aeb86f90e8726725e65d1d63ab932caed609a43d730446f619218"
+        },
+        "responsibility": {
+          "body": "Функция выполняет две задачи: проверяет, что входной объект является валидным объектом (не null и не массив), и формирует строку инструкции, вставляя JSON-сериализацию домена в шаблон. Если входной объект невалиден, выбрасывается ошибка.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция выполняет две задачи: валидацию входного объекта и формирование инструкции."
+          },
+          "fingerprint": "signature=2cdff57564e8f88d4d06f11cbfaaf4586adbab1fb35083338ac9f87eb1c591f3,deps=16bfa08d79909ed7a6d8e19fcd4886bae8b6bb9ea709434099a5d1ac600ec37c,usage=df4761e284022ca5ea18079c9d3e335875641a0b1fb665502c2259cafda98ca9"
+        },
+        "invariants": {
+          "body": "Функция принимает объект домена и возвращает объект запроса. Возвращаемый объект всегда содержит два поля: `domain` (исходный объект) и `instruction` (строка с инструкцией). Если входной объект не является объектом или равен null, функция выбрасывает ошибку.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция возвращает объект с полями `domain` и `instruction`, где `instruction` — строка, содержащая инструкцию для LLM."
+          },
+          "fingerprint": "signature=2cdff57564e8f88d4d06f11cbfaaf4586adbab1fb35083338ac9f87eb1c591f3,body=46882c499d0692f90c33bf03e936d4c6d834bb2af405592d6d0369bba36ff895"
+        },
+        "dependencies": {
+          "body": "Использует клиент LLM для отправки запроса.",
+          "rendered": false,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.25,
+            "novelFact": "The function uses the LLM client to send the request."
+          },
+          "fingerprint": "deps=16bfa08d79909ed7a6d8e19fcd4886bae8b6bb9ea709434099a5d1ac600ec37c"
+        },
+        "workflows": {
+          "body": "Принимает доменный объект и возвращает объект запроса, содержащий сериализованный JSON этого объекта.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function constructs a request payload with the domain object serialized as JSON."
+          },
+          "fingerprint": "body=46882c499d0692f90c33bf03e936d4c6d834bb2af405592d6d0369bba36ff895,deps=16bfa08d79909ed7a6d8e19fcd4886bae8b6bb9ea709434099a5d1ac600ec37c"
+        },
+        "limitations": {
+          "body": "Не проверяет корректность входного доменного объекта.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The function does not validate the input domain object."
+          },
+          "fingerprint": "body=46882c499d0692f90c33bf03e936d4c6d834bb2af405592d6d0369bba36ff895"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.774Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.700Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "f8a1a9bd893ce60446ba7848aa8a574ca25aa2376defb5565ec7a77bc96d77b7"
+    },
+    "symbol:src/llm/domain-writer.ts#parseDomainWriteResponse": {
+      "heading": "parseDomainWriteResponse",
+      "depth": 1,
+      "anchor": "parsedomainwriteresponse",
+      "signature": "parseDomainWriteResponse(content: string, input: BuildDomainWriteRequestInput, options: { requireCompleteness?: boolean } = {}): FileWriteResult",
+      "owns": [
+        "symbol:src/llm/domain-writer.ts#parseDomainWriteResponse"
+      ],
+      "depends": [
+        "symbol:src/llm/file-writer.ts#parseFileWriteResponse"
+      ],
+      "usedBy": [
+        "file:src/llm/domain-pipeline.ts"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Функция разбирает ответ LLM: принимает строку, парсит её как JSON, и возвращает объект с полем `domain`, содержащим извлечённый домен. Если разбор не удаётся или поле отсутствует, выбрасывается ошибка.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция извлекает домен из ответа LLM."
+          },
+          "fingerprint": "signature=f3c7c8c33b15dc2b8d1b07c637c65dae79f889c5a8fe9dbc911aacba77859f94,placement=368b7cf49f5a288f8e2211497eae9a3baeded2c15392030507ec871cfa05a794"
+        },
+        "responsibility": {
+          "body": "Функция выполняет две задачи: парсит входную строку как JSON и проверяет, что результат содержит поле `domain`. Если парсинг не удаётся или поле отсутствует, выбрасывается ошибка.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция выполняет разбор JSON и проверку наличия поля `domain`."
+          },
+          "fingerprint": "signature=f3c7c8c33b15dc2b8d1b07c637c65dae79f889c5a8fe9dbc911aacba77859f94,deps=c9889950ab740360729fb4a4b458d675a93995f2e0299a409495792827127f01,usage=106f4c65ffd4f4b694bc997af282d939024ab466dfcc0fed6e1daf09f6b7605f"
+        },
+        "invariants": {
+          "body": "Функция принимает строку ответа LLM и возвращает объект с полем `domain`. Если строка не является валидным JSON, функция выбрасывает ошибку. Если JSON не содержит поле `domain`, функция также выбрасывает ошибку.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция возвращает объект с полем `domain`, который является результатом разбора JSON из ответа LLM."
+          },
+          "fingerprint": "signature=f3c7c8c33b15dc2b8d1b07c637c65dae79f889c5a8fe9dbc911aacba77859f94,body=874d97681c41de261eeb789106d4180dbfaf879d78bf514aca08e35c8e39043b"
+        },
+        "dependencies": {
+          "body": "Использует клиент LLM для разбора ответа.",
+          "rendered": false,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.25,
+            "novelFact": "The function uses the LLM client to parse the response."
+          },
+          "fingerprint": "deps=c9889950ab740360729fb4a4b458d675a93995f2e0299a409495792827127f01"
+        },
+        "workflows": {
+          "body": "Принимает ответ LLM и возвращает доменный объект, извлечённый из JSON-содержимого ответа.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function parses the LLM response into a domain object."
+          },
+          "fingerprint": "body=874d97681c41de261eeb789106d4180dbfaf879d78bf514aca08e35c8e39043b,deps=c9889950ab740360729fb4a4b458d675a93995f2e0299a409495792827127f01"
+        },
+        "limitations": {
+          "body": "Не обрабатывает некорректные JSON-ответы.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The function does not handle malformed JSON responses."
+          },
+          "fingerprint": "body=874d97681c41de261eeb789106d4180dbfaf879d78bf514aca08e35c8e39043b"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.775Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.701Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "f8a1a9bd893ce60446ba7848aa8a574ca25aa2376defb5565ec7a77bc96d77b7"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

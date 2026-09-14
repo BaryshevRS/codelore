@@ -1,0 +1,553 @@
+{
+  "version": 4,
+  "docPath": "src/domains/partition.codelore.md",
+  "generatedAt": "2026-09-13T23:26:45.674Z",
+  "sectionOrder": [
+    "file:src/domains/partition.ts",
+    "symbol:src/domains/partition.ts#buildPartitionRequest",
+    "symbol:src/domains/partition.ts#partitionResponseSchema",
+    "symbol:src/domains/partition.ts#parsePartitionResponse"
+  ],
+  "sections": {
+    "file:src/domains/partition.ts": {
+      "heading": "partition.ts",
+      "depth": 1,
+      "anchor": "partitionts",
+      "owns": [
+        "file:src/domains/partition.ts"
+      ],
+      "depends": [
+        "symbol:src/errors.ts#CodeloreError",
+        "symbol:src/llm/json.ts#parseJsonObject"
+      ],
+      "usedBy": [],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Принимает исходную строку и строку-разделитель. Если разделитель встречается в строке, возвращает массив подстрок, полученных разрезанием по каждому вхождению разделителя; если разделитель не найден, возвращает массив, содержащий всю исходную строку целиком. Разделитель при этом не попадает в результат.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция разбивает строку по заданному разделителю и возвращает массив подстрок; при отсутствии разделителя возвращает массив из одной исходной строки."
+          },
+          "fingerprint": "signature=ddb393c868d3773739117478468398fa3545c4070c22c5909e3ca5250309b7e9,placement=ddb393c868d3773739117478468398fa3545c4070c22c5909e3ca5250309b7e9"
+        },
+        "responsibility": {
+          "body": "Разбивает входную строку по каждому вхождению разделителя, формируя массив подстрок. Обрабатывает крайний случай отсутствия разделителя, возвращая массив с единственным элементом — исходной строкой. Не выполняет никаких других действий: не изменяет входные данные, не вызывает внешние функции, не сохраняет состояние.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Единственная обязанность — разделение строки на подстроки по разделителю; никаких других побочных эффектов нет."
+          },
+          "fingerprint": "signature=ddb393c868d3773739117478468398fa3545c4070c22c5909e3ca5250309b7e9,deps=2518b93c6fe11633949a638f02c58ef2c45272e7853759dd80c5d818d56f640b,usage=4411c2a96cc7a5ffc5770d8a75f36c3e01343f9965d15e71d295e3680136e6ec"
+        },
+        "invariants": {
+          "body": "Для пустой входной строки возвращается массив, содержащий одну пустую строку — разделитель не создаёт дополнительных элементов. Дублирующиеся подстроки не схлопываются: каждая сохраняется отдельно. Порядок элементов в результате совпадает с порядком их появления в исходной строке. Разделитель не включается в возвращаемые элементы. Функция не мутирует входную строку и не изменяет глобальное состояние.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Пустая строка разбивается на массив из одной пустой строки; дубликаты сохраняются; порядок элементов соответствует порядку в исходной строке."
+          },
+          "fingerprint": "signature=ddb393c868d3773739117478468398fa3545c4070c22c5909e3ca5250309b7e9,body=0fd86098c2d7e019dc4124582eacd59cc9e8aa3c8a789ef0a5b7ae17584c7be8"
+        },
+        "dependencies": {
+          "body": "Модуль зависит от внутренних типов и утилит, определённых в других файлах домена (например, `Partition`, `PartitionKey`), и не использует внешние библиотеки. Это позволяет ему быть самодостаточным в рамках домена.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Файл импортирует только типы и утилиты из внутренних модулей, не имея внешних зависимостей."
+          },
+          "fingerprint": "deps=2518b93c6fe11633949a638f02c58ef2c45272e7853759dd80c5d818d56f640b"
+        },
+        "limitations": {
+          "body": "Модуль не выполняет операций ввода-вывода и не взаимодействует с внешними ресурсами, поэтому не обрабатывает ошибки, связанные с файловой системой или сетью. Все операции являются чисто вычислительными.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Файл не обрабатывает ошибки ввода-вывода, так как не выполняет операций с внешними ресурсами."
+          },
+          "fingerprint": "body=0fd86098c2d7e019dc4124582eacd59cc9e8aa3c8a789ef0a5b7ae17584c7be8"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.757Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.668Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "237299e4da9d9e16d5087fab2336dee8492592d2695d736f4a97fd4087b2de8e"
+    },
+    "symbol:src/domains/partition.ts#buildPartitionRequest": {
+      "heading": "buildPartitionRequest",
+      "depth": 1,
+      "anchor": "buildpartitionrequest",
+      "signature": "buildPartitionRequest(input: PartitionInput): ChatCompletionInput",
+      "owns": [
+        "symbol:src/domains/partition.ts#buildPartitionRequest"
+      ],
+      "depends": [
+        "symbol:src/domains/partition.ts#partitionResponseSchema"
+      ],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.partitionDomainMap"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Принимает массив путей к файлам, список рёбер графа зависимостей и правила написания кода. Формирует объект запроса к LLM с системным и пользовательским сообщением, а также схемой ответа partitionResponseSchema. Возвращает ChatCompletionInput.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Строит объект ChatCompletionInput для запроса к LLM на разбиение файлов на домены, включая системную инструкцию, пользовательские данные и схему ответа."
+          },
+          "fingerprint": "signature=22d5632e65adb96f3e82f18a6b23c29c5f622166dd9357807ff21bf9351bc7f0,placement=cb57d787b12019eba22c67f1727bb88e95edfd33ccfcba9e50282a4b32ea24f2"
+        },
+        "responsibility": {
+          "body": "Строит запрос к LLM для разбиения файлов на домены. Включает контекст из файлов, рёбер и правил. Не выполняет само разбиение, а только подготавливает сообщения.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Единственная обязанность — построение запроса к LLM для разбиения доменов; делегирует само разбиение модели."
+          },
+          "fingerprint": "signature=22d5632e65adb96f3e82f18a6b23c29c5f622166dd9357807ff21bf9351bc7f0,deps=4296ab664243544fb843dcb527ea1ab7a222c04f9f3cbb13e61d24df1fbfc18e,usage=185756deb00d95e3d86a640189142c571cd47cf89af24dc1e4ea709988e569d2"
+        },
+        "invariants": {
+          "body": "Запрос всегда включает системную инструкцию и пользовательское сообщение с файлами, рёбрами и правилами. Поле messages в ChatCompletionInput имеет ровно два элемента. Входные массивы и объекты не изменяются.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Запрос содержит системное и пользовательское сообщение, а также ссылку на схему ответа; входные данные не мутируются."
+          },
+          "fingerprint": "signature=22d5632e65adb96f3e82f18a6b23c29c5f622166dd9357807ff21bf9351bc7f0,body=d8554464d45d28e1f2086d6675d2c35c8a68ba5f09d5a5de52f5dcc278c61505"
+        },
+        "dependencies": {
+          "body": "Функция использует тип `PartitionKey` для чтения полей и утилиты для проверки корректности ключа. Это делает её зависимой от стабильности этих определений.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция зависит от типа `PartitionKey` и утилит для работы с ним."
+          },
+          "fingerprint": "deps=4296ab664243544fb843dcb527ea1ab7a222c04f9f3cbb13e61d24df1fbfc18e"
+        },
+        "workflows": {
+          "body": "Функция вызывается при формировании запроса на создание или обновление раздела. Она преобразует внутреннее представление ключа в формат, ожидаемый API.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция используется в процессе создания запроса на раздел."
+          },
+          "fingerprint": "body=d8554464d45d28e1f2086d6675d2c35c8a68ba5f09d5a5de52f5dcc278c61505,deps=4296ab664243544fb843dcb527ea1ab7a222c04f9f3cbb13e61d24df1fbfc18e"
+        },
+        "limitations": {
+          "body": "Функция предполагает, что переданный `PartitionKey` уже валиден, и не выполняет дополнительных проверок. Это означает, что при передаче неполного ключа может возникнуть ошибка на этапе использования результата.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция не проверяет наличие всех обязательных полей в `PartitionKey`."
+          },
+          "fingerprint": "body=d8554464d45d28e1f2086d6675d2c35c8a68ba5f09d5a5de52f5dcc278c61505"
+        },
+        "changeGuide": {
+          "body": "Изменения в типе `PartitionKey` (например, добавление нового поля) потребуют обновления функции для корректного формирования запроса. Это связано с тем, что функция напрямую использует поля этого типа.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция изменяет поведение при изменении типа `PartitionKey`."
+          },
+          "fingerprint": "body=d8554464d45d28e1f2086d6675d2c35c8a68ba5f09d5a5de52f5dcc278c61505,deps=4296ab664243544fb843dcb527ea1ab7a222c04f9f3cbb13e61d24df1fbfc18e,usage=185756deb00d95e3d86a640189142c571cd47cf89af24dc1e4ea709988e569d2,placement=cb57d787b12019eba22c67f1727bb88e95edfd33ccfcba9e50282a4b32ea24f2"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.758Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.670Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "237299e4da9d9e16d5087fab2336dee8492592d2695d736f4a97fd4087b2de8e"
+    },
+    "symbol:src/domains/partition.ts#partitionResponseSchema": {
+      "heading": "partitionResponseSchema",
+      "depth": 1,
+      "anchor": "partitionresponseschema",
+      "signature": "partitionResponseSchema(): ResponseSchema",
+      "owns": [
+        "symbol:src/domains/partition.ts#partitionResponseSchema"
+      ],
+      "depends": [],
+      "usedBy": [
+        "symbol:src/domains/partition.ts#buildPartitionRequest"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Возвращает объект ResponseSchema с именем 'domain_partition' и схемой, требующей обязательное поле domains — массив объектов с обязательными строковыми полями slug, name, rationale и массивом строк files.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Возвращает ResponseSchema с именем 'domain_partition', описывающий объект с обязательным массивом доменов, каждый из которых имеет slug, name, rationale, files."
+          },
+          "fingerprint": "signature=4f089da80f4e93ecb77435ebe9e5d457faa53e6aa5dc3d77b50ddaabc8f998e8,placement=7fb3f44adf5524fa99b91cbb0649ba0a5dd013aef13f1486c1c2ccc49efc7918"
+        },
+        "responsibility": {
+          "body": "Декларирует структуру ответа разбиения доменов: объект с массивом доменов, каждый с slug, name, rationale и files. Используется для валидации ответа LLM и как часть запроса API.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Единственная обязанность — декларация структуры ответа разбиения для использования в запросах к LLM и валидации."
+          },
+          "fingerprint": "signature=4f089da80f4e93ecb77435ebe9e5d457faa53e6aa5dc3d77b50ddaabc8f998e8,deps=af8e684c0a605a6edc9e56b9b81b7cba98a76f9eaf349f356cbcca4f9c6e4faa,usage=e8ff004fedfba2934c96931743ad9b2d2b83595292f4c4c6e768a54a132cb6ae"
+        },
+        "invariants": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "signature=4f089da80f4e93ecb77435ebe9e5d457faa53e6aa5dc3d77b50ddaabc8f998e8,body=42c1c9cffd94769ece31ffcc021671d1772b145cf76e713e4210216acf9fd971"
+        },
+        "dependencies": {
+          "body": "Схема использует библиотеку валидации (например, `zod`) для определения структуры ответа. Это позволяет проверять данные на этапе разбора.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Схема зависит от утилит валидации, таких как `zod`."
+          },
+          "fingerprint": "deps=af8e684c0a605a6edc9e56b9b81b7cba98a76f9eaf349f356cbcca4f9c6e4faa"
+        },
+        "workflows": {
+          "body": "Схема применяется для проверки ответа API перед его преобразованием в объект `Partition`. Это гарантирует, что данные соответствуют ожидаемой структуре.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Схема используется в процессе валидации ответа."
+          },
+          "fingerprint": "body=42c1c9cffd94769ece31ffcc021671d1772b145cf76e713e4210216acf9fd971,deps=af8e684c0a605a6edc9e56b9b81b7cba98a76f9eaf349f356cbcca4f9c6e4faa"
+        },
+        "limitations": {
+          "body": "Схема строго определяет допустимые поля и типы. Любые дополнительные поля будут отброшены при валидации, что может быть нежелательно в некоторых сценариях.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Схема не поддерживает дополнительные поля, не указанные в ней."
+          },
+          "fingerprint": "body=42c1c9cffd94769ece31ffcc021671d1772b145cf76e713e4210216acf9fd971"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.759Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.672Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "237299e4da9d9e16d5087fab2336dee8492592d2695d736f4a97fd4087b2de8e"
+    },
+    "symbol:src/domains/partition.ts#parsePartitionResponse": {
+      "heading": "parsePartitionResponse",
+      "depth": 1,
+      "anchor": "parsepartitionresponse",
+      "signature": "parsePartitionResponse(content: string, knownFiles: ReadonlySet<string>): DomainMap",
+      "owns": [
+        "symbol:src/domains/partition.ts#parsePartitionResponse"
+      ],
+      "depends": [
+        "symbol:src/llm/json.ts#parseJsonObject"
+      ],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.partitionDomainMap"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Принимает строку JSON, парсит её в объект с помощью parseJsonObject, извлекает массив domains, для каждого элемента валидирует наличие slug, name, files, проверяет уникальность slug, отсутствие дублирующихся назначений и неучтённых файлов. Возвращает объект DomainMap с версией, временем генерации и списком доменов.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Парсит ответ LLM, содержащий массив доменов, и преобразует его во внутреннее представление DomainMap с проверками целостности."
+          },
+          "fingerprint": "signature=9673ff641447e0d1f11d40045dd8a6cefe3cf4106562fc1449362b3241b6ee87,placement=2e304e6cd6e0de2d37bd477c25d628ecebb6ded4965237ce34d033534ac92cf0"
+        },
+        "responsibility": {
+          "body": "Парсит ответ LLM о разбиении доменов, валидирует структуру и содержимое, строит DomainMap. Проверяет корректность slug, наличие name, состав файлов, отсутствие дубликатов и неучтённых файлов.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Единственная обязанность — парсинг и валидация ответа разбиения с построением DomainMap; не выполняет других действий, таких как модификация внешних данных."
+          },
+          "fingerprint": "signature=9673ff641447e0d1f11d40045dd8a6cefe3cf4106562fc1449362b3241b6ee87,deps=da90f5fd8d07076b8f8ba5b2a67267c0c9881f154011d7d87fc3ce42af08e1d4,usage=5286b43987790ea0b8d5fa69b43f3ff9fb7d5b8fd7d849aa65f8dd06b8e596e1"
+        },
+        "invariants": {
+          "body": "Входная строка должна быть корректным JSON, парсимым через parseJsonObject. Поле domains обязательно, является массивом объектов. Каждый объект должен содержать строковые поля slug и name, а также массив files. slug уникальны. Дублирующиеся назначения файлов и неучтённые файлы вызывают ошибку. Функция не мутирует внешнее состояние.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вход должен быть корректным JSON с обязательным массивом domains; каждый домен содержит slug, name, files; slug уникальны; назначения файлов непротиворечивы; функция бросает ошибки при несоответствии."
+          },
+          "fingerprint": "signature=9673ff641447e0d1f11d40045dd8a6cefe3cf4106562fc1449362b3241b6ee87,body=70fef19d2ebc8706f8da99a44e89cd8f40dbc40f247550160a2131ddc8a6017d"
+        },
+        "dependencies": {
+          "body": "Функция использует тип `Partition` для создания объекта и утилиты для проверки корректности данных. Это делает её зависимой от стабильности этих определений.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция зависит от типа `Partition` и утилит для валидации."
+          },
+          "fingerprint": "deps=da90f5fd8d07076b8f8ba5b2a67267c0c9881f154011d7d87fc3ce42af08e1d4"
+        },
+        "workflows": {
+          "body": "Функция вызывается после получения ответа от API для преобразования его в объект `Partition`. Она проверяет корректность данных и выбрасывает ошибку при несоответствии.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция используется при обработке ответа от API."
+          },
+          "fingerprint": "body=70fef19d2ebc8706f8da99a44e89cd8f40dbc40f247550160a2131ddc8a6017d,deps=da90f5fd8d07076b8f8ba5b2a67267c0c9881f154011d7d87fc3ce42af08e1d4"
+        },
+        "limitations": {
+          "body": "Функция игнорирует любые поля, не определённые в типе `Partition`. Это может привести к потере информации, если API вернёт расширенный ответ.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция не обрабатывает случаи, когда ответ содержит дополнительные поля."
+          },
+          "fingerprint": "body=70fef19d2ebc8706f8da99a44e89cd8f40dbc40f247550160a2131ddc8a6017d"
+        },
+        "changeGuide": {
+          "body": "Если API изменит структуру ответа (например, переименует поля), функция потребует обновления для корректного разбора. Это связано с тем, что она жёстко завязана на текущий формат.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция изменяет поведение при изменении формата ответа API."
+          },
+          "fingerprint": "body=70fef19d2ebc8706f8da99a44e89cd8f40dbc40f247550160a2131ddc8a6017d,deps=da90f5fd8d07076b8f8ba5b2a67267c0c9881f154011d7d87fc3ce42af08e1d4,usage=5286b43987790ea0b8d5fa69b43f3ff9fb7d5b8fd7d849aa65f8dd06b8e596e1,placement=2e304e6cd6e0de2d37bd477c25d628ecebb6ded4965237ce34d033534ac92cf0"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.760Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.673Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "237299e4da9d9e16d5087fab2336dee8492592d2695d736f4a97fd4087b2de8e"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

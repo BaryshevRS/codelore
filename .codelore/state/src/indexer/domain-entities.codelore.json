@@ -1,0 +1,688 @@
+{
+  "version": 4,
+  "docPath": "src/indexer/domain-entities.codelore.md",
+  "generatedAt": "2026-09-13T23:26:45.691Z",
+  "sectionOrder": [
+    "file:src/indexer/domain-entities.ts",
+    "symbol:src/indexer/domain-entities.ts#isDomainTierEntity",
+    "symbol:src/indexer/domain-entities.ts#isSourceCodeEntity",
+    "symbol:src/indexer/domain-entities.ts#domainIdFor",
+    "symbol:src/indexer/domain-entities.ts#buildDomainEntities"
+  ],
+  "sections": {
+    "file:src/indexer/domain-entities.ts": {
+      "heading": "domain-entities.ts",
+      "depth": 1,
+      "anchor": "domain-entitiests",
+      "owns": [
+        "file:src/indexer/domain-entities.ts"
+      ],
+      "depends": [
+        "symbol:src/domains/domain-map.ts#fileToDomainSlug",
+        "symbol:src/graph/domain-dag.ts#buildDomainDag",
+        "symbol:src/utils/hash.ts#sha256"
+      ],
+      "usedBy": [],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Файл предоставляет набор функций и констант для работы с доменными сущностями индексатора, используемых другими модулями пакета.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Файл определяет доменные сущности индексатора и их контракты, которые используются всеми остальными модулями пакета."
+          },
+          "fingerprint": "signature=468eaf80f012209d14f0a157a9247d8287538a0766d3409ced262ef7ec1b5127,placement=468eaf80f012209d14f0a157a9247d8287538a0766d3409ced262ef7ec1b5127"
+        },
+        "responsibility": {
+          "body": "Модуль содержит реализации функций isDomainTierEntity, isSourceCodeEntity, domainIdFor, buildDomainEntities, а также вспомогательные константы, такие как DOMAIN_ID_PREFIX и PROJECT_ID.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Файл определяет доменные сущности индексатора и их контракты, которые используются всеми остальными модулями пакета."
+          },
+          "fingerprint": "signature=468eaf80f012209d14f0a157a9247d8287538a0766d3409ced262ef7ec1b5127,deps=87c1201f9bddf63901b65c76c559dfda7543ddb6ae82b16cbef70d1ed1fc51eb,usage=e3b821b08f22235c97d9ad57367cb9ba885ef6a9df2d1b694b73bdd77a68d6f2"
+        },
+        "invariants": {
+          "body": "Функции модуля не имеют побочных эффектов и гарантируют корректное формирование идентификаторов и проверку типов сущностей.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Файл определяет доменные сущности индексатора и их контракты, которые используются всеми остальными модулями пакета."
+          },
+          "fingerprint": "signature=468eaf80f012209d14f0a157a9247d8287538a0766d3409ced262ef7ec1b5127,body=8ff3fb48b2130f6d34408c89a36a670542eedb7e403ca2697ad13c4294a76064"
+        },
+        "dependencies": {
+          "body": "Функция использует fileToDomainSlug из domain-map.ts для перевода путей файлов в домены, buildDomainDag из domain-dag.ts для построения DAG зависимостей, sha256 из hash.ts для генерации идентификаторов, а также собственные неэкспортируемые помощники fileIdFor, synthFacets и synthMetadata для формирования идентификаторов и синтетических метаданных.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция полагается на domain-map.ts для перевода путей в домены, на domain-dag.ts для построения DAG, на hash.ts для SHA-256 идентификаторов и на собственные вспомогательные функции fileIdFor, synthFacets и synthMetadata."
+          },
+          "fingerprint": "deps=87c1201f9bddf63901b65c76c559dfda7543ddb6ae82b16cbef70d1ed1fc51eb"
+        },
+        "limitations": {
+          "body": "Файлы, не сопоставленные ни с одним доменом, не включаются ни в одну синтетическую сущность домена или проекта — функция просто пропускает их при группировке.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция не обрабатывает файлы, не сопоставленные ни с одним доменом: такие файлы не попадают в синтетические сущности."
+          },
+          "fingerprint": "body=8ff3fb48b2130f6d34408c89a36a670542eedb7e403ca2697ad13c4294a76064"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.764Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.685Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "62be2040f078e13c81f42753dc062f25441cf10a1a1c0a9c0aa94848e69c32f7"
+    },
+    "symbol:src/indexer/domain-entities.ts#isDomainTierEntity": {
+      "heading": "isDomainTierEntity",
+      "depth": 1,
+      "anchor": "isdomaintierentity",
+      "signature": "isDomainTierEntity(entity: Pick<CodeEntity, \"type\">): boolean",
+      "owns": [
+        "symbol:src/indexer/domain-entities.ts#isDomainTierEntity"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/indexer/domain-entities.ts#isSourceCodeEntity",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.stampMemberFingerprints"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Функция isDomainTierEntity принимает объект и возвращает true, если его свойство type равно 'domain' или 'project', и false в противном случае.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Функция isDomainTierEntity проверяет, принадлежит ли сущность к доменному уровню."
+          },
+          "fingerprint": "signature=739faf13497905db25630fbbaa28f28e43d365615887e9ffaa785889294aa37c,placement=ba5d61e9bcdf7d52cc850f837db0e7d506411a04e31a16c3a770629dbf54ec5d"
+        },
+        "responsibility": {
+          "body": "Функция isDomainTierEntity принимает объект и возвращает true, если его свойство type равно 'domain' или 'project', и false в противном случае.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Функция isDomainTierEntity проверяет, принадлежит ли сущность к доменному уровню."
+          },
+          "fingerprint": "signature=739faf13497905db25630fbbaa28f28e43d365615887e9ffaa785889294aa37c,deps=fa0860ec2b970c98f2a98f8e86b71ce562f70dab7c1cf3f4f4ba06c6d28c0628,usage=35b433568d12c47c5b18908ba0881b41f5f0c0c45637eb48ae7076f551898720"
+        },
+        "invariants": {
+          "body": "Функция isDomainTierEntity принимает объект и возвращает true, если его свойство type равно 'domain' или 'project', и false в противном случае.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Функция isDomainTierEntity проверяет, принадлежит ли сущность к доменному уровню."
+          },
+          "fingerprint": "signature=739faf13497905db25630fbbaa28f28e43d365615887e9ffaa785889294aa37c,body=7fb7227196f2d50a10b10807975198f4bbb36490cbad3bb931039c0f1575f1ed"
+        },
+        "dependencies": {
+          "body": "Функция не имеет внешних зависимостей.",
+          "rendered": false,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.5,
+            "specificity": 0.25,
+            "novelFact": "Функция не имеет внешних зависимостей."
+          },
+          "fingerprint": "deps=fa0860ec2b970c98f2a98f8e86b71ce562f70dab7c1cf3f4f4ba06c6d28c0628"
+        },
+        "workflows": {
+          "body": "isDomainTierEntity возвращает true для сущностей с типом 'domain'.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "isDomainTierEntity возвращает true для сущностей с типом 'domain'."
+          },
+          "fingerprint": "body=7fb7227196f2d50a10b10807975198f4bbb36490cbad3bb931039c0f1575f1ed,deps=fa0860ec2b970c98f2a98f8e86b71ce562f70dab7c1cf3f4f4ba06c6d28c0628"
+        },
+        "limitations": {
+          "body": "Функция не имеет ограничений.",
+          "rendered": false,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.5,
+            "specificity": 0.25,
+            "novelFact": "Функция не имеет ограничений."
+          },
+          "fingerprint": "body=7fb7227196f2d50a10b10807975198f4bbb36490cbad3bb931039c0f1575f1ed"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.765Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.687Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "62be2040f078e13c81f42753dc062f25441cf10a1a1c0a9c0aa94848e69c32f7"
+    },
+    "symbol:src/indexer/domain-entities.ts#isSourceCodeEntity": {
+      "heading": "isSourceCodeEntity",
+      "depth": 1,
+      "anchor": "issourcecodeentity",
+      "signature": "isSourceCodeEntity(entity: Pick<CodeEntity, \"type\">): boolean",
+      "owns": [
+        "symbol:src/indexer/domain-entities.ts#isSourceCodeEntity"
+      ],
+      "depends": [
+        "symbol:src/indexer/domain-entities.ts#isDomainTierEntity"
+      ],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.prepareInitialDocs"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Функция isSourceCodeEntity принимает объект и возвращает true, если isDomainTierEntity(entity) возвращает false, то есть если тип сущности не 'domain' и не 'project'.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Функция isSourceCodeEntity проверяет, является ли сущность кодом исходного кода."
+          },
+          "fingerprint": "signature=caabbbf3c2804811cc019f7b63d54a4c2cdb2c537f7241a65bc20f6784b021e8,placement=cd85f4bc40f387fd76057cbbecf92daaa066c1a3a72d1afb3b0d5e103e284c83"
+        },
+        "responsibility": {
+          "body": "Функция isSourceCodeEntity принимает объект и возвращает true, если isDomainTierEntity(entity) возвращает false, то есть если тип сущности не 'domain' и не 'project'.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Функция isSourceCodeEntity проверяет, является ли сущность кодом исходного кода."
+          },
+          "fingerprint": "signature=caabbbf3c2804811cc019f7b63d54a4c2cdb2c537f7241a65bc20f6784b021e8,deps=067e32bf40c25d5ed86ab8c72232c81355ca6035340fc79f772e84f5903ed15b,usage=67bc4f925277c77ffcfdc62e376cba36462f41e68a8d27325bf1fd7732704133"
+        },
+        "invariants": {
+          "body": "Функция isSourceCodeEntity принимает объект и возвращает true, если isDomainTierEntity(entity) возвращает false, то есть если тип сущности не 'domain' и не 'project'.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Функция isSourceCodeEntity проверяет, является ли сущность кодом исходного кода."
+          },
+          "fingerprint": "signature=caabbbf3c2804811cc019f7b63d54a4c2cdb2c537f7241a65bc20f6784b021e8,body=3709877f4e805c7eeb483c9b8136df9c0a47a2c43b026d9db15a8eacc011ae32"
+        },
+        "dependencies": {
+          "body": "Функция не имеет внешних зависимостей.",
+          "rendered": false,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.5,
+            "specificity": 0.25,
+            "novelFact": "Функция не имеет внешних зависимостей."
+          },
+          "fingerprint": "deps=067e32bf40c25d5ed86ab8c72232c81355ca6035340fc79f772e84f5903ed15b"
+        },
+        "workflows": {
+          "body": "isSourceCodeEntity проверяет, является ли сущность исходным кодом.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "isSourceCodeEntity проверяет, является ли сущность исходным кодом."
+          },
+          "fingerprint": "body=3709877f4e805c7eeb483c9b8136df9c0a47a2c43b026d9db15a8eacc011ae32,deps=067e32bf40c25d5ed86ab8c72232c81355ca6035340fc79f772e84f5903ed15b"
+        },
+        "limitations": {
+          "body": "Функция не имеет ограничений.",
+          "rendered": false,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.5,
+            "specificity": 0.25,
+            "novelFact": "Функция не имеет ограничений."
+          },
+          "fingerprint": "body=3709877f4e805c7eeb483c9b8136df9c0a47a2c43b026d9db15a8eacc011ae32"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.766Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.688Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "62be2040f078e13c81f42753dc062f25441cf10a1a1c0a9c0aa94848e69c32f7"
+    },
+    "symbol:src/indexer/domain-entities.ts#domainIdFor": {
+      "heading": "domainIdFor",
+      "depth": 1,
+      "anchor": "domainidfor",
+      "signature": "domainIdFor(slug: string): string",
+      "owns": [
+        "symbol:src/indexer/domain-entities.ts#domainIdFor"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/indexer/domain-entities.ts#buildDomainEntities",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.tierGenerationWaves"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Функция domainIdFor принимает строку slug и возвращает строку вида 'domain:' + slug, используя константу DOMAIN_ID_PREFIX.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Функция domainIdFor формирует идентификатор домена, добавляя префикс 'domain:' к переданному slug."
+          },
+          "fingerprint": "signature=6b644d2d9118299d10b8e011cca64b804961f8534e578dcd071532f3d5abd042,placement=aa1cf7c450fc6be84e80365d7e906b0ca6ee3cabe9ff6e81b79069ab64721f05"
+        },
+        "responsibility": {
+          "body": "Функция domainIdFor принимает строку slug и возвращает строку вида 'domain:' + slug, используя константу DOMAIN_ID_PREFIX.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Функция domainIdFor формирует идентификатор домена, добавляя префикс 'domain:' к переданному slug."
+          },
+          "fingerprint": "signature=6b644d2d9118299d10b8e011cca64b804961f8534e578dcd071532f3d5abd042,deps=4db90d674e34bd897e6a92175ae498673a525805716e1516a63b9406e883df01,usage=1f7d0cccc287bea4d1a91126e1016deaded06bc871e6f041ea328d8c5639ee68"
+        },
+        "invariants": {
+          "body": "Функция domainIdFor принимает строку slug и возвращает строку вида 'domain:' + slug, используя константу DOMAIN_ID_PREFIX.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Функция domainIdFor формирует идентификатор домена, добавляя префикс 'domain:' к переданному slug."
+          },
+          "fingerprint": "signature=6b644d2d9118299d10b8e011cca64b804961f8534e578dcd071532f3d5abd042,body=adb12ee8196e1ed506775b4d2e96c25c1053edbde89bf4dc861355a8f80e30e1"
+        },
+        "dependencies": {
+          "body": "Функция возвращает строку вида `${DOMAIN_ID_PREFIX}${slug}`.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция возвращает строку вида `${DOMAIN_ID_PREFIX}${slug}`."
+          },
+          "fingerprint": "deps=4db90d674e34bd897e6a92175ae498673a525805716e1516a63b9406e883df01"
+        },
+        "workflows": {
+          "body": "buildDomainEntities вызывает domainIdFor для каждого домена, чтобы получить стабильный идентификатор для синтетической сущности.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "buildDomainEntities вызывает domainIdFor для каждого домена, чтобы получить стабильный идентификатор для синтетической сущности."
+          },
+          "fingerprint": "body=adb12ee8196e1ed506775b4d2e96c25c1053edbde89bf4dc861355a8f80e30e1,deps=4db90d674e34bd897e6a92175ae498673a525805716e1516a63b9406e883df01"
+        },
+        "limitations": {
+          "body": "Функция не имеет ограничений.",
+          "rendered": false,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.25,
+            "novelty": 0.5,
+            "specificity": 0.25,
+            "novelFact": "Функция не имеет ограничений."
+          },
+          "fingerprint": "body=adb12ee8196e1ed506775b4d2e96c25c1053edbde89bf4dc861355a8f80e30e1"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.767Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.690Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "62be2040f078e13c81f42753dc062f25441cf10a1a1c0a9c0aa94848e69c32f7"
+    },
+    "symbol:src/indexer/domain-entities.ts#buildDomainEntities": {
+      "heading": "buildDomainEntities",
+      "depth": 1,
+      "anchor": "builddomainentities",
+      "signature": "buildDomainEntities(code: CodeIndex, map: DomainMap): Record<string, CodeEntity>",
+      "owns": [
+        "symbol:src/indexer/domain-entities.ts#buildDomainEntities"
+      ],
+      "depends": [
+        "symbol:src/domains/domain-map.ts#fileToDomainSlug",
+        "symbol:src/graph/domain-dag.ts#buildDomainDag",
+        "symbol:src/indexer/domain-entities.ts#domainIdFor",
+        "symbol:src/utils/hash.ts#sha256"
+      ],
+      "usedBy": [
+        "file:src/service/index-manager.ts",
+        "symbol:src/service/index-manager.ts#IndexManager",
+        "symbol:src/service/index-manager.ts#IndexManager.rebuild"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Функция buildDomainEntities принимает CodeIndex и DomainMap и возвращает объект, отображающий идентификаторы сущностей на объекты CodeEntity. Она создаёт синтетические сущности для каждого домена и проекта на основе данных индекса.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Функция buildDomainEntities создаёт синтетические сущности для доменов и проекта на основе CodeIndex и DomainMap."
+          },
+          "fingerprint": "signature=0735b278dae06795ee03fa3dd4235a4bb99f4912b0a6309cb32eaeea68ebe5f5,placement=ded04db7f52e9a15278c4364a4d549203fbd656af6e401927f92ba34e210b02b"
+        },
+        "responsibility": {
+          "body": "Функция buildDomainEntities принимает CodeIndex и DomainMap и возвращает объект, отображающий идентификаторы сущностей на объекты CodeEntity. Она создаёт синтетические сущности для каждого домена и проекта на основе данных индекса.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Функция buildDomainEntities создаёт синтетические сущности для доменов и проекта на основе CodeIndex и DomainMap."
+          },
+          "fingerprint": "signature=0735b278dae06795ee03fa3dd4235a4bb99f4912b0a6309cb32eaeea68ebe5f5,deps=88bc9f7c5b6351468ee9b5b966858f46729cc10eef85b5e79d308c4a0331095c,usage=0b982723ed3ea23a42b7f9cb3519de898fe8a425a9d8ccab386856dfe599eed1"
+        },
+        "invariants": {
+          "body": "Функция buildDomainEntities принимает CodeIndex и DomainMap и возвращает объект, отображающий идентификаторы сущностей на объекты CodeEntity. Она создаёт синтетические сущности для каждого домена и проекта на основе данных индекса.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Функция buildDomainEntities создаёт синтетические сущности для доменов и проекта на основе CodeIndex и DomainMap."
+          },
+          "fingerprint": "signature=0735b278dae06795ee03fa3dd4235a4bb99f4912b0a6309cb32eaeea68ebe5f5,body=ad90dfe93f8b16c3260def3e53d67eb552cfefe231fde771b53f3bbdfb9f5dc5"
+        },
+        "dependencies": {
+          "body": "Функция использует fileToDomainSlug из domain-map.ts для перевода путей файлов в домены, buildDomainDag из domain-dag.ts для построения DAG зависимостей, sha256 из hash.ts для генерации идентификаторов, а также собственные неэкспортируемые помощники fileIdFor, synthFacets и synthMetadata для формирования идентификаторов и синтетических метаданных.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция использует fileToDomainSlug для перевода путей в домены, buildDomainDag для построения DAG, sha256 для идентификаторов, а также собственные помощники fileIdFor, synthFacets и synthMetadata."
+          },
+          "fingerprint": "deps=88bc9f7c5b6351468ee9b5b966858f46729cc10eef85b5e79d308c4a0331095c"
+        },
+        "workflows": {
+          "body": "IndexManager.rebuild вызывает buildDomainEntities после построения кодового индекса и загрузки карты доменов, затем присваивает результат в code.entities, чтобы добавить синтетические сущности доменов и проектов в общий индекс.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "IndexManager.rebuild вызывает buildDomainEntities после построения кодового индекса и присваивает результат в code.entities, чтобы добавить синтетические сущности доменов и проектов в общий индекс."
+          },
+          "fingerprint": "body=ad90dfe93f8b16c3260def3e53d67eb552cfefe231fde771b53f3bbdfb9f5dc5,deps=88bc9f7c5b6351468ee9b5b966858f46729cc10eef85b5e79d308c4a0331095c"
+        },
+        "limitations": {
+          "body": "Файлы, не сопоставленные ни с одним доменом, не включаются ни в одну синтетическую сущность домена или проекта — функция просто пропускает их при группировке.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция не обрабатывает файлы, не сопоставленные ни с одним доменом: такие файлы не попадают в синтетические сущности."
+          },
+          "fingerprint": "body=ad90dfe93f8b16c3260def3e53d67eb552cfefe231fde771b53f3bbdfb9f5dc5"
+        },
+        "changeGuide": {
+          "body": "- Функция полагается на то, что buildDomainDag строит DAG на основе тех же доменов, что и buildDomainEntities; изменение набора доменов в одном месте потребует согласования с другим.\n- IndexManager.rebuild вызывает buildDomainEntities и присваивает результат в code.entities; изменение возвращаемой структуры потребует обновления этого присваивания.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Изменение логики группировки потребует согласования с buildDomainDag, который строит DAG на основе тех же доменов, и с IndexManager.rebuild, который вызывает buildDomainEntities и присваивает результат в code.entities."
+          },
+          "fingerprint": "body=ad90dfe93f8b16c3260def3e53d67eb552cfefe231fde771b53f3bbdfb9f5dc5,deps=88bc9f7c5b6351468ee9b5b966858f46729cc10eef85b5e79d308c4a0331095c,usage=0b982723ed3ea23a42b7f9cb3519de898fe8a425a9d8ccab386856dfe599eed1,placement=ded04db7f52e9a15278c4364a4d549203fbd656af6e401927f92ba34e210b02b"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.768Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.691Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "62be2040f078e13c81f42753dc062f25441cf10a1a1c0a9c0aa94848e69c32f7"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

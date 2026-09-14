@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/errors.codelore.md",
-  "generatedAt": "2026-07-03T16:19:56.855Z",
+  "generatedAt": "2026-09-13T19:32:56.988Z",
   "sectionOrder": [
     "symbol:src/errors.ts#CodeloreError",
     "symbol:src/errors.ts#toCodeloreErrorPayload"
@@ -17,9 +17,12 @@
       "depends": [],
       "usedBy": [
         "file:src/cli/run-cli.ts",
+        "file:src/domains/assign.ts",
+        "file:src/domains/partition.ts",
         "file:src/indexer/state-indexer.ts",
         "file:src/llm/complete-and-parse.ts",
         "file:src/llm/doc-verifier.ts",
+        "file:src/llm/domain-pipeline.ts",
         "file:src/llm/file-writer.ts",
         "file:src/llm/json.ts",
         "file:src/llm/provider.ts",
@@ -27,6 +30,7 @@
         "file:src/service/codelore-service.ts",
         "file:src/service/helpers.ts",
         "file:src/service/section-rewrite.ts",
+        "file:src/storage/doc-state-storage.ts",
         "symbol:src/errors.ts#toCodeloreErrorPayload",
         "symbol:src/llm/doc-verifier.ts#parseVerifyResponse",
         "symbol:src/llm/file-writer.ts#parseFileWriteResponse",
@@ -35,6 +39,9 @@
         "symbol:src/llm/provider.ts#createConfiguredProvider",
         "symbol:src/service/codelore-service.ts#CodeloreService",
         "symbol:src/service/codelore-service.ts#CodeloreService.assertKnownEntityIds",
+        "symbol:src/service/codelore-service.ts#CodeloreService.assignUncoveredFiles",
+        "symbol:src/service/codelore-service.ts#CodeloreService.generateDomainDocs",
+        "symbol:src/service/codelore-service.ts#CodeloreService.partitionDomainMap",
         "symbol:src/service/codelore-service.ts#CodeloreService.readChange",
         "symbol:src/service/codelore-service.ts#CodeloreService.readCodeEntity",
         "symbol:src/service/codelore-service.ts#CodeloreService.requireSectionState",
@@ -44,7 +51,9 @@
         "symbol:src/service/helpers.ts#describeError",
         "symbol:src/service/section-rewrite.ts#applyRewritesToDoc",
         "symbol:src/service/section-rewrite.ts#groupRewritesByDoc",
-        "symbol:src/service/section-rewrite.ts#normalizeGeneratedRewrite"
+        "symbol:src/service/section-rewrite.ts#normalizeGeneratedRewrite",
+        "symbol:src/storage/doc-state-storage.ts#DocStateStorage",
+        "symbol:src/storage/doc-state-storage.ts#DocStateStorage.loadDocState"
       ],
       "status": "normal",
       "allowedBlocks": [
@@ -74,14 +83,14 @@
           }
         },
         "responsibility": {
-          "body": "- Предоставляет публичные поля `code` (тип `CodeloreErrorCode`) и `details` (опциональный объект) для машинно-читаемой обработки ошибок.\n- Не занимается сериализацией ошибки в JSON, логированием, форматированием сообщений для пользователя или фильтрацией кодов — эти задачи вынесены в `toCodeloreErrorPayload` и вызывающий код.\n- Позволяет другим модулям выбрасывать ошибки с фиксированным набором кодов, определённых в `CodeloreErrorCode`.",
+          "body": "- Конструктор принимает код из `CodeloreErrorCode`, текст сообщения и необязательный объект деталей, вызывает `super(message)` и раскладывает их по публичным readonly-полям `code` и `details`, поэтому вызывающий код выбирает ветку обработки по коду, а не по разбору текста сообщения.\n- Выставляет `this.name = \"CodeloreError\"`, а `message` и `stack` оставляет унаследованными от `Error` — логирование и трассировка работают с этой ошибкой как с обычной.\n- Занимается только переносом кода и деталей: приведение к `CodeloreErrorPayload` и подстановку `INTERNAL_ERROR` для посторонних исключений делает `toCodeloreErrorPayload`, а не сам класс.\n- Словарь кодов ограничен union-типом `CodeloreErrorCode` на этапе компиляции; конструктор полагается на типизацию и не проверяет значение `code` во время выполнения.",
           "rendered": true,
-          "fingerprint": "signature=d6ac165641bdee7c306b70556db9f5c4897a48cfa0d431a34899a9131f77dd80,deps=ef6a69848b5ddc6e31650fa38db958128095fd67538a793ea8fbab41b57c04b8,usage=dd594f0322392d248e6e3abdb32ac0e9f72d4ad6cd363847a006c52d22efcbcf",
+          "fingerprint": "signature=d6ac165641bdee7c306b70556db9f5c4897a48cfa0d431a34899a9131f77dd80,deps=ef6a69848b5ddc6e31650fa38db958128095fd67538a793ea8fbab41b57c04b8,usage=66533463b68d0443b2a4fab551066dc65756d9a362203e1d879b55c7d013f742",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Публичные поля `code` (тип `CodeloreErrorCode`) и `details` позволяют вызывающему коду программно обрабатывать ошибки без разбора сообщения."
+            "novelFact": "Конструктор сохраняет код и детали в readonly-поля `code` и `details`, а сериализацию в `CodeloreErrorPayload` выполняет `toCodeloreErrorPayload`."
           },
           "language": "ru"
         },
@@ -167,8 +176,19 @@
           "generatedBlocks": [
             "responsibility"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:56.988Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility"
+          ]
         }
-      ]
+      ],
+      "signature": "class CodeloreError extends Error"
     },
     "symbol:src/errors.ts#toCodeloreErrorPayload": {
       "heading": "toCodeloreErrorPayload",

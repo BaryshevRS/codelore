@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/service/prepare-docs.codelore.md",
-  "generatedAt": "2026-07-03T20:27:08.471Z",
+  "generatedAt": "2026-09-13T23:00:01.905Z",
   "sectionOrder": [
     "symbol:src/service/prepare-docs.ts#emptyDocState",
     "symbol:src/service/prepare-docs.ts#allowedBlockIds",
@@ -141,7 +141,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+      "depDocsFingerprint": "d317ea696c7a1ebee0760ab04dcdb3fbe5278d533d389cf90966af3b5eadb965"
     },
     "symbol:src/service/prepare-docs.ts#allowedBlockIds": {
       "heading": "allowedBlockIds",
@@ -258,7 +258,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+      "depDocsFingerprint": "d317ea696c7a1ebee0760ab04dcdb3fbe5278d533d389cf90966af3b5eadb965"
     },
     "symbol:src/service/prepare-docs.ts#orderBlocks": {
       "heading": "orderBlocks",
@@ -269,6 +269,8 @@
       ],
       "depends": [],
       "usedBy": [
+        "file:src/service/domain-docs.ts",
+        "symbol:src/service/domain-docs.ts#domainDocState",
         "symbol:src/service/prepare-docs.ts#docStateSectionForPlannedEntity"
       ],
       "status": "normal",
@@ -303,13 +305,14 @@
         "responsibility": {
           "body": "- Принимает массив `allowed` идентификаторов блоков.\n- Строит `Set` из `allowed` для быстрой проверки.\n- Возвращает отфильтрованную копию `BLOCK_IDS`, содержащую только элементы из множества.\n- Сохраняет относительный порядок `BLOCK_IDS`, а не порядок входного массива.",
           "rendered": true,
-          "fingerprint": "signature=acf3a29cf7d9a27cc0a768c1c5dacb9b8093e0ff5fe818b3f9e48aa1ebe6f4cc,deps=c990ff78e75ae483a8c6822f389c789ef9daff7bef4095f3b67de52fd06abd92,usage=e15d4b18b9dddf7ce4169030c753a496e3d73d292f1a6a5dd8618fe7b52904ee",
+          "fingerprint": "signature=acf3a29cf7d9a27cc0a768c1c5dacb9b8093e0ff5fe818b3f9e48aa1ebe6f4cc,deps=c990ff78e75ae483a8c6822f389c789ef9daff7bef4095f3b67de52fd06abd92,usage=387f82684eab6d9e9df47f1bda83b0f5c922f47fe4dc57753c372e5e8e33b806",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.75,
-            "specificity": 1,
-            "novelFact": "Функция не проверяет, что входные идентификаторы действительны; доверяет `allowed`."
-          }
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 0.75,
+            "novelFact": "Сохраняет канонический порядок `BLOCK_IDS`, игнорируя порядок входного массива."
+          },
+          "language": "ru"
         },
         "invariants": {
           "body": "Длина выходного массива ≤ длина `allowed`. Если `allowed` пуст, возвращает пустой массив. Никогда не мутирует входные данные.",
@@ -373,9 +376,20 @@
             "dependencies",
             "workflows"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.120Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility"
+          ]
         }
       ],
-      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+      "depDocsFingerprint": "d317ea696c7a1ebee0760ab04dcdb3fbe5278d533d389cf90966af3b5eadb965",
+      "signature": "orderBlocks(allowed: BlockId[]): BlockId[]"
     },
     "symbol:src/service/prepare-docs.ts#anchorForHeading": {
       "heading": "anchorForHeading",
@@ -386,6 +400,8 @@
       ],
       "depends": [],
       "usedBy": [
+        "file:src/service/domain-docs.ts",
+        "symbol:src/service/domain-docs.ts#domainDocState",
         "symbol:src/service/prepare-docs.ts#docStateSectionForPlannedEntity"
       ],
       "status": "normal",
@@ -421,12 +437,12 @@
         "responsibility": {
           "body": "- Обрезает начальные и конечные пробелы с помощью .trim().\n- Приводит строку к нижнему регистру через .toLowerCase().\n- Удаляет все символы, кроме латиницы, кириллицы, цифр, пробелов и дефисов, с помощью replace(/[^a-z0-9а-яё\\s-]/gi, \"\").\n- Заменяет последовательности пробелов на один дефис через replace(/\\s+/g, \"-\").",
           "rendered": true,
-          "fingerprint": "signature=11b351910120b75c9277974302e49d61ae64e5ac28044a0b9a737b16c021da6a,deps=0443682d28a021cee9c3e0da549a42ec8817c2b0e698683eda135b7844109993,usage=19a18e539a2c2c6cf2ae692ca1f63ac4a7d3e0708545e8474c94b246cb46eedd",
+          "fingerprint": "signature=11b351910120b75c9277974302e49d61ae64e5ac28044a0b9a737b16c021da6a,deps=0443682d28a021cee9c3e0da549a42ec8817c2b0e698683eda135b7844109993,usage=9f16a619c1dc52af837a7e6fae76cd0a931cece421abd3d37a661a061c59d081",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.75,
+            "novelty": 1,
             "specificity": 0.75,
-            "novelFact": "Выполняет четыре последовательных преобразования: обрезка, приведение к нижнему регистру, удаление недопустимых символов, замена пробелов на дефисы."
+            "novelFact": "Преобразует заголовок в безопасный HTML-якорь, удаляя все символы кроме букв, цифр, пробелов и дефисов."
           },
           "language": "ru"
         },
@@ -515,9 +531,20 @@
             "workflows",
             "limitations"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.123Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility"
+          ]
         }
       ],
-      "depDocsFingerprint": "8850a7f16cfcb42d76e97a9c125a901807fc277aefe70deddf58cf4d3b9cf123"
+      "depDocsFingerprint": "d317ea696c7a1ebee0760ab04dcdb3fbe5278d533d389cf90966af3b5eadb965",
+      "signature": "anchorForHeading(heading: string): string"
     },
     "symbol:src/service/prepare-docs.ts#preparedDocsResult": {
       "heading": "preparedDocsResult",
@@ -642,7 +669,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+      "depDocsFingerprint": "d317ea696c7a1ebee0760ab04dcdb3fbe5278d533d389cf90966af3b5eadb965"
     },
     "symbol:src/service/prepare-docs.ts#withPreservedBlockBodies": {
       "heading": "withPreservedBlockBodies",
@@ -655,6 +682,7 @@
       "usedBy": [
         "file:src/service/codelore-service.ts",
         "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.prepareDomainDocs",
         "symbol:src/service/codelore-service.ts#CodeloreService.prepareInitialDocs"
       ],
       "status": "normal",
@@ -691,13 +719,14 @@
         "responsibility": {
           "body": "- Для каждого блока `previous`: если его тело непустое, а соответствующего блока в `fresh` нет или его тело пустое, то копирует предыдущий блок в `fresh`.\n- Добавляет идентификатор блока в `fresh.blockOrder` и `fresh.allowedBlocks`, если он там отсутствует.\n- Не изменяет предыдущее состояние.\n- Возвращает мутированный объект `fresh`.",
           "rendered": true,
-          "fingerprint": "signature=ef596bdddfccee9837fadbb069974be1da6ce46d9f9979f3a3f2c16e1e4b5f89,deps=de086f4491d8c7bcf778adde2b5855cf5df07d62845653fc7a76e0ccc8e9d028,usage=20150b231579e126506d6c95759a95b7fafae34ff081b44102c209b5f9055de6",
+          "fingerprint": "signature=ef596bdddfccee9837fadbb069974be1da6ce46d9f9979f3a3f2c16e1e4b5f89,deps=de086f4491d8c7bcf778adde2b5855cf5df07d62845653fc7a76e0ccc8e9d028,usage=59b02f2a73c3b1999db368ae8dff56f94cd1aad9bf25dbac424bffaadcc46e8b",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.75,
-            "specificity": 1,
-            "novelFact": "Функция не копирует другие поля (например, `depends`, `usedBy`); только блоки."
-          }
+            "novelty": 1,
+            "specificity": 0.75,
+            "novelFact": "Сохраняет непустые тела блоков из предыдущей версии секции, если новая версия не содержит собственного текста."
+          },
+          "language": "ru"
         },
         "invariants": {
           "body": "Мутирует объект `fresh` in-place. Если в `previous` есть блоки с пустым телом, они игнорируются. Если в `fresh` уже есть блок с непустым телом, он не перезаписывается. Функция никогда не удаляет блоки из `fresh`.",
@@ -738,15 +767,16 @@
           "fingerprint": "body=13241a996cb7dbf60487d20db1a8d5ff4e9e49d3df3a7c1a21f14996e2ccc63e"
         },
         "changeGuide": {
-          "body": "1. Блоки с пустым телом в `previous` игнорируются. Обеспечивает проверка `if (prevBlock.body.trim() === \"\") { continue; }`.\n2. Если в `fresh` уже есть блок с непустым телом, он не перезаписывается. Обеспечивает проверка `if (freshBlock && freshBlock.body.trim() !== \"\") { continue; }`.",
+          "body": "- Блоки с пустым телом в `previous` игнорируются — правило зафиксировано проверкой `prevBlock.body.trim() === \"\"`.\n- Если в `fresh` уже есть блок с непустым телом, он не перезаписывается — правило зафиксировано проверкой `freshBlock && freshBlock.body.trim() !== \"\"`.",
           "rendered": true,
-          "fingerprint": "body=13241a996cb7dbf60487d20db1a8d5ff4e9e49d3df3a7c1a21f14996e2ccc63e,deps=de086f4491d8c7bcf778adde2b5855cf5df07d62845653fc7a76e0ccc8e9d028,usage=20150b231579e126506d6c95759a95b7fafae34ff081b44102c209b5f9055de6,placement=7c3adab65edfb5830932f4108084524cdfced1b4ac68d6aab5a84ec47f565b9d",
+          "fingerprint": "body=13241a996cb7dbf60487d20db1a8d5ff4e9e49d3df3a7c1a21f14996e2ccc63e,deps=de086f4491d8c7bcf778adde2b5855cf5df07d62845653fc7a76e0ccc8e9d028,usage=59b02f2a73c3b1999db368ae8dff56f94cd1aad9bf25dbac424bffaadcc46e8b,placement=7c3adab65edfb5830932f4108084524cdfced1b4ac68d6aab5a84ec47f565b9d",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.75,
+            "novelty": 0.5,
             "specificity": 0.75,
-            "novelFact": "Два условия копирования блоков"
-          }
+            "novelFact": "Функция никогда не удаляет блоки из fresh — только добавляет или перезаписывает пустые."
+          },
+          "language": "ru"
         }
       },
       "generationHistory": [
@@ -773,9 +803,30 @@
             "workflows",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.125Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:41:29.650Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "changeGuide"
+          ]
         }
       ],
-      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+      "depDocsFingerprint": "d317ea696c7a1ebee0760ab04dcdb3fbe5278d533d389cf90966af3b5eadb965",
+      "signature": "withPreservedBlockBodies(previous: DocStateSection, fresh: DocStateSection): DocStateSection"
     },
     "symbol:src/service/prepare-docs.ts#docStateSectionForPlannedEntity": {
       "heading": "docStateSectionForPlannedEntity",
@@ -785,7 +836,6 @@
         "symbol:src/service/prepare-docs.ts#docStateSectionForPlannedEntity"
       ],
       "depends": [
-        "symbol:src/markdown/block-facets.ts#computeBlockFingerprint",
         "symbol:src/service/helpers.ts#uniqueSorted",
         "symbol:src/service/prepare-docs.ts#allowedBlockIds",
         "symbol:src/service/prepare-docs.ts#anchorForHeading",
@@ -817,75 +867,88 @@
       ],
       "blocks": {
         "purpose": {
-          "body": "Создаёт пустой скелет секции документации для сущности, объединяя данные разметки файла (`planned.heading`, `planned.depth`) с зависимостями и потребителями сущности.",
+          "body": "Преобразует запланированную секцию файла и соответствующую сущность кода в структуру `DocStateSection`, готовую для сохранения в хранилище состояний документации, при этом сохраняя тела блоков из предыдущего состояния, если они не пусты.",
           "rendered": true,
-          "fingerprint": "signature=21d8f84ff180e66213831b47f7378752807416a486c06b1179b6f2e17d96207f,placement=bb209141eed6ebc254ec54cb065b65a6e3f2ec7584f1e1caa87ed11d19ffdab0",
-          "scores": {
-            "informativeness": 0.75,
-            "novelty": 0.75,
-            "specificity": 1,
-            "novelFact": "Создаёт пустой скелет секции документации для сущности, объединяя данные разметки файла (`planned.heading`, `planned.depth`) с зависимостями и потребителями сущности."
-          }
-        },
-        "responsibility": {
-          "body": "- Делегирует вычисление разрешённых блоков `allowedBlockIds(entity)`, сортировку — `orderBlocks`.\n- Устанавливает `owns` как `[entity.id]`, `depends` и `usedBy` как отсортированные без дубликатов массивы из `entity.directDeps` и `entity.directUsages`.\n- Создаёт пустое тело для каждого блока (`body: \"\"`) и добавляет отпечаток `fingerprint` через `computeBlockFingerprint`, если он определён.\n- Генерирует `anchor` из `planned.heading` функцией `anchorForHeading`.",
-          "rendered": true,
-          "fingerprint": "signature=21d8f84ff180e66213831b47f7378752807416a486c06b1179b6f2e17d96207f,deps=1088d612495404b1e25d9bb7198f896f8f10b94286f1d85f7c558b911f50bf97,usage=d7785529f0c9306eb05b65577c6f4e5919471b5c8fe30008024c3d68e1e5c75f",
-          "scores": {
-            "informativeness": 0.75,
-            "novelty": 0.75,
-            "specificity": 1,
-            "novelFact": "- Делегирует вычисление разрешённых блоков `allowedBlockIds(entity)`, сортировку — `orderBlocks`."
-          }
-        },
-        "invariants": {
-          "body": "- Возвращаемая секция всегда имеет `status: \"normal\"`.\n- Порядок блоков в `blockOrder` соответствует порядку, полученному из `orderBlocks`, который сам следует глобальному порядку `BLOCK_IDS`.\n- Поля `depends` и `usedBy` отсортированы и не содержат дубликатов (гарантируется `uniqueSorted`).",
-          "rendered": true,
-          "fingerprint": "signature=21d8f84ff180e66213831b47f7378752807416a486c06b1179b6f2e17d96207f,body=2b807bd8e01e41b696315087a597cda1f03e202922331d091f15229978418c5c",
-          "scores": {
-            "informativeness": 0.75,
-            "novelty": 0.75,
-            "specificity": 1,
-            "novelFact": "- Возвращаемая секция всегда имеет `status: \"normal\"`."
-          }
-        },
-        "dependencies": {
-          "body": "Зависимости:\n- `computeBlockFingerprint` (`src/markdown/block-facets.ts`) — вычисляет отпечаток для каждого блока.\n- `uniqueSorted` (`src/service/helpers.ts`) — дедуплицирует и сортирует массивы `depends` и `usedBy`.",
-          "rendered": true,
-          "fingerprint": "deps=1088d612495404b1e25d9bb7198f896f8f10b94286f1d85f7c558b911f50bf97",
-          "scores": {
-            "informativeness": 0.75,
-            "novelty": 0.75,
-            "specificity": 1,
-            "novelFact": "Эта функция использует computeBlockFingerprint для создания отпечатка на основе сущности и её фасетов, и uniqueSorted для нормализации массивов зависимостей."
-          }
-        },
-        "workflows": {
-          "body": "Вызывается из `CodeloreService.prepareInitialDocs` для каждой запланированной секции в цикле по файлам и группам сущностей. Для каждой секции создаётся свежий `DocStateSection` с пустыми телами блоков. Если в хранилище уже есть предыдущая секция для той же сущности, вызывающий объединяет её с новой, иначе секция сохраняется как есть. Новая секция добавляется в `sectionOrder`, если её там ещё нет. Затем состояние сохраняется через `this.docStateStorage.saveDocState(state)`.",
-          "rendered": true,
-          "fingerprint": "body=2b807bd8e01e41b696315087a597cda1f03e202922331d091f15229978418c5c,deps=1088d612495404b1e25d9bb7198f896f8f10b94286f1d85f7c558b911f50bf97",
+          "fingerprint": "signature=1852f5f095643ca71a868cc02ff9b2fc802723c31160276f11508fc994be558c,placement=bb209141eed6ebc254ec54cb065b65a6e3f2ec7584f1e1caa87ed11d19ffdab0",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Работа функции полностью управляется вызывающим: создание, слияние и сохранение секций."
-          }
+            "novelFact": "This function converts a planned file section and its code entity into a `DocStateSection` that the doc-state storage can persist, preserving block bodies from a previous state when they are non-empty."
+          },
+          "language": "ru"
         },
-        "limitations": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "body=2b807bd8e01e41b696315087a597cda1f03e202922331d091f15229978418c5c"
-        },
-        "changeGuide": {
-          "body": "1. `orderBlocks(allowed)` гарантирует, что `blockOrder` совпадает с глобальным порядком `BLOCK_IDS`.\n2. `uniqueSorted([...entity.directDeps])` и `uniqueSorted([...entity.directUsages])` гарантируют отсутствие дубликатов и сортировку в массивах `depends` и `usedBy`.",
+        "responsibility": {
+          "body": "- Устанавливает `body` и `rendered` для каждого блока.\n- Использует `orderBlocks(allowed)` для определения порядка блоков.\n- Собирает `depends` и `usedBy` из `entity.directDeps` и `entity.directUsages`, и дедуплицирует их через `uniqueSorted`.\n- Включает `signature` только для не-файловых сущностей с непустой сигнатурой, и всегда устанавливает `owns` в `[entity.id]`.",
           "rendered": true,
-          "fingerprint": "body=2b807bd8e01e41b696315087a597cda1f03e202922331d091f15229978418c5c,deps=1088d612495404b1e25d9bb7198f896f8f10b94286f1d85f7c558b911f50bf97,usage=d7785529f0c9306eb05b65577c6f4e5919471b5c8fe30008024c3d68e1e5c75f,placement=bb209141eed6ebc254ec54cb065b65a6e3f2ec7584f1e1caa87ed11d19ffdab0",
+          "fingerprint": "signature=1852f5f095643ca71a868cc02ff9b2fc802723c31160276f11508fc994be558c,deps=fa8446bd07441e544ed0e63425e60b5d4e03e1c3ba179f88eb867c350179f3a7,usage=d7785529f0c9306eb05b65577c6f4e5919471b5c8fe30008024c3d68e1e5c75f",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 1,
-            "specificity": 1,
-            "novelFact": "Два инварианта структуры секции гарантируются вызовами `orderBlocks` и `uniqueSorted`."
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function sets body and rendered for each block, uses orderBlocks(allowed) to order blocks, collects depends and usedBy from entity.directDeps and entity.directUsages, deduplicates via uniqueSorted, and sets signature and owns as described."
+          },
+          "language": "ru"
+        },
+        "invariants": {
+          "body": "- `blockOrder` always matches the global order of `BLOCK_IDS` because it is produced by `orderBlocks(allowed)`.\n- `depends` and `usedBy` arrays are deduplicated and sorted via `uniqueSorted([...entity.directDeps])` and `uniqueSorted([...entity.directUsers])`, so callers can rely on stable ordering and no duplicates.\n- The `signature` field is included only when `entity.type !== \"file\"` and `entity.signature` is truthy; otherwise it is omitted.\n- The `owns` array always contains exactly `[entity.id]`.",
+          "rendered": true,
+          "fingerprint": "signature=1852f5f095643ca71a868cc02ff9b2fc802723c31160276f11508fc994be558c,body=0fd68e843fe7b744bd31d060e47aaaadeecf2e896e9f3aee7976e380bcc2901a",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function returns a section with `blockOrder` derived from `orderBlocks(allowed)` and `depends`/`usedBy` arrays deduplicated and sorted via `uniqueSorted`, ensuring deterministic output."
+          },
+          "language": "ru"
+        },
+        "dependencies": {
+          "body": "- `uniqueSorted` (`src/service/helpers.ts`) — дедуплицирует и сортирует массивы `depends` и `usedBy`.",
+          "rendered": true,
+          "fingerprint": "deps=fa8446bd07441e544ed0e63425e60b5d4e03e1c3ba179f88eb867c350179f3a7",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function relies on `uniqueSorted` from `src/service/helpers.ts` to deduplicate and sort dependency arrays."
+          },
+          "language": "ru"
+        },
+        "workflows": {
+          "body": "1. `CodeloreService.prepareInitialDocs` calls this function for each planned entity to create a fresh `DocStateSection`.\n2. The caller then checks if a previous section exists in `state.sections`; if so, it uses `withPreservedBlockBodies(previous, fresh)` to keep existing block bodies, otherwise it uses the fresh section directly.\n3. The resulting section is stored in `state.sections` and its id is added to `sectionOrder` (unshifted for file entities, pushed for others).",
+          "rendered": true,
+          "fingerprint": "body=0fd68e843fe7b744bd31d060e47aaaadeecf2e896e9f3aee7976e380bcc2901a,deps=fa8446bd07441e544ed0e63425e60b5d4e03e1c3ba179f88eb867c350179f3a7",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "This function is called by `CodeloreService.prepareInitialDocs` for each planned entity to create a fresh `DocStateSection`, and the caller preserves previous block bodies when a section already exists."
+          },
+          "language": "ru"
+        },
+        "limitations": {
+          "body": "- The `signature` field is omitted for file entities or when `entity.signature` is falsy, enforced by the condition `entity.type !== \"file\" && entity.signature`.\n- The `owns` array is always exactly `[entity.id]`, so it does not reflect any additional ownership beyond the entity itself.",
+          "rendered": true,
+          "fingerprint": "body=0fd68e843fe7b744bd31d060e47aaaadeecf2e896e9f3aee7976e380bcc2901a",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The function does not handle entities with a `file` type for the `signature` field, and it always sets `owns` to exactly `[entity.id]` without considering other ownership."
           }
+        },
+        "changeGuide": {
+          "body": "- The `blockOrder` is guaranteed to match the global order of `BLOCK_IDS` because it is produced by `orderBlocks(allowed)`.\n- The `depends` and `usedBy` arrays are deduplicated and sorted via `uniqueSorted([...entity.directDeps])` and `uniqueSorted([...entity.directUsers])`, ensuring stable ordering and no duplicates.\n- The `signature` field is included only when `entity.type !== \"file\"` and `entity.signature` is truthy; otherwise it is omitted.\n- The `owns` array always contains exactly `[entity.id]`.",
+          "rendered": true,
+          "fingerprint": "body=0fd68e843fe7b744bd31d060e47aaaadeecf2e896e9f3aee7976e380bcc2901a,deps=fa8446bd07441e544ed0e63425e60b5d4e03e1c3ba179f88eb867c350179f3a7,usage=d7785529f0c9306eb05b65577c6f4e5919471b5c8fe30008024c3d68e1e5c75f,placement=bb209141eed6ebc254ec54cb065b65a6e3f2ec7584f1e1caa87ed11d19ffdab0",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The block order is pinned to the global BLOCK_IDS order via orderBlocks(allowed), and the signature field is conditionally included based on entity type and truthiness."
+          },
+          "language": "ru"
         }
       },
       "generationHistory": [
@@ -912,9 +975,66 @@
             "workflows",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.128Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:41:29.653Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "workflows",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "62857847-d626-48e6-877b-c4bf306b56e4",
+          "timestamp": "2026-09-13T22:20:00.092Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "limitations"
+          ]
+        },
+        {
+          "runId": "55b12cfb-a086-477b-b289-838ba97ffaa0",
+          "timestamp": "2026-09-13T22:58:55.447Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "55b12cfb-a086-477b-b289-838ba97ffaa0",
+          "timestamp": "2026-09-13T23:00:01.905Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
       ],
-      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+      "depDocsFingerprint": "d317ea696c7a1ebee0760ab04dcdb3fbe5278d533d389cf90966af3b5eadb965",
+      "signature": "docStateSectionForPlannedEntity(planned: PlannedFileSection, entity: CodeEntity): DocStateSection"
     },
     "symbol:src/service/prepare-docs.ts#normalizePrepareScope": {
       "heading": "normalizePrepareScope",
@@ -1037,7 +1157,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+      "depDocsFingerprint": "d317ea696c7a1ebee0760ab04dcdb3fbe5278d533d389cf90966af3b5eadb965"
     },
     "symbol:src/service/prepare-docs.ts#normalizePreparePath": {
       "heading": "normalizePreparePath",
@@ -1156,7 +1276,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+      "depDocsFingerprint": "d317ea696c7a1ebee0760ab04dcdb3fbe5278d533d389cf90966af3b5eadb965"
     },
     "symbol:src/service/prepare-docs.ts#publicPrepareScope": {
       "heading": "publicPrepareScope",
@@ -1266,7 +1386,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+      "depDocsFingerprint": "d317ea696c7a1ebee0760ab04dcdb3fbe5278d533d389cf90966af3b5eadb965"
     },
     "symbol:src/service/prepare-docs.ts#prepareInitialDocsSummary": {
       "heading": "prepareInitialDocsSummary",
@@ -1385,7 +1505,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+      "depDocsFingerprint": "d317ea696c7a1ebee0760ab04dcdb3fbe5278d533d389cf90966af3b5eadb965"
     },
     "symbol:src/service/prepare-docs.ts#prepareInitialDocsNextStep": {
       "heading": "prepareInitialDocsNextStep",
@@ -1516,7 +1636,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+      "depDocsFingerprint": "d317ea696c7a1ebee0760ab04dcdb3fbe5278d533d389cf90966af3b5eadb965"
     },
     "symbol:src/service/prepare-docs.ts#codeIndexScopeFromPrepareScope": {
       "heading": "codeIndexScopeFromPrepareScope",
@@ -1645,7 +1765,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+      "depDocsFingerprint": "d317ea696c7a1ebee0760ab04dcdb3fbe5278d533d389cf90966af3b5eadb965"
     },
     "symbol:src/service/prepare-docs.ts#hasPrepareScope": {
       "heading": "hasPrepareScope",
@@ -1773,7 +1893,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+      "depDocsFingerprint": "d317ea696c7a1ebee0760ab04dcdb3fbe5278d533d389cf90966af3b5eadb965"
     },
     "symbol:src/service/prepare-docs.ts#skippedPreparedDocSection": {
       "heading": "skippedPreparedDocSection",
@@ -1902,7 +2022,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+      "depDocsFingerprint": "d317ea696c7a1ebee0760ab04dcdb3fbe5278d533d389cf90966af3b5eadb965"
     },
     "symbol:src/service/prepare-docs.ts#isSectionSkeleton": {
       "heading": "isSectionSkeleton",
@@ -2028,7 +2148,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+      "depDocsFingerprint": "d317ea696c7a1ebee0760ab04dcdb3fbe5278d533d389cf90966af3b5eadb965"
     },
     "symbol:src/service/prepare-docs.ts#isEntityInPrepareScope": {
       "heading": "isEntityInPrepareScope",
@@ -2161,7 +2281,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+      "depDocsFingerprint": "d317ea696c7a1ebee0760ab04dcdb3fbe5278d533d389cf90966af3b5eadb965"
     },
     "symbol:src/service/prepare-docs.ts#shouldCreatePage": {
       "heading": "shouldCreatePage",
@@ -2287,7 +2407,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+      "depDocsFingerprint": "d317ea696c7a1ebee0760ab04dcdb3fbe5278d533d389cf90966af3b5eadb965"
     },
     "symbol:src/service/prepare-docs.ts#collectSkippedBlocksByEntity": {
       "heading": "collectSkippedBlocksByEntity",
@@ -2418,7 +2538,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "fb8c2fa50b2c48bef5d138021593162ab45c2f66c41c24ab4d9c24ac10740463"
+      "depDocsFingerprint": "d317ea696c7a1ebee0760ab04dcdb3fbe5278d533d389cf90966af3b5eadb965"
     }
   },
   "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"

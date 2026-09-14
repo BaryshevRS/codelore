@@ -1,5 +1,4 @@
 import { PROJECT_ID } from "../indexer/domain-entities.js";
-import { computeBlockFingerprint } from "../markdown/block-facets.js";
 import { DOC_STATE_VERSION } from "../storage/doc-state-storage.js";
 import type { CodeEntity, DocState, DocStateBlock, DocStateSection } from "../types.js";
 import { anchorForHeading, orderBlocks } from "./prepare-docs.js";
@@ -36,7 +35,7 @@ function tierHeading(entity: CodeEntity): string {
 }
 
 /** A single-section DocState for a domain or project entity, blocks empty (a skeleton). */
-export function domainDocState(entity: CodeEntity, entities: Record<string, CodeEntity>): DocState {
+export function domainDocState(entity: CodeEntity): DocState {
   const docPath = tierDocPathForEntity(entity);
   if (docPath === undefined) {
     throw new Error(`domainDocState called with non-tier entity ${entity.id}`);
@@ -45,8 +44,9 @@ export function domainDocState(entity: CodeEntity, entities: Record<string, Code
   const order = orderBlocks(allowed);
   const blocks: Record<string, DocStateBlock> = {};
   for (const blockId of order) {
-    const fingerprint = computeBlockFingerprint(blockId, [entity.id], entities);
-    blocks[blockId] = { body: "", rendered: false, ...(fingerprint !== undefined ? { fingerprint } : {}) };
+    // See docStateSectionForPlannedEntity: a skeleton carries no fingerprint, or an
+    // empty block would read as written-and-current and never reach the queue.
+    blocks[blockId] = { body: "", rendered: false };
   }
   const heading = tierHeading(entity);
   const section: DocStateSection = {
@@ -75,7 +75,7 @@ export function buildDomainSkeletons(entities: Record<string, CodeEntity>): Map<
   const skeletons = new Map<string, DocState>();
   for (const entity of Object.values(entities)) {
     if (entity.type === "domain" || entity.id === PROJECT_ID) {
-      skeletons.set(tierDocPathForEntity(entity) as string, domainDocState(entity, entities));
+      skeletons.set(tierDocPathForEntity(entity) as string, domainDocState(entity));
     }
   }
   return skeletons;

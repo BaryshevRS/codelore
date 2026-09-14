@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/cli/render-graph.codelore.md",
-  "generatedAt": "2026-06-19T16:25:57.051Z",
+  "generatedAt": "2026-09-13T19:41:29.674Z",
   "sectionOrder": [
     "symbol:src/cli/render-graph.ts#renderGraphTree",
     "symbol:src/cli/render-graph.ts#renderGraphHtml"
@@ -72,51 +72,55 @@
           }
         },
         "dependencies": {
-          "body": "- Строит DAG файлов по прямым зависимостям (из `src/graph/file-dag.ts`).\n- Разбивает файлы на волны генерации, учитывая SCC (из `src/graph/file-dag.ts`).",
+          "body": "- `collectNodes` (локальный хелпер) строит `Map<string, FileNode>` с волнами, зависимостями и статусом документирования.\n- `statusMark` и `sectionsLabel` (локальные хелперы) форматируют метки статуса и счётчики секций для каждой строки вывода.",
           "rendered": true,
           "fingerprint": "deps=2cdf8847a3ed4429bf6c1e1754b6752710088933814f24dadcde408bba463b2f",
           "scores": {
-            "informativeness": 0.75,
+            "informativeness": 0.5,
             "novelty": 0.5,
             "specificity": 0.75,
-            "novelFact": "Зависимости описаны на основе обновлённых depDocs"
-          }
+            "novelFact": "Форматирование делегировано локальным хелперам, а построение данных — collectNodes."
+          },
+          "language": "ru"
         },
         "workflows": {
-          "body": "Вызывается из `run-cli.ts` для построения текстового дерева зависимостей. `collectNodes` использует DAG и результаты разбиения на волны, затем результаты группируются по волнам и форматируются в ASCII-дерево. Возвращаемая строка выводится в stdout.",
+          "body": "Вызывается из `runCli` при команде `graph` (текстовый вывод). `collectNodes` получает файловые узлы, затем они группируются в `Map<number, FileNode[]>` по номеру волны. Волны сортируются по возрастанию, файлы внутри волны — лексикографически по пути. Для каждого файла выводится строка с меткой статуса, путём и счётчиком секций, а под ней — строки зависимостей с префиксом `←`. Результат возвращается как строка, которую `runCli` пишет в `runtime.stdout`.",
           "rendered": true,
           "fingerprint": "body=934faa0bfa39981eb1f69ed071560c38a682918ea1bb1f33fe563fb7fa58f2c1,deps=2cdf8847a3ed4429bf6c1e1754b6752710088933814f24dadcde408bba463b2f",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Уточнено, что вызов происходит из `run-cli.ts`"
-          }
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Группировка по волнам и лексикографическая сортировка внутри волны определяют порядок вывода."
+          },
+          "language": "ru"
         },
         "limitations": {
-          "body": "- Выводит только прямые зависимости из DAG, полученные через `dag.get(file)`; транзитивные цепочки не отображаются.\n- Не реализована пагинация — при большом количестве файлов вывод может быть громоздким (нет ограничения размера).\n- Волны и состав групп зависят от логики разбиения на волны; изменение этого модуля может изменить отображение, но функция не проверяет согласованность.",
+          "body": "- Выводит только прямые зависимости узла, полученные через `node.deps`; транзитивные цепочки не раскрываются.\n- Нет ограничения на количество выводимых файлов или зависимостей — при большом проекте вывод может быть очень длинным.",
           "rendered": true,
           "fingerprint": "body=934faa0bfa39981eb1f69ed071560c38a682918ea1bb1f33fe563fb7fa58f2c1",
           "scores": {
-            "informativeness": 0.75,
+            "informativeness": 0.5,
             "novelty": 0.5,
             "specificity": 0.75,
-            "novelFact": "Каждое ограничение привязано к конкретному конструкту (dag.get, отсутствие пагинации, логика разбиения на волны)"
-          }
+            "novelFact": "Транзитивные зависимости не отображаются, а объём вывода не ограничен."
+          },
+          "language": "ru"
         },
         "changeGuide": {
-          "body": "- Изменение меток в `statusMark` (функция `statusMark(node: FileNode): string`) нарушит согласованность с `statusClass` и HTML-рендерингом; обе функции должны быть синхронизированы.\n- Изменение сортировки волн (`[...byWave.keys()].sort((left, right) => left - right)`) или файлов внутри волны (`node.deps.sort()`) изменит порядок вывода, что может нарушить тесты, ожидающие конкретный порядок.",
+          "body": "- Порядок волн зафиксирован сортировкой `[...byWave.keys()].sort((left, right) => left - right)` — изменение направления или ключа сортировки сломает ожидаемый порядок вывода.\n- Лексикографический порядок файлов внутри волны зафиксирован `.sort((left, right) => left.file.localeCompare(right.file))` — замена компаратора изменит порядок строк и может сломать тесты на точное совпадение вывода.",
           "rendered": true,
           "fingerprint": "body=934faa0bfa39981eb1f69ed071560c38a682918ea1bb1f33fe563fb7fa58f2c1,deps=2cdf8847a3ed4429bf6c1e1754b6752710088933814f24dadcde408bba463b2f,usage=f803951510a637b23797280edc8efe4d7e6025129eab8601cd754c334867d03e,placement=43e23eccbdd921edd36f04a55fa39f38be5ee620e75605db02ebd2e40dfb28fc",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.5,
-            "specificity": 0.75,
-            "novelFact": "Указаны точные конструкции, которые нужно менять синхронно"
-          }
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Два независимых компаратора сортировки жёстко задают порядок вывода."
+          },
+          "language": "ru"
         }
       },
-      "depDocsFingerprint": "36d06796e2f33e090809a8b91b7c23b3db7e2719eb8e4aa027c3ad9d1029761b",
+      "depDocsFingerprint": "b201cdd0c7745d9309f51c2d8aa32ac2c24c3c10b1cfa20d37a0aa6120cf9ac9",
       "generationHistory": [
         {
           "runId": "61372614-014e-462a-bae1-622628a3489c",
@@ -187,8 +191,22 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:41:29.674Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
-      ]
+      ],
+      "signature": "renderGraphTree(input: GraphRenderInput): string"
     },
     "symbol:src/cli/render-graph.ts#renderGraphHtml": {
       "heading": "renderGraphHtml",
@@ -299,7 +317,7 @@
           }
         }
       },
-      "depDocsFingerprint": "36d06796e2f33e090809a8b91b7c23b3db7e2719eb8e4aa027c3ad9d1029761b",
+      "depDocsFingerprint": "b201cdd0c7745d9309f51c2d8aa32ac2c24c3c10b1cfa20d37a0aa6120cf9ac9",
       "generationHistory": [
         {
           "runId": "61372614-014e-462a-bae1-622628a3489c",

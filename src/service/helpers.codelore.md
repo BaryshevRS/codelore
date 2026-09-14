@@ -83,6 +83,10 @@
 
 # firstDuplicate
 
+```ts
+firstDuplicate(values: string[]): string | undefined
+```
+
 ## Зачем это нужно
 
 Находит первое повторяющееся значение в массиве строк.
@@ -97,18 +101,22 @@
 
 Возвращает `undefined` для пустого массива или массива без дубликатов.
 
+## От чего зависит
+
+Функция не импортирует никаких внешних модулей — использует только встроенный `Set` из стандартной библиотеки JavaScript.
+
 ## Кто и как использует
 
-Вызывается в [`CodeloreService.rewriteSections`](codelore-service.codelore.md#rewritesections) для проверки дубликатов `sectionId` во входном массиве. Если `firstDuplicate` возвращает строку, выбрасывается ошибка с кодом `DUPLICATE_SECTION`.
+Вызывается в [`CodeloreService.rewriteSections`](codelore-service.codelore.md#rewritesections) (`src/service/codelore-service.ts`): метод создаёт массив `sectionId` через `sections.map(s => s.sectionId)` и передаёт его `firstDuplicate`. Если функция возвращает строку (обнаружен дубликат), вызывающий выбрасывает `new CodeloreError("DUPLICATE_SECTION", ...)` с кодом `DUPLICATE_SECTION` и идентификатором дубликата в деталях. При `undefined` выполнение продолжается к нормализации секций.
 
 ## Чего не делает
 
-Работает только с массивами строк — тип `string[]` задан сигнатурой. Не различает `undefined` и отсутствие дубликатов: возвращает `undefined` в обоих случаях.
+Сигнатура `values: string[]` ограничивает входной тип строками — функция не примет массив других типов. Кроме того, возвращает `undefined` как для пустого массива, так и для массива без дубликатов, что не позволяет различить эти два случая по возвращаемому значению. Однако вызывающий код ([`CodeloreService.rewriteSections`](codelore-service.codelore.md#rewritesections)) интерпретирует `undefined` одинаково (отсутствие дубликата), поэтому на практике ограничение не проявляется.
 
 ## Как менять и что проверять
 
-- Поиск дубликата останавливается на первом повторении через `seen.has(value)` — если нужно найти все дубликаты, потребуется другой алгоритм. Тест: не указан.
-- Функция возвращает `undefined` при отсутствии дубликатов — вызывающий ([`CodeloreService.rewriteSections`](codelore-service.codelore.md#rewritesections)) проверяет результат через `if (duplicateSectionId)`, что корректно обрабатывает `undefined`. Тест: не указан.
+- Поиск дубликата прекращается при первом совпадении: `if (seen.has(value)) { return value; }` — остальные значения массива не проверяются, итерация завершается.
+- При отсутствии дубликатов функция завершается `return undefined` после цикла. Вызывающий ([`CodeloreService.rewriteSections`](codelore-service.codelore.md#rewritesections)) обрабатывает `undefined` как отсутствие дубликата.
 
 # summarizeCodeEntity
 
@@ -162,14 +170,20 @@
 
 # groupBy
 
+```ts
+groupBy(items: T[], keyForItem: (item: T) => string): Map<string, T[]>
+```
+
 ## Зачем это нужно
 
 Группирует элементы массива по строковому ключу, возвращая Map с группами.
 
 ## Что делает
 
-- Не изменяет исходный массив.
-- Не обрабатывает null/undefined ключи — keyForItem должна возвращать строку.
+- Принимает массив элементов и функцию извлечения ключа, возвращает Map, где каждый ключ сопоставлен с массивом элементов, имеющих этот ключ.
+- Для каждого элемента вычисляет ключ через `keyForItem` и добавляет элемент в соответствующую группу, создавая новую группу при первом появлении ключа.
+- Порядок ключей в Map соответствует порядку первого появления элемента с этим ключом в исходном массиве — это обеспечивается конструкцией `groups.set(key, group)` при первом обращении к ключу.
+- Каждый элемент попадает ровно в одну группу, так как функция не удаляет и не переносит элементы между группами.
 
 ## На что можно положиться
 
@@ -186,10 +200,15 @@
 
 ## Как менять и что проверять
 
-1. Порядок ключей в возвращаемой `Map` соответствует порядку первого появления в массиве — это обеспечивается итерацией `for (const item of items)` и проверкой `groups.get(key) ?? []`. Тест: не указан.
-2. Функция не мутирует исходный массив — она только читает его через `for (const item of items)`. Тест: не указан.
+- The grouping key is derived by calling `keyForItem` on each item; items yielding the same string are collected into one array under that key.
+- The returned Map preserves insertion order of keys: the first key encountered becomes the first entry, and subsequent keys append in encounter order.
+- Each group is a fresh array; the original `items` array is not mutated, and the Map does not alias the input array.
 
 # isKnownBlockId
+
+```ts
+isKnownBlockId(value: string): value is BlockId
+```
 
 ## Зачем это нужно
 
@@ -197,9 +216,8 @@
 
 ## Что делает
 
-- Возвращает `true` только для значений, присутствующих в константном массиве `BLOCK_IDS`.
-- При возврате `true` сужает тип аргумента до `BlockId` (type predicate).
-- Не имеет побочных эффектов и не выбрасывает исключений.
+- Проверяет, содержится ли переданная строка в фиксированном наборе допустимых идентификаторов блоков (`BLOCK_IDS`).
+- При возврате `true` выполняет роль type predicate, сужая тип аргумента до `BlockId`.
 
 ## На что можно положиться
 

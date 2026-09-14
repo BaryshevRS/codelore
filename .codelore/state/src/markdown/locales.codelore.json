@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/markdown/locales.codelore.md",
-  "generatedAt": "2026-07-03T16:25:43.484Z",
+  "generatedAt": "2026-09-13T19:32:57.062Z",
   "sectionOrder": [
     "symbol:src/markdown/locales.ts#localeBundle",
     "symbol:src/markdown/locales.ts#resolveBlockHeadings"
@@ -17,9 +17,11 @@
       "depends": [],
       "usedBy": [
         "file:src/markdown/callouts.ts",
+        "file:src/markdown/render-doc.ts",
         "symbol:src/markdown/callouts.ts#staleCalloutText",
         "symbol:src/markdown/callouts.ts#translationPendingCalloutText",
-        "symbol:src/markdown/locales.ts#resolveBlockHeadings"
+        "symbol:src/markdown/locales.ts#resolveBlockHeadings",
+        "symbol:src/markdown/render-doc.ts#renderDoc"
       ],
       "status": "normal",
       "allowedBlocks": [
@@ -52,15 +54,15 @@
           }
         },
         "responsibility": {
-          "body": "- Определяет язык по строковому идентификатору и извлекает соответствующий LocaleBundle из предопределённого реестра LOCALES.\n- Возвращает английский LocaleBundle, если язык не указан или отсутствует в реестре.",
+          "body": "- Возвращает LocaleBundle для указанного языка, используя английский как запасной вариант, если язык не указан или отсутствует в реестре.",
           "rendered": true,
-          "fingerprint": "signature=c841b27e11be6f37c3ff40fc7eed73504d37a52784114842f18c9c4ee8062e8d,deps=9875aff60c7db7ad130ce09925ba33abab018b4b6d895e98180758c02c989e37,usage=154640d8e1a1df5307bac450dbb64dc95b62aec4f568b7b3cdefeffde93b05fe",
+          "fingerprint": "signature=c841b27e11be6f37c3ff40fc7eed73504d37a52784114842f18c9c4ee8062e8d,deps=9875aff60c7db7ad130ce09925ba33abab018b4b6d895e98180758c02c989e37,usage=b0b8896eeb2d849e2368ad7b2598c82e9a8b7e35e6a3907f67b27ae2090fec38",
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.75,
+            "novelty": 0,
             "specificity": 0.75,
-            "novelFact": "Функция всегда возвращает корректный LocaleBundle, так как реестр LOCALES гарантированно содержит английскую локаль."
+            "novelFact": "Функция всегда возвращает английский бандл при отсутствии или нераспознанном языке."
           }
         },
         "invariants": {
@@ -136,9 +138,20 @@
             "workflows",
             "limitations"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.062Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility"
+          ]
         }
       ],
-      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "signature": "localeBundle(language: string | undefined): LocaleBundle"
     },
     "symbol:src/markdown/locales.ts#resolveBlockHeadings": {
       "heading": "resolveBlockHeadings",

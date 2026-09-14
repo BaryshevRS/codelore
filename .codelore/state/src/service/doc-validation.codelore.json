@@ -141,7 +141,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "688e62705455635cc6f042d0e1378dc6c22da9cddbd44fd74f3ae5e3f97d99e6"
+      "depDocsFingerprint": "cc5ae4d50472ba2079f534a8db50b0925fdfc7ce82c9d7c7caaf136003ae7d72"
     },
     "symbol:src/service/doc-validation.ts#detectStaleBlocks": {
       "heading": "detectStaleBlocks",
@@ -277,7 +277,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "688e62705455635cc6f042d0e1378dc6c22da9cddbd44fd74f3ae5e3f97d99e6"
+      "depDocsFingerprint": "cc5ae4d50472ba2079f534a8db50b0925fdfc7ce82c9d7c7caaf136003ae7d72"
     },
     "symbol:src/service/doc-validation.ts#staleValidationIssue": {
       "heading": "staleValidationIssue",
@@ -419,7 +419,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "688e62705455635cc6f042d0e1378dc6c22da9cddbd44fd74f3ae5e3f97d99e6"
+      "depDocsFingerprint": "cc5ae4d50472ba2079f534a8db50b0925fdfc7ce82c9d7c7caaf136003ae7d72"
     },
     "symbol:src/service/doc-validation.ts#validateDependencies": {
       "heading": "validateDependencies",
@@ -552,7 +552,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "688e62705455635cc6f042d0e1378dc6c22da9cddbd44fd74f3ae5e3f97d99e6"
+      "depDocsFingerprint": "cc5ae4d50472ba2079f534a8db50b0925fdfc7ce82c9d7c7caaf136003ae7d72"
     },
     "symbol:src/service/doc-validation.ts#validateBlockQuality": {
       "heading": "validateBlockQuality",
@@ -685,7 +685,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "688e62705455635cc6f042d0e1378dc6c22da9cddbd44fd74f3ae5e3f97d99e6"
+      "depDocsFingerprint": "cc5ae4d50472ba2079f534a8db50b0925fdfc7ce82c9d7c7caaf136003ae7d72"
     }
   },
   "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"

@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "docs/domains/block-fingerprinting.codelore.md",
-  "generatedAt": "2026-07-08T07:59:27.227Z",
+  "generatedAt": "2026-09-14T06:50:18.089Z",
   "sectionOrder": [
     "domain:block-fingerprinting"
   ],
@@ -14,13 +14,13 @@
         "domain:block-fingerprinting"
       ],
       "depends": [
-        "file:src/markdown/block-facets.ts",
-        "domain:common-utils"
+        "domain:common-utils",
+        "file:src/domains/member-evidence.ts",
+        "file:src/markdown/block-facets.ts"
       ],
       "usedBy": [
         "domain:codelore-service-facade",
         "domain:doc-state-consistency",
-        "domain:initial-docs-preparation",
         "domain:markdown-rendering",
         "domain:section-rewrite-application",
         "domain:stale-blocks-detection"
@@ -42,67 +42,59 @@
       ],
       "blocks": {
         "purpose": {
-          "body": "Подсистема вычисляет два типа отпечатков блоков документации: по фасетам принадлежащих блоку сущностей — чтобы обнаружить изменения в коде, и по исходному телу блока — чтобы определить, устарел ли перевод. Это позволяет вызывающему слою управлять инвалидацией кеша и синхронизацией переводов.",
+          "body": "Подсистема вычисляет стабильные отпечатки блоков документации на основе хешей фасетов сущностей, которыми владеет секция, и хеша канонического тела блока. Это позволяет определять, изменилось ли содержимое блока и устарел ли перевод, обновляя зависимые фасеты и скелет только при реальных изменениях, избегая ненужных перерисовок.",
           "rendered": true,
-          "fingerprint": "signature=9fa1426dfa8aab0279fee760dea9bdf38eca7755979366e06b1a50b7a57c6b8e,placement=93af0ca3c9fb41c6aca284522840c9b0852ba56c689b5bba093d3489293c2f78",
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Подсистема вычисляет два типа отпечатков: для проверки изменений кода по фасетам сущностей и для проверки устаревания перевода по исходному телу."
-          }
+            "novelFact": "Подсистема вычисляет стабильные отпечатки блоков документации, чтобы определять, изменилось ли содержимое блока и устарел ли перевод, избегая ненужных перерисовок."
+          },
+          "fingerprint": "signature=9fa1426dfa8aab0279fee760dea9bdf38eca7755979366e06b1a50b7a57c6b8e,placement=93af0ca3c9fb41c6aca284522840c9b0852ba56c689b5bba093d3489293c2f78"
         },
         "responsibility": {
-          "body": "Подсистема реализует четыре функции для работы с отпечатками блоков. computeBlockFingerprint собирает релевантные фасеты каждой owned-сущности, игнорируя идентификаторы, отсутствующие в хранилище, и хеширует их конкатенацию; если owned-список пуст или ни одна сущность не найдена, возвращает undefined — это сигнал отсутствия изменений. translationSourceFingerprint обрезает пробелы в теле и вычисляет SHA-256. parseBlockFingerprintValue разбирает строку сохранённого отпечатка в объект, пропуская некорректные части. diffFacetHashes сравнивает фасеты двух объектов и возвращает список изменившихся.",
+          "body": "Подсистема вычисляет отпечаток блока, хэшируя конкатенацию значений фасетов всех сущностей, которыми владеет секция, через hashFacetAcrossEntities, используя фиксированное отображение BLOCK_FACETS[blockId] для определения набора фасетов. Для определения устаревания перевода она вычисляет SHA-256 хеш обрезанного тела блока. Также она сравнивает сохранённые и текущие отпечатки, выделяя изменённые фасеты, и собирает свидетельства о членстве и кросс-доменных рёбрах для стабильного отпечатка члена домена.",
           "rendered": true,
-          "fingerprint": "signature=9fa1426dfa8aab0279fee760dea9bdf38eca7755979366e06b1a50b7a57c6b8e,deps=b2bab67b58e043a3d79c5cb49193aa523c12522ab60dba4bbb247fb31f9d1a77,usage=91da78cd1d362bcc2641bd14efbf2989716b65fa5de121e42992f1a206a36bfa",
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Когда блок не имеет owned-сущностей или ни одна не найдена в хранилище, computeBlockFingerprint возвращает undefined, сигнализируя об отсутствии изменений."
-          }
+            "novelFact": "computeBlockFingerprint хэширует конкатенацию значений фасетов всех владеющих сущностей через hashFacetAcrossEntities, а translationSourceFingerprint вычисляет SHA-256 хеш обрезанного тела блока."
+          },
+          "fingerprint": "signature=9fa1426dfa8aab0279fee760dea9bdf38eca7755979366e06b1a50b7a57c6b8e,deps=e3d6a08eef4a5b5a958e0bc439a9566880d4e3c41d2ccd62e267c581c9c87f96,usage=ea12f4cb83171f09f5c3d2588c75fb11669bc738d88c12b77f87925e320498f6"
         },
         "dependencies": {
-          "body": "Подсистема не содержит собственной криптографии: хеширование исходного тела перевода передаётся низкоуровневым утилитам, предоставляющим SHA-256. Не занимается абсолютными путями и кодированием URI. Хранение и сравнение отпечатков остаются обязанностью вызывающей стороны.",
-          "rendered": true,
-          "fingerprint": "deps=b2bab67b58e043a3d79c5cb49193aa523c12522ab60dba4bbb247fb31f9d1a77",
-          "language": "ru",
-          "scores": {
-            "informativeness": 0.75,
-            "novelty": 0.75,
-            "specificity": 0.75,
-            "novelFact": "Вычисление SHA-256 для исходного тела выполняется внешней утилитой, а не собственной реализацией."
-          }
+          "body": "",
+          "rendered": false
         },
         "workflows": {
-          "body": "Для проверки изменений вызывающий код передаёт в computeBlockFingerprint список owned-сущностей и хранилище entities. Функция перебирает идентификаторы, собирает фасеты и хеширует результат. Позже parseBlockFingerprintValue разбирает ранее сохранённый отпечаток, а diffFacetHashes сравнивает его с текущим, возвращая изменившиеся фасеты (только те, что присутствуют в обоих). Отдельно translationSourceFingerprint обрабатывает исходное тело и даёт хеш для контроля устаревания перевода.",
+          "body": "Для определения изменений в блоке подсистема вызывает computeBlockFingerprint, который напрямую хэширует конкатенацию значений фасетов всех владеющих сущностей через hashFacetAcrossEntities, используя фиксированное отображение BLOCK_FACETS[blockId]. Если секция не владеет ни одной сущностью или ни одна из них не присутствует в словаре entities — возвращается undefined. Для определения устаревания перевода translationSourceFingerprint вычисляет SHA-256 хеш обрезанного тела блока. Сравнение сохранённых и текущих отпечатков выполняется diffFacetHashes, который учитывает только фасеты, присутствующие в обоих объектах.",
           "rendered": true,
-          "fingerprint": "body=9fa1426dfa8aab0279fee760dea9bdf38eca7755979366e06b1a50b7a57c6b8e,deps=b2bab67b58e043a3d79c5cb49193aa523c12522ab60dba4bbb247fb31f9d1a77",
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "diffFacetHashes сравнивает только фасеты, присутствующие в обоих отпечатках, игнорируя отсутствующие."
-          }
+            "novelFact": "computeBlockFingerprint для определения изменений в блоке хэширует конкатенацию значений фасетов всех владеющих сущностей через hashFacetAcrossEntities, используя фиксированное отображение BLOCK_FACETS[blockId], и не вызывает collectDomainMemberEvidence или domainMemberFingerprint."
+          },
+          "fingerprint": "body=9fa1426dfa8aab0279fee760dea9bdf38eca7755979366e06b1a50b7a57c6b8e,deps=e3d6a08eef4a5b5a958e0bc439a9566880d4e3c41d2ccd62e267c581c9c87f96"
         },
         "limitations": {
-          "body": "Подсистема не обрабатывает сущности вне owned-списка и не строит отпечатки для анонимных блоков. Ожидает, что фасеты уже являются строками. Не кеширует промежуточные результаты — каждый вызов computeBlockFingerprint заново проходит по хранилищу. Сохранение отпечатков и последующее сравнение возлагаются на вызывающий код.",
+          "body": "Подсистема не обрабатывает случаи, когда секция не владеет ни одной сущностью или ни одна из них не присутствует в словаре entities — в таких ситуациях computeBlockFingerprint возвращает undefined, и сравнение отпечатков невозможно. Также diffFacetHashes учитывает только фасеты, присутствующие в обоих объектах, игнорируя отсутствующие, что может скрыть изменения, если один из отпечатков неполон.",
           "rendered": true,
-          "fingerprint": "body=9fa1426dfa8aab0279fee760dea9bdf38eca7755979366e06b1a50b7a57c6b8e",
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Каждый вызов computeBlockFingerprint заново собирает фасеты из хранилища, не кешируя результаты."
-          }
+            "novelFact": "Если секция не владеет ни одной сущностью или ни одна из них не присутствует в словаре entities, computeBlockFingerprint возвращает undefined, и сравнение отпечатков становится невозможным."
+          },
+          "fingerprint": "body=9fa1426dfa8aab0279fee760dea9bdf38eca7755979366e06b1a50b7a57c6b8e"
         }
       },
-      "memberDocsFingerprint": "9a12a532146891f3881470a0a4d5a7db090765ab175ebffa6f14efa159e8635b"
+      "memberDocsFingerprint": "00e2282e56c958dbab90847b787a43a3a69b1a6a45ff2f2c62a1b8dc60f701fe"
     }
   },
   "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"

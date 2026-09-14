@@ -34,6 +34,7 @@ import {
   generateFileGroup,
   verifyBlocksAgainstDeps,
 } from "../llm/file-pipeline.js";
+import { writeRunDecisions } from "../llm/generation-debug.js";
 import { type ChatCompletionInput, type ChatCompletionProvider, createConfiguredProvider } from "../llm/provider.js";
 import {
   type TranslateBlockInput,
@@ -41,7 +42,7 @@ import {
   translationBlockKey,
   translationNeedsWork,
 } from "../llm/translator.js";
-import { translationSourceFingerprint } from "../markdown/block-facets.js";
+import { computeBlockFingerprint, translationSourceFingerprint } from "../markdown/block-facets.js";
 import { BLOCK_IDS, type BlockId } from "../markdown/block-ids.js";
 import { docResponsibilities } from "../markdown/linkify.js";
 import { renderSection } from "../markdown/render-doc.js";
@@ -122,6 +123,7 @@ import {
   collectMemberDocStaleBlocks,
   collectStaleBlocks,
   collectTombstonedBlocks,
+  collectUnwrittenBlocks,
   filterSectionsByScope,
   mergeStaleBlocks,
   refreshStaleResult,
@@ -321,7 +323,7 @@ export class CodeloreService {
       const layout = planFileLayout(entities);
       for (const planned of layout) {
         const entityForLayout = codeIndexForWrite.entities[planned.entity.id] ?? planned.entity;
-        const fresh = docStateSectionForPlannedEntity(planned, entityForLayout, codeIndexForWrite.entities);
+        const fresh = docStateSectionForPlannedEntity(planned, entityForLayout);
         const previous = state.sections[planned.entity.id];
         state.sections[planned.entity.id] = previous ? withPreservedBlockBodies(previous, fresh) : fresh;
         if (!state.sectionOrder.includes(planned.entity.id)) {
@@ -489,7 +491,7 @@ export class CodeloreService {
     const limit = pLimit(this.config.llm.concurrency);
 
     const generated: string[] = [];
-    const generatedEntityIds = new Set<string>();
+    const answeredEntityIds = new Set<string>();
     const failed: Array<{ slug: string; error: string }> = [];
     let droppedBlocks = 0;
     // Waves are ordered leaves-first; within a wave the domains are independent, so
@@ -523,16 +525,17 @@ export class CodeloreService {
                 provider,
                 verifyProvider,
               });
-              return { entity, ...result };
+              return { entity, ...result, answered: true };
             } catch (error) {
               failed.push({ slug: entity.path, error: error instanceof Error ? error.message : String(error) });
-              return { entity, blocks: {}, dropped: [] };
+              return { entity, blocks: {}, dropped: [], answered: false };
             }
           })
         )
       );
       // Persist serially: renderAndPersist maintains a shared render context.
-      for (const { entity, blocks, dropped } of results) {
+      const unsettled: Array<{ sectionId: string; blockId: BlockId }> = [];
+      for (const { entity, blocks, dropped, answered } of results) {
         droppedBlocks += dropped.length;
         const docPath = tierDocPathForEntity(entity);
         if (docPath && Object.keys(blocks).length > 0) {
@@ -545,12 +548,36 @@ export class CodeloreService {
             new Map()
           );
           generated.push(docPath);
-          generatedEntityIds.add(entity.id);
+        }
+        if (!answered) {
+          continue;
+        }
+        // The writer answered for this tier, so every block it was asked for has an
+        // answer — including "nothing". Blocks that did not land must be settled here
+        // or the run cannot converge: the tombstone stays on, so the next run
+        // re-selects this slug and pays for a whole chapter rewrite to be declined
+        // again, forever. A failed writer (answered === false) is the opposite case
+        // and is deliberately left unsettled, to be retried.
+        const landed = new Set<string>(Object.keys(blocks));
+        for (const blockId of entity.metadata?.allowedBlocks ?? []) {
+          if (!landed.has(blockId)) {
+            unsettled.push({ sectionId: entity.id, blockId });
+          }
+        }
+        answeredEntityIds.add(entity.id);
+        for (const claim of dropped) {
+          await this.markReviewNeeded(entity.id, `Block "${claim.blockId}": ${claim.evidence}`);
         }
       }
+      // Restores a declined block's withheld text and stamps it; the section keeps its
+      // review_needed mark, which is where "this may be out of date" belongs when the
+      // model cannot do better. Empty ones are only stamped, so they fall silent until
+      // the members they summarize actually change.
+      await this.restoreKeptBlocks(unsettled);
+      await this.stampUnwrittenBlocks(unsettled);
     }
     const finalIndex = await this.rebuildIndexes({ renderDocs: false });
-    await this.stampMemberFingerprints(finalIndex, generatedEntityIds);
+    await this.stampMemberFingerprints(finalIndex, answeredEntityIds);
     await this.reconcileRenderedDocs();
     return { generated: generated.sort(), droppedBlocks, failed };
   }
@@ -559,13 +586,15 @@ export class CodeloreService {
    * Stamp each tier doc that was actually (re)written this run with the fingerprint
    * of the member docs it now summarizes, so a later member-doc edit diverges the
    * hash and `collectMemberDocStaleBlocks` flags the tier doc for refresh. Limited
-   * to `writtenEntityIds` — a tier that was out of scope or whose writer failed
-   * keeps its old stamp, so it is correctly re-selected as stale next run instead of
-   * being marked fresh with content it never received.
+   * to `answeredEntityIds` — tiers the writer actually answered for, whether or not
+   * it produced text: "nothing to add about these members" is an answer, and leaving
+   * it unstamped re-selects the tier as stale on every later run. A tier that was out
+   * of scope or whose writer *failed* is absent from the set and keeps its old stamp,
+   * so it is retried rather than marked fresh with content it never received.
    */
-  private async stampMemberFingerprints(index: ProjectIndex, writtenEntityIds: ReadonlySet<string>): Promise<void> {
+  private async stampMemberFingerprints(index: ProjectIndex, answeredEntityIds: ReadonlySet<string>): Promise<void> {
     for (const entity of Object.values(index.code.entities)) {
-      if (!isDomainTierEntity(entity) || !writtenEntityIds.has(entity.id)) {
+      if (!isDomainTierEntity(entity) || !answeredEntityIds.has(entity.id)) {
         continue;
       }
       const docPath = tierDocPathForEntity(entity);
@@ -879,7 +908,8 @@ export class CodeloreService {
 
   /**
    * Flags documented files that no domain covers — a new file that fell outside the
-   * map. `refreshDomainDocs` assigns them automatically; this makes the drift visible
+   * map. `update` assigns them automatically (`assignUncoveredFiles`, also run by
+   * `refreshDomainDocs` for a whole-project `document`); this makes the drift visible
    * to `check` in the meantime (and when there is no domain map, it stays silent).
    */
   private async detectUncoveredFiles(index: ProjectIndex): Promise<DocValidationIssue[]> {
@@ -1003,6 +1033,7 @@ export class CodeloreService {
     const scope = hasScope ? scopeFromParts(scopeSectionIds, input.files ?? [], input.paths ?? []) : undefined;
     if (!hasScope || scope) {
       await this.reconcileScopedDocStates(scope);
+      await this.queueUnwrittenBlocks(scope, targetBlocksBySection);
       if (input.force) {
         // No tombstone targeting: adding a section without a target-block entry makes
         // the pipeline regenerate all its allowed blocks (resolveTargets defaults to
@@ -1159,20 +1190,107 @@ export class CodeloreService {
   }
 
   async fixStaleDocs(input: FixStaleDocsInput, runtime: GenerateDocsRuntime): Promise<GenerateDocsResult> {
+    // Assign newly-uncovered files into the domain map before staleness is computed:
+    // collectMemberDocStaleBlocks (inside refreshStaleDocs below) reads membership from
+    // the current code index, which buildDomainEntities always rebuilds from the map on
+    // disk — so assigning here lets that existing cascade catch and regenerate the
+    // receiving domain in this same run, instead of leaving it one run behind.
+    await this.assignUncoveredFiles(runtime);
+    await this.prepareDomainDocs();
     const scope = scopeFromParts(input.sectionIds ?? [], input.files ?? [], input.paths ?? []);
     await this.gateDepDocsCascade(scope, runtime);
+    // Drop blocks the entity no longer allows before the work is computed: a
+    // tombstoned block outside the allowed set can never be refilled, so without
+    // this it is queued every run and skipped every run with "no target blocks
+    // remain" — a warning nothing can clear.
+    await this.reconcileScopedDocStates(scope);
     const refreshed = await this.refreshStaleDocs({ mode: "tombstone", scope });
     const targetBlocksBySection = targetBlocksFromTombstones(refreshed.tombstoned);
+    // Unwritten blocks reach the queue directly: tombstoning hides a block's body
+    // behind a callout, and an empty block has no body to hide, so
+    // `collectTombstonedBlocks` skips it and it would never arrive here.
+    await this.queueUnwrittenBlocks(scope, targetBlocksBySection);
     // Tier docs (domain/project) regenerate through the domain pipeline, not the
     // file pipeline; split them out so a stale summary doc is refreshed correctly.
     const { sourceIds, tierSlugs } = splitTierSections([...targetBlocksBySection.keys()]);
     const result = await this.runPipelineForSections(sourceIds, input.intent, runtime, targetBlocksBySection);
     await this.translateScope(scope, runtime);
-    if (tierSlugs.size > 0) {
-      await this.generateDomainDocs(runtime, { slugs: tierSlugs });
-    }
+    const tierResult = tierSlugs.size > 0 ? await this.generateDomainDocs(runtime, { slugs: tierSlugs }) : undefined;
     await this.reconcileRenderedDocs();
+    // Rewriting a doc moves the text its dependents were fingerprinted against, so
+    // the run itself creates depDocs drift in docs it never touched. Clearing that
+    // at the start of the *next* run leaves every run ending dirty and makes a
+    // second pass look mandatory. The gate verifies and restamps without rewriting,
+    // and costs nothing when there is nothing to clear, so it belongs here too —
+    // after the last write, while this run still owns the mess it made.
+    await this.gateDepDocsCascade(undefined, runtime);
+    await this.recordRunDecisions(runtime.command, refreshed, targetBlocksBySection, result, tierResult);
     return result;
+  }
+
+  /** Add allowed-but-empty blocks whose code moved on to the run's work list. */
+  private async queueUnwrittenBlocks(
+    scope: RefreshStaleScope | undefined,
+    targets: Map<string, BlockId[]>
+  ): Promise<void> {
+    const index = await this.loadOrRebuildIndexes();
+    const scoped = filterSectionsByScope(Object.values(index.docs.sections), scope, index.code.entities);
+    for (const entry of collectUnwrittenBlocks(scoped, index.code.entities)) {
+      addTargetBlock(targets, entry.sectionId, entry.blockId);
+    }
+  }
+
+  /**
+   * Write what this run decided, before and after the model calls. The per-doc
+   * debug files cover only docs the pipeline actually processed, so a block that
+   * never reached the queue leaves nothing behind there — and its absence reads
+   * exactly like debugging being switched off. Gated by the same CODELORE_DEBUG.
+   */
+  private async recordRunDecisions(
+    command: string,
+    refreshed: RefreshStaleDocsResult,
+    queued: Map<string, BlockId[]>,
+    result: GenerateDocsResult,
+    tierResult?: { generated: string[]; droppedBlocks: number; failed: Array<{ slug: string; error: string }> }
+  ): Promise<void> {
+    await writeRunDecisions({
+      rootDir: this.config.rootDir,
+      indexDir: this.config.indexDir,
+      entry: {
+        version: 1,
+        runId: result.runId,
+        timestamp: new Date().toISOString(),
+        command,
+        found: {
+          stale: refreshed.stale.map((entry) => ({
+            sectionId: entry.sectionId,
+            blockId: entry.blockId,
+            drift: entry.drift,
+            changedFacets: entry.changedFacets,
+          })),
+          tombstoned: refreshed.tombstoned.map((entry) => ({
+            sectionId: entry.sectionId,
+            blockId: entry.blockId,
+          })),
+        },
+        queued: [...queued].map(([sectionId, blocks]) => ({ sectionId, blocks })),
+        outcome: {
+          updated: result.updatedSections.map((entry) => ({
+            sectionId: entry.sectionId,
+            blocks: entry.generatedBlocks,
+          })),
+          skipped: result.skipped,
+          // Tier docs run through the domain pipeline, whose result never reaches
+          // `result`; without folding it in, a domain or the overview that produced
+          // nothing leaves the log showing "queued" and nothing else.
+          failed: [
+            ...result.failed.map((entry) => ({ sectionId: entry.sectionId, reason: entry.error })),
+            ...(tierResult?.failed ?? []).map((entry) => ({ sectionId: entry.slug, reason: entry.error })),
+          ],
+        },
+        ...(tierResult ? { tier: { generated: tierResult.generated, droppedBlocks: tierResult.droppedBlocks } } : {}),
+      },
+    });
   }
 
   /**
@@ -1409,6 +1527,8 @@ export class CodeloreService {
     for (const kept of outcome.keptBlocks) {
       await this.markReviewNeeded(kept.sectionId, `Block "${kept.blockId}": ${kept.reason}`);
     }
+    await this.restoreKeptBlocks(outcome.keptBlocks);
+    await this.stampUnwrittenBlocks(outcome.unwrittenBlocks);
 
     for (const written of outcome.writtenSections) {
       sink.updatedFiles.add(written.docPath);
@@ -1448,6 +1568,97 @@ export class CodeloreService {
    * never match the per-file recomputation for files generated in a
    * multi-file SCC group.
    */
+  /**
+   * Lift the tombstone from a block whose rewrite the writer declined. The guard
+   * upstream already decided the old text beats nothing, but leaving the tombstone
+   * on keeps that text withheld from the rendered doc — so the reader sees a
+   * warning over an empty space while the prose sits in state, and every later run
+   * re-asks and is declined again. Restoring it shows the text and stamps the
+   * current fingerprint; the section stays marked for review, which is where a
+   * "this may be out of date" warning belongs when the model cannot do better.
+   */
+  private async restoreKeptBlocks(kept: Array<{ sectionId: string; blockId: BlockId }>): Promise<void> {
+    if (kept.length === 0) {
+      return;
+    }
+    const index = await this.loadOrRebuildIndexes();
+    const byDoc = groupBy(
+      kept
+        .map((entry) => ({ ...entry, docPath: index.docs.sections[entry.sectionId]?.docPath ?? "" }))
+        .filter((entry) => entry.docPath !== ""),
+      (entry) => entry.docPath
+    );
+    for (const [docPath, entries] of byDoc) {
+      const state = await this.docStateStorage.loadDocState(docPath);
+      if (!state) {
+        continue;
+      }
+      let mutated = false;
+      for (const entry of entries) {
+        const sectionState = state.sections[entry.sectionId];
+        const block = sectionState?.blocks[entry.blockId];
+        if (!sectionState || !block || block.staleSince === undefined) {
+          continue;
+        }
+        block.staleSince = undefined;
+        block.staleReason = undefined;
+        block.staleFacets = undefined;
+        const fingerprint = computeBlockFingerprint(entry.blockId, sectionState.owns, index.code.entities);
+        if (fingerprint !== undefined) {
+          block.fingerprint = fingerprint;
+        }
+        mutated = true;
+      }
+      if (mutated) {
+        await this.docStateStorage.renderAndPersist(state);
+      }
+    }
+  }
+
+  /**
+   * Stamp the current fingerprint on blocks the writer was asked for and declined.
+   * They stay empty, but `collectUnwrittenBlocks` compares the stored fingerprint
+   * against the code: without this stamp a block the writer keeps declining is
+   * re-requested on every run forever. Stamped, it falls silent until the code it
+   * documents actually changes — at which point asking again is the right call,
+   * because the reason it was declined may no longer hold.
+   */
+  private async stampUnwrittenBlocks(unwritten: Array<{ sectionId: string; blockId: BlockId }>): Promise<void> {
+    if (unwritten.length === 0) {
+      return;
+    }
+    const index = await this.loadOrRebuildIndexes();
+    const byDoc = groupBy(
+      unwritten
+        .map((entry) => ({ ...entry, docPath: index.docs.sections[entry.sectionId]?.docPath ?? "" }))
+        .filter((entry) => entry.docPath !== ""),
+      (entry) => entry.docPath
+    );
+    for (const [docPath, entries] of byDoc) {
+      const state = await this.docStateStorage.loadDocState(docPath);
+      if (!state) {
+        continue;
+      }
+      let mutated = false;
+      for (const entry of entries) {
+        const sectionState = state.sections[entry.sectionId];
+        const block = sectionState?.blocks[entry.blockId];
+        if (!sectionState || !block || block.body.trim() !== "") {
+          continue;
+        }
+        const fingerprint = computeBlockFingerprint(entry.blockId, sectionState.owns, index.code.entities);
+        if (fingerprint === undefined) {
+          continue;
+        }
+        block.fingerprint = fingerprint;
+        mutated = true;
+      }
+      if (mutated) {
+        await this.docStateStorage.renderAndPersist(state);
+      }
+    }
+  }
+
   private async recordDepDocsFingerprints(
     writtenSections: Array<{ sectionId: string; docPath: string }>
   ): Promise<void> {

@@ -1,38 +1,45 @@
 # buildFileWriteRequest
 
+```ts
+buildFileWriteRequest(input: BuildFileWriteRequestInput): ChatCompletionInput
+```
+
 ## Зачем это нужно
 
 Упаковывает исходный код, секции документации и dependency docs в структурированный запрос для LLM.
 
 ## Что делает
 
-- Собирает системное сообщение с фиксированными правилами документирования и инструкцией возвращать JSON.
-- Формирует пользовательское сообщение, включающее языковое правило, правило намерения, правила блоков, описание формата JSON, контекст проекта, предпочитаемые термины, dependency docs, исходные файлы и секции для документирования.
-- Возвращает объект `ChatCompletionInput` с ровно одним системным и одним пользовательским сообщением.
+- Формирует системное сообщение с фиксированным набором правил документирования.
+- Собирает пользовательское сообщение, объединяя языковое правило, правило намерения, правила блоков, описание формата JSON, контекст проекта, термины, dependency docs, исходные файлы и секции; пустые опциональные части опускаются.
+- Генерирует схему ответа на основе переданных секций.
+- Возвращает `ChatCompletionInput` с ровно двумя сообщениями: системным и пользовательским.
 
 ## На что можно положиться
 
-- Всегда возвращает объект с массивом `messages` длиной 2.
-- Поле `messages[0].content` содержит неизменный набор правил.
-- Поле `messages[1].content` включает `languageRule` и `intentRule`.
-- Не мутирует входные массивы или объекты.
+- Возвращаемый объект всегда содержит массив `messages` длиной 2.
+- Системное сообщение содержит неизменный набор правил документирования.
+- Пользовательское сообщение собирается из входных данных; пустые опциональные части (projectContext, terms, dependencyDocs) опускаются.
+- Схема ответа (`responseSchema`) детерминированно строится из переданных секций.
+- Не изменяет входные объекты.
 
 ## От чего зависит
 
-Зависит от внутренних функций `blockRules`, `writingRulesSegment` и `sectionsForPrompt`, определённых в том же файле, а также от типа `ChatCompletionInput` из [`src/llm/provider.ts`](provider.codelore.md). Для сериализации использует `JSON.stringify` — внешние пакеты или error-классы не задействованы.
+Использует локальные хелперы `blockRules`, `writingRulesSegment` и `sectionsForPrompt` из этого же файла для сборки текста правил и сериализации секций. Тип `ChatCompletionInput` импортирован из [`src/llm/provider.ts`](provider.codelore.md). Для формирования схемы ответа вызывает `fileWriteResponseSchema`.
 
 ## Кто и как использует
 
-Единственный подтверждённый вызывающий — [`writeRequestOverheadChars`](#writerequestoverheadchars) (этот же файл): он передаёт пустые `files` и `sections` для подсчёта символов общего префикса. Вызовы из `buildRepairRequest`, `translator.ts` и `doc-verifier.ts` не используют данную функцию — в их телах запрос строится напрямую.
+Вызывается из [`writeRequestOverheadChars`](#writerequestoverheadchars) (этот же файл) с пустыми `files` и `sections` для подсчёта символов общего префикса промпта. В `generateFileGroup` ([src/llm/file-pipeline.ts](file-pipeline.codelore.md)) формирует полный запрос для LLM-генерации документации, после чего результат разбивается на чанки и отправляется провайдеру. В `buildVerifyRequest` ([src/llm/doc-verifier.ts](doc-verifier.codelore.md)) и `buildRepairRequest` (src/llm/file-pipeline.ts) не используется — они строят запросы напрямую. `buildDomainWriteRequest` ([src/llm/domain-writer.ts](domain-writer.codelore.md#domain-writerts)) и `translator.ts` также не вызывают эту функцию.
 
 ## Чего не делает
 
-- Значение `projectContext` вставляется целиком через `writingRulesSegment(input.projectContext)` без проверки или обрезки — размер не контролируется.
-- `dependencyDocs` сериализуются через `JSON.stringify(input.dependencyDocs, null, 2)` без лимита на размер.
-- Исходные файлы и секции передаются полностью, без разбивки — функция не производит чанкинг или трекинг.
-- Поддерживаются только текстовые сообщения; мультимодальные запросы не реализованы: `messages[0].content` и `messages[1].content` всегда строки.
+Не контролирует размер `projectContext` — он вставляется целиком через `writingRulesSegment(input.projectContext)`. `dependencyDocs` сериализуются через `JSON.stringify(input.dependencyDocs, null, 2)` без ограничения длины. Исходные файлы и секции передаются полностью — разбиение на части выполняется снаружи. Поддерживает только текстовые сообщения: `messages[0].content` и `messages[1].content` всегда строки.
 
 # parseFileWriteResponse
+
+```ts
+parseFileWriteResponse(content: string, sections: FileWriteSection[], options: { requireCompleteness?: boolean } = {}): FileWriteResult
+```
 
 ## Зачем это нужно
 
@@ -40,10 +47,10 @@
 
 ## Что делает
 
-- Не выполняет ретраи при невалидном ответе — это задача вызывающего (`file-pipeline.ts`).
-- Не проверяет содержательную корректность блоков (например, правильность `refs`) — только наличие и структуру.
-- Не отвечает за сериализацию ответа в секции документации — возвращает `FileWriteResult`.
-- Делегирует парсинг каждого блока внутренним функциям (`parseWrittenBlock`, `readRefs`).
+- Разбирает JSON-ответ LLM, проверяет наличие объекта `sections` и соответствие идентификаторов секций ожидаемым.
+- Для каждой секции делегирует валидацию и парсинг блоков функциям `parseSectionBlocks` и `parseWrittenBlock`, которые проверяют типы, обязательные поля и допустимые значения оценок.
+- При `requireCompleteness: true` (по умолчанию) проверяет наличие обязательных блоков `purpose` и `responsibility` через `assertRequiredBlocks`.
+- Возвращает `FileWriteResult`; при любом нарушении структуры выбрасывает [`CodeloreError`](../errors.codelore.md#codeloreerror) с кодом `INVALID_LLM_RESPONSE`.
 
 ## На что можно положиться
 
@@ -65,7 +72,9 @@
 
 ## Как менять и что проверять
 
-Добавление нового идентификатора в `REQUIRED_TARGET_BLOCKS` (конструкция `REQUIRED_TARGET_BLOCKS.has(blockId)`) вызовет ошибку в `assertRequiredBlocks` для всех существующих LLM-ответов, не содержащих этот блок. Изменение `ALLOWED_SCORE_VALUES` (проверка `ALLOWED_SCORE_VALUES.has(value)`) приведёт к ошибке в `readScore` при несовпадении. Формат `refs` строго `string[]` — любое отклонение вызывает [`CodeloreError`](../errors.codelore.md#codeloreerror) через проверку `value.some((entry) => typeof entry !== "string")`.
+- Набор обязательных блоков зафиксирован в `REQUIRED_TARGET_BLOCKS` — вызов `REQUIRED_TARGET_BLOCKS.has(blockId)` в `assertRequiredBlocks` определяет, какие блоки обязательны при `requireCompleteness: true`.
+- Допустимые значения оценок перечислены в `ALLOWED_SCORE_VALUES` — проверка `ALLOWED_SCORE_VALUES.has(value)` в `readScore` выбрасывает [`CodeloreError`](../errors.codelore.md#codeloreerror) при любом отклонении.
+- Формат `refs` проверяется в `readRefs` условием `value.some((entry) => typeof entry !== "string")` — массив должен содержать только строки.
 
 # writeRequestOverheadChars
 

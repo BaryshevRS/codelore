@@ -2,6 +2,7 @@ import { access, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promise
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
+import { DOMAIN_MAP_VERSION } from "../domains/domain-map.js";
 import { verifyBlocksAgainstDeps } from "../llm/file-pipeline.js";
 import type { ChatCompletionProvider } from "../llm/provider.js";
 import type { GeneratedBlock } from "../types.js";
@@ -577,6 +578,122 @@ describe("CodeloreService", () => {
     expect(state).toBeUndefined();
   });
 
+  it("fixStaleDocs (update) assigns a newly-uncovered file into the domain map and refreshes the receiving domain in the same run", async () => {
+    const rootDir = await makeTempProject({
+      "codelore.config.json": JSON.stringify({
+        llm: {
+          provider: "test",
+          providers: {
+            test: {
+              type: "openai-compatible",
+              baseUrl: "https://example.test/v1/",
+              model: "test-model",
+              apiKey: "test-key",
+            },
+          },
+        },
+      }),
+      "src/a.ts": "export function a(): number { return 1; }\n",
+      "src/c.ts": "export function c(): number { return 3; }\n",
+      "src/b.ts": "export function b(): number { return 2; }\n",
+    });
+    const service = new CodeloreService(rootDir);
+    await service.prepareInitialDocs();
+    await service.rewriteSection("symbol:src/a.ts#a", { generatedBlocks: { purpose: generatedBlock("Returns one.") } });
+    await service.rewriteSection("symbol:src/c.ts#c", {
+      generatedBlocks: { purpose: generatedBlock("Returns three.") },
+    });
+    await service.rewriteSection("symbol:src/b.ts#b", { generatedBlocks: { purpose: generatedBlock("Returns two.") } });
+
+    // src/b.ts is documented but partition only ever covered a.ts and c.ts under domain-a.
+    await service.storage.saveDomainMap({
+      version: DOMAIN_MAP_VERSION,
+      generatedAt: new Date().toISOString(),
+      domains: [{ slug: "domain-a", name: "Domain A", files: ["src/a.ts", "src/c.ts"] }],
+    });
+
+    const runtime = {
+      env: {},
+      command: "update",
+      fetch: domainPipelineFetch([{ file: "src/b.ts", slug: "domain-a" }]),
+    };
+
+    // Simulates a prior whole-project `document` run that already generated domain-a's doc.
+    await service.generateDomainDocs(runtime);
+    const setupState = await service.docStateStorage.loadDocState("docs/domains/domain-a.codelore.md");
+    expect(setupState?.sections["domain:domain-a"]?.blocks.purpose?.body).toContain("covering 2 members");
+
+    const before = await service.validateDocs();
+    expect(before.issues.some((issue) => issue.code === "uncovered_file" && issue.docPath === "src/b.ts")).toBe(true);
+
+    // This is the bug: `update` is what the uncovered_file warning tells the user to run.
+    await service.fixStaleDocs({}, runtime);
+
+    const after = await service.validateDocs();
+    expect(after.issues.some((issue) => issue.code === "uncovered_file")).toBe(false);
+
+    const map = await service.storage.loadDomainMap();
+    expect(map?.domains.find((domain) => domain.slug === "domain-a")?.files).toEqual([
+      "src/a.ts",
+      "src/b.ts",
+      "src/c.ts",
+    ]);
+
+    // Not just assigned: the domain doc content itself is refreshed in this same `update` run,
+    // not left one run behind (collectMemberDocStaleBlocks catches the membership change because
+    // assignment now happens before refreshStaleDocs computes staleness).
+    const refreshedState = await service.docStateStorage.loadDocState("docs/domains/domain-a.codelore.md");
+    expect(refreshedState?.sections["domain:domain-a"]?.blocks.purpose?.body).toContain("covering 3 members");
+  });
+
+  it("settles a tier block the writer declines, so a second update has nothing left to do", async () => {
+    const rootDir = await makeTempProject({
+      "codelore.config.json": JSON.stringify({
+        llm: {
+          provider: "test",
+          providers: {
+            test: {
+              type: "openai-compatible",
+              baseUrl: "https://example.test/v1/",
+              model: "test-model",
+              apiKey: "test-key",
+            },
+          },
+        },
+      }),
+      "src/a.ts": "export function a(): number { return 1; }\n",
+      "src/c.ts": "export function c(): number { return 3; }\n",
+    });
+    const service = new CodeloreService(rootDir);
+    await service.prepareInitialDocs();
+    await service.rewriteSection("symbol:src/a.ts#a", { generatedBlocks: { purpose: generatedBlock("Returns one.") } });
+    await service.rewriteSection("symbol:src/c.ts#c", {
+      generatedBlocks: { purpose: generatedBlock("Returns three.") },
+    });
+    await service.storage.saveDomainMap({
+      version: DOMAIN_MAP_VERSION,
+      generatedAt: new Date().toISOString(),
+      domains: [{ slug: "domain-a", name: "Domain A", files: ["src/a.ts", "src/c.ts"] }],
+    });
+
+    // The writer never has anything to say about limitations — the case that used to
+    // leave a tombstone nothing could clear.
+    const log: string[] = [];
+    const runtime = { env: {}, command: "update", fetch: domainPipelineFetch([], { decline: ["limitations"], log }) };
+
+    await service.generateDomainDocs(runtime);
+    await service.fixStaleDocs({}, runtime);
+
+    const issues = (await service.validateDocs()).issues;
+    expect(issues.filter((issue) => issue.code === "stale_block")).toEqual([]);
+
+    // Second run: nothing is stale, so the declined block must not drag the whole
+    // chapter back to the writer.
+    log.length = 0;
+    await service.fixStaleDocs({}, runtime);
+    expect(log.filter((entry) => entry === "write")).toEqual([]);
+  });
+
   it("returns section context with blocks read from state", async () => {
     const rootDir = await makeTempProject({
       "src/pricing.ts": "export function buildPrice(amount: number): number { return amount; }\n",
@@ -848,4 +965,58 @@ async function pathExists(path: string): Promise<boolean> {
     }
     throw error;
   }
+}
+
+/**
+ * Routes the three LLM calls the domain tier pipeline makes (assign, tier writer, tier
+ * verifier) by matching each request's system prompt, so `generateDomainDocs`/`assignUncoveredFiles`
+ * can run for real against a fake transport. The writer branch echoes back real text for
+ * whatever blocks the prompt actually asks for, tagged with the member count from the
+ * prompt's own `<members>` payload — so a test can tell a fresh write from a stale one
+ * apart by that count, without hardcoding the writer's internal fingerprint format.
+ */
+function domainPipelineFetch(
+  assignments: Array<{ file: string; slug: string }>,
+  options: { decline?: string[]; log?: string[] } = {}
+): typeof fetch {
+  return async (_input, init) => {
+    const body = JSON.parse(String(init?.body ?? "{}")) as { messages: Array<{ content: string }> };
+    const system = body.messages[0]?.content ?? "";
+    const user = body.messages[1]?.content ?? "";
+    let content: string;
+    if (system.includes("You place newly documented files")) {
+      options.log?.push("assign");
+      content = JSON.stringify({ assignments });
+    } else if (system.includes("You write the overview tier")) {
+      options.log?.push("write");
+      const sectionMatch = user.match(/Section id to write: (\S+) \(targetBlocks: ([^)]+)\)/);
+      const sectionId = sectionMatch?.[1] ?? "";
+      const blockIds = (sectionMatch?.[2] ?? "")
+        .split(",")
+        .map((entry) => entry.trim())
+        .filter(Boolean);
+      const membersMatch = user.match(/<members>\n([\s\S]*?)\n<\/members>/);
+      const memberCount = membersMatch ? (JSON.parse(membersMatch[1]) as unknown[]).length : 0;
+      const blocks: Record<string, unknown> = {};
+      for (const blockId of blockIds) {
+        if (options.decline?.includes(blockId)) {
+          // "Nothing to add" — the writer's legitimate answer, expressed as null.
+          blocks[blockId] = null;
+          continue;
+        }
+        const text = `Generated ${blockId} text for ${sectionId} covering ${memberCount} members.`;
+        blocks[blockId] = { text, refs: [], novelFact: text, informativeness: 0.75, novelty: 0.75, specificity: 0.75 };
+      }
+      content = JSON.stringify({ sections: { [sectionId]: { blocks } } });
+    } else if (system.includes("You fact-check freshly written documentation")) {
+      options.log?.push("verify");
+      content = JSON.stringify({ contradictions: [] });
+    } else {
+      throw new Error(`domainPipelineFetch: unrecognized request:\n${system.slice(0, 200)}`);
+    }
+    return new Response(JSON.stringify({ choices: [{ message: { content } }] }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  };
 }

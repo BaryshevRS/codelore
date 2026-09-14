@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/config.codelore.md",
-  "generatedAt": "2026-07-03T16:25:43.443Z",
+  "generatedAt": "2026-09-13T19:41:29.562Z",
   "sectionOrder": [
     "symbol:src/config.ts#loadConfig",
     "symbol:src/config.ts#loadDotEnv",
@@ -122,7 +122,7 @@
           "language": "ru"
         }
       },
-      "depDocsFingerprint": "687a21b97204e4d2cef21663d19a128e8aeff463a8572f83d76a25a507d94f82",
+      "depDocsFingerprint": "59fab132865b8a4c667d0aa63a60a9b84e4cb0473b211c6a28e405154ef57e5a",
       "generationHistory": [
         {
           "runId": "61372614-014e-462a-bae1-622628a3489c",
@@ -173,6 +173,7 @@
       ],
       "depends": [],
       "usedBy": [
+        "file:src/bin/codelore-mcp.ts",
         "file:src/bin/codelore.ts"
       ],
       "status": "normal",
@@ -208,15 +209,15 @@
           }
         },
         "responsibility": {
-          "body": "- Проверяет существование `.env`-файла в корне проекта.\n- Если файл существует, загружает его с помощью `process.loadEnvFile`.\n- Не выполняет никаких действий при отсутствии файла.",
+          "body": "- Если в корне проекта существует файл `.env`, загружает его переменные окружения в `process` через `process.loadEnvFile`.\n- При отсутствии файла функция завершает работу без ошибок (ранний возврат).",
           "rendered": true,
-          "fingerprint": "signature=66abd9dbfa4047ee1ede5dcba5998d43d1aa64183334e515822dfc1b49a9995a,deps=2c0b8f8ac30ceb1626104104f9bd9eb3926b4238857d0a9a9e9d59b3d6febb48,usage=2e1e90db625b3b88605526c20bc1f895e1fb1938aa9681aca2aa804eb4d8afb4",
+          "fingerprint": "signature=66abd9dbfa4047ee1ede5dcba5998d43d1aa64183334e515822dfc1b49a9995a,deps=2c0b8f8ac30ceb1626104104f9bd9eb3926b4238857d0a9a9e9d59b3d6febb48,usage=8ac98d83e472ab462aa5b5ab0a094eec28e5a4324491181befcbadb79d5504e1",
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.75,
-            "specificity": 0.75,
-            "novelFact": "Загрузка выполняется только при наличии файла; при отсутствии функция завершается без ошибки."
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "При отсутствии `.env`-файла функция молча ничего не делает, не бросая исключений."
           }
         },
         "invariants": {
@@ -261,15 +262,15 @@
           }
         },
         "changeGuide": {
-          "body": "- Имя загружаемого файла зафиксировано как `\".env\"` в вызове `join(rootDir, \".env\")`. Если потребуется поддержка других файлов (например, `.env.local`), потребуется изменить эту строку.\n- Ранний возврат при отсутствии файла реализован через `if (!existsSync(envPath)) { return; }`. Если требуется бросать исключение при отсутствии файла, этот guard нужно удалить.",
+          "body": "- Функция загружает только файл с именем `.env` — это гарантируется строкой `join(rootDir, \".env\")`.\n- При отсутствии файла функция завершает работу без ошибок — это гарантируется guard-условием `if (!existsSync(envPath)) { return; }`.",
           "rendered": true,
-          "fingerprint": "body=e009a82696a9d3fb04c3c0e0a4f0b6a8b428f54767630562bc3164f079ef7b61,deps=2c0b8f8ac30ceb1626104104f9bd9eb3926b4238857d0a9a9e9d59b3d6febb48,usage=2e1e90db625b3b88605526c20bc1f895e1fb1938aa9681aca2aa804eb4d8afb4,placement=66e49ffe2631fe4ba49d3fcf1624bf2340d8daece8678e1f5ea8193b91b10ace",
+          "fingerprint": "body=e009a82696a9d3fb04c3c0e0a4f0b6a8b428f54767630562bc3164f079ef7b61,deps=2c0b8f8ac30ceb1626104104f9bd9eb3926b4238857d0a9a9e9d59b3d6febb48,usage=8ac98d83e472ab462aa5b5ab0a094eec28e5a4324491181befcbadb79d5504e1,placement=66e49ffe2631fe4ba49d3fcf1624bf2340d8daece8678e1f5ea8193b91b10ace",
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Имя загружаемого файла зафиксировано как `\".env\"` в вызове `join(rootDir, \".env\")`."
+            "novelFact": "Функция загружает только файл с именем `.env` — это гарантируется строкой `join(rootDir, \".env\")`."
           }
         }
       },
@@ -297,9 +298,30 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:56.982Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:41:29.562Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "changeGuide"
+          ]
         }
       ],
-      "depDocsFingerprint": "687a21b97204e4d2cef21663d19a128e8aeff463a8572f83d76a25a507d94f82"
+      "depDocsFingerprint": "59fab132865b8a4c667d0aa63a60a9b84e4cb0473b211c6a28e405154ef57e5a",
+      "signature": "loadDotEnv(rootDir: string): void"
     },
     "symbol:src/config.ts#resolveTerms": {
       "heading": "resolveTerms",
@@ -438,7 +460,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "687a21b97204e4d2cef21663d19a128e8aeff463a8572f83d76a25a507d94f82"
+      "depDocsFingerprint": "59fab132865b8a4c667d0aa63a60a9b84e4cb0473b211c6a28e405154ef57e5a"
     }
   },
   "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"

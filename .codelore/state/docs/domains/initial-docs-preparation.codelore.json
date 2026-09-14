@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "docs/domains/initial-docs-preparation.codelore.md",
-  "generatedAt": "2026-07-08T07:59:27.227Z",
+  "generatedAt": "2026-09-14T06:50:18.105Z",
   "sectionOrder": [
     "domain:initial-docs-preparation"
   ],
@@ -14,11 +14,11 @@
         "domain:initial-docs-preparation"
       ],
       "depends": [
-        "file:src/service/file-layout.ts",
-        "file:src/service/prepare-docs.ts",
-        "domain:block-fingerprinting",
         "domain:common-utils",
-        "domain:service-helpers"
+        "domain:service-helpers",
+        "file:src/service/domain-docs.ts",
+        "file:src/service/file-layout.ts",
+        "file:src/service/prepare-docs.ts"
       ],
       "usedBy": [
         "domain:codelore-service-facade"
@@ -40,60 +40,67 @@
       ],
       "blocks": {
         "purpose": {
-          "body": "По списку сущностей кода и области фильтрации определяет, для каких сущностей нужны новые страницы документации, и создаёт для них скелетные DocState с пустыми телами блоков и отпечатками, пропуская уже задокументированные сущности. Это позволяет следующему этапу конвейера наполнять блоки содержимым, не отвлекаясь на построение структуры.",
+          "body": "По списку сущностей кода и области фильтрации определяет, для каких сущностей нужны новые страницы документации. Для новых страниц создаёт скелетные DocState с пустыми телами блоков и отпечатками, пропуская уже задокументированные сущности. Это позволяет следующему этапу конвейера наполнять блоки содержимым, не отвлекаясь на построение структуры.",
           "rendered": true,
           "fingerprint": "signature=e88fcf703d858f7a8e97e553a2a72df5500121817d7929952e8cd2cca08bd861,placement=edaff84320908027a657ebdf546092d158ca8d28eef2910a3b20d8f668ef3ff1",
           "language": "ru",
           "scores": {
-            "informativeness": 0.75,
+            "informativeness": 1,
             "novelty": 0.5,
-            "specificity": 0.75,
-            "novelFact": "создаёт скелетные DocState с пустыми телами блоков и отпечатками, пропуская уже задокументированные сущности"
+            "specificity": 1,
+            "novelFact": "Подсистема создаёт скелетные DocState с пустыми телами блоков и отпечатками, пропуская уже задокументированные сущности"
           }
         },
         "responsibility": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "signature=e88fcf703d858f7a8e97e553a2a72df5500121817d7929952e8cd2cca08bd861,deps=d7078a6dfd90fa696bec338cd0056bdc479ae181e689457f1ffc501799949ae3,usage=2b1996465846711bd25c593724e4d88570c3560a740b396dce4f23add5412f82"
-        },
-        "dependencies": {
-          "body": "Опирается на подсистему «Отпечатки блоков документации» для вычисления computeBlockFingerprint при создании скелета секции. Использует toPosixPath из «Общие низкоуровневые утилиты» для нормализации путей файлов и uniqueSorted из «Общие вспомогательные функции сервиса» для дедупликации и сортировки массивов зависимостей, потребителей и путей. Сама не генерирует содержимое блоков, а создаёт скелетные DocState с пустыми телами блоков и отпечатками, пропуская уже задокументированные сущности; не записывает файлы на диск и не проверяет корректность идентификаторов блоков — эти задачи выполняются следующими этапами.",
+          "body": "Нормализует входящий скоуп фильтрации (normalizePrepareScope), планирует разметку файлов (planFileLayout), проверяет вхождение сущностей в область (isEntityInPrepareScope) и необходимость создания страницы (shouldCreatePage). Для новых страниц создаёт скелетные секции (docStateSectionForPlannedEntity) с упорядоченными блоками, якорями и отпечатками. Для уже задокументированных сущностей фиксирует пропуск (skippedPreparedDocSection). Собирает итоговый результат (preparedDocsResult) со сводкой и указанием следующего шага.",
           "rendered": true,
-          "fingerprint": "deps=d7078a6dfd90fa696bec338cd0056bdc479ae181e689457f1ffc501799949ae3",
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
+            "informativeness": 1,
             "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "создаёт скелетные DocState с пустыми телами блоков и отпечатками, пропуская уже задокументированные сущности"
-          }
+            "specificity": 1,
+            "novelFact": "buildDomainSkeletons строит начальную структуру скелета с упорядоченным списком идентификаторов секций"
+          },
+          "fingerprint": "signature=e88fcf703d858f7a8e97e553a2a72df5500121817d7929952e8cd2cca08bd861,deps=daf2ba3ac08ad6e6ea2d0775082b7482a543ad6c8a545b90eb8b6aff9663fc35,usage=2b1996465846711bd25c593724e4d88570c3560a740b396dce4f23add5412f82"
         },
-        "workflows": {
-          "body": "Входящий скоуп фильтрации нормализуется (normalizePrepareScope): пути приводятся к POSIX-формату, удаляются дубликаты. Затем для каждого файла в области готовится план секций (planFileLayout): сущности сортируются по startOffset, им назначаются заголовки первого уровня. Для каждой сущности, проходящей фильтр (isEntityInPrepareScope), проверяется, должна ли создаваться страница (shouldCreatePage). Если сущность уже задокументирована, она фиксируется как пропущенная (skippedPreparedDocSection). Для новых страниц вызывается docStateSectionForPlannedEntity: она получает разрешённые блоки (allowedBlockIds), упорядочивает их (orderBlocks), генерирует якорь из заголовка (anchorForHeading), и для каждого блока создаёт запись с пустым телом и отпечатком (computeBlockFingerprint). В конце preparedDocsResult собирает все созданные, запланированные и пропущенные секции, формирует сводку и определяет следующий шаг (prepareInitialDocsNextStep). В результате формируются скелетные DocState с пустыми телами блоков и отпечатками, пропуская уже задокументированные сущности.",
+        "dependencies": {
+          "body": "Для нормализации путей подсистема использует toPosixPath из «Общие низкоуровневые утилиты», а для дедупликации массивов — uniqueSorted из «Общие вспомогательные функции сервиса». Вычисление отпечатков блоков (computeBlockFingerprint) — внешняя функция, которую подсистема вызывает, но не предоставляет сама. Подсистема не генерирует содержимое блоков — все тела остаются пустыми строками, не сохраняет DocState на диск и не проверяет целостность идентификаторов блоков, доверяя источнику allowedBlockIds.",
           "rendered": true,
-          "fingerprint": "body=e88fcf703d858f7a8e97e553a2a72df5500121817d7929952e8cd2cca08bd861,deps=d7078a6dfd90fa696bec338cd0056bdc479ae181e689457f1ffc501799949ae3",
+          "fingerprint": "deps=daf2ba3ac08ad6e6ea2d0775082b7482a543ad6c8a545b90eb8b6aff9663fc35",
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "создаёт скелетные DocState с пустыми телами блоков и отпечатками, пропуская уже задокументированные сущности"
+            "novelFact": "docStateSectionForPlannedEntity вызывает внешнюю функцию computeBlockFingerprint, а не предоставляет её сама"
+          }
+        },
+        "workflows": {
+          "body": "Входящий скоуп фильтрации нормализуется через normalizePrepareScope: пути приводятся к POSIX-формату, удаляются дубликаты. Затем для каждого файла planFileLayout сортирует сущности по startOffset и назначает заголовки первого уровня. Для каждой сущности isEntityInPrepareScope проверяет вхождение в область, shouldCreatePage — необходимость создания страницы. Если сущность уже задокументирована, skippedPreparedDocSection фиксирует пропуск. Для новых страниц docStateSectionForPlannedEntity получает разрешённые блоки (allowedBlockIds), упорядочивает их (orderBlocks), генерирует якорь из заголовка (anchorForHeading), для каждого блока создаёт запись с пустым телом и отпечатком (computeBlockFingerprint). В конце preparedDocsResult собирает все созданные, запланированные и пропущенные секции, формирует сводку и определяет следующий шаг (prepareInitialDocsNextStep).",
+          "rendered": true,
+          "fingerprint": "body=e88fcf703d858f7a8e97e553a2a72df5500121817d7929952e8cd2cca08bd861,deps=daf2ba3ac08ad6e6ea2d0775082b7482a543ad6c8a545b90eb8b6aff9663fc35",
+          "language": "ru",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "Входящий скоуп фильтрации нормализуется, затем для каждого файла готовится план секций, после чего для каждой сущности проверяется вхождение в область и необходимость создания страницы"
           }
         },
         "limitations": {
-          "body": "Не генерирует содержимое блоков — все тела остаются пустыми строками. Не сохраняет DocState на диск, только формирует структуры в памяти. Не проверяет целостность идентификаторов блоков, доверяя источнику (allowedBlockIds). Не создаёт страницы для сущностей с ролью, отличной от short_page или full_page; такие сущности исключаются из плана. Не обрабатывает вложенность страниц — каждая сущность либо получает отдельную страницу, либо пропускается. Если сущность уже задокументирована, её секция не обновляется, а только регистрируется как пропущенная. Ограничивается созданием скелетных DocState с пустыми телами блоков и отпечатками, пропуская уже задокументированные сущности.",
+          "body": "Не создаёт страницы для сущностей с ролью, отличной от short_page или full_page — такие сущности исключаются из плана. Не обрабатывает вложенность страниц: каждая сущность либо получает отдельную страницу, либо пропускается. Если сущность уже задокументирована, её секция только регистрируется как пропущенная, но не обновляется. Не проверяет целостность идентификаторов блоков, доверяя источнику allowedBlockIds. Не генерирует содержимое блоков — все тела остаются пустыми строками. Не сохраняет DocState на диск, только формирует структуры в памяти.",
           "rendered": true,
           "fingerprint": "body=e88fcf703d858f7a8e97e553a2a72df5500121817d7929952e8cd2cca08bd861",
           "language": "ru",
           "scores": {
-            "informativeness": 0.75,
-            "novelty": 0.75,
-            "specificity": 0.75,
-            "novelFact": "создаёт скелетные DocState с пустыми телами блоков и отпечатками, пропуская уже задокументированные сущности"
+            "informativeness": 1,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "Подсистема не создаёт страницы для сущностей с ролью, отличной от short_page или full_page"
           }
         }
       },
-      "memberDocsFingerprint": "4055a64d7fdcb4f03bf67a0f0923e4d80dfecf00756e3d6c1bc7a531ee312b31"
+      "memberDocsFingerprint": "ed7cf0280ad8309bd4612107ea4f9ee3bf6134ea05bbde794b3003cf3060d4fe"
     }
   },
   "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"

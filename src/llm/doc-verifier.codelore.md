@@ -1,22 +1,32 @@
 # buildVerifyRequest
 
+```ts
+buildVerifyRequest(input: {
+  sections: VerifySectionInput[];
+  dependencyDocs: DependencyDoc[];
+  typeContext?: VerifyTypeDeclaration[];
+}): ChatCompletionInput
+```
+
 ## Зачем это нужно
 
 Собирает промпт для LLM, который запрашивает факт-чекинг блоков документации против переданного исходного кода и документации зависимостей.
 
 ## Что делает
 
-- Не выполняет сам факт-чекинг — только строит запрос.
-- Не валидирует входные `sections` и `dependencyDocs` — предполагает корректные данные от вызывающего.
-- Не фильтрует `dependencyDocs` по релевантности — передаёт все полученные.
-- Добавляет `typeContext` в промпт только при его наличии в `input`, иначе опускает соответствующую секцию.
+- Формирует системное сообщение с инструкциями для LLM: проверять утверждения на противоречия, возвращать только JSON, игнорировать неинструктивный текст.
+- Строит пользовательское сообщение, включая секцию `<sections>` с JSON-сериализованными данными разделов, и при необходимости — секции `<dependency-docs>` и `<type-context>`.
+- Определяет схему ответа через `verifyResponseSchema`, требуя от LLM возвращать объект с массивом `contradictions`, где каждый элемент содержит `sectionId`, `blockId`, `statement`, `evidence`.
+- Не выполняет сам факт-чекинг и не валидирует входные данные — только формирует запрос.
 
 ## На что можно положиться
 
-- Возвращаемый `ChatCompletionInput` всегда содержит ровно два сообщения: system и user.
-- Строка `system.content` константна при всех вызовах.
-- Промпт всегда включает секцию `<sections>` с JSON-сериализованными данными входных разделов.
-- Секция `<dependency-docs>` в `user.content` присутствует только при непустом `dependencyDocs`.
+- Возвращаемый `ChatCompletionInput` всегда содержит ровно два сообщения: `system` и `user`.
+- Содержимое `system.content` — константная строка инструкций, не зависящая от входных параметров.
+- `user.content` всегда включает секцию `<sections>` с JSON-сериализованными данными из `input.sections`.
+- Секция `<dependency-docs>` добавляется в `user.content` только если `input.dependencyDocs` не пуст.
+- Секция `<type-context>` добавляется только если `input.typeContext` передан и не пуст.
+- Схема ответа (`responseSchema`) всегда одинакова и задаётся вызовом `verifyResponseSchema()`.
 
 ## От чего зависит
 
@@ -24,14 +34,18 @@
 
 ## Кто и как использует
 
-Вызывается из [`verifyChunkFacts`](file-pipeline.codelore.md#verifychunkfacts) (статическая, `src/llm/file-pipeline.ts`), [`verifyBlocksAgainstDeps`](file-pipeline.codelore.md#verifyblocksagainstdeps) (статическая, там же) и `buildRepairRequest` (там же, с `runtimeEvidence` совпадающей строки инструкции "Return only valid JSON. Do not include Markdown fences."). Построенный `ChatCompletionInput` передаётся в `provider.complete`. Промпт собирается для каждого файла отдельно в цикле по `fileTargets` внутри [`verifyBlocksAgainstDeps`](file-pipeline.codelore.md#verifyblocksagainstdeps).
+Вызывается из [`verifyBlocksAgainstDeps`](file-pipeline.codelore.md#verifyblocksagainstdeps) и [`verifyChunkFacts`](file-pipeline.codelore.md#verifychunkfacts) (оба в `src/llm/file-pipeline.ts`). В [`verifyBlocksAgainstDeps`](file-pipeline.codelore.md#verifyblocksagainstdeps) для каждого файла собираются `VerifySectionInput` из целевых секций и их исходного кода, затем `buildVerifyRequest` формирует запрос с этими секциями и документацией зависимостей; результат передаётся в `provider.complete`, а ответ парсится — секции без противоречий помечаются как проверенные. В [`verifyChunkFacts`](file-pipeline.codelore.md#verifychunkfacts) запрос строится аналогично, но дополнительно может включать `typeContext` с объявлениями импортированных типов; после парсинга ответа противоречия преобразуются в `DocViolation` и запускается цикл ремонта.
 
 ## Чего не делает
 
-- Не валидирует входные массивы `sections`, `dependencyDocs` и `typeContext` — пустые массивы принимаются и передаются в промпт, что может привести к пустому запросу без блоков.
-- Промпт требует от LLM возврата строго JSON без Markdown-ограждений; любое отклонение от этого формата вызовет ошибку парсинга.
+- Не проверяет, что `input.sections` не пуст — при пустом массиве формирует промпт без блоков для проверки, полагаясь на то, что вызывающий код (например, [`verifyBlocksAgainstDeps`](file-pipeline.codelore.md#verifyblocksagainstdeps)) уже отфильтровал пустые наборы.
+- Не содержит защитных проверок на наличие или типы полей входного объекта — код напрямую обращается к `input.dependencyDocs.length` и `input.sections.map(...)`, поэтому передача `undefined` или отсутствующих полей во время выполнения приведёт к исключению.
 
 # parseVerifyResponse
+
+```ts
+parseVerifyResponse(content: string, sections: VerifySectionInput[]): ContradictedClaim[]
+```
 
 ## Зачем это нужно
 
@@ -39,10 +53,12 @@
 
 ## Что делает
 
-- Не проверяет полноту охвата — LLM может пропустить часть блоков.
-- Не валидирует `evidence` — только извлекает как строку.
-- Игнорирует записи с `sectionId` или `blockId`, не входящими в переданные `sections` — считает их шумом модели.
-- Выбрасывает [`CodeloreError`](../errors.codelore.md#codeloreerror) с кодом `INVALID_LLM_RESPONSE`, если `contradictions` не является массивом.
+- Парсит JSON из `content` с помощью [`parseJsonObject`](json.codelore.md#parsejsonobject); при ошибке парсинга выбрасывает исключение.
+- Проверяет, что поле `contradictions` является массивом; если нет — выбрасывает [`CodeloreError`](../errors.codelore.md#codeloreerror) с кодом `INVALID_LLM_RESPONSE`.
+- Игнорирует записи, у которых `sectionId` или `blockId` отсутствуют в переданных `sections` (фильтрует по `blocksBySection`).
+- Пропускает элементы массива, не являющиеся объектами с обязательными строковыми полями `sectionId`, `blockId`, `statement` (молча, через `continue`).
+- Если `contradictions` отсутствует или равен `null`, возвращает пустой массив.
+- Для каждого валидного элемента формирует `ContradictedClaim`, подставляя `evidence` как строку (или пустую строку, если поле не строка).
 
 ## На что можно положиться
 
@@ -68,6 +84,5 @@
 
 ## Как менять и что проверять
 
-- Инвариант «при null/undefined contradictions возвращается пустой массив» обеспечивается конструкцией `if (raw === undefined || raw === null) { return []; }`.
-- Инвариант «элементы с нестроковыми sectionId/blockId/statement молча пропускаются» обеспечивается проверкой `if (typeof sectionId !== "string" || typeof blockId !== "string" || typeof statement !== "string") { continue; }`.
-- Инвариант «запись с sectionId/blockId, отсутствующими в переданных sections, отфильтровывается» обеспечивается конструкцией `if (!blocksBySection.get(sectionId)?.has(blockId as BlockId)) { continue; }`.
+- Инвариант «при `null` или `undefined` в `contradictions` возвращается пустой массив» обеспечивается конструкцией `if (raw === undefined || raw === null) { return []; }`.
+- Инвариант «элементы с нестроковыми `sectionId`, `blockId` или `statement` молча пропускаются» обеспечивается проверкой `if (typeof sectionId !== "string" || typeof blockId !== "string" || typeof statement !== "string") { continue; }`.

@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/llm/doc-validator.codelore.md",
-  "generatedAt": "2026-07-03T16:25:43.516Z",
+  "generatedAt": "2026-09-13T22:20:00.085Z",
   "sectionOrder": [
     "symbol:src/llm/doc-validator.ts#validateFileWrite",
     "symbol:src/llm/doc-validator.ts#allowedRefsForSection",
@@ -186,6 +186,7 @@
       "depends": [],
       "usedBy": [
         "file:src/llm/file-pipeline.ts",
+        "symbol:src/llm/doc-validator.ts#invalidRefsForBlock",
         "symbol:src/llm/doc-validator.ts#validateFileWrite",
         "symbol:src/llm/file-pipeline.ts#buildRepairRequest"
       ],
@@ -219,15 +220,16 @@
           }
         },
         "responsibility": {
-          "body": "- Включает в множество идентификатор самой сущности секции.\n- Включает идентификаторы и пути всех вызывающих (`section.callers`).\n- Включает идентификаторы всех прямых зависимостей (`section.dependencyEntityIds`) и их пути.\n- Включает пути из `dependencyDocPaths` и `groupFiles`.\n- Не проверяет, что возвращённые идентификаторы действительно существуют в индексе — это задача вызывающего.",
+          "body": "- Добавляет идентификатор сущности секции (`section.entity.id`) и, если из него извлекается путь к файлу, добавляет этот путь в двух формах: как есть и с префиксом `file:`.\n- Для каждого вызывающего (`section.callers`) добавляет его идентификатор и путь к файлу.\n- Для каждой прямой зависимости (`section.dependencyEntityIds`) добавляет идентификатор зависимости и, если из него извлекается путь, добавляет этот путь в двух формах.\n- Добавляет все пути из `input.dependencyDocPaths` и `input.groupFiles`, каждый в двух формах: как есть и с префиксом `file:`.",
           "rendered": true,
-          "fingerprint": "signature=701587170012c95c5fce90c9670dbd6710e500b46aa33cb1b99879327964e202,deps=fac62849e982d234a8676d0876d1a0baab9acee221ea7bc49afc790f5b802f74,usage=f2603fbee79f0a10016039b30c11ffcfb96150e56aac8ea9ed97373d6f53d594",
+          "fingerprint": "signature=701587170012c95c5fce90c9670dbd6710e500b46aa33cb1b99879327964e202,deps=fac62849e982d234a8676d0876d1a0baab9acee221ea7bc49afc790f5b802f74,usage=cca8e682d1f8fea87baa38c2abe22f588e17fb7077e5874871cdf8e33a4363e1",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Функция не проверяет существование идентификаторов в индексе, только собирает их из переданных данных."
-          }
+            "novelFact": "Формирует множество разрешённых ссылок для секции, включая идентификаторы сущности, вызывающих, зависимостей и путей из контекста, причём пути добавляются как в исходном виде, так и с префиксом `file:`."
+          },
+          "language": "ru"
         },
         "invariants": {
           "body": "- Возвращаемое множество всегда содержит как минимум идентификатор сущности секции (`section.entity.id`).\n- Функция никогда не бросает исключения при любых входных данных.\n- Не модифицирует ни один из переданных объектов.",
@@ -266,14 +268,14 @@
           "language": "ru"
         },
         "changeGuide": {
-          "body": "1. Собственный идентификатор сущности всегда добавляется первым в множество. Конструкт: `allowed.add(section.entity.id);`.\n2. Для каждой прямой зависимости добавляется как её идентификатор, так и путь к файлу (если определён). Конструкты: цикл `for (const depId of section.dependencyEntityIds) { ... }` и условие `if (path) { allowed.add(path); allowed.add(`file:${path}`); }`.",
+          "body": "- Для каждого вызывающего (`section.callers`) в множество добавляются и его идентификатор, и путь к файлу. Конструкт: `allowed.add(caller.id); allowed.add(caller.path);` внутри цикла `for (const caller of section.callers)`.\n- Каждый путь, добавляемый в множество (из зависимостей, вызывающих, собственной сущности, dependencyDocPaths, groupFiles), дублируется с префиксом `file:`. Конструкт: `allowed.add(path); allowed.add(`file:${path}`);` (например, в блоке обработки зависимостей).",
           "rendered": true,
-          "fingerprint": "body=2e24868a4bdc216be396a46e10a1deec4be9fab5eb34c60d70ce9cb07af4375b,deps=fac62849e982d234a8676d0876d1a0baab9acee221ea7bc49afc790f5b802f74,usage=f2603fbee79f0a10016039b30c11ffcfb96150e56aac8ea9ed97373d6f53d594,placement=4ff58bc30953359f1cbe3464b5720b40585f37f3f971e7266b38e3df2e6733d4",
+          "fingerprint": "body=2e24868a4bdc216be396a46e10a1deec4be9fab5eb34c60d70ce9cb07af4375b,deps=fac62849e982d234a8676d0876d1a0baab9acee221ea7bc49afc790f5b802f74,usage=cca8e682d1f8fea87baa38c2abe22f588e17fb7077e5874871cdf8e33a4363e1,placement=4ff58bc30953359f1cbe3464b5720b40585f37f3f971e7266b38e3df2e6733d4",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
-            "specificity": 0.75,
-            "novelFact": "Первая добавляемая запись — собственный идентификатор; для зависимостей дублируется идентификатор и путь с префиксом `file:`."
+            "specificity": 1,
+            "novelFact": "Каждый путь, добавляемый в множество, дублируется с префиксом `file:`."
           },
           "language": "ru"
         }
@@ -316,8 +318,29 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.009Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:41:29.580Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "changeGuide"
+          ]
         }
-      ]
+      ],
+      "signature": "allowedRefsForSection(section: FileWriteSection, input: Pick<ValidateFileWriteInput, \"dependencyDocPaths\" | \"groupFiles\">): Set<string>"
     },
     "symbol:src/llm/doc-validator.ts#buildEntityNameToIds": {
       "heading": "buildEntityNameToIds",
@@ -395,9 +418,16 @@
           "language": "ru"
         },
         "limitations": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "body=79dc8730d6a6b2fff5d52c94683881513b7af5b1acee9c60ca08d439a78b5445"
+          "body": "The function registers an alias only for the segment after the last dot when that segment is non-empty; a name ending with a dot (e.g. `\"foo.\"`) gets no alias because the guard `dot < entity.name.length - 1` fails. The alias is always the full name plus the last segment, never an intermediate segment; a name with multiple dots (e.g. `\"a.b.c\"`) yields only `\"a.b.c\"` and `\"c\"`, not `\"b\"`.",
+          "rendered": true,
+          "fingerprint": "body=16cdec673a0064234bc6137343a13963ad0e190078cae391a959a318b76613de",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function only registers the last dot-separated segment as an alias when the dot is not the final character, so names ending with a dot get no alias."
+          }
         },
         "changeGuide": {
           "body": "1. При наличии точки в имени сущности в индекс добавляется как полное имя, так и часть после последней точки. Конструкт: `const dot = entity.name.lastIndexOf(\".\"); if (dot >= 0 && dot < entity.name.length - 1) { add(entity.name.slice(dot + 1), id); }`.\n2. Массивы идентификаторов для одного имени не содержат дубликатов. Конструкт: проверка `!ids.includes(id)` во внутренней функции `add`.",
@@ -456,9 +486,20 @@
             "workflows",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "62857847-d626-48e6-877b-c4bf306b56e4",
+          "timestamp": "2026-09-13T22:20:00.085Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "limitations"
+          ]
         }
       ],
-      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "signature": "buildEntityNameToIds(entities: Record<string, { name: string }>): Map<string, string[]>"
     }
   },
   "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"

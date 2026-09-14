@@ -13,5 +13,7 @@ CLAUDE.md
 PLAN.md
 .DS_Store
 .codelore/state/**/*.generation-debug*.json
+.codelore/runs/
 .codelore/render-graph
 codelore.config.json
+PLAN_ARCH.md

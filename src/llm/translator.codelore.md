@@ -1,5 +1,9 @@
 # translationBlockKey
 
+```ts
+translationBlockKey(sectionId: string, blockId: BlockId): string
+```
+
 ## Зачем это нужно
 
 Создаёт уникальный строковый ключ для пары идентификаторов раздела и блока, чтобы использовать его в качестве ключа ассоциативного массива при фингерпринтинге переводов.
@@ -12,17 +16,13 @@
 
 Возвращаемый ключ детерминирован: одинаковые пара (sectionId, blockId) всегда дают одинаковую строку.
 
-## От чего зависит
-
-Не использует внешние модули; зависит только от своих строковых аргументов sectionId и blockId.
-
 ## Кто и как использует
 
-Вызывается внутри translateBlocks при построении sourceByKey (input.blocks.map(...)) и при разборе ответа LLM в parseTranslateResponse для формирования ключей TranslatedBlocks. Также вызывается из CodeloreService.translateDoc как translationBlockKey(entry.sectionId, entry.blockId) для извлечения перевода конкретного блока из результата translateBlocks.
+Вызывается внутри самого файла: в translateBlocks для построения sourceByKey — отображения исходных текстов блоков, и в parseTranslateResponse для заполнения результирующего TranslatedBlocks. Внешне используется из CodeloreService.translateDoc: после получения результатов перевода, сервис извлекает конкретный перевод по ключу translationBlockKey(entry.sectionId, entry.blockId) и сохраняет его в состоянии документа.
 
 ## Чего не делает
 
-Не проверяет корректность sectionId или blockId — при передаче некорректных значений (например, содержащих нулевой символ) может дать неоднозначный ключ.
+Функция не проверяет корректность sectionId или blockId — если sectionId или blockId содержат нулевой символ (\x00), ключ станет неоднозначным, так как функция использует этот символ как разделитель.
 
 # translateBlocks
 

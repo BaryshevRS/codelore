@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/llm/translator.codelore.md",
-  "generatedAt": "2026-07-03T16:25:43.465Z",
+  "generatedAt": "2026-09-13T21:03:28.035Z",
   "sectionOrder": [
     "symbol:src/llm/translator.ts#translationBlockKey",
     "symbol:src/llm/translator.ts#translateBlocks",
@@ -77,39 +77,39 @@
           }
         },
         "dependencies": {
-          "body": "Не использует внешние модули; зависит только от своих строковых аргументов sectionId и blockId.",
-          "rendered": true,
+          "body": "Не использует внешние модули на этапе выполнения; зависит только от типа BlockId, который проверяется на этапе компиляции.",
+          "rendered": false,
           "fingerprint": "deps=78819ea8c325e6966ae65de7a9db30886ba5f84c69c1d8a7b37195f83e3441eb",
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
+            "informativeness": 0.25,
             "novelty": 0.75,
-            "specificity": 1,
-            "novelFact": "Не использует внешние модули."
+            "specificity": 0.75,
+            "novelFact": "Функция не имеет внешних зависимостей на этапе выполнения."
           }
         },
         "workflows": {
-          "body": "Вызывается внутри translateBlocks при построении sourceByKey (input.blocks.map(...)) и при разборе ответа LLM в parseTranslateResponse для формирования ключей TranslatedBlocks. Также вызывается из CodeloreService.translateDoc как translationBlockKey(entry.sectionId, entry.blockId) для извлечения перевода конкретного блока из результата translateBlocks.",
+          "body": "Вызывается внутри самого файла: в translateBlocks для построения sourceByKey — отображения исходных текстов блоков, и в parseTranslateResponse для заполнения результирующего TranslatedBlocks. Внешне используется из CodeloreService.translateDoc: после получения результатов перевода, сервис извлекает конкретный перевод по ключу translationBlockKey(entry.sectionId, entry.blockId) и сохраняет его в состоянии документа.",
           "rendered": true,
           "fingerprint": "body=fb423755b4086e4483cceb48fb42b3f2912533aaf9cb4b20fe4438283ccc3af7,deps=78819ea8c325e6966ae65de7a9db30886ba5f84c69c1d8a7b37195f83e3441eb",
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
-            "specificity": 1,
-            "novelFact": "Служит ключом для поиска переводов как внутри модуля, так и в вызывающем сервисе."
+            "specificity": 0.75,
+            "novelFact": "Функция служит единым генератором ключей для всего конвейера перевода: создаёт ключ при разборе входных данных, заполняет карту переведённых блоков и позволяет вызывающему коду точечно запрашивать перевод нужного блока."
           }
         },
         "limitations": {
-          "body": "Не проверяет корректность sectionId или blockId — при передаче некорректных значений (например, содержащих нулевой символ) может дать неоднозначный ключ.",
+          "body": "Функция не проверяет корректность sectionId или blockId — если sectionId или blockId содержат нулевой символ (\\x00), ключ станет неоднозначным, так как функция использует этот символ как разделитель.",
           "rendered": true,
           "fingerprint": "body=fb423755b4086e4483cceb48fb42b3f2912533aaf9cb4b20fe4438283ccc3af7",
           "language": "ru",
           "scores": {
             "informativeness": 0.5,
-            "novelty": 0.75,
+            "novelty": 0.5,
             "specificity": 0.75,
-            "novelFact": "Не валидирует аргументы sectionId и blockId."
+            "novelFact": "Если sectionId или blockId содержат нулевой символ, ключ станет неоднозначным — функция использует \\x00 как разделитель конкатенацией `sectionId + '\\x00' + blockId`."
           }
         }
       },
@@ -137,9 +137,32 @@
             "workflows",
             "limitations"
           ]
+        },
+        {
+          "runId": "2e8a08ea-46d1-4f9e-93ac-0ef39d026053",
+          "timestamp": "2026-09-13T20:34:15.620Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows"
+          ],
+          "manualReviewNeeded": true
+        },
+        {
+          "runId": "ea14d76e-071c-4ff9-aa18-24954dda9807",
+          "timestamp": "2026-09-13T21:03:28.035Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "limitations"
+          ]
         }
       ],
-      "depDocsFingerprint": "3fb47a74aeac622655b15fede520b1b5b3e7b5cd155e00670fe4b869ef7de9b5"
+      "depDocsFingerprint": "237299e4da9d9e16d5087fab2336dee8492592d2695d736f4a97fd4087b2de8e",
+      "signature": "translationBlockKey(sectionId: string, blockId: BlockId): string"
     },
     "symbol:src/llm/translator.ts#translateBlocks": {
       "heading": "translateBlocks",
@@ -288,7 +311,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "3fb47a74aeac622655b15fede520b1b5b3e7b5cd155e00670fe4b869ef7de9b5"
+      "depDocsFingerprint": "237299e4da9d9e16d5087fab2336dee8492592d2695d736f4a97fd4087b2de8e"
     },
     "symbol:src/llm/translator.ts#translationNeedsWork": {
       "heading": "translationNeedsWork",
@@ -418,7 +441,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "3fb47a74aeac622655b15fede520b1b5b3e7b5cd155e00670fe4b869ef7de9b5"
+      "depDocsFingerprint": "237299e4da9d9e16d5087fab2336dee8492592d2695d736f4a97fd4087b2de8e"
     }
   },
   "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"

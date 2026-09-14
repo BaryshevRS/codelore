@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/storage/doc-state-storage.codelore.md",
-  "generatedAt": "2026-07-03T20:24:53.227Z",
+  "generatedAt": "2026-09-13T19:41:29.667Z",
   "sectionOrder": [
     "symbol:src/storage/doc-state-storage.ts#computeConfigFingerprint",
     "symbol:src/storage/doc-state-storage.ts#applyRenderDecision",
@@ -18,7 +18,7 @@
       "depends": [],
       "usedBy": [
         "symbol:src/storage/doc-state-storage.ts#DocStateStorage",
-        "symbol:src/storage/doc-state-storage.ts#DocStateStorage.reapplyConfigToAllDocs",
+        "symbol:src/storage/doc-state-storage.ts#DocStateStorage.reconcileRenderedDocs",
         "symbol:src/storage/doc-state-storage.ts#DocStateStorage.renderAndPersist"
       ],
       "status": "normal",
@@ -51,15 +51,16 @@
           }
         },
         "responsibility": {
-          "body": "- Учитывает только `thresholds` и `blockHeadings`. Не затрагивает `sourceGlobs`, `llm`, `testGlobs` и другие поля.\n- Делегирует хеширование в `createHash` из `node:crypto`, каноническую сериализацию — во внутреннюю `stableStringify`.",
+          "body": "- Сериализует в канонический JSON ровно четыре поля конфигурации — `config.thresholds`, `config.docs.blockHeadings`, `config.docs.translations` и `config.docs.blockHeadingsByLanguage` — через внутреннюю `stableStringify`, которая сортирует ключи объектов и отбрасывает `undefined`.\n- Вычисляет SHA-256 от полученной строки через `createHash` из `node:crypto` и возвращает первые 32 символа hex-дайджеста.",
           "rendered": true,
-          "fingerprint": "signature=abf1c35513623cab4d44d825398a37da14f60179575c8bc4627a907e3294bb7c,deps=ace812fb45b55fc01eecbdb496a4f867a61c57a34af3742d8ba79a95d5435fca,usage=37ae11c5955169c5ce9399aef14c7c9dceeffa5c68364adc11821d6ef6dac6b5",
+          "fingerprint": "signature=abf1c35513623cab4d44d825398a37da14f60179575c8bc4627a907e3294bb7c,deps=ace812fb45b55fc01eecbdb496a4f867a61c57a34af3742d8ba79a95d5435fca,usage=c439fa6f10d3e2d7024b119f4099b24b7652abadbd91ce4f6689b2ea237fd526",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.5,
             "specificity": 0.75,
-            "novelFact": "Изменения в полях, не включённых в `stableStringify`, не влияют на отпечаток."
-          }
+            "novelFact": "Отпечаток строится только из четырёх полей: thresholds, blockHeadings, translations и blockHeadingsByLanguage."
+          },
+          "language": "ru"
         },
         "invariants": {
           "body": "- Возвращает строку из 32 шестнадцатеричных символов (SHA-256, обрезанный до 32 символов).\n- Детерминирована: внутренняя сериализация сортирует ключи объектов по алфавиту и игнорирует undefined-значения.\n- Учитывает только поля thresholds, config.docs.blockHeadings, config.docs.translations и config.docs.blockHeadingsByLanguage; остальные поля конфигурации не влияют на отпечаток.\n- Не мутирует переданный объект config.",
@@ -109,7 +110,7 @@
           "language": "ru"
         }
       },
-      "depDocsFingerprint": "8e7092c7f62ad2159ef8d9cedf19b88762ce0b081a0a64af6ea6e4aa31849548",
+      "depDocsFingerprint": "bb315a576480166e9ad678f95ac4c51658aab2328b587bad8f30d2044d4709c8",
       "generationHistory": [
         {
           "runId": "3eab553f-a046-4a06-a426-79f363984d70",
@@ -192,8 +193,19 @@
             "workflows",
             "limitations"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.139Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility"
+          ]
         }
-      ]
+      ],
+      "signature": "computeConfigFingerprint(config: CodeloreConfig): string"
     },
     "symbol:src/storage/doc-state-storage.ts#applyRenderDecision": {
       "heading": "applyRenderDecision",
@@ -305,7 +317,7 @@
           }
         }
       },
-      "depDocsFingerprint": "13b3baa76b037064bc7211e3f943e9cf245f3e92a5a6f9fe5b07c173d7992aaa",
+      "depDocsFingerprint": "bb315a576480166e9ad678f95ac4c51658aab2328b587bad8f30d2044d4709c8",
       "generationHistory": [
         {
           "runId": "3eab553f-a046-4a06-a426-79f363984d70",
@@ -378,18 +390,27 @@
         "symbol:src/storage/doc-state-storage.ts#DocStateStorage"
       ],
       "depends": [
+        "symbol:src/errors.ts#CodeloreError",
+        "symbol:src/markdown/doc-paths.ts#translationDocPath",
+        "symbol:src/markdown/linkify.ts#addDocToLinkMap",
+        "symbol:src/markdown/linkify.ts#buildEntityLinkMap",
+        "symbol:src/markdown/linkify.ts#removeDocFromLinkMap",
         "symbol:src/markdown/render-doc.ts#renderDoc",
+        "symbol:src/storage/doc-state-storage.ts#DocStateStorage.buildRenderContext",
         "symbol:src/storage/doc-state-storage.ts#DocStateStorage.cleanupTranslationFiles",
         "symbol:src/storage/doc-state-storage.ts#DocStateStorage.deleteDoc",
         "symbol:src/storage/doc-state-storage.ts#DocStateStorage.deleteDocState",
         "symbol:src/storage/doc-state-storage.ts#DocStateStorage.docPathFromStateFile",
         "symbol:src/storage/doc-state-storage.ts#DocStateStorage.listDocStates",
         "symbol:src/storage/doc-state-storage.ts#DocStateStorage.loadDocState",
+        "symbol:src/storage/doc-state-storage.ts#DocStateStorage.reconcileRenderedDocs",
         "symbol:src/storage/doc-state-storage.ts#DocStateStorage.renderAndPersist",
+        "symbol:src/storage/doc-state-storage.ts#DocStateStorage.renderContext",
         "symbol:src/storage/doc-state-storage.ts#DocStateStorage.saveDocState",
         "symbol:src/storage/doc-state-storage.ts#DocStateStorage.statePathFor",
         "symbol:src/storage/doc-state-storage.ts#DocStateStorage.stateRoot",
         "symbol:src/storage/doc-state-storage.ts#DocStateStorage.writeDocFile",
+        "symbol:src/storage/doc-state-storage.ts#DocStateStorage.writeDocFileIfChanged",
         "symbol:src/storage/doc-state-storage.ts#applyRenderDecision",
         "symbol:src/storage/doc-state-storage.ts#computeConfigFingerprint"
       ],
@@ -437,79 +458,79 @@
           "language": "ru"
         },
         "responsibility": {
-          "body": "- Сохраняет JSON-состояние в поддиректории <indexDir>/state/ и рендерит Markdown-файл документа через `renderDoc`, всегда используя атомарную запись: сначала во временный файл, затем `rename`.\\n- Управляет файлами переводов: генерирует `*.language.codelore.md` для каждого языка из `config.docs.translations`, а также удаляет файлы переводов, у которых нет собственного состояния, через `cleanupTranslationFiles`.\\n- Предоставляет метод `reapplyConfigToAllDocs`, который перебирает все состояния, сравнивает отпечаток конфигурации через `computeConfigFingerprint` и перерендеривает только документы с изменившимся отпечатком.",
+          "body": "- Управляет JSON-состояниями документов: загружает файл с проверкой версии, сохраняет и удаляет его по `docPath`, используя `statePathFor`, а список состояний получает обходом JSON-файлов через `listDocStates`.\n- Рендерит документ и все языки из `config.docs.translations` через `renderDoc` и записывает Markdown-файлы; при изменении отпечатка конфигурации пересчитывает решения рендеринга и сохраняет состояние, при совпадении — переписывает Markdown-файлы.\n- Поддерживает кэш контекста ссылок и `docInfo` для всех состояний, обновляя его при сохранении и удалении; очищает устаревшие файлы переводов.\n- При удалении документа целиком убирает JSON-состояние, основной `.md` и все переводы-сироты.",
           "rendered": true,
-          "fingerprint": "signature=1db7146799a11d3b0591536e88bec7d24d89892e729b8ffae003ac14ffc49fa7,deps=c348425d62f43db0f5b9fdac134057b6df83d3162a59ca9c5dc7e15dccd48919,usage=e63353c9cbf06a452a8454f8c43a192c99eee95d115e8de7b8e5283f6fbbc403",
+          "fingerprint": "signature=1db7146799a11d3b0591536e88bec7d24d89892e729b8ffae003ac14ffc49fa7,deps=9dceec80e46b37249fd45157fe9fdf672055e659ba0a285f580f3aa42a862e44,usage=e63353c9cbf06a452a8454f8c43a192c99eee95d115e8de7b8e5283f6fbbc403",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
-            "specificity": 1,
-            "novelFact": "Атомарная запись (сначала .tmp, затем rename) применяется и к JSON-состоянию, и к Markdown-файлу."
+            "specificity": 0.75,
+            "novelFact": "Класс управляет JSON-состояниями документов и рендерит документ с переводами через `renderDoc`."
           },
           "language": "ru"
         },
         "invariants": {
-          "body": "- `deleteDoc` удаляет и JSON-состояние, и основной Markdown-файл, и все файлы переводов, у которых нет собственного файла состояния.\n- `loadDocState` повышает версию до актуальной, если загруженный state версии меньше, не производя миграции данных.\n- `renderAndPersist` всегда вычисляет и обновляет `configFingerprint` в сохраняемом состоянии.\n- `cleanupTranslationFiles` удаляет только те файлы переводов, которые не имеют собственного JSON-состояния и не входят в множество `keep`.",
+          "body": "- Отсутствующий файл состояния не является ошибкой: `loadDocState` возвращает `undefined` при `ENOENT`, а `listDocStates` возвращает `[]`, если каталог состояния отсутствует.\n- Несовпадение `state.version` с `DOC_STATE_VERSION` выбрасывает ошибку с кодом `UNSUPPORTED_STATE_VERSION`; состояние не загружается.\n- Запись JSON и Markdown атомарна: содержимое сначала пишется в `<path>.tmp`, затем `rename` заменяет целевой файл.\n- `cleanupTranslationFiles` удаляет только файлы, соответствующие `<base>.<lang><suffix>`, не входящие в `keep` и не имеющие собственного JSON-состояния; кандидат с собственным state-файлом остаётся.\n- При сверке документов с состоянием обновляются только те, чей сохранённый `configFingerprint` отличается от текущего; при совпадении JSON-состояние не меняется, а `.md` переписывается только при отличии содержимого.\n- Кэш `renderContextPromise` создаётся один раз и обновляется при `saveDocState`/`deleteDocState`, которые добавляют или удаляют ссылки и `docInfo`.",
           "rendered": true,
-          "fingerprint": "signature=1db7146799a11d3b0591536e88bec7d24d89892e729b8ffae003ac14ffc49fa7,body=321ec062ee3ea6e7112c9d07c1618e738d0d90e17987fc21c6dc1b12d783b6ab",
+          "fingerprint": "signature=1db7146799a11d3b0591536e88bec7d24d89892e729b8ffae003ac14ffc49fa7,body=24763806a08d0d6f9d40ee34dcaa0221e82b8873d6556fc9b2c1a8ccfa6c30c2",
           "scores": {
-            "informativeness": 0.5,
+            "informativeness": 0.75,
             "novelty": 0.75,
-            "specificity": 1,
-            "novelFact": "Метод `deleteDoc` удаляет основной Markdown-файл, JSON-состояние и файлы переводов без собственного состояния."
+            "specificity": 0.75,
+            "novelFact": "Несовпадение версии состояния выбрасывает ошибку с кодом `UNSUPPORTED_STATE_VERSION`, а отсутствующий файл возвращает `undefined`."
           },
           "language": "ru"
         },
         "dependencies": {
-          "body": "Использует внешние модули: `existsSync` из `node:fs`, `mkdir`, `readdir`, `readFile`, `rename`, `rm`, `writeFile` из `node:fs/promises`, `basename`, `dirname`, `join`, `relative`, `sep` из `node:path`. Также полагается на внутренние функции этого же файла: `applyRenderDecision`, `computeConfigFingerprint`, `translationDocPath`, `splitDocPath`, `stableStringify`, `escapeRegExp`, `stripMarkdownExtension`, `collectJsonFiles`. Рендер Markdown делегируется `renderDoc` из `src/markdown/render-doc.ts`.",
+          "body": "Использует `CodeloreError` из `src/errors.ts` для выбрасывания ошибки при несовпадении версии состояния. Рендер Markdown делегирует `renderDoc` из `src/markdown/render-doc.ts`. Для управления картой ссылок и docInfo вызывает `buildEntityLinkMap`, `addDocToLinkMap`, `removeDocFromLinkMap` из `src/markdown/linkify.ts`. Путь к файлу перевода вычисляет через `translationDocPath` из `src/markdown/doc-paths.ts`. Остальные зависимости — внутренние функции этого же файла: `applyRenderDecision`, `computeConfigFingerprint`, `splitDocPath`, `escapeRegExp`, `stripMarkdownExtension`, `collectJsonFiles`, `docInfoOf`, а также модули `node:fs`, `node:fs/promises`, `node:path`, `node:crypto`.",
           "rendered": true,
-          "fingerprint": "deps=c348425d62f43db0f5b9fdac134057b6df83d3162a59ca9c5dc7e15dccd48919",
+          "fingerprint": "deps=9dceec80e46b37249fd45157fe9fdf672055e659ba0a285f580f3aa42a862e44",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "DocStateStorage использует renderDoc, computeConfigFingerprint и applyRenderDecision, а также атомарную запись через writeFile+rename для сохранения стейта и Markdown-файлов."
+            "novelFact": "Рендер Markdown делегирует renderDoc из src/markdown/render-doc.ts, а управление картой ссылок — функциям из src/markdown/linkify.ts."
           },
           "language": "ru"
         },
         "workflows": {
-          "body": "`loadDocState` вызывается из `buildDocIndex` и `patchDocIndexPaths` (оба в `src/indexer/state-indexer.ts`) для загрузки существующего состояния документа при построении или обновлении индекса. `renderAndPersist` вызывается из `reapplyConfigToAllDocs` при массовом перерендере после изменения конфигурации и из `applyRewritesToDoc` (`src/service/section-rewrite.ts`) после применения правок к секциям. `IndexManager` (`src/service/index-manager.ts`) использует различные методы класса для управления состояниями документов.",
+          "body": "`buildDocIndex` и `patchDocIndexPaths` (оба в `src/indexer/state-indexer.ts`) вызывают `loadDocState` для загрузки существующего состояния документа при построении или обновлении индекса. `applyRewritesToDoc` (`src/service/section-rewrite.ts`) вызывает `renderAndPersist` после применения правок к секциям. `IndexManager` (`src/service/index-manager.ts`) использует различные методы класса для управления состояниями документов. `reconcileRenderedDocs` вызывается при сверке всех документов: для каждого состояния проверяет отпечаток конфигурации и либо пересохраняет состояние с перерендером, либо переписывает только Markdown-файлы при отличии содержимого.",
           "rendered": true,
-          "fingerprint": "body=321ec062ee3ea6e7112c9d07c1618e738d0d90e17987fc21c6dc1b12d783b6ab,deps=c348425d62f43db0f5b9fdac134057b6df83d3162a59ca9c5dc7e15dccd48919",
+          "fingerprint": "body=24763806a08d0d6f9d40ee34dcaa0221e82b8873d6556fc9b2c1a8ccfa6c30c2,deps=9dceec80e46b37249fd45157fe9fdf672055e659ba0a285f580f3aa42a862e44",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "loadDocState и renderAndPersist — центральные точки входа, вызываемые из индексатора и сервиса правок."
+            "novelFact": "reconcileRenderedDocs сверяет отпечаток конфигурации каждого документа и пересохраняет состояние только при расхождении, иначе переписывает Markdown-файлы при отличии содержимого."
           },
           "language": "ru"
         },
         "limitations": {
-          "body": "- Нет кэширования стейтов: каждый вызов `loadDocState` читает JSON-файл с диска.\n- Файлы стейтов не сжаты: `JSON.stringify` без сжатия.\n- Отпечаток конфигурации (`computeConfigFingerprint`) покрывает только поля `thresholds`, `blockHeadings`, `translations`, `blockHeadingsByLanguage`; изменения других полей конфигурации не вызывают перерендер.\n- `listDocStates` рекурсивно обходит все JSON-файлы в каталоге `state` без ограничения глубины, включая файлы, не являющиеся стейтами (исключаются только файлы с `.generation-debug.` в имени).\n- `saveDocState` и `writeDocFile` не содержат блокировки или повтора при сбое `rename`.\n- `loadDocState` выбрасывает исключение при непарсибельном JSON, не пытаясь восстановить данные.",
+          "body": "- `computeConfigFingerprint` покрывает только поля `thresholds`, `blockHeadings`, `translations`, `blockHeadingsByLanguage` — изменения других полей конфигурации не вызывают перерендер.\n- `listDocStates` рекурсивно обходит все JSON-файлы в каталоге `state` без ограничения глубины, исключая только файлы с `.generation-debug.` в имени.\n- `loadDocState` выбрасывает исключение при непарсибельном JSON, не пытаясь восстановить данные.",
           "rendered": true,
-          "fingerprint": "body=321ec062ee3ea6e7112c9d07c1618e738d0d90e17987fc21c6dc1b12d783b6ab",
+          "fingerprint": "body=24763806a08d0d6f9d40ee34dcaa0221e82b8873d6556fc9b2c1a8ccfa6c30c2",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Отпечаток конфигурации ограничен полями thresholds, blockHeadings, translations, blockHeadingsByLanguage; изменения других полей конфига не триггерят перерендер."
+            "novelFact": "computeConfigFingerprint покрывает только thresholds, blockHeadings, translations, blockHeadingsByLanguage — изменения других полей конфигурации не вызывают перерендер."
           },
           "language": "ru"
         },
         "changeGuide": {
-          "body": "- Атомарность записи: методы `saveDocState` и `writeDocFile` сначала записывают содержимое во временный файл с суффиксом `.tmp`, затем выполняют `rename`. Конструкции: `const tmpPath = \\`${absolutePath}.tmp\\`; await writeFile(tmpPath, ...); await rename(tmpPath, absolutePath);` в обоих методах. Тесты: нет.\n- Версионирование стейта: `loadDocState` повышает версию загруженного состояния до `DOC_STATE_VERSION` (текущее значение 4), если она меньше. Конструкция: `if (state.version < DOC_STATE_VERSION) { state.version = DOC_STATE_VERSION; }`. Тесты: нет.",
+          "body": "- Атомарность записи: `saveDocState` и `writeDocFile` сначала пишут содержимое во временный файл с суффиксом `.tmp`, затем выполняют `rename`. Конструкция: `const tmpPath = \\`${absolutePath}.tmp\\`; await writeFile(tmpPath, ...); await rename(tmpPath, absolutePath);`.\n- Версионирование состояния: `loadDocState` выбрасывает `CodeloreError` с кодом `UNSUPPORTED_STATE_VERSION` при несовпадении `state.version` с `DOC_STATE_VERSION`. Конструкция: `if (state.version !== DOC_STATE_VERSION) { throw new CodeloreError(\"UNSUPPORTED_STATE_VERSION\", ...); }`.\n- Очистка переводов-сирот: `cleanupTranslationFiles` удаляет только файлы, соответствующие шаблону `<base>.<lang><suffix>`, не входящие в `keep` и не имеющие собственного JSON-состояния. Конструкция: `if (existsSync(this.statePathFor(candidateDocPath))) { continue; }`.\n- Кэш контекста рендера: `renderContextPromise` создаётся один раз через `buildRenderContext` и обновляется при `saveDocState`/`deleteDocState`. Конструкция: `this.renderContextPromise ??= this.buildRenderContext();`.",
           "rendered": true,
-          "fingerprint": "body=321ec062ee3ea6e7112c9d07c1618e738d0d90e17987fc21c6dc1b12d783b6ab,deps=c348425d62f43db0f5b9fdac134057b6df83d3162a59ca9c5dc7e15dccd48919,usage=e63353c9cbf06a452a8454f8c43a192c99eee95d115e8de7b8e5283f6fbbc403,placement=8a92f897394e21d168eb0efce234c6798609628341c1320ed7598e7af8a524e5",
+          "fingerprint": "body=24763806a08d0d6f9d40ee34dcaa0221e82b8873d6556fc9b2c1a8ccfa6c30c2,deps=9dceec80e46b37249fd45157fe9fdf672055e659ba0a285f580f3aa42a862e44,usage=e63353c9cbf06a452a8454f8c43a192c99eee95d115e8de7b8e5283f6fbbc403,placement=8a92f897394e21d168eb0efce234c6798609628341c1320ed7598e7af8a524e5",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Атомарная запись — ключевое инвариантное свойство: сначала во временный файл, затем rename."
+            "novelFact": "Атомарность записи достигается через запись в .tmp с последующим rename в saveDocState и writeDocFile."
           },
           "language": "ru"
         }
       },
-      "depDocsFingerprint": "8e7092c7f62ad2159ef8d9cedf19b88762ce0b081a0a64af6ea6e4aa31849548",
+      "depDocsFingerprint": "bb315a576480166e9ad678f95ac4c51658aab2328b587bad8f30d2044d4709c8",
       "generationHistory": [
         {
           "runId": "3eab553f-a046-4a06-a426-79f363984d70",
@@ -675,8 +696,33 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.140Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:41:29.667Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
-      ]
+      ],
+      "signature": "class DocStateStorage"
     }
   },
   "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"

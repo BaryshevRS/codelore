@@ -1,0 +1,151 @@
+{
+  "version": 4,
+  "docPath": "src/llm/domain-pipeline.codelore.md",
+  "generatedAt": "2026-09-13T23:26:45.695Z",
+  "sectionOrder": [
+    "symbol:src/llm/domain-pipeline.ts#generateDomainDoc"
+  ],
+  "sections": {
+    "symbol:src/llm/domain-pipeline.ts#generateDomainDoc": {
+      "heading": "generateDomainDoc",
+      "depth": 1,
+      "anchor": "generatedomaindoc",
+      "signature": "generateDomainDoc(args: {\n  input: BuildDomainWriteRequestInput;\n  /** Concatenated member-doc prose — the ground truth the blocks are checked against. */\n  memberEvidence: string;\n  provider: ChatCompletionProvider;\n  verifyProvider: ChatCompletionProvider;\n}): Promise<DomainGenerationResult>",
+      "owns": [
+        "symbol:src/llm/domain-pipeline.ts#generateDomainDoc"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.generateDomainDocs"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "Generates a domain documentation for a single tier by writing blocks with retries, verifying them against member docs, and repairing contradicted blocks, returning the surviving blocks and the dropped ones.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function orchestrates the full domain-doc generation pipeline: it writes blocks with retries, verifies them against member docs, repairs contradicted blocks, and returns the surviving blocks plus the dropped ones."
+          },
+          "fingerprint": "signature=8ff57b19705a7a6154874153f770e555c67634bde35b95339f6a2f4a0edde51d,placement=9e1e7d57946d8e1aed92385d6db1bc92f90cb7f8ad18677a05e61c53e938c0bb"
+        },
+        "responsibility": {
+          "body": "Writes the domain blocks via `writeWithRetries` with a retry cap of `DOMAIN_WRITE_MAX_RETRIES`. Verifies the written blocks against member docs via `verifyBlocks`, which returns a list of contradicted claims (each with blockId, statement, evidence). Repairs the contradicted blocks via `repairContradictedBlocks`, which returns a partial blocks object; when contradicted blocks exist, the function merges the repaired blocks back into the original blocks object. Returns the final blocks object (with repaired blocks) and the list of dropped block IDs.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function delegates writing to writeWithRetries, verification to verifyBlocks, and repair to repairContradictedBlocks, then merges the repaired blocks back into the original blocks object."
+          },
+          "fingerprint": "signature=8ff57b19705a7a6154874153f770e555c67634bde35b95339f6a2f4a0edde51d,deps=3515f74c87b380e374d34c2da1d7bd5b5f0f60dff84b9342aeea3172bec2d1d0,usage=21f928f8d463d186071be40ead24c52a5847e1725fd3a4bc1ec66a58b16b7810"
+        },
+        "invariants": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "signature=8ff57b19705a7a6154874153f770e555c67634bde35b95339f6a2f4a0edde51d,body=585c0f56c0eaa6e2a526c6e91b818c72e95a6e0608de285d8f92ab33dfa4c904"
+        },
+        "dependencies": {
+          "body": "Depends on local helpers `writeWithRetries`, `verifyBlocks`, `repairContradictedBlocks`, `blockEntries`, `blockSubset`, and `currentBlocksForPrompt` from the same file.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "The function depends on `writeWithRetries`, `verifyBlocks`, `repairContradictedBlocks`, `blockEntries`, `blockSubset`, and `currentBlocksForPrompt` from the same file."
+          },
+          "fingerprint": "deps=3515f74c87b380e374d34c2da1d7bd5b5f0f60dff84b9342aeea3172bec2d1d0"
+        },
+        "workflows": {
+          "body": "Called by `CodeloreService.generateDomainDocs` for each tier entity.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Called by `CodeloreService.generateDomainDocs` for each tier entity."
+          },
+          "fingerprint": "body=585c0f56c0eaa6e2a526c6e91b818c72e95a6e0608de285d8f92ab33dfa4c904,deps=3515f74c87b380e374d34c2da1d7bd5b5f0f60dff84b9342aeea3172bec2d1d0"
+        },
+        "limitations": {
+          "body": "The function does not handle providers that emit trailing junk after the JSON response.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "The function does not handle providers that emit trailing junk after the JSON response."
+          },
+          "fingerprint": "body=585c0f56c0eaa6e2a526c6e91b818c72e95a6e0608de285d8f92ab33dfa4c904"
+        },
+        "changeGuide": {
+          "body": "- The retry cap is enforced by the constant `DOMAIN_WRITE_MAX_RETRIES` passed to `writeWithRetries`.\n- The repair loop is bounded by the constant `MAX_REPAIR_ROUNDS` in `repairContradictedBlocks`.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The retry cap is enforced by the constant `DOMAIN_WRITE_MAX_RETRIES` passed to `writeWithRetries`, and the repair loop is bounded by `MAX_REPAIR_ROUNDS`."
+          },
+          "fingerprint": "body=585c0f56c0eaa6e2a526c6e91b818c72e95a6e0608de285d8f92ab33dfa4c904,deps=3515f74c87b380e374d34c2da1d7bd5b5f0f60dff84b9342aeea3172bec2d1d0,usage=21f928f8d463d186071be40ead24c52a5847e1725fd3a4bc1ec66a58b16b7810,placement=9e1e7d57946d8e1aed92385d6db1bc92f90cb7f8ad18677a05e61c53e938c0bb"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.771Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.695Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "eac4894697f2f6b611766cb7337981ecd2340c2b64814e1e0c8b04a3d4fb4711"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

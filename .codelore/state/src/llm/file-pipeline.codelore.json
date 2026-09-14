@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/llm/file-pipeline.codelore.md",
-  "generatedAt": "2026-07-03T20:14:50.999Z",
+  "generatedAt": "2026-09-13T21:03:28.024Z",
   "sectionOrder": [
     "symbol:src/llm/file-pipeline.ts#generateFileGroup",
     "symbol:src/llm/file-pipeline.ts#dependencyDocsFingerprint",
@@ -76,14 +76,14 @@
           "language": "ru"
         },
         "invariants": {
-          "body": "1. Если `input.phase` задан, фильтр блоков применяется до разбиения на чанки: генерируются только блоки указанной фазы (`propagating` или `terminal`).\n2. Если после фильтрации не осталось ни одной секции с целевыми блоками, функция немедленно возвращает пустой `FileGenerationOutcome` (через `emptyOutcome`).\n3. Чанки обрабатываются параллельно с ограничением конкуренции из `service.config.llm.concurrency` (через `pLimit`), но результаты объединяются последовательно — более поздние чанки могут перезаписывать одноимённые блоки от предыдущих.\n4. `generateFileGroup` не выполняет запись результирующей документации на диск — это ответственность вызывающего кода.\n5. Если секция не получила ни одного нового блока, а существующий блок непустой, он сохраняется в `keptBlocks` без замены (через `buildOutcome`).",
+          "body": "- Возвращает пустой `FileGenerationOutcome` (через `emptyOutcome`), если после фильтрации по фазе не осталось ни одной секции с целевыми блоками.\n- Результаты параллельной обработки чанков объединяются последовательно: для каждой секции блоки, сгенерированные в более позднем чанке, полностью заменяют одноимённые блоки из более ранних (через `mergeRepairedBlocks`).\n- Отсутствующие в результате генерации блоки не заменяют существующие непустые блоки документации — они попадают в `keptBlocks` без изменений; секции, где все целевые блоки отсутствуют и существующие пусты, получают статус ревью (`reviewSections`).\n- Функция никогда не выполняет запись документации на диск — возвращает только описание необходимых изменений (`FileGenerationOutcome`).",
           "rendered": true,
-          "fingerprint": "signature=9224afb56c22578ce305efea179a5f16e01eccdecc220fec82ad86045058ade5,body=fdf51ea0dc1f1aac125b0e6e2dc93b8d8ae052453deff36156b932e46259a37c",
+          "fingerprint": "signature=9224afb56c22578ce305efea179a5f16e01eccdecc220fec82ad86045058ade5,body=6ab76a5caeb94a8183779a4fe6f2074b820f6aa035b9608cd9a17b833b7afbb5",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Функция не записывает результат на диск — это обязанность вызывающего кода."
+            "novelFact": "Порядок чанков влияет на результат слияния: более поздний чанк перезаписывает одноимённые блоки."
           },
           "language": "ru"
         },
@@ -100,43 +100,43 @@
           "language": "ru"
         },
         "workflows": {
-          "body": "Вызывается из CodeloreService.runPipelineForSections после сбора секций для группы файлов. generateFileGroup загружает контекст секций, исходный код, документацию зависимостей (кроме фазы propagating), термины, разбивает на чанки через planWriterChunks, обрабатывает каждый чанк параллельно (с ограничением concurrency из service.config.llm.concurrency) функцией generateChunk, объединяет результаты, формирует FileGenerationOutcome и записывает отладочную информацию через debugSink.",
+          "body": "Вызывается из `CodeloreService.runPipelineForSections` после того, как сервис собрал секции для группы файлов. Функция загружает исходный код файлов через `readFile`, получает контекст каждой секции через `service.getSectionContext`, фильтрует целевые блоки по фазе (`input.phase`), собирает документацию зависимостей (кроме фазы `propagating`), термины и контекст проекта. Затем разбивает секции на чанки вызовом `planWriterChunks` с учётом бюджета провайдера и обрабатывает каждый чанк параллельно через `generateChunk`, ограничивая конкурентность значением `service.config.llm.concurrency` через `pLimit`. Результаты чанков объединяются, формируется `FileGenerationOutcome`, и записывается отладочная информация через `debugSink`.",
           "rendered": true,
-          "fingerprint": "body=fdf51ea0dc1f1aac125b0e6e2dc93b8d8ae052453deff36156b932e46259a37c,deps=fe3f387d0e86dd9a6514bc7c5e0bc201dc60f9f840cb4a3824bc8cc609166225",
+          "fingerprint": "body=6ab76a5caeb94a8183779a4fe6f2074b820f6aa035b9608cd9a17b833b7afbb5,deps=fe3f387d0e86dd9a6514bc7c5e0bc201dc60f9f840cb4a3824bc8cc609166225",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.5,
+            "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Параллельная обработка чанков ограничена concurrency из конфигурации."
+            "novelFact": "Функция обрабатывает чанки параллельно с ограничением конкурентности через `pLimit(service.config.llm.concurrency)`."
           },
           "language": "ru"
         },
         "limitations": {
-          "body": "Если input.phase указан, генерируются только блоки этой фазы (propagating или terminal); секции без целевых блоков для фазы пропускаются. После фильтрации может остаться ноль секций — возвращается пустой outcome. Разбиение на чанки использует budget.maxSectionsPerChunk и maxSourceChars провайдера, класс и его методы всегда в одном чанке.",
+          "body": "Если задан `input.phase`, генерируются только блоки указанной фазы (`propagating` или `terminal`); секции, у которых после фильтрации не остаётся целевых блоков, пропускаются. Это ограничение введено условием `const phaseBlocks = blockSetForPhase(input.phase);` и последующей фильтрацией `const targets = phaseBlocks ? context.targets.filter((block) => phaseBlocks.has(block)) : context.targets;`. Функция не может за один вызов сгенерировать блоки обеих фаз.",
           "rendered": true,
-          "fingerprint": "body=fdf51ea0dc1f1aac125b0e6e2dc93b8d8ae052453deff36156b932e46259a37c",
+          "fingerprint": "body=6ab76a5caeb94a8183779a4fe6f2074b820f6aa035b9608cd9a17b833b7afbb5",
           "scores": {
-            "informativeness": 0.75,
+            "informativeness": 0.5,
             "novelty": 0.5,
             "specificity": 0.75,
-            "novelFact": "Фильтрация по фазе происходит до разбиения на чанки."
+            "novelFact": "Функция не может за один вызов сгенерировать блоки обеих фаз."
           },
           "language": "ru"
         },
         "changeGuide": {
-          "body": "Два инварианта: 1. Сбор документации зависимостей выполняется только при input.phase !== 'propagating' — условие (input.phase === 'propagating' ? [] : collectDependencyDocs(index, files)). 2. Параллельная обработка чанков ограничена конкуренцией: pLimit(service.config.llm.concurrency). Тесты: не видны.",
+          "body": "- Сбор документации зависимостей выполняется только когда `input.phase !== 'propagating'` — условие `input.phase === 'propagating' ? [] : collectDependencyDocs(index, files)`.\n- Параллельная обработка чанков ограничена конкурентностью: `pLimit(service.config.llm.concurrency)`.",
           "rendered": true,
-          "fingerprint": "body=fdf51ea0dc1f1aac125b0e6e2dc93b8d8ae052453deff36156b932e46259a37c,deps=fe3f387d0e86dd9a6514bc7c5e0bc201dc60f9f840cb4a3824bc8cc609166225,usage=bd4f92b1ed4ede449fc041b226996e6f65ffd80d42449780d19f5bf4a9e5da83,placement=1d155a6a840ed466a7d23e7a6097d03f11d5d7e6837561261b164c3fb32bdd4f",
+          "fingerprint": "body=6ab76a5caeb94a8183779a4fe6f2074b820f6aa035b9608cd9a17b833b7afbb5,deps=fe3f387d0e86dd9a6514bc7c5e0bc201dc60f9f840cb4a3824bc8cc609166225,usage=bd4f92b1ed4ede449fc041b226996e6f65ffd80d42449780d19f5bf4a9e5da83,placement=1d155a6a840ed466a7d23e7a6097d03f11d5d7e6837561261b164c3fb32bdd4f",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.5,
+            "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Инвариант фазы propagating исключает зависимость от других файлов."
+            "novelFact": "Сбор документации зависимостей пропускается на фазе propagating."
           },
           "language": "ru"
         }
       },
-      "depDocsFingerprint": "d0de4d83224197125fa18f75eb1644c43b0f6abf9aa9a173f61b7ed3de00cea5",
+      "depDocsFingerprint": "5e5c850772d54f3bbe110b2af9295ed6fd513ef841e90ee8da244f17ec561678",
       "generationHistory": [
         {
           "runId": "22bccca0-cf47-476d-bbf5-52789133117c",
@@ -374,8 +374,31 @@
           "generatedBlocks": [
             "dependencies"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.039Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:41:29.595Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
-      ]
+      ],
+      "signature": "generateFileGroup(input: FileGenerationInput): Promise<FileGenerationOutcome>"
     },
     "symbol:src/llm/file-pipeline.ts#dependencyDocsFingerprint": {
       "heading": "dependencyDocsFingerprint",
@@ -446,43 +469,43 @@
           }
         },
         "dependencies": {
-          "body": "Единственная внешняя зависимость — функция sha256 из src/utils/hash.ts.",
+          "body": "Вычисляется как SHA-256 от всех документаций зависимостей.",
           "rendered": true,
           "fingerprint": "deps=808688ed6235b66a7b8bef887173eb974e0e4c80de961cd61ed2b903ed8cdb23",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
+            "informativeness": 0.75,
+            "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Очень простая функция, выполняет только хеширование."
+            "novelFact": "The fingerprint is computed as SHA-256 over all dependency docs."
           },
           "language": "ru"
         },
         "workflows": {
-          "body": "Вызывается из CodeloreService.recordDepDocsFingerprints для записи фингерпринта в состояние секции после генерации, и из collectDepDocStaleBlocks для сравнения текущего фингерпринта с сохранённым и обнаружения устаревших блоков (staleness).",
+          "body": "Используется для идентификации документации зависимостей группы, вероятно, для кэширования или проверки.",
           "rendered": true,
           "fingerprint": "body=5772f1d12965592c933d95153990cd4ca559098f953e468e0a5950ab39af039e,deps=808688ed6235b66a7b8bef887173eb974e0e4c80de961cd61ed2b903ed8cdb23",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Используется для детекции устаревания блоков зависимостей."
+            "novelFact": "The fingerprint is used to identify the dependency docs for a group, likely for caching or verification."
           },
           "language": "ru"
         },
         "limitations": {
-          "body": "Результат зависит от порядка полей в DependencyDoc при JSON.stringify — изменение порядка (например, добавление нового поля) изменит хеш без изменения семантики. Каноническая сериализация не применяется, что может вызвать ложные срабатывания staleness.",
+          "body": "Результат зависит от порядка полей в `DependencyDoc` при `JSON.stringify` — изменение порядка (например, добавление нового поля) изменит хеш без изменения семантики. Каноническая сериализация не применяется, что может вызвать ложные срабатывания staleness.",
           "rendered": true,
           "fingerprint": "body=5772f1d12965592c933d95153990cd4ca559098f953e468e0a5950ab39af039e",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Хеш чувствителен к порядку полей в JSON."
+            "novelFact": "Результат зависит от порядка полей в DependencyDoc при JSON.stringify — изменение порядка (например, добавление нового поля) изменит хеш без изменения семантики."
           },
           "language": "ru"
         }
       },
-      "depDocsFingerprint": "d0de4d83224197125fa18f75eb1644c43b0f6abf9aa9a173f61b7ed3de00cea5",
+      "depDocsFingerprint": "5e5c850772d54f3bbe110b2af9295ed6fd513ef841e90ee8da244f17ec561678",
       "generationHistory": [
         {
           "runId": "22bccca0-cf47-476d-bbf5-52789133117c",
@@ -665,8 +688,31 @@
             "workflows",
             "limitations"
           ]
+        },
+        {
+          "runId": "2e8a08ea-46d1-4f9e-93ac-0ef39d026053",
+          "timestamp": "2026-09-13T20:34:15.580Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows"
+          ],
+          "manualReviewNeeded": true
+        },
+        {
+          "runId": "ea14d76e-071c-4ff9-aa18-24954dda9807",
+          "timestamp": "2026-09-13T21:03:28.023Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "limitations"
+          ]
         }
-      ]
+      ],
+      "signature": "dependencyDocsFingerprint(dependencyDocs: DependencyDoc[]): string"
     },
     "symbol:src/llm/file-pipeline.ts#collectDependencyDocs": {
       "heading": "collectDependencyDocs",
@@ -789,7 +835,7 @@
           "language": "ru"
         }
       },
-      "depDocsFingerprint": "d0de4d83224197125fa18f75eb1644c43b0f6abf9aa9a173f61b7ed3de00cea5",
+      "depDocsFingerprint": "5e5c850772d54f3bbe110b2af9295ed6fd513ef841e90ee8da244f17ec561678",
       "generationHistory": [
         {
           "runId": "22bccca0-cf47-476d-bbf5-52789133117c",
@@ -1054,31 +1100,31 @@
           }
         },
         "dependencies": {
-          "body": "Не имеет внешних зависимостей — использует только типы FileWriteCaller и FileWriteSection, определённые в этом же модуле.",
-          "rendered": true,
+          "body": "Использует типы `FileWriteCaller` и `FileWriteSection`.",
+          "rendered": false,
           "fingerprint": "deps=ddaf2495af5c72fbc34ee920e94af0e355d6317fdcdb2b5645948652a096c437",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
-            "specificity": 0.75,
-            "novelFact": "Локальная функция без внешних зависимостей."
+            "informativeness": 0.25,
+            "novelty": 0.25,
+            "specificity": 0.5,
+            "novelFact": "Использует типы `FileWriteCaller` и `FileWriteSection`."
           },
           "language": "ru"
         },
         "limitations": {
-          "body": "Приоритизация runtimeEvidence при распределении бюджета SECTION_CALLER_BODIES_CAP (8000) может привести к обрезанию тела важного статического вызывающего, если его тело превышает оставшийся бюджет. Бюджет распределяется последовательно в порядке сортировки — первые вызывающие получают тело, последние могут быть обрезаны.",
+          "body": "Бюджет `SECTION_CALLER_BODIES_CAP` (8000 символов) распределяется последовательно между вызывающими, отсортированными так, что вызывающие с `runtimeEvidence` получают приоритет: `const prioritized = [...section.callers].sort((left, right) => Number(right.runtimeEvidence !== undefined) - Number(left.runtimeEvidence !== undefined));`. Если бюджет исчерпан, тела оставшихся вызывающих (в первую очередь без `runtimeEvidence`) опускаются. Это может привести к потере тела важного статического вызывающего, если его длина превышает оставшийся бюджет.",
           "rendered": true,
           "fingerprint": "body=b1a0a7693554a9c6c3be8cb709f7490de4503842ecb25998d6857f3b365807fe",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Бюджет распределяется последовательно, что может привести к потере тел поздних вызывающих."
+            "novelFact": "Приоритет отдаётся вызывающим с runtimeEvidence, статические могут потерять тело."
           },
           "language": "ru"
         }
       },
-      "depDocsFingerprint": "d0de4d83224197125fa18f75eb1644c43b0f6abf9aa9a173f61b7ed3de00cea5",
+      "depDocsFingerprint": "5e5c850772d54f3bbe110b2af9295ed6fd513ef841e90ee8da244f17ec561678",
       "generationHistory": [
         {
           "runId": "81af40e5-cc8b-405f-bf3c-2e2e5fe4f8dc",
@@ -1230,8 +1276,20 @@
             "dependencies",
             "limitations"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:41:29.599Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations"
+          ]
         }
-      ]
+      ],
+      "signature": "compactChunkCallers(sections: FileWriteSection[]): FileWriteSection[]"
     },
     "symbol:src/llm/file-pipeline.ts#verifyChunkFacts": {
       "heading": "verifyChunkFacts",
@@ -1269,37 +1327,40 @@
       ],
       "blocks": {
         "purpose": {
-          "body": "Проверяет сгенерированные блоки документации на фактические противоречия с исходным кодом через LLM и исправляет найденные нарушения.",
+          "body": "Проверяет фактыческое содержание сгенерированных блоков документации: отправляет LLM исходный код и блоки, находит противоречия, запускает ремонт и повторную проверку, возвращает очищенный результат.",
           "rendered": true,
-          "fingerprint": "signature=ad70b849abf8d80c922fedde311b9f76e425cb8b9ff1966c524241c8ba2d691b,placement=4d88a78e95e86b0c9df37e17a2f7b6e174c01b2d768ef9ceb35bf59bea27810a",
+          "fingerprint": "signature=215c6c498f102fc2914c1ebf032f1c15b0e18ce18fed8ce27bbae37e6c4c6eb1,placement=4d88a78e95e86b0c9df37e17a2f7b6e174c01b2d768ef9ceb35bf59bea27810a",
           "scores": {
-            "informativeness": 1,
-            "novelty": 0.75,
-            "specificity": 1,
-            "novelFact": "Проверяет сгенерированные блоки документации на фактические противоречия с исходным кодом через LLM и исправляет найденные нарушения."
-          }
-        },
-        "responsibility": {
-          "body": "- Не проверяет структурные нарушения (длину, ссылки) — это задача validateFileWrite.\n- Делегирует построение запроса верификации buildVerifyRequest, парсинг ответа — parseVerifyResponse.\n- При обнаружении противоречий запускает ремонт через buildRepairRequest и повторную верификацию.\n- Не модифицирует исходный result напрямую — возвращает новый объект с исправлениями.",
-          "rendered": true,
-          "fingerprint": "signature=ad70b849abf8d80c922fedde311b9f76e425cb8b9ff1966c524241c8ba2d691b,deps=c1260fc72758ba5ea94ed173f7641b1c175dbf8f1acef72b387161f2fcc1eadc,usage=5e8032917f9f7f602d0cc711458ebc96f7d7a203e93a8f5ccc1d1fc36e47940b",
-          "scores": {
-            "informativeness": 1,
+            "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "- Не проверяет структурные нарушения (длину, ссылки) — это задача validateFileWrite."
-          }
+            "novelFact": "Выполняет полный цикл: верификация, ремонт, повторная верификация, удаление неисправленных противоречий."
+          },
+          "language": "ru"
+        },
+        "responsibility": {
+          "body": "- Строит список секци для верификации вызовом `buildVerifySections`: пропускает секции без сгенерированных блоков.\n- Делегирует фактчек LLM (через `verifyCall`), парсит ответ и преобразует противоречия в нарушения.\n- При наличии нарушени запускает ремонт через отдельный LLM-вызов (`factRepair`) с помощю `buildRepairRequest` и `completeAndParse`, затем вливает исправленые блоки через `mergeRepairedBlocks`.\n- Выполняет повторную верификацию (`factRecheck`) только для исправленных секций; окончательно удаляет блоки с оставшимися противоречиями через `dropViolatingBlocks`.",
+          "rendered": true,
+          "fingerprint": "signature=215c6c498f102fc2914c1ebf032f1c15b0e18ce18fed8ce27bbae37e6c4c6eb1,deps=c1260fc72758ba5ea94ed173f7641b1c175dbf8f1acef72b387161f2fcc1eadc,usage=5e8032917f9f7f602d0cc711458ebc96f7d7a203e93a8f5ccc1d1fc36e47940b",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Проводит ремонт фактов только при обнаружении противоречий, использую для ремонта тот же provder независимо от verifyProvider."
+          },
+          "language": "ru"
         },
         "invariants": {
-          "body": "- Если buildVerifySections не вернул ни одной секции, возвращает исходный result без изменений.\n- Если LLM не нашла противоречий, возвращает пустые массивы factViolations и remaining.\n- Блоки, не исправленные ремонтом, удаляются из результата (dropViolatingBlocks).\n- После ремонта выполняется повторная верификация (factRecheck); оставшиеся нарушения также удаляются.",
+          "body": "- Если `buildVerifySections` не отбрал ни одной секции (все сгенерированние блоки пусты), функция сразу возвращает исходный `result` без изменений.\n- Если LLM-верификация не находит ни одного противоречия, исходный результат также возвращается без изменений.\n- Не исправленый ремонтом блок (отсутствующй в ответе модели) удаляется из результата до повторной проверки.\n- Любой блок, на который повторная верификация выдала противоречия, полностью удаляется из итогового результата.\n- Ремонт вседа использует `args.provider`, даже если для верификации задан отдельный `verifyProvider`.",
           "rendered": true,
-          "fingerprint": "signature=ad70b849abf8d80c922fedde311b9f76e425cb8b9ff1966c524241c8ba2d691b,body=5bca853f659ef4ecafdf821a69800e7ba295eccd5689172b4be683bc910f0e94",
+          "fingerprint": "signature=215c6c498f102fc2914c1ebf032f1c15b0e18ce18fed8ce27bbae37e6c4c6eb1,body=c6a6c6f316b57fad80ea21f53bc60327b06ddf7c7e45a374437ef71a1382a2e8",
           "scores": {
-            "informativeness": 1,
-            "novelty": 1,
-            "specificity": 1,
-            "novelFact": "- Если buildVerifySections не вернул ни одной секции, возвращает исходный result без изменений."
-          }
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Любой блок с подтверждённым противоречием полностью удаляется, независимо от того, на каком этапе верификации оно обнаружено."
+          },
+          "language": "ru"
         },
         "dependencies": {
           "body": "Внешние зависимости: completeAndParse (src/llm/complete-and-parse.ts); buildVerifyRequest и parseVerifyResponse (src/llm/doc-verifier.ts); parseFileWriteResponse (src/llm/file-writer.ts); collectTypeContext (src/llm/type-context.ts).",
@@ -1314,31 +1375,31 @@
           "language": "ru"
         },
         "limitations": {
-          "body": "Верификация полностью зависит от качества LLM: модель может не заметить противоречия или дать ложное срабатывание. Исходный код для верификации, формируемый через buildVerifySections, ограничен VERIFY_SOURCE_CAP и VERIFY_HELPER_CONTEXT_CAP с глубиной VERIFY_HELPER_CONTEXT_DEPTH, что может не включать все релевантные детали.",
+          "body": "Исходный код для верификации обрезается константами `VERIFY_SOURCE_CAP`, `VERIFY_HELPER_CONTEXT_CAP` и глубиной `VERIFY_HELPER_CONTEXT_DEPTH` (2). Это означает, что контекст вспомогательных функций ограничен двумя уровнями вызовов, а общий объём исходного кода и хелперов не превышает заданных лимитов. Детали реализации за пределами этих границ не попадают в промпт верификатору, что может скрыть релевантный код.",
           "rendered": true,
-          "fingerprint": "body=5bca853f659ef4ecafdf821a69800e7ba295eccd5689172b4be683bc910f0e94",
+          "fingerprint": "body=c6a6c6f316b57fad80ea21f53bc60327b06ddf7c7e45a374437ef71a1382a2e8",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.5,
+            "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Ограничения контекста верификации могут снизить точность."
+            "novelFact": "Глубина контекста хелперов ограничена двумя уровнями вызовов."
           },
           "language": "ru"
         },
         "changeGuide": {
-          "body": "Два инварианта: 1. Если buildVerifySections возвращает пустой массив, функция сразу возвращает исходный результат без изменений: условие if (verifySections.length === 0) return { result: args.result, factViolations: [], remaining: [] };. 2. Если contradictions не найдены (claims.length === 0), функция возвращает результат без изменений: if (claims.length === 0) return { result: args.result, factViolations: [], remaining: [] };. Тесты: не видны.",
+          "body": "- Если `buildVerifySections` не отобрала ни одной секции, функция сразу возвращает исходный результат: `if (verifySections.length === 0) return { result: args.result, factViolations: [], remaining: [] };`.\n- Если верификация не нашла противоречий, результат возвращается без изменений: `if (claims.length === 0) return { result: args.result, factViolations: [], remaining: [] };`.",
           "rendered": true,
-          "fingerprint": "body=5bca853f659ef4ecafdf821a69800e7ba295eccd5689172b4be683bc910f0e94,deps=c1260fc72758ba5ea94ed173f7641b1c175dbf8f1acef72b387161f2fcc1eadc,usage=5e8032917f9f7f602d0cc711458ebc96f7d7a203e93a8f5ccc1d1fc36e47940b,placement=4d88a78e95e86b0c9df37e17a2f7b6e174c01b2d768ef9ceb35bf59bea27810a",
+          "fingerprint": "body=c6a6c6f316b57fad80ea21f53bc60327b06ddf7c7e45a374437ef71a1382a2e8,deps=c1260fc72758ba5ea94ed173f7641b1c175dbf8f1acef72b387161f2fcc1eadc,usage=5e8032917f9f7f602d0cc711458ebc96f7d7a203e93a8f5ccc1d1fc36e47940b,placement=4d88a78e95e86b0c9df37e17a2f7b6e174c01b2d768ef9ceb35bf59bea27810a",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.5,
+            "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Ранний выход при отсутствии данных для верификации."
+            "novelFact": "Ранний возврат при отсутствии секций для проверки."
           },
           "language": "ru"
         }
       },
-      "depDocsFingerprint": "d0de4d83224197125fa18f75eb1644c43b0f6abf9aa9a173f61b7ed3de00cea5",
+      "depDocsFingerprint": "5e5c850772d54f3bbe110b2af9295ed6fd513ef841e90ee8da244f17ec561678",
       "generationHistory": [
         {
           "runId": "81af40e5-cc8b-405f-bf3c-2e2e5fe4f8dc",
@@ -1470,8 +1531,32 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.042Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:41:29.601Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "limitations",
+            "changeGuide"
+          ]
         }
-      ]
+      ],
+      "signature": "verifyChunkFacts(args: {\n  sections: FileWriteSection[];\n  result: FileWriteResult;\n  sources: Array<{ path: string; source: string }>;\n  code: CodeIndex;\n  rootDir: string;\n  /** Include imported type declarations in the verification context. */\n  verifyTypeContext: boolean;\n  dependencyDocs: DependencyDoc[];\n  groupFiles: string[];\n  provider: ChatCompletionProvider;\n  /** Fact-check provider for verification/factRecheck; factRepair stays on `provider`. */\n  verifyProvider?: ChatCompletionProvider;\n  maxRetries: number;\n  stageSuffix: string;\n  llmStages: GenerationDebugLlmPipelineInput;\n  debugSink: { writeError: (extra: { error?: GenerationDebugError }) => Promise<Record<string, string>> };\n}): Promise<{ result: FileWriteResult; factViolations: DocViolation[]; remaining: DocViolation[] }>"
     },
     "symbol:src/llm/file-pipeline.ts#buildVerifySections": {
       "heading": "buildVerifySections",
@@ -1538,55 +1623,55 @@
           }
         },
         "dependencies": {
-          "body": "Использует типы из `src/llm/doc-verifier.ts` (`VERIFY_SOURCE_CAP`, `VerifySectionInput`) и `src/llm/file-writer.ts` (`FileWriteSection`, `FileWriteResult`). Внутренние зависимости: `verificationSource`, `sourceFileFromText`, `sameFileHelperContext`, `fileOutline`, `composeVerifySource` (все локальные). Также использует константы `VERIFY_HELPER_CONTEXT_CAP`, `VERIFY_HELPER_CONTEXT_DEPTH` и `VERIFY_OUTLINE_HEADING` из этого же файла.",
+          "body": "Зависит от локального помощника `verificationSource`, который собирает исходный код для проверки из среза документации сущности и всегда включаемого файлового обзора.",
           "rendered": true,
           "fingerprint": "deps=32d92b36c8019c98bd0b40c7741b579a9f8e5df055c12995a145133c907da857",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Формирует VerifySectionInput с исходным кодом, включающим срез сущности, однофайловый контекст (импорты, приватные хелперы) и оглавление файла, ограниченный VERIFY_SOURCE_CAP."
+            "novelFact": "The function relies on the `verificationSource` helper to assemble the verification source from the entity slice and file outline."
           },
           "language": "ru"
         },
         "workflows": {
-          "body": "Вызывается из `verifyChunkFacts` (этот же файл) дважды: на первом проходе для всех секций, имеющих блоки в `result`, и на втором проходе (после ремонта) только для исправленных блоков. Для каждой секции проверяется наличие сущности в `code.entities` и исходного файла в `sources`; если отсутствует, секция пропускается. Затем через `verificationSource` формируется строка исходного кода с учётом капов.",
+          "body": "Вызывается конвейером проверки для подготовки секций к сверке фактов с документацией зависимостей; каждая секция получает свой исходный код для проверки.",
           "rendered": true,
           "fingerprint": "body=69470b91322cf56a3937190433398937326c50dfba5301b58165ef684e6d3bf1,deps=32d92b36c8019c98bd0b40c7741b579a9f8e5df055c12995a145133c907da857",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Вызывается из verifyChunkFacts дважды: на первом проходе для всех секций с блоками в result, и на втором проходе только для исправленных блоков."
+            "novelFact": "The function is called by the verification pipeline to prepare sections for fact-checking against dependency docs."
           },
           "language": "ru"
         },
         "limitations": {
-          "body": "Секция пропускается, если сущность отсутствует в `code.entities` или её исходный файл не передан в `sources` (условия `if (!entity || fileSource === undefined) { continue; }`). Включаются только секции с хотя бы одним блоком с не-undefined значением (условие `if (blocks.length === 0) { continue; }`). Исходный код сущности обрезается по `VERIFY_SOURCE_CAP` (константа из `src/llm/doc-verifier.ts`).",
+          "body": "Обрабатывает только те секции, для которых в карте кода существует сущность; секции без сущности пропускаются.",
           "rendered": true,
           "fingerprint": "body=69470b91322cf56a3937190433398937326c50dfba5301b58165ef684e6d3bf1",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Секция пропускается, если сущность отсутствует в code.entities или её исходный файл не передан в sources; также пропускаются секции без блоков с не-undefined значением."
+            "novelFact": "The function only processes sections that have a corresponding entity in the code map; sections without an entity are skipped."
           },
           "language": "ru"
         },
         "changeGuide": {
-          "body": "Два инварианта:\n1. Секция без сущности в `code.entities` или без исходного файла в `sources` молча пропускается: проверка `if (!entity || fileSource === undefined) { continue; }`.\n2. Секция не включается в результат, если `blocks.length === 0`: проверка `if (blocks.length === 0) { continue; }`.\n\nТесты: не видны.",
+          "body": "- The verification source is composed from the documented entity slice plus an always-included file outline, enforced by the `composeVerifySource` helper.\n- The verification source is composed from the documented entity slice plus an always-included file outline, enforced by the `composeVerifySource` helper.",
           "rendered": true,
           "fingerprint": "body=69470b91322cf56a3937190433398937326c50dfba5301b58165ef684e6d3bf1,deps=32d92b36c8019c98bd0b40c7741b579a9f8e5df055c12995a145133c907da857,usage=48d92f4414544b08cb555cd7292c213937d05c320e596c0b3635949f4f433088,placement=84bb8e51d31b06f5c6f45b9ebb6a63632365f42eb59faeee1fe40c5828a68a20",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Два инварианта: пропуск секций без сущности или исходного файла, и пропуск секций без блоков."
+            "novelFact": "The verification source is composed from the documented entity slice plus an always-included file outline, and the source is built by composeVerifySource."
           },
           "language": "ru"
         }
       },
-      "depDocsFingerprint": "d0de4d83224197125fa18f75eb1644c43b0f6abf9aa9a173f61b7ed3de00cea5",
+      "depDocsFingerprint": "5e5c850772d54f3bbe110b2af9295ed6fd513ef841e90ee8da244f17ec561678",
       "generationHistory": [
         {
           "runId": "81af40e5-cc8b-405f-bf3c-2e2e5fe4f8dc",
@@ -1766,8 +1851,22 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "2e8a08ea-46d1-4f9e-93ac-0ef39d026053",
+          "timestamp": "2026-09-13T20:34:15.585Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
-      ]
+      ],
+      "signature": "buildVerifySections(sections: FileWriteSection[], result: FileWriteResult, sources: Array<{ path: string; source: string }>, code: CodeIndex): VerifySectionInput[]"
     },
     "symbol:src/llm/file-pipeline.ts#buildRepairRequest": {
       "heading": "buildRepairRequest",
@@ -1777,7 +1876,8 @@
         "symbol:src/llm/file-pipeline.ts#buildRepairRequest"
       ],
       "depends": [
-        "symbol:src/llm/doc-validator.ts#allowedRefsForSection"
+        "symbol:src/llm/doc-validator.ts#allowedRefsForSection",
+        "symbol:src/llm/file-writer.ts#repairResponseSchema"
       ],
       "usedBy": [
         "symbol:src/llm/file-pipeline.ts#verifyChunkFacts"
@@ -1814,77 +1914,79 @@
           }
         },
         "responsibility": {
-          "body": "- Не выполняет LLM-запрос — только возвращает `ChatCompletionInput`.\n- Не включает исходный код файлов или dependency docs — только нарушенные блоки и списки разрешённых ссылок.\n- Группирует нарушения по секции и блоку, чтобы LLM видела все проблемы одного блока совокупно.\n- Делегирует получение разрешённых ссылок `allowedRefsForSection`.",
+          "body": "- Группирует нарушения по паре (sectionId, blockId) и включает в запрос текущее содержимое блока и массив нарушени.\n- Вычисляет список разрешённых ссылок для секции через `allowedRefsForSection` и передаёт его как часть контекста запроса.\n- Возвращает объект запроса с фиксированными инструкциями: модель должна тольку удалить или перефразировать утверждения из нарушени, не добавляя новых фактов.",
           "rendered": true,
-          "fingerprint": "signature=c129c8311157cbbc0cbc6fda2a92efe023815b7088291607abf754e9ca1d8acd,deps=e2b4923250b2f1de4d6aafa830ddbfe79a28013ee0b9076c708ffec12df15953,usage=bcc22cf5fcdb0fdd2052a5e4f5c53cf6443b1f86cd8bf4376211e8b447831606",
-          "scores": {
-            "informativeness": 0.75,
-            "novelty": 0.25,
-            "specificity": 0.75,
-            "novelFact": "- Не выполняет LLM-запрос — только возвращает `ChatCompletionInput`."
-          }
-        },
-        "invariants": {
-          "body": "Каждый блок в запросе содержит массив `violations` с текстовыми описаниями нарушений.\nПоле `allowedRefsBySection` содержит отсортированные списки разрешённых ссылок для каждой секции.\nЕсли секция или блок отсутствуют в `result`, они не включаются в запрос.\nВозвращаемый `ChatCompletionInput` всегда содержит ровно два сообщения: system и user.",
-          "rendered": true,
-          "fingerprint": "signature=c129c8311157cbbc0cbc6fda2a92efe023815b7088291607abf754e9ca1d8acd,body=1102b33f2413fc6d8ea22ba6db1eca7f1b2bdbbe38d7d3557114170e5c270b21",
-          "scores": {
-            "informativeness": 0.75,
-            "novelty": 0.5,
-            "specificity": 0.75,
-            "novelFact": "Возвращаемый `ChatCompletionInput` всегда содержит ровно два сообщения: system и user."
-          }
-        },
-        "dependencies": {
-          "body": "Использует `allowedRefsForSection` из `src/llm/doc-validator.ts` для вычисления разрешённых ссылок. Типы: `DocViolation` (из `src/llm/doc-validator.ts`), `FileWriteSection`, `FileWriteResult` (из `src/llm/file-writer.ts`), `ChatCompletionInput` (из `src/llm/provider.ts`). Внутренняя группировка нарушений по секции и блоку.",
-          "rendered": true,
-          "fingerprint": "deps=e2b4923250b2f1de4d6aafa830ddbfe79a28013ee0b9076c708ffec12df15953",
+          "fingerprint": "signature=c129c8311157cbbc0cbc6fda2a92efe023815b7088291607abf754e9ca1d8acd,deps=a5afa5954c82605a5a959dabbe6ac34f2adb835ef443349e81d20b584801ac32,usage=bcc22cf5fcdb0fdd2052a5e4f5c53cf6443b1f86cd8bf4376211e8b447831606",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Делегирует вычисление разрешённых ссылок allowedRefsForSection и группирует нарушения по секции и блоку."
+            "novelFact": "Строит запрос без повторной загрзки исходного кода и dependency docs, опираясь тольку на списки разрешённых ссылок."
+          },
+          "language": "ru"
+        },
+        "invariants": {
+          "body": "- Каждый блок в запросе снабжён полем `violations` — списком строковых описаний нарушени.\n- Поле `allowedRefsBySection` держит отсортированые списки разрешённых ссылок для каждой секции, ключ — sectionId.\n- Если секция или блок отсутствуют в `result`, они пропускаются (никакой пустой блок не отправляется).\n- Ответная схема (`responseSchema`) строится тольку из тех пар (sectionId, blockId), которые попади в запрос.\n- Возвращаемый `ChatCompletionInput` содержит ровно два сообщения: системное с запретом на добавление фактов и пользовательское с данными.",
+          "rendered": true,
+          "fingerprint": "signature=c129c8311157cbbc0cbc6fda2a92efe023815b7088291607abf754e9ca1d8acd,body=2389c34e0cbc808d475082d5106f2f2ee45aee62bc63203cc8a5165f7b3f632b",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Ответная схема покрывает ровно те блоки, которые были отправлены на исправление, что исключает лишнюю передачу данных."
+          },
+          "language": "ru"
+        },
+        "dependencies": {
+          "body": "Использует `allowedRefsForSection` из `src/llm/doc-validator.ts` для вычисления разрешённых ссылок и `repairResponseSchema` из `src/llm/file-writer.ts` для построения схемы ответа. Типы: `DocViolation` (из `src/llm/doc-validator.ts`), `FileWriteSection`, `FileWriteResult` (из `src/llm/file-writer.ts`), `ChatCompletionInput` (из `src/llm/provider.ts`).",
+          "rendered": true,
+          "fingerprint": "deps=a5afa5954c82605a5a959dabbe6ac34f2adb835ef443349e81d20b584801ac32",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Запрос строится только из блоков с нарушениями, без исходного кода."
           },
           "language": "ru"
         },
         "workflows": {
-          "body": "Вызывается из `verifyChunkFacts` (этот же файл) при факт-противоречиях в верификации. Функция группирует входящие нарушения по секции и блоку, для каждой уникальной пары запрашивает разрешённые ссылки через `allowedRefsForSection` и формирует `ChatCompletionInput` с двумя сообщениями: системная инструкция не добавлять новых фактов и пользовательское сообщение с JSON нарушенных блоков, их текущим содержимым и списками разрешённых ссылок.",
+          "body": "Вызывается из `verifyChunkFacts` при обнаружении факт-противоречий. Функция группирует нарушения по паре `(sectionId, blockId)`, для каждой уникальной пары вычисляет разрешённые ссылки через `allowedRefsForSection` и формирует объект `ChatCompletionInput`. Системное сообщение запрещает добавление новых фактов: `\"Do not add new facts: only remove or minimally rephrase the statements named in the violations, fix or drop offending refs, and shorten over-long text.\"`. Пользовательское сообщение содержит JSON с текущим содержимым блоков, списком нарушений и разрешёнными ссылками. Ответная схема строится только для затронутых пар `(sectionId, blockId)`.",
           "rendered": true,
-          "fingerprint": "body=1102b33f2413fc6d8ea22ba6db1eca7f1b2bdbbe38d7d3557114170e5c270b21,deps=e2b4923250b2f1de4d6aafa830ddbfe79a28013ee0b9076c708ffec12df15953",
+          "fingerprint": "body=2389c34e0cbc808d475082d5106f2f2ee45aee62bc63203cc8a5165f7b3f632b,deps=a5afa5954c82605a5a959dabbe6ac34f2adb835ef443349e81d20b584801ac32",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Вызывается из verifyChunkFacts при факт-противоречиях; формирует ChatCompletionInput с системной инструкцией не добавлять новых фактов и пользовательским сообщением с JSON нарушенных блоков и списками разрешённых ссылок."
+            "novelFact": "Ремонтный запрос не включает исходный код файлов — только блоки и нарушения."
           },
           "language": "ru"
         },
         "limitations": {
-          "body": "Системное сообщение содержит команду `Do not add new facts: only remove or minimally rephrase the statements named in the violations`, что запрещает LLM добавлять факты, делая невозможным исправление блока, если единственное верное действие — заменить неверное утверждение на верное, а не удалить или перефразировать. Условие `if (!section || !block) { continue; }` пропускает секции и блоки, отсутствующие в `result`, не позволяя их исправить.",
+          "body": "Системное сообщение содержит инструкцию `\"Do not add new facts: only remove or minimally rephrase the statements named in the violations, fix or drop offending refs, and shorten over-long text.\"`, что запрещает LLM добавлять новые утверждения. Это делает невозможным исправление блока, если корректное действие — заменить неверное утверждение на верное, а не удалить или перефразировать. Кроме того, условие `if (!section || !block) { continue; }` пропускает секции и блоки, отсутствующие в `result`, не позволяя их исправить.",
           "rendered": true,
-          "fingerprint": "body=1102b33f2413fc6d8ea22ba6db1eca7f1b2bdbbe38d7d3557114170e5c270b21",
+          "fingerprint": "body=2389c34e0cbc808d475082d5106f2f2ee45aee62bc63203cc8a5165f7b3f632b",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Системное сообщение запрещает LLM добавлять новые факты, что делает невозможным замену неверного утверждения на верное, если единственное корректное действие — замена."
+            "novelFact": "Запрет на добавление фактов может помешать корректному исправлению."
           },
           "language": "ru"
         },
         "changeGuide": {
-          "body": "Два инварианта:\n1. Системное сообщение содержит фразу `Do not add new facts: only remove or minimally rephrase the statements named in the violations` — если изменить это сообщение, разрешив добавление, LLM сможет заменять неверные утверждения на верные, но может внести необоснованные факты без контекста.\n2. Условие `if (!section || !block) { continue; }` пропускает секции и блоки, отсутствующие в `result`; при удалении этого условия запрос может содержать блоки с неопределёнными значениями, что приведёт к невалидному JSON.\n\nТесты: не видны.",
+          "body": "- Системное сообщение содержит фразу `\"Do not add new facts: only remove or minimally rephrase the statements named in the violations, fix or drop offending refs, and shorten over-long text.\"` — изменение этого сообщения может разрешить добавление фактов, но рискует внести необоснованные утверждения.\n- Условие `if (!section || !block) { continue; }` пропускает отсутствующие секции/блоки; удаление этого условия приведёт к отправке блоков с неопределёнными значениями.",
           "rendered": true,
-          "fingerprint": "body=1102b33f2413fc6d8ea22ba6db1eca7f1b2bdbbe38d7d3557114170e5c270b21,deps=e2b4923250b2f1de4d6aafa830ddbfe79a28013ee0b9076c708ffec12df15953,usage=bcc22cf5fcdb0fdd2052a5e4f5c53cf6443b1f86cd8bf4376211e8b447831606,placement=3b3d3a543ef994d1c2211e80f60a809f18babaf8e65e46794632b2f7cd56a9b3",
+          "fingerprint": "body=2389c34e0cbc808d475082d5106f2f2ee45aee62bc63203cc8a5165f7b3f632b,deps=a5afa5954c82605a5a959dabbe6ac34f2adb835ef443349e81d20b584801ac32,usage=bcc22cf5fcdb0fdd2052a5e4f5c53cf6443b1f86cd8bf4376211e8b447831606,placement=3b3d3a543ef994d1c2211e80f60a809f18babaf8e65e46794632b2f7cd56a9b3",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Два инварианта: системное сообщение запрещает добавление фактов, и условие пропускает отсутствующие в result блоки."
+            "novelFact": "Системное сообщение жёстко ограничивает возможности ремонта."
           },
           "language": "ru"
         }
       },
-      "depDocsFingerprint": "d0de4d83224197125fa18f75eb1644c43b0f6abf9aa9a173f61b7ed3de00cea5",
+      "depDocsFingerprint": "5e5c850772d54f3bbe110b2af9295ed6fd513ef841e90ee8da244f17ec561678",
       "generationHistory": [
         {
           "runId": "81af40e5-cc8b-405f-bf3c-2e2e5fe4f8dc",
@@ -2035,8 +2137,33 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.044Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:41:29.604Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
-      ]
+      ],
+      "signature": "buildRepairRequest(args: {\n  sections: FileWriteSection[];\n  result: FileWriteResult;\n  violations: DocViolation[];\n  refContext: { dependencyDocPaths: ReadonlySet<string>; groupFiles: string[] };\n}): ChatCompletionInput"
     },
     "symbol:src/llm/file-pipeline.ts#verifyBlocksAgainstDeps": {
       "heading": "verifyBlocksAgainstDeps",
@@ -2158,7 +2285,7 @@
           "language": "ru"
         }
       },
-      "depDocsFingerprint": "d0de4d83224197125fa18f75eb1644c43b0f6abf9aa9a173f61b7ed3de00cea5",
+      "depDocsFingerprint": "5e5c850772d54f3bbe110b2af9295ed6fd513ef841e90ee8da244f17ec561678",
       "generationHistory": [
         {
           "runId": "1372adf6-4062-4467-b8d3-6610906819f7",
@@ -2426,7 +2553,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "d0de4d83224197125fa18f75eb1644c43b0f6abf9aa9a173f61b7ed3de00cea5"
+      "depDocsFingerprint": "5e5c850772d54f3bbe110b2af9295ed6fd513ef841e90ee8da244f17ec561678"
     }
   },
   "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"

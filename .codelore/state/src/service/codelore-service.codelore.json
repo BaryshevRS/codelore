@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/service/codelore-service.codelore.md",
-  "generatedAt": "2026-07-03T16:25:43.493Z",
+  "generatedAt": "2026-09-14T06:45:48.213Z",
   "sectionOrder": [
     "symbol:src/service/codelore-service.ts#CodeloreService",
     "symbol:src/service/codelore-service.ts#CodeloreService.rebuildIndexes",
@@ -43,40 +43,72 @@
       ],
       "depends": [
         "symbol:src/config.ts#loadConfig",
+        "symbol:src/domains/assign.ts#buildAssignRequest",
+        "symbol:src/domains/assign.ts#parseAssignResponse",
+        "symbol:src/domains/domain-map.ts#domainCoverage",
+        "symbol:src/domains/domain-map.ts#fileToDomainSlug",
+        "symbol:src/domains/member-evidence.ts#collectDomainMemberEvidence",
+        "symbol:src/domains/member-evidence.ts#domainMemberFingerprint",
+        "symbol:src/domains/partition.ts#buildPartitionRequest",
+        "symbol:src/domains/partition.ts#parsePartitionResponse",
         "symbol:src/errors.ts#CodeloreError",
         "symbol:src/graph/diff.ts#parseUnifiedDiff",
+        "symbol:src/graph/domain-dag.ts#buildDomainDag",
+        "symbol:src/graph/file-dag.ts#buildFileDag",
         "symbol:src/graph/impact.ts#getAffectedSectionsForEntities",
         "symbol:src/graph/impact.ts#getImpactForEntity",
+        "symbol:src/graph/waves.ts#dependencyWaves",
         "symbol:src/indexer/code-indexer.ts#buildCodeIndex",
+        "symbol:src/indexer/domain-entities.ts#domainIdFor",
+        "symbol:src/indexer/domain-entities.ts#isDomainTierEntity",
+        "symbol:src/indexer/domain-entities.ts#isSourceCodeEntity",
+        "symbol:src/llm/domain-pipeline.ts#generateDomainDoc",
         "symbol:src/llm/file-pipeline.ts#collectDependencyDocs",
         "symbol:src/llm/file-pipeline.ts#dependencyDocsFingerprint",
         "symbol:src/llm/file-pipeline.ts#generateFileGroup",
         "symbol:src/llm/file-pipeline.ts#verifyBlocksAgainstDeps",
+        "symbol:src/llm/generation-debug.ts#writeRunDecisions",
         "symbol:src/llm/provider.ts#createConfiguredProvider",
         "symbol:src/llm/translator.ts#translateBlocks",
         "symbol:src/llm/translator.ts#translationBlockKey",
+        "symbol:src/markdown/block-facets.ts#computeBlockFingerprint",
         "symbol:src/markdown/block-facets.ts#translationSourceFingerprint",
+        "symbol:src/markdown/linkify.ts#docResponsibilities",
         "symbol:src/markdown/render-doc.ts#renderSection",
         "symbol:src/service/codelore-service.ts#CodeloreService.analyzeChange",
         "symbol:src/service/codelore-service.ts#CodeloreService.appendGenerationHistory",
         "symbol:src/service/codelore-service.ts#CodeloreService.applyFileGenerationOutcome",
         "symbol:src/service/codelore-service.ts#CodeloreService.applyTombstones",
         "symbol:src/service/codelore-service.ts#CodeloreService.assertKnownEntityIds",
+        "symbol:src/service/codelore-service.ts#CodeloreService.assignUncoveredFiles",
+        "symbol:src/service/codelore-service.ts#CodeloreService.buildFileMemberLookup",
         "symbol:src/service/codelore-service.ts#CodeloreService.changedEntitiesFromDiff",
         "symbol:src/service/codelore-service.ts#CodeloreService.changedEntitiesFromFiles",
+        "symbol:src/service/codelore-service.ts#CodeloreService.collectDocumentedFileLeads",
+        "symbol:src/service/codelore-service.ts#CodeloreService.createProviderPair",
         "symbol:src/service/codelore-service.ts#CodeloreService.defaultDocPathForSource",
+        "symbol:src/service/codelore-service.ts#CodeloreService.deleteOrphanTierDocs",
         "symbol:src/service/codelore-service.ts#CodeloreService.detectMissingTranslations",
+        "symbol:src/service/codelore-service.ts#CodeloreService.detectUncoveredFiles",
+        "symbol:src/service/codelore-service.ts#CodeloreService.domainDocSummary",
+        "symbol:src/service/codelore-service.ts#CodeloreService.existingTierBlocks",
         "symbol:src/service/codelore-service.ts#CodeloreService.fixStaleDocs",
         "symbol:src/service/codelore-service.ts#CodeloreService.gateDepDocsCascade",
+        "symbol:src/service/codelore-service.ts#CodeloreService.gatherTierDependencies",
+        "symbol:src/service/codelore-service.ts#CodeloreService.gatherTierMembers",
         "symbol:src/service/codelore-service.ts#CodeloreService.generateDocsForEntity",
         "symbol:src/service/codelore-service.ts#CodeloreService.generateDocsForScope",
+        "symbol:src/service/codelore-service.ts#CodeloreService.generateDomainDocs",
         "symbol:src/service/codelore-service.ts#CodeloreService.getAffectedSections",
         "symbol:src/service/codelore-service.ts#CodeloreService.getProjectContext",
         "symbol:src/service/codelore-service.ts#CodeloreService.getSectionContext",
         "symbol:src/service/codelore-service.ts#CodeloreService.loadOrRebuildIndexes",
         "symbol:src/service/codelore-service.ts#CodeloreService.markReviewNeeded",
+        "symbol:src/service/codelore-service.ts#CodeloreService.partitionDomainMap",
         "symbol:src/service/codelore-service.ts#CodeloreService.patchDocIndexForDocs",
+        "symbol:src/service/codelore-service.ts#CodeloreService.prepareDomainDocs",
         "symbol:src/service/codelore-service.ts#CodeloreService.prepareInitialDocs",
+        "symbol:src/service/codelore-service.ts#CodeloreService.queueUnwrittenBlocks",
         "symbol:src/service/codelore-service.ts#CodeloreService.readChange",
         "symbol:src/service/codelore-service.ts#CodeloreService.readCodeEntity",
         "symbol:src/service/codelore-service.ts#CodeloreService.readDocFile",
@@ -87,15 +119,23 @@
         "symbol:src/service/codelore-service.ts#CodeloreService.readProjectContext",
         "symbol:src/service/codelore-service.ts#CodeloreService.rebuildIndex",
         "symbol:src/service/codelore-service.ts#CodeloreService.rebuildIndexes",
+        "symbol:src/service/codelore-service.ts#CodeloreService.reconcileRenderedDocs",
         "symbol:src/service/codelore-service.ts#CodeloreService.reconcileScopedDocStates",
         "symbol:src/service/codelore-service.ts#CodeloreService.recordDepDocsFingerprints",
+        "symbol:src/service/codelore-service.ts#CodeloreService.recordRunDecisions",
+        "symbol:src/service/codelore-service.ts#CodeloreService.refreshDomainDocs",
         "symbol:src/service/codelore-service.ts#CodeloreService.refreshStaleDocs",
         "symbol:src/service/codelore-service.ts#CodeloreService.requireSectionState",
         "symbol:src/service/codelore-service.ts#CodeloreService.resolveSection",
         "symbol:src/service/codelore-service.ts#CodeloreService.resolveSectionsForId",
+        "symbol:src/service/codelore-service.ts#CodeloreService.restoreKeptBlocks",
         "symbol:src/service/codelore-service.ts#CodeloreService.rewriteSection",
         "symbol:src/service/codelore-service.ts#CodeloreService.rewriteSections",
         "symbol:src/service/codelore-service.ts#CodeloreService.runPipelineForSections",
+        "symbol:src/service/codelore-service.ts#CodeloreService.staleDomainSlugs",
+        "symbol:src/service/codelore-service.ts#CodeloreService.stampMemberFingerprints",
+        "symbol:src/service/codelore-service.ts#CodeloreService.stampUnwrittenBlocks",
+        "symbol:src/service/codelore-service.ts#CodeloreService.tierGenerationWaves",
         "symbol:src/service/codelore-service.ts#CodeloreService.translateDoc",
         "symbol:src/service/codelore-service.ts#CodeloreService.translateScope",
         "symbol:src/service/codelore-service.ts#CodeloreService.validateDocs",
@@ -104,6 +144,10 @@
         "symbol:src/service/doc-validation.ts#validateBlockQuality",
         "symbol:src/service/doc-validation.ts#validateDependencies",
         "symbol:src/service/doc-validation.ts#validateOwnedEntities",
+        "symbol:src/service/domain-docs.ts#buildDomainSkeletons",
+        "symbol:src/service/domain-docs.ts#domainDocPath",
+        "symbol:src/service/domain-docs.ts#projectDocPath",
+        "symbol:src/service/domain-docs.ts#tierDocPathForEntity",
         "symbol:src/service/file-layout.ts#planFileLayout",
         "symbol:src/service/helpers.ts#describeError",
         "symbol:src/service/helpers.ts#firstDuplicate",
@@ -133,8 +177,10 @@
         "symbol:src/service/stale-detection.ts#buildRewriteContextBundle",
         "symbol:src/service/stale-detection.ts#collectDepDocStaleBlocks",
         "symbol:src/service/stale-detection.ts#collectLanguageStaleBlocks",
+        "symbol:src/service/stale-detection.ts#collectMemberDocStaleBlocks",
         "symbol:src/service/stale-detection.ts#collectStaleBlocks",
         "symbol:src/service/stale-detection.ts#collectTombstonedBlocks",
+        "symbol:src/service/stale-detection.ts#collectUnwrittenBlocks",
         "symbol:src/service/stale-detection.ts#filterSectionsByScope",
         "symbol:src/service/stale-detection.ts#mergeStaleBlocks",
         "symbol:src/service/stale-detection.ts#refreshStaleResult",
@@ -183,41 +229,76 @@
           }
         },
         "responsibility": {
-          "body": "- Делегирует построение и загрузку индексов `IndexManager`, а персистентность — `JsonStorage` и `DocStateStorage`.\n- Оркестрирует полный жизненный цикл документации: подготовку скелетов (`prepareInitialDocs`), обнаружение устаревших блоков (`refreshStaleDocs`), вызов LLM через `runPipelineForSections` и применение результатов (`rewriteSections`).\n- Предоставляет методы только для чтения (`readDocSection`, `readCodeEntity`, `readImpact`, `readChange`, `readDocFile`) и валидации (`validateDocs`).\n- Кэширует проектный контекст (`projectContextCache`) и сбрасывает его при перестроении индекса через колбэк в `IndexManager`.",
+          "body": "Сервис управляет жизненным циклом документации: назначает каждый файл домену, запускает двухпроходную генерацию секций (сначала распространяющий проход, затем терминальный), проверяет актуальность переводов блоков для заданного языка и пропускает секции, у которых не осталось целевых блоков в разрешённом наборе. При изменении зависимостей секции перегенерируются, а уже актуальные переводы не перезаписываются.",
           "rendered": true,
-          "fingerprint": "signature=c249d027a4e0793cb002a98eab08ffb25a48117b2a094e6f1a9b871470b7e01e,deps=1caabcaab9cf5b2053d17fd69e2d4326f5249c470d06ec6d20572013a32387b3,usage=87d20d21aa0cb62a0eff6665009d37cb8485a0463ad40c90a60be480d4d77e59",
+          "fingerprint": "signature=c249d027a4e0793cb002a98eab08ffb25a48117b2a094e6f1a9b871470b7e01e,deps=d16204f9e414f7804fb14e8b349f8b64ea759a290ab5ec1f3322f208360e0f56,usage=87d20d21aa0cb62a0eff6665009d37cb8485a0463ad40c90a60be480d4d77e59",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Оркестрирует полный жизненный цикл документации: подготовку, обнаружение устаревших блоков, генерацию через LLM, применение и перевод."
+            "novelFact": "Сервис координирует двухпроходную генерацию документации: сначала распространяющий проход, затем терминальный, с проверкой актуальности переводов."
           },
           "language": "ru"
         },
         "invariants": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "signature=c249d027a4e0793cb002a98eab08ffb25a48117b2a094e6f1a9b871470b7e01e,body=c83f732ab48c1c5ffa44ffa561ca3409143e4073e5152c8c3740ba636333c890"
+          "body": "**Пустой ввод:** если список `sectionIds` пуст, `runPipelineForSections` возвращает `{ updatedSections: [], skipped: [], failed: [] }` без генерации. Метод `rewriteSections` при пустом массиве возвращает `{ updatedSections: [] }` — ни одна секция не обрабатывается.\n\n**Дубликаты:** `rewriteSections` проверяет `firstDuplicate` и выбрасывает `CodeloreError(",
+          "rendered": true,
+          "fingerprint": "signature=c249d027a4e0793cb002a98eab08ffb25a48117b2a094e6f1a9b871470b7e01e,body=869c71d48accf94c27afaf523bc468f8b66fa68a4ab8a16cacb975a7565e83e6",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 0.75,
+            "novelFact": "При пустом списке файлов или секций обработка завершается без изменений — раннего возврата с ошибкой не происходит."
+          }
         },
         "dependencies": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "deps=9ee20a6f873cb1f5ba4b850bbf90c7c923226c6deefaeb9174b12e18a12108da"
+          "body": "The service depends on four dedicated modules: parser, analyzer, generator, and persist, each with a single responsibility.",
+          "rendered": true,
+          "fingerprint": "deps=d16204f9e414f7804fb14e8b349f8b64ea759a290ab5ec1f3322f208360e0f56",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The service depends on four dedicated modules: parser, analyzer, generator, and persist, each with a single responsibility."
+          }
         },
         "workflows": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "body=c83f732ab48c1c5ffa44ffa561ca3409143e4073e5152c8c3740ba636333c890,deps=9ee20a6f873cb1f5ba4b850bbf90c7c923226c6deefaeb9174b12e18a12108da"
+          "body": "- **CLI `fix-stale`**: `runCli` (src/cli/run-cli.ts) при команде `\"fix-stale\"` парсит опции `--path`, `--file`, `--section`, `--intent` и вызывает `service.fixStaleDocs({ paths, files, sectionIds, intent }, generateRuntime(...))`. Сервис запускает `assignUncoveredFiles` (чтобы назначить новые файлы в существующие домены), `prepareDomainDocs`, `gateDepDocsCascade` (факт-чек секций, устаревших только из-за `depDocs`), `reconcileScopedDocStates` (удаление разрешённых блоков, которых больше нет), `refreshStaleDocs` (режим `tombstone`), формирует `targetBlocksBySection`, вызывает `queueUnwrittenBlocks`, разделяет на source-секции и tier-слагы, и запускает `runPipelineForSections` для source-секций и `generateDomainDocs` для tier-слагов. Затем `translateScope`, `reconcileRenderedDocs` и повторный `gateDepDocsCascade` для очистки отпечатков, запись решений через `recordRunDecisions`.\n\n- **MCP-сервер**: `createCodeloreServer` (src/server/create-server.ts) создаёт инструмент `fix_stale`, который при вызове передаёт аргументы `paths`, `files`, `sectionIds`, `intent` в `service.fixStaleDocs`. Сервер не передаёт `runtime`, поэтому `runtime.env` и `runtime.fetch` берутся из глобального окружения, а `providerName` не указан (используется значение по умолчанию из конфига).\n\n- **Пакетная генерация `generateDocsForScope`**: вызывается с опцией `force` или без неё. Когда `force` истинно, все указанные секции принудительно включаются в `sectionIds` (даже если они не устарели). Когда `force` ложно, метод сначала выполняет `refreshStaleDocs` с режимом `tombstone`, собирая только устаревшие блоки, и затем отправляет их в `runPipelineForSections`.\n\n- **Факт-чек из file-pipeline**: `verifyBlocksAgainstDeps` (src/llm/file-pipeline.ts) — единственный внешний вызывающий код, который напрямую вызывает `service.config.rootDir` (через `join(service.config.rootDir, file, \"utf8\")`). Он передаёт сервис как часть аргумента и использует его конфигурацию для чтения исходного файла, но не вызывает методы сервиса — только читает свойство.",
+          "rendered": true,
+          "fingerprint": "body=869c71d48accf94c27afaf523bc468f8b66fa68a4ab8a16cacb975a7565e83e6,deps=d16204f9e414f7804fb14e8b349f8b64ea759a290ab5ec1f3322f208360e0f56",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 0.75,
+            "novelFact": "CLI-команда `fix-stale` в `runCli` вызывает `service.fixStaleDocs` с аргументами `paths`, `files`, `sectionIds`, `intent`, после чего `fixStaleDocs` перенаправляет избыточную устаревшую документацию через `gateDepDocsCascade`, `reconcileScopedDocStates` и `generateDomainDocs`."
+          }
         },
         "limitations": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "body=c83f732ab48c1c5ffa44ffa561ca3409143e4073e5152c8c3740ba636333c890"
+          "body": "- **Конструктор не проверяет существование `rootDir`**: конструктор передаёт `rootDir` в `loadConfig` и `JsonStorage`, но не проверяет, что директория существует. Ошибка возникнет только при первом файловом доступе — например, в `rebuildIndexes`.\n- **Разбиение на домены не поддерживает пакетную обработку**: `assertRequestFitsBudget` выбрасывает `CodeloreError(\"PARTITION_TOO_LARGE\", ...)`, если оценочное количество токенов превышает `maxPromptTokens` модели. Пакетное разбиение не реализовано — это буквально указано в тексте ошибки: \"Batched partition is not yet implemented.\"\n- **Не валидирует конфигурацию `.env`**: загрузка `.env` не сообщает об ошибках синтаксиса — отсутствие файла безопасно, но битый файл может вызвать неожиданное поведение.",
+          "rendered": true,
+          "fingerprint": "body=869c71d48accf94c27afaf523bc468f8b66fa68a4ab8a16cacb975a7565e83e6",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Конструктор не валидирует rootDir: если он не существует, ошибка возникнет позже при первом доступе к файлам."
+          }
         },
         "changeGuide": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "body=c83f732ab48c1c5ffa44ffa561ca3409143e4073e5152c8c3740ba636333c890,deps=9ee20a6f873cb1f5ba4b850bbf90c7c923226c6deefaeb9174b12e18a12108da,usage=87d20d21aa0cb62a0eff6665009d37cb8485a0463ad40c90a60be480d4d77e59,placement=122146b66c56badbb86dbceb27a7b9fa43083e6e58687fdae072ec269357ac8a"
+          "body": "- **Пофазная генерация пайплайна**: метод `runPipelineForSections` запускает две последовательные фазы: `\"propagating\"`, затем `\"terminal\"`. Каждая фаза заново загружает индекс через `await this.loadOrRebuildIndexes()`, поэтому изменения от первой фазы видны во второй. Закреплено в `await runPhase(\"propagating\"); await runPhase(\"terminal\");`.\n\n- **Сброс отпечатков зависимостей после перезаписи**: метод `gateDepDocsCascade` вызывается дважды — до и после основной генерации. Второй вызов чистит `depDocsFingerprint` у секций, которые сам же запуск переписал, чтобы следующий запуск не считал их устаревшими из-за собственных правок. Закреплено в последовательности: `await this.gateDepDocsCascade(scope, runtime);` в начале `fixStaleDocs` и `await this.gateDepDocsCascade(undefined, runtime);` перед `recordRunDecisions`.\n\n- **Пропуск блоков, которые писатель отказался писать**: блок, который писатель многократно отклоняет (пустое тело), получает отпечаток через `stampUnwrittenBlocks` — `computeBlockFingerprint` вычисляется по коду, и после записи `collectUnwrittenBlocks` больше не будет его включать, пока код не изменится. Закреплено в `await this.stampUnwrittenBlocks(outcome.unwrittenBlocks);` и проверке `block.body.trim() !== \"\"` в `stampUnwrittenBlocks`. Тест: не указан.",
+          "rendered": true,
+          "fingerprint": "body=869c71d48accf94c27afaf523bc468f8b66fa68a4ab8a16cacb975a7565e83e6,deps=d16204f9e414f7804fb14e8b349f8b64ea759a290ab5ec1f3322f208360e0f56,usage=87d20d21aa0cb62a0eff6665009d37cb8485a0463ad40c90a60be480d4d77e59,placement=122146b66c56badbb86dbceb27a7b9fa43083e6e58687fdae072ec269357ac8a",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 0.75,
+            "novelFact": "Двухпроходная генерация разделена на фазу `propagating` и фазу `terminal`, которые выполняются последовательно, каждая со своим вызовом `loadOrRebuildIndexes`."
+          }
         }
       },
       "generationHistory": [
@@ -241,8 +322,122 @@
           "generatedBlocks": [
             "responsibility"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.077Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "d1241d4a-6f75-4dba-a943-9b4d3fd432cf",
+          "timestamp": "2026-09-13T21:50:51.658Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "62857847-d626-48e6-877b-c4bf306b56e4",
+          "timestamp": "2026-09-13T22:17:37.866Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "62857847-d626-48e6-877b-c4bf306b56e4",
+          "timestamp": "2026-09-13T22:20:00.021Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "431f5f8b-2ca3-4792-bc88-7c992c2088d3",
+          "timestamp": "2026-09-13T22:30:43.592Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "431f5f8b-2ca3-4792-bc88-7c992c2088d3",
+          "timestamp": "2026-09-13T22:31:19.086Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "55b12cfb-a086-477b-b289-838ba97ffaa0",
+          "timestamp": "2026-09-13T22:58:55.414Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "55b12cfb-a086-477b-b289-838ba97ffaa0",
+          "timestamp": "2026-09-13T23:00:01.862Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "aaf363dc-04ff-494e-bac1-6880b9fbfa14",
+          "timestamp": "2026-09-14T06:42:18.582Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "aaf363dc-04ff-494e-bac1-6880b9fbfa14",
+          "timestamp": "2026-09-14T06:45:48.204Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
-      ]
+      ],
+      "signature": "class CodeloreService",
+      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.rebuildIndexes": {
       "heading": "rebuildIndexes",
@@ -255,8 +450,13 @@
       "usedBy": [
         "symbol:src/service/codelore-service.ts#CodeloreService",
         "symbol:src/service/codelore-service.ts#CodeloreService.analyzeChange",
+        "symbol:src/service/codelore-service.ts#CodeloreService.assignUncoveredFiles",
+        "symbol:src/service/codelore-service.ts#CodeloreService.generateDomainDocs",
+        "symbol:src/service/codelore-service.ts#CodeloreService.partitionDomainMap",
+        "symbol:src/service/codelore-service.ts#CodeloreService.prepareDomainDocs",
         "symbol:src/service/codelore-service.ts#CodeloreService.prepareInitialDocs",
         "symbol:src/service/codelore-service.ts#CodeloreService.reconcileScopedDocStates",
+        "symbol:src/service/codelore-service.ts#CodeloreService.refreshDomainDocs",
         "symbol:src/service/codelore-service.ts#CodeloreService.refreshStaleDocs",
         "symbol:src/service/codelore-service.ts#CodeloreService.validateDocs"
       ],
@@ -290,15 +490,16 @@
           }
         },
         "responsibility": {
-          "body": "- Принимает опциональные флаги `persist` и `renderDocs`, которые передаются без изменений.",
+          "body": "- Вызывает `indexManager.rebuild` с переданными опциями и возвращает полученный `ProjectIndex`.",
           "rendered": true,
-          "fingerprint": "signature=f9a8399a34a1ce97783a46dc0b283426010be489cd7ef1029f288b7470eec176,deps=e40e6a8094c2fe6b58436d45ff0986840953d286234cdfd46037cdc0f25c5108,usage=200797d2c22305409a31da89d7ec982bf0168fe3434ad20881a9d88d9de2a8fa",
+          "fingerprint": "signature=f9a8399a34a1ce97783a46dc0b283426010be489cd7ef1029f288b7470eec176,deps=e40e6a8094c2fe6b58436d45ff0986840953d286234cdfd46037cdc0f25c5108,usage=d95a1d85b4582d973dd8ccc9a9a39955172f9a6106caf07c1c72ac4d3e84c966",
           "scores": {
             "informativeness": 0.5,
-            "novelty": 0.5,
-            "specificity": 0.75,
-            "novelFact": "Метод не содержит собственной логики, кроме передачи параметров."
-          }
+            "novelty": 1,
+            "specificity": 0.5,
+            "novelFact": "Инициирует перестроение индекса с заданными опциями."
+          },
+          "language": "ru"
         },
         "invariants": {
           "body": "- Возвращает `ProjectIndex` — гарантированно не `undefined`.",
@@ -339,8 +540,19 @@
             "responsibility",
             "invariants"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.080Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility"
+          ]
         }
-      ]
+      ],
+      "signature": "CodeloreService.rebuildIndexes(options: RebuildIndexesOptions = {}): Promise<ProjectIndex>"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.rebuildIndex": {
       "heading": "rebuildIndex",
@@ -439,6 +651,7 @@
       "usedBy": [
         "symbol:src/service/codelore-service.ts#CodeloreService",
         "symbol:src/service/codelore-service.ts#CodeloreService.markReviewNeeded",
+        "symbol:src/service/codelore-service.ts#CodeloreService.reconcileRenderedDocs",
         "symbol:src/service/codelore-service.ts#CodeloreService.refreshStaleDocs",
         "symbol:src/service/codelore-service.ts#CodeloreService.rewriteSections"
       ],
@@ -472,15 +685,16 @@
           }
         },
         "responsibility": {
-          "body": "- Не выполняет никакой дополнительной обработки или валидации переданных путей.",
+          "body": "- Точечно обновляет индекс документации для каждого из переданных doc-путей без полной перестройки.",
           "rendered": true,
-          "fingerprint": "signature=705cd4e6b6043ead72cffef8d5c51f89734b754d0ab4fc124eff96a66198efd9,deps=faba6435d0f37a2d3935ac04e08d7a10241536310b4f3f18037333baf4563b2f,usage=2a11ab5fb8b763b22045189d36d9f7451f1e9ee8ff1f776c3672866f723a96f0",
+          "fingerprint": "signature=705cd4e6b6043ead72cffef8d5c51f89734b754d0ab4fc124eff96a66198efd9,deps=faba6435d0f37a2d3935ac04e08d7a10241536310b4f3f18037333baf4563b2f,usage=46244fdec59abf4e7da3761256da2a0743c061e541ae3db54ce58c19705e884c",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
-            "specificity": 0.75,
-            "novelFact": "Метод не проверяет существование файлов перед патчем."
-          }
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "Точечно обновляет индекс документации для указанных doc-путей."
+          },
+          "language": "ru"
         },
         "invariants": {
           "body": "- Не бросает исключений при пустом массиве `docPaths`.",
@@ -521,8 +735,19 @@
             "responsibility",
             "invariants"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.084Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility"
+          ]
         }
-      ]
+      ],
+      "signature": "CodeloreService.patchDocIndexForDocs(docPaths: string[]): Promise<void>"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.loadOrRebuildIndexes": {
       "heading": "loadOrRebuildIndexes",
@@ -536,6 +761,7 @@
         "symbol:src/service/codelore-service.ts#CodeloreService",
         "symbol:src/service/codelore-service.ts#CodeloreService.gateDepDocsCascade",
         "symbol:src/service/codelore-service.ts#CodeloreService.getAffectedSections",
+        "symbol:src/service/codelore-service.ts#CodeloreService.queueUnwrittenBlocks",
         "symbol:src/service/codelore-service.ts#CodeloreService.readCodeEntity",
         "symbol:src/service/codelore-service.ts#CodeloreService.readImpact",
         "symbol:src/service/codelore-service.ts#CodeloreService.reconcileScopedDocStates",
@@ -543,8 +769,10 @@
         "symbol:src/service/codelore-service.ts#CodeloreService.refreshStaleDocs",
         "symbol:src/service/codelore-service.ts#CodeloreService.resolveSection",
         "symbol:src/service/codelore-service.ts#CodeloreService.resolveSectionsForId",
+        "symbol:src/service/codelore-service.ts#CodeloreService.restoreKeptBlocks",
         "symbol:src/service/codelore-service.ts#CodeloreService.rewriteSections",
         "symbol:src/service/codelore-service.ts#CodeloreService.runPipelineForSections",
+        "symbol:src/service/codelore-service.ts#CodeloreService.stampUnwrittenBlocks",
         "symbol:src/service/codelore-service.ts#CodeloreService.translateScope"
       ],
       "status": "normal",
@@ -577,14 +805,14 @@
           }
         },
         "responsibility": {
-          "body": "- Загружает или перестраивает индекс и возвращает результат без постобработки.",
+          "body": "Метод пытается загрузить индексы из хранилища; если они отсутствуют или устарели, пересобирает их на основе текущих файлов. Это гарантирует, что последующие операции используют актуальные данные.",
           "rendered": true,
-          "fingerprint": "signature=7ad86ed01dcc702268175b6ea8200d16579da5f789b6cedbeb1f68236803db40,deps=65f894a8307d82119441a6940817fa9683caceb0f2c11498ea45cc02a9e9e5ea,usage=9039e1472df444e78646d1ac1854b2ef12a7840808a6035671f18a4f901902f9",
+          "fingerprint": "signature=7ad86ed01dcc702268175b6ea8200d16579da5f789b6cedbeb1f68236803db40,deps=65f894a8307d82119441a6940817fa9683caceb0f2c11498ea45cc02a9e9e5ea,usage=963b7a09064b545d646f2696328ee39f2654a05d1d3b4cf74f60e57406cc4ba8",
           "scores": {
-            "informativeness": 0.5,
+            "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Загружает или перестраивает индекс и возвращает результат без постобработки."
+            "novelFact": "Метод загружает существующие индексы или пересобирает их при отсутствии, обеспечивая актуальность данных."
           },
           "language": "ru"
         },
@@ -637,8 +865,39 @@
           "generatedBlocks": [
             "responsibility"
           ]
+        },
+        {
+          "runId": "d1241d4a-6f75-4dba-a943-9b4d3fd432cf",
+          "timestamp": "2026-09-13T21:50:51.666Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "62857847-d626-48e6-877b-c4bf306b56e4",
+          "timestamp": "2026-09-13T22:17:37.872Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "55b12cfb-a086-477b-b289-838ba97ffaa0",
+          "timestamp": "2026-09-13T22:58:55.418Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility"
+          ]
         }
-      ]
+      ],
+      "signature": "CodeloreService.loadOrRebuildIndexes(): Promise<ProjectIndex>"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.analyzeChange": {
       "heading": "analyzeChange",
@@ -832,6 +1091,7 @@
       ],
       "depends": [
         "symbol:src/indexer/code-indexer.ts#buildCodeIndex",
+        "symbol:src/indexer/domain-entities.ts#isSourceCodeEntity",
         "symbol:src/service/codelore-service.ts#CodeloreService.assertKnownEntityIds",
         "symbol:src/service/codelore-service.ts#CodeloreService.defaultDocPathForSource",
         "symbol:src/service/codelore-service.ts#CodeloreService.rebuildIndexes",
@@ -885,46 +1145,69 @@
           }
         },
         "responsibility": {
-          "body": "Нормализует входной скоуп через `normalizePrepareScope`.\nДля каждой сущности, которая должна иметь страницу и не имеет секции, создаёт `DocStateSection` через `docStateSectionForPlannedEntity`.\nИспользует `planFileLayout` для группировки сущностей по файлам.\nВозвращает результат через `preparedDocsResult`.",
+          "body": "- Нормализует входной скоуп через `normalizePrepareScope` и строит индекс по запрошенным файлам.\n- Определяет сущности исходного кода, для которых ещё нет документации: отсеивает уже документированные, скелетные и те, для которых не следует создавать страницу (`shouldCreatePage`).\n- Для каждой подходящей сущности создаёт начальную `DocStateSection` (`docStateSectionForPlannedEntity`), а для групп сущностей в одном файле упорядочивает их через `planFileLayout`, вставляя file-секцию первой.\n- При `dryRun: false` сохраняет состояние документации, учитывая предыдущие блоки через `withPreservedBlockBodies`, и возвращает сводку.\n- Вызывает `assertKnownEntityIds` и выбрасывает ошибку, если любой из `entityIds` отсутствует в индексе.",
           "rendered": true,
-          "fingerprint": "signature=dd428477ad9f601a8929c86c76f3c0bbd11f68aec126bcab3382d11f9115140d,deps=99292932e05c29fa5bc45e06b348ef173455e524b05123191aaa94db36235b5e,usage=977f69146e187b437a65efb6c9cc4c7e77b4b8f197812f3ba235b5f6c543c41e",
+          "fingerprint": "signature=dd428477ad9f601a8929c86c76f3c0bbd11f68aec126bcab3382d11f9115140d,deps=2fa8c15de29757560445f6bb42741b272318c2d7ebc663f3555fc8001ab602da,usage=977f69146e187b437a65efb6c9cc4c7e77b4b8f197812f3ba235b5f6c543c41e",
           "scores": {
-            "informativeness": 0.75,
-            "novelty": 0.75,
-            "specificity": 0.75,
-            "novelFact": "Проверяет существование идентификаторов сущностей через `assertKnownEntityIds`."
-          }
+            "informativeness": 1,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "Создаёт начальные скелеты документации для недокументированных сущностей, группируя их по файлам и сохраняя в хранилище."
+          },
+          "language": "ru"
         },
         "invariants": {
-          "body": "При `dryRun: true` не выполняет запись в хранилище.\nВыбрасывает ошибку, если любой из `entityIds` отсутствует в индексе.",
+          "body": "Каждый документируемый файл назначается ровно одному домену; дубликаты файлов в разных доменах исключаются. Пустой список файлов не вызывает ошибок — обработка завершается без изменений.",
           "rendered": true,
-          "fingerprint": "signature=dd428477ad9f601a8929c86c76f3c0bbd11f68aec126bcab3382d11f9115140d,body=7a418401fc18ee222fb8f493b0841a9cc4e21e04ed21c3e781da1c515b6b1b9d",
+          "fingerprint": "signature=dd428477ad9f601a8929c86c76f3c0bbd11f68aec126bcab3382d11f9115140d,body=18eed2b32f5d8b855c840ef8e059ac49f9b286e389ea1a24529453b28869a0b7",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Гарантирует, что созданные секции не дублируют существующие (фильтрация через `isSectionSkeleton`)."
-          }
+            "novelFact": "Метод назначает каждый документируемый файл ровно одному домену, исключая дубликаты."
+          },
+          "language": "ru"
         },
         "dependencies": {
           "body": "",
           "rendered": false,
-          "fingerprint": "deps=99292932e05c29fa5bc45e06b348ef173455e524b05123191aaa94db36235b5e"
+          "fingerprint": "deps=2fa8c15de29757560445f6bb42741b272318c2d7ebc663f3555fc8001ab602da"
         },
         "workflows": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "body=7a418401fc18ee222fb8f493b0841a9cc4e21e04ed21c3e781da1c515b6b1b9d,deps=99292932e05c29fa5bc45e06b348ef173455e524b05123191aaa94db36235b5e"
+          "body": "Callers invoke this method when they need the initial documentation as a string without persisting it, for example to preview or to pass to another transformation. The method runs the same pipeline as the main method but stops before persistence, returning the Markdown to the caller.",
+          "rendered": true,
+          "fingerprint": "body=18eed2b32f5d8b855c840ef8e059ac49f9b286e389ea1a24529453b28869a0b7,deps=2fa8c15de29757560445f6bb42741b272318c2d7ebc663f3555fc8001ab602da",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Callers use this method to obtain the initial Markdown without saving it, typically for preview or further processing."
+          }
         },
         "limitations": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "body=7a418401fc18ee222fb8f493b0841a9cc4e21e04ed21c3e781da1c515b6b1b9d"
+          "body": "The method does not persist the prepared documentation; it only returns the Markdown string. Callers that need to save the output must handle persistence themselves or use the service's persistence method separately.",
+          "rendered": true,
+          "fingerprint": "body=18eed2b32f5d8b855c840ef8e059ac49f9b286e389ea1a24529453b28869a0b7",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The method does not persist the prepared documentation; it only returns the Markdown."
+          }
         },
         "changeGuide": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "body=7a418401fc18ee222fb8f493b0841a9cc4e21e04ed21c3e781da1c515b6b1b9d,deps=99292932e05c29fa5bc45e06b348ef173455e524b05123191aaa94db36235b5e,usage=977f69146e187b437a65efb6c9cc4c7e77b4b8f197812f3ba235b5f6c543c41e,placement=ab2d619adb96b47fa7be8b0ed5f9db328ea920dc886ac0c85f100738d460a793"
+          "body": "This method prepares the initial documentation for a given source scope. It accepts the same input as the main pipeline and returns the generated Markdown, but it does not trigger persistence. The method delegates the parsing, analysis, and generation stages to the service's pipeline, so the output is identical to what the main method would produce before saving.",
+          "rendered": true,
+          "fingerprint": "body=18eed2b32f5d8b855c840ef8e059ac49f9b286e389ea1a24529453b28869a0b7,deps=2fa8c15de29757560445f6bb42741b272318c2d7ebc663f3555fc8001ab602da,usage=977f69146e187b437a65efb6c9cc4c7e77b4b8f197812f3ba235b5f6c543c41e,placement=ab2d619adb96b47fa7be8b0ed5f9db328ea920dc886ac0c85f100738d460a793",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "This method prepares the initial documentation by invoking the same pipeline but without persistence, returning the raw Markdown."
+          }
         }
       },
       "generationHistory": [
@@ -939,8 +1222,64 @@
             "responsibility",
             "invariants"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.088Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility"
+          ],
+          "manualReviewNeeded": true
+        },
+        {
+          "runId": "2e8a08ea-46d1-4f9e-93ac-0ef39d026053",
+          "timestamp": "2026-09-13T20:32:21.069Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "62857847-d626-48e6-877b-c4bf306b56e4",
+          "timestamp": "2026-09-13T22:20:00.033Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "55b12cfb-a086-477b-b289-838ba97ffaa0",
+          "timestamp": "2026-09-13T22:58:55.423Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "55b12cfb-a086-477b-b289-838ba97ffaa0",
+          "timestamp": "2026-09-13T23:00:01.868Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
-      ]
+      ],
+      "signature": "CodeloreService.prepareInitialDocs(input: PrepareInitialDocsInput = {}): Promise<PrepareInitialDocsResult>",
+      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.getSectionContext": {
       "heading": "getSectionContext",
@@ -1435,6 +1774,7 @@
       ],
       "depends": [
         "symbol:src/service/codelore-service.ts#CodeloreService.detectMissingTranslations",
+        "symbol:src/service/codelore-service.ts#CodeloreService.detectUncoveredFiles",
         "symbol:src/service/codelore-service.ts#CodeloreService.rebuildIndexes",
         "symbol:src/service/doc-validation.ts#detectStaleBlocks",
         "symbol:src/service/doc-validation.ts#validateBlockQuality",
@@ -1472,38 +1812,45 @@
           }
         },
         "responsibility": {
-          "body": "- Перестраивает проектный индекс через `rebuildIndexes`.\n- Для каждой секции вызывает `validateOwnedEntities`, `validateDependencies`, `detectStaleBlocks` и, если `includeQuality === true`, `validateBlockQuality`.\n- Агрегирует все проблемы в единый массив `issues`.",
+          "body": "- Перестраивает проектный индекс вызовом `rebuildIndexes`, затем для каждой секции последовательно запускает `validateOwnedEntities`, `validateDependencies`, `detectStaleBlocks` и, при флаге `includeQuality`, `validateBlockQuality`.\n- Дополнительно проверяет отсутствующие переводы (`detectMissingTranslations`).\n- Агрегирует все найденные `DocValidationIssue` в единый массив и возвращает его.",
           "rendered": true,
-          "fingerprint": "signature=2bda121176deab4f4d4991b7a32dda9a2813405fce85282758b456aa0d8cfc10,deps=e0eb13f46a3ddfcbccca17c749cd4a93c1b67ebe7de91bc667aefc7d339859d2,usage=c433742f59b4899b8405c09ffb83604329fe98ed93815290cffdbb8fa5aa1f73",
+          "fingerprint": "signature=2bda121176deab4f4d4991b7a32dda9a2813405fce85282758b456aa0d8cfc10,deps=101f7fbf35c01d90014ec94ef491ac955c3caecbc26759fa3c2cf5c02f7112f4,usage=c433742f59b4899b8405c09ffb83604329fe98ed93815290cffdbb8fa5aa1f73",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.75,
+            "novelty": 1,
             "specificity": 0.75,
-            "novelFact": "Выполняет все проверки валидации документации по всем секциям и возвращает собранные проблемы."
+            "novelFact": "Обитает все секции документации и собирает все типы проблем (владение, зависимости, устаревшие блоки, качество, переводы) в один отчёт."
           },
           "language": "ru"
         },
         "invariants": {
-          "body": "- Всегда возвращает объект со свойством `issues` (может быть пустым).",
+          "body": "- Всегда возвращает объект с полем `issues`, даже если список пуст.\n- Не изменяет состояние документации (read-only).",
           "rendered": true,
-          "fingerprint": "signature=2bda121176deab4f4d4991b7a32dda9a2813405fce85282758b456aa0d8cfc10,body=60d7409d9cff02d189ef969516c29744e15267d9068587f695fc4c3f6eb0f154",
+          "fingerprint": "signature=2bda121176deab4f4d4991b7a32dda9a2813405fce85282758b456aa0d8cfc10,body=2a7d46521a8d4ccbfed51cfe8577f2ed0eece1d3beedb7db286e0d6ca2df9d8b",
           "scores": {
-            "informativeness": 0.75,
-            "novelty": 0.75,
-            "specificity": 0.75,
-            "novelFact": "Всегда возвращает объект со свойством issues."
+            "informativeness": 0.5,
+            "novelty": 1,
+            "specificity": 0.5,
+            "novelFact": "Гарантирует отсутствие побочных эффектов на хранилище."
           },
           "language": "ru"
         },
         "dependencies": {
           "body": "",
           "rendered": false,
-          "fingerprint": "deps=94a18996758e73f0f92208a9ba5208810447fe789b386f64e2fbbfddc46024ea"
+          "fingerprint": "deps=101f7fbf35c01d90014ec94ef491ac955c3caecbc26759fa3c2cf5c02f7112f4"
         },
         "limitations": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "body=ea21b52a1d7917bcb49ad792817a7ba7ed4e46b9facadc31a79375a8bf30347d"
+          "body": "Не создаёт новые секции — только генерирует содержимое существующих.",
+          "rendered": true,
+          "fingerprint": "body=2a7d46521a8d4ccbfed51cfe8577f2ed0eece1d3beedb7db286e0d6ca2df9d8b",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Метод не создаёт новые секции — только генерирует содержимое существующих."
+          }
         }
       },
       "generationHistory": [
@@ -1529,8 +1876,31 @@
             "responsibility",
             "invariants"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.092Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "62857847-d626-48e6-877b-c4bf306b56e4",
+          "timestamp": "2026-09-13T22:20:00.038Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "limitations"
+          ]
         }
-      ]
+      ],
+      "signature": "CodeloreService.validateDocs(input: { includeQuality?: boolean } = {}): Promise<{ issues: DocValidationIssue[] }>",
+      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.refreshStaleDocs": {
       "heading": "refreshStaleDocs",
@@ -1547,6 +1917,7 @@
         "symbol:src/service/stale-detection.ts#buildRewriteContextBundle",
         "symbol:src/service/stale-detection.ts#collectDepDocStaleBlocks",
         "symbol:src/service/stale-detection.ts#collectLanguageStaleBlocks",
+        "symbol:src/service/stale-detection.ts#collectMemberDocStaleBlocks",
         "symbol:src/service/stale-detection.ts#collectStaleBlocks",
         "symbol:src/service/stale-detection.ts#collectTombstonedBlocks",
         "symbol:src/service/stale-detection.ts#filterSectionsByScope",
@@ -1591,48 +1962,76 @@
           }
         },
         "responsibility": {
-          "body": "- Перестраивает индекс и фильтрует секции по скоупу через `filterSectionsByScope`.\n- В режиме `\"report\"` возвращает сводку устаревших и удалённых блоков без изменений.\n- В режиме `\"rewrite_plan\"` дополнительно строит контекстные наборы для перезаписи через `buildRewriteContextBundle`.\n- В режиме `\"tombstone\"` помечает устаревшие блоки через `applyTombstones`, обновляет индекс через `patchDocIndexForDocs` и `loadOrRebuildIndexes`, затем повторно собирает удалённые блоки.",
+          "body": "Метод перебирает секции, чьи зависимости изменились, и перегенерирует их блоки. Для каждой такой секции проверяет, остались ли целевые блоки в разрешённом наборе; если нет, записывает секцию как пропущенную. Секции с неизменными зависимостями не трогает.",
           "rendered": true,
-          "fingerprint": "signature=956c57c98e4b7048f0a2a2c789b14068c224f8e25a07775876bfdadbb2ea79e7,deps=42f8780b95fb9a4a29c803e7c5bd4bb2d7d33f35b8b0cdeaba77d73ba2252347,usage=bf70aee07422b474c1f9628b5c2d2621337a04f0dad3e43db9a8e51eacd823ea",
-          "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Перестраивает индекс, фильтрует секции по скоупу и в зависимости от режима сообщает, планирует перезапись или применяет пометки устаревания для устаревших блоков."
-          },
-          "language": "ru"
-        },
-        "invariants": {
-          "body": "- В режиме `\"tombstone\"` после применения пометок перезагружает индекс для получения актуальных данных.\n- Гарантирует, что возвращаемый `RefreshStaleDocsResult` содержит поля, соответствующие режиму (через `refreshStaleResult`).\n- Не изменяет состояние документации в режимах `\"report\"` и `\"rewrite_plan\"`.",
-          "rendered": true,
-          "fingerprint": "signature=956c57c98e4b7048f0a2a2c789b14068c224f8e25a07775876bfdadbb2ea79e7,body=658ac3f6441a7b342098036e978dac7f5a4e9ee89991f7add5d26d46160cd11f",
+          "fingerprint": "signature=956c57c98e4b7048f0a2a2c789b14068c224f8e25a07775876bfdadbb2ea79e7,deps=4641671a987399847913c5f1e429a9a264da3a2de7408e1feeb0c65d58c82ca3,usage=bf70aee07422b474c1f9628b5c2d2621337a04f0dad3e43db9a8e51eacd823ea",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "В режиме `\"tombstone\"` перезагружает индекс после пометок."
+            "novelFact": "Метод перегенерирует блоки для секций с изменёнными зависимостями, оставляя остальные без изменений."
+          },
+          "language": "ru"
+        },
+        "invariants": {
+          "body": "Метод обновляет только те секции, чьи зависимости изменились; секции с неизменными зависимостями пропускаются. Если у секции не осталось целевых блоков, она помечается как пропущенная с причиной \"No target blocks remain in the entity's allowed set\".",
+          "rendered": true,
+          "fingerprint": "signature=956c57c98e4b7048f0a2a2c789b14068c224f8e25a07775876bfdadbb2ea79e7,body=ec91612492cc830c271e3f61e62a183ffd1b84eaf054d002b1a28744c4d8148e",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Метод обновляет только те секции, чьи зависимости изменились, и пропускает секции с неизменными зависимостями."
           },
           "language": "ru"
         },
         "dependencies": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "deps=70fc39dc4bd71d434ef5fcb15c1ed4795b4c7f7691c776551cf33dad27cbb2e1"
+          "body": "This method depends on the service's pipeline for the generation stages and on the persist module for saving the refreshed documentation. It does not directly call the parser, analyzer, or generator; those are handled by the service's orchestration.",
+          "rendered": true,
+          "fingerprint": "deps=4641671a987399847913c5f1e429a9a264da3a2de7408e1feeb0c65d58c82ca3",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "This method depends on the service's pipeline and the persist module for saving the refreshed output."
+          }
         },
         "workflows": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "body=f821300a6ef10f119c292edb8b773a0ab3b2a3a4eece3cf6d97c844bfcc9a213,deps=70fc39dc4bd71d434ef5fcb15c1ed4795b4c7f7691c776551cf33dad27cbb2e1"
+          "body": "Callers invoke this method when they need to update existing documentation after source changes. The method re-runs the pipeline and saves the result, so the caller can rely on the persisted documentation being refreshed. The method returns the updated Markdown as well, allowing the caller to verify the output.",
+          "rendered": true,
+          "fingerprint": "body=ec91612492cc830c271e3f61e62a183ffd1b84eaf054d002b1a28744c4d8148e,deps=4641671a987399847913c5f1e429a9a264da3a2de7408e1feeb0c65d58c82ca3",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Callers invoke this method when they need to update existing documentation after source changes."
+          }
         },
         "limitations": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "body=f821300a6ef10f119c292edb8b773a0ab3b2a3a4eece3cf6d97c844bfcc9a213"
+          "body": "The method always persists the refreshed output; it does not offer a non-persisting variant. Callers that need to refresh without saving must use the prepare method instead.",
+          "rendered": true,
+          "fingerprint": "body=ec91612492cc830c271e3f61e62a183ffd1b84eaf054d002b1a28744c4d8148e",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The method always persists the refreshed output; it does not offer a non-persisting variant."
+          }
         },
         "changeGuide": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "body=f821300a6ef10f119c292edb8b773a0ab3b2a3a4eece3cf6d97c844bfcc9a213,deps=70fc39dc4bd71d434ef5fcb15c1ed4795b4c7f7691c776551cf33dad27cbb2e1,usage=bf70aee07422b474c1f9628b5c2d2621337a04f0dad3e43db9a8e51eacd823ea,placement=b150a948340f00c1afd1d3e80abc0010fefdf4e7161c3a0bf55af31998e78e20"
+          "body": "This method refreshes stale documentation for a given source scope. It re-runs the full pipeline—parsing, analysis, and generation—and then persists the updated Markdown. The method delegates the pipeline to the service's orchestration and the persistence to the persist module, so it has the same effect as calling the main method but is explicitly intended for updating existing documentation.",
+          "rendered": true,
+          "fingerprint": "body=ec91612492cc830c271e3f61e62a183ffd1b84eaf054d002b1a28744c4d8148e,deps=4641671a987399847913c5f1e429a9a264da3a2de7408e1feeb0c65d58c82ca3,usage=bf70aee07422b474c1f9628b5c2d2621337a04f0dad3e43db9a8e51eacd823ea,placement=b150a948340f00c1afd1d3e80abc0010fefdf4e7161c3a0bf55af31998e78e20",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "This method refreshes stale documentation by re-running the pipeline and persisting the updated output."
+          }
         }
       },
       "generationHistory": [
@@ -1658,8 +2057,67 @@
             "responsibility",
             "invariants"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.096Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "d1241d4a-6f75-4dba-a943-9b4d3fd432cf",
+          "timestamp": "2026-09-13T21:50:51.673Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "62857847-d626-48e6-877b-c4bf306b56e4",
+          "timestamp": "2026-09-13T22:20:00.043Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "limitations",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "55b12cfb-a086-477b-b289-838ba97ffaa0",
+          "timestamp": "2026-09-13T22:58:55.427Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "55b12cfb-a086-477b-b289-838ba97ffaa0",
+          "timestamp": "2026-09-13T23:00:01.874Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
-      ]
+      ],
+      "signature": "CodeloreService.refreshStaleDocs(input: RefreshStaleDocsInput = {}): Promise<RefreshStaleDocsResult>",
+      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.generateDocsForEntity": {
       "heading": "generateDocsForEntity",
@@ -1728,14 +2186,28 @@
           "language": "ru"
         },
         "dependencies": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "deps=61a8ce7c362f33046a9513d610e312cefa2c540cc52ada8b0170e6ac2ceee74e"
+          "body": "Зависит от `resolveSectionsForId`, `runPipelineForSections`, `translateScope` и `scopeFromParts`.",
+          "rendered": true,
+          "fingerprint": "deps=6ba733b470fc74516c7ca3a2ae6d2cd33b0f55c858a7f1abee328a15f8ff06be",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Метод зависит от resolveSectionsForId, runPipelineForSections, translateScope и scopeFromParts."
+          }
         },
         "limitations": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "body=3de8b7b249e7156bdf1a6a65de3a400cb4afee7adc79ed487409815c481e2ab6"
+          "body": "Не создаёт новые секции — только генерирует содержимое существующих.",
+          "rendered": true,
+          "fingerprint": "body=f8cacd9622b6022a22622bdae91e438d1fb8013549db252e06067de5cf2cbaca",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Метод не создаёт новые секции — только генерирует содержимое существующих."
+          }
         }
       },
       "generationHistory": [
@@ -1761,8 +2233,21 @@
             "responsibility",
             "invariants"
           ]
+        },
+        {
+          "runId": "62857847-d626-48e6-877b-c4bf306b56e4",
+          "timestamp": "2026-09-13T22:20:00.047Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations"
+          ]
         }
-      ]
+      ],
+      "signature": "CodeloreService.generateDocsForEntity(input: GenerateDocsForEntityInput, runtime: GenerateDocsRuntime): Promise<GenerateDocsResult>",
+      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.generateDocsForScope": {
       "heading": "generateDocsForScope",
@@ -1773,7 +2258,10 @@
       ],
       "depends": [
         "symbol:src/service/codelore-service.ts#CodeloreService.prepareInitialDocs",
+        "symbol:src/service/codelore-service.ts#CodeloreService.queueUnwrittenBlocks",
+        "symbol:src/service/codelore-service.ts#CodeloreService.reconcileRenderedDocs",
         "symbol:src/service/codelore-service.ts#CodeloreService.reconcileScopedDocStates",
+        "symbol:src/service/codelore-service.ts#CodeloreService.refreshDomainDocs",
         "symbol:src/service/codelore-service.ts#CodeloreService.refreshStaleDocs",
         "symbol:src/service/codelore-service.ts#CodeloreService.runPipelineForSections",
         "symbol:src/service/codelore-service.ts#CodeloreService.translateScope",
@@ -1810,38 +2298,52 @@
           }
         },
         "responsibility": {
-          "body": "- Приводит скоуп через `prepareInitialDocs`, создавая скелеты секций для новых сущностей, и согласовывает состояния документации через `reconcileScopedDocStates`.\n- Запускает `refreshStaleDocs` в режиме `\"tombstone\"`, чтобы пометить устаревшие блоки, и собирает из них целевые блоки.\n- Передаёт собранные блоки в `runPipelineForSections`, которая выполняет двухфазную генерацию и возвращает итоговый результат.",
+          "body": "Метод перебирает секции, чьи зависимости изменились, и перегенерирует их блоки. Для каждой такой секции проверяет, остались ли целевые блоки в разрешённом наборе; если нет, записывает секцию как пропущенную. Секции с неизменными зависимостями не трогает.",
           "rendered": true,
-          "fingerprint": "signature=e436473e2f77784d406e811cba31e101a2e2d8fb2ff2b7f3f5b0778b05fd3abd,deps=95160bec13f251ed1f7f4b7e2d196f82c4c5940fb3ff333da5a3f2dffbefb15c,usage=a66e439153ed86f4ee1728c7c92bcb8d0a7a56ac0f07ae96c3bfb71c851f0e0c",
+          "fingerprint": "signature=e436473e2f77784d406e811cba31e101a2e2d8fb2ff2b7f3f5b0778b05fd3abd,deps=10f2f9437f54d5cb035226867f754e0bd2fac6bbcc46b0a0069600ac18344483,usage=a66e439153ed86f4ee1728c7c92bcb8d0a7a56ac0f07ae96c3bfb71c851f0e0c",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "RunPipelineForSections получает список целевых блоков из tombstoned записей и генерирует только их."
+            "novelFact": "Метод перегенерирует блоки только для секций с изменёнными зависимостями, оставляя остальные без изменений."
           },
           "language": "ru"
         },
         "invariants": {
-          "body": "- Новосозданные через `prepareInitialDocs` скелеты секций всегда включаются в последующий запуск `runPipelineForSections`.\n- При отсутствии скоупа метод не создаёт секции и не генерирует документацию; результатом будет пустой `updatedSections`.",
+          "body": "Метод обрабатывает только те секции, чьи зависимости изменились; секции с неизменными зависимостями пропускаются, что гарантируется сравнением отпечатков. Для каждой обработанной секции проверяется наличие целевых блоков в разрешённом наборе; если их нет, секция помечается как пропущенная с указанной причиной.",
           "rendered": true,
-          "fingerprint": "signature=e436473e2f77784d406e811cba31e101a2e2d8fb2ff2b7f3f5b0778b05fd3abd,body=b17210a66d6fb06c438604de1d7dd5210458437696784a56848b55c75b0d04b6",
+          "fingerprint": "signature=e436473e2f77784d406e811cba31e101a2e2d8fb2ff2b7f3f5b0778b05fd3abd,body=df29d5fb7d49f3840cc9d8dd3660fe36bb9946d4151b44a53e270388b97ed28c",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "При отсутствии скоупа метод не создаёт секции и не запускает генерацию."
+            "novelFact": "Метод обрабатывает секции, чьи зависимости изменились, и пропускает секции с неизменными зависимостями, используя сравнение отпечатков."
           },
           "language": "ru"
         },
         "dependencies": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "deps=2343d0c97eadcb66bd864a9fef862c9f68f880b4b0b96914fb7e24fc43274033"
+          "body": "This method has no direct dependencies on external modules; it relies solely on the enclosing service's orchestration logic. It does not call the parser, analyzer, generator, or persist modules directly; instead, it invokes the service's pipeline method, which handles those stages.",
+          "rendered": true,
+          "fingerprint": "deps=10f2f9437f54d5cb035226867f754e0bd2fac6bbcc46b0a0069600ac18344483",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "This method delegates the entire pipeline to the service's own orchestration, so it has no direct dependencies beyond the service itself."
+          }
         },
         "limitations": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "body=487cd79c170db2296fa3a8a9aec7de8920b025c297bb95b18469b07144d94d22"
+          "body": "The method does not persist the generated documentation; it only returns the Markdown string. Callers that need to save the output must handle persistence themselves or use the service's persistence method separately.",
+          "rendered": true,
+          "fingerprint": "body=df29d5fb7d49f3840cc9d8dd3660fe36bb9946d4151b44a53e270388b97ed28c",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The method does not perform any persistence; it only returns the generated Markdown."
+          }
         }
       },
       "generationHistory": [
@@ -1867,8 +2369,54 @@
             "responsibility",
             "invariants"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.099Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "62857847-d626-48e6-877b-c4bf306b56e4",
+          "timestamp": "2026-09-13T22:20:00.051Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations"
+          ]
+        },
+        {
+          "runId": "55b12cfb-a086-477b-b289-838ba97ffaa0",
+          "timestamp": "2026-09-13T22:58:55.432Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "55b12cfb-a086-477b-b289-838ba97ffaa0",
+          "timestamp": "2026-09-13T23:00:01.880Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations"
+          ]
         }
-      ]
+      ],
+      "signature": "CodeloreService.generateDocsForScope(input: GenerateDocsForScopeInput, runtime: GenerateDocsRuntime): Promise<GenerateDocsResult>",
+      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.fixStaleDocs": {
       "heading": "fixStaleDocs",
@@ -1878,7 +2426,14 @@
         "symbol:src/service/codelore-service.ts#CodeloreService.fixStaleDocs"
       ],
       "depends": [
+        "symbol:src/service/codelore-service.ts#CodeloreService.assignUncoveredFiles",
         "symbol:src/service/codelore-service.ts#CodeloreService.gateDepDocsCascade",
+        "symbol:src/service/codelore-service.ts#CodeloreService.generateDomainDocs",
+        "symbol:src/service/codelore-service.ts#CodeloreService.prepareDomainDocs",
+        "symbol:src/service/codelore-service.ts#CodeloreService.queueUnwrittenBlocks",
+        "symbol:src/service/codelore-service.ts#CodeloreService.reconcileRenderedDocs",
+        "symbol:src/service/codelore-service.ts#CodeloreService.reconcileScopedDocStates",
+        "symbol:src/service/codelore-service.ts#CodeloreService.recordRunDecisions",
         "symbol:src/service/codelore-service.ts#CodeloreService.refreshStaleDocs",
         "symbol:src/service/codelore-service.ts#CodeloreService.runPipelineForSections",
         "symbol:src/service/codelore-service.ts#CodeloreService.translateScope",
@@ -1887,7 +2442,7 @@
       "usedBy": [
         "symbol:src/service/codelore-service.ts#CodeloreService"
       ],
-      "status": "normal",
+      "status": "review_needed",
       "allowedBlocks": [
         "purpose",
         "responsibility",
@@ -1915,38 +2470,52 @@
           }
         },
         "responsibility": {
-          "body": "- Вычисляет скоуп из переданных `sectionIds`, `files`, `paths`.\n- Запускает `gateDepDocsCascade` для верификации блоков, устаревших только из-за изменения отпечатков зависимостей, и может сократить объём генерации.\n- Вызывает `refreshStaleDocs` в режиме `\"tombstone\"` для пометки устаревших блоков.\n- Извлекает целевые блоки из tombstoned записей и запускает `runPipelineForSections` для соответствующих секций.",
+          "body": "- Запускает `gateDepDocsCascade` для секций, помеченных устаревшими только из-за изменившихся `depDocs`: факт-чекает существующий текст против новых доков зависимостей; секции без противоречий сбрасывают свой `depDocsFingerprint` и не попадают в tombstoning.\n- Разделяет найденные устаревшие секции на source-секции (файловый пайплайн) и tier-слагы (доменный пайплайн) через `splitTierSections`; source-секции уходят в `runPipelineForSections`, tier-слагы — в `generateDomainDocs`.\n- Завершает повторным `gateDepDocsCascade` и `recordRunDecisions`, чтобы сбросить отпечатки зависимостей, сдвинутые собственными перезаписями этого же запуска.",
           "rendered": true,
-          "fingerprint": "signature=7c88408f1aa27d41ec1ff77609def5f49f5e841657aa3a57f01989c12b464fc9,deps=ba17c2e356248b3d61f92f8fb1a5d4a3998606d8db854f8cfec4d1ee85e689ad,usage=87d8ca5a3f1bf3577675b8ec50c944f1eb75b36907841069334ef2af1ffe8908",
+          "fingerprint": "signature=7c88408f1aa27d41ec1ff77609def5f49f5e841657aa3a57f01989c12b464fc9,deps=70abbcd19cc9567bb48c14fe00ce72923637927e4ede1d963a750b88f5252a55,usage=87d8ca5a3f1bf3577675b8ec50c944f1eb75b36907841069334ef2af1ffe8908",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "GateDepDocsCascade верифицирует блоки, устаревшие только по отпечатку зависимостей, и может снять пометку устаревания, сокращая генерацию."
+            "novelFact": "Метод распределяет непокрытые файлы, подготавливает скелеты доменов, затем gateDepDocsCascade проверяет секции, устаревшие только из-за изменившихся зависимостей."
           },
           "language": "ru"
         },
         "invariants": {
-          "body": "- При пустом скоупе метод не бросает ошибку — возвращает результат с пустыми массивами `updatedSections` и `failed`.\n- `gateDepDocsCascade` может сократить количество генерируемых блоков, если блоки всё ещё валидны; это отражается в итоговом `tombstoned` списке.",
+          "body": "**Пустой ввод:** если `sectionIds` после фильтрации `splitTierSections` пуст, а `tierSlugs` тоже пуст, то `runPipelineForSections` возвращает `{ updatedSections: [], skipped: [], failed: [] }`, а `generateDomainDocs` — `{ generated: [], droppedBlocks: 0, failed: [] }`. Итоговый `GenerateDocsResult` содержит пустые списки, ошибки не возникает.\n\n**Пересечение с разрешёнными блоками:** запрошенные целевые блоки пересекаются с `allowedBlocks` текущей секции через `collectAllowedBlocksForSection`. Если после пересечения не осталось ни одного блока, секция попадает в `skipped` с причиной \"No target blocks remain in the entity's allowed set.\" — генерация не запускается, исключение не выбрасывается.\n\n**Порядок обработки:** метод последовательно вызывает: `gateDepDocsCascade`, `reconcileScopedDocStates`, `refreshStaleDocs` (режим `tombstone`), формирует `targetBlocksBySection`, `queueUnwrittenBlocks`, разделяет на `sourceIds` и `tierSlugs`, запускает `runPipelineForSections`, затем `translateScope`, затем `generateDomainDocs` (если есть `tierSlugs`), затем `reconcileRenderedDocs`, затем повторно `gateDepDocsCascade` (для сброса отпечатков), и наконец `recordRunDecisions`.\n\n**Мутация doc-состояния:** метод не производит мутаций исходных файлов проекта. Все изменения записываются только через `docStateStorage.renderAndPersist`.",
           "rendered": true,
-          "fingerprint": "signature=7c88408f1aa27d41ec1ff77609def5f49f5e841657aa3a57f01989c12b464fc9,body=32ca1ce843c972be1dd0ed6bca560c7da1ce3f01be126f873097921c6e237b13",
+          "fingerprint": "signature=7c88408f1aa27d41ec1ff77609def5f49f5e841657aa3a57f01989c12b464fc9,body=3832e14bedc48d718aeb9c459f66f3616d2a5032411d051914063010f2659a7d",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.75,
+            "novelty": 1,
             "specificity": 0.75,
-            "novelFact": "GateDepDocsCascade может сократить количество генерируемых блоков, снимая пометку устаревания для блоков, чьи зависимости всё ещё валидны."
+            "novelFact": "Секция, у которой не осталось целевых блоков в разрешённом наборе после пересечения с запрошенными, записывается как пропущенная с текстом \"No target blocks remain in the entity's allowed set.\" — это исключает бесконечные циклы регенерации для сущностей, чей набор блоков уменьшился."
           },
           "language": "ru"
         },
         "dependencies": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "deps=183d79721854bd908d3d75241f5d941a669f347f941f79e11f26cfa85057c6f4"
+          "body": "- **Назначение файлов в домены**: `assignUncoveredFiles` (тот же класс) назначает uncovered файлы в существующие домены через легковесный LLM-запрос.\n- **Подготовка скелетов доменов**: `prepareDomainDocs` (тот же класс) строит скелеты tier-документов, удаляет осиротевшие tier-доки.\n- **Факт-чек зависимостей**: `gateDepDocsCascade` (тот же класс) проверяет, не устарела ли секция только из-за изменившихся `depDocs`, и при отсутствии противоречий сбрасывает отпечаток.\n- **Синхронизация состояния**: `reconcileScopedDocStates` (тот же класс) удаляет разрешённые блоки, которых больше нет у сущности.\n- **Обнаружение устаревших блоков**: `refreshStaleDocs` (тот же класс) в режиме `tombstone` находит и помечает устаревшие блоки.\n- **Формирование целей перезаписи**: `targetBlocksFromTombstones` (src/service/stale-detection.ts) преобразует результат tombstoning в `Map<sectionId, BlockId[]>`.\n- **Добавление пустых блоков**: `queueUnwrittenBlocks` (тот же класс) добавляет в цели блоки, которые разрешены, но ещё не написаны.\n- **Генерация source-секций**: `runPipelineForSections` (тот же класс) выполняет двухпроходную генерацию файлового пайплайна, используя `p-limit` для ограничения конкурентности.\n- **Переводы**: `translateScope` (тот же класс) синхронизирует переводы для всего объема, включая уже актуальные.\n- **Перерендеринг**: `reconcileRenderedDocs` (тот же класс) перезаписывает `.md`-файлы, если их содержимое изменилось.\n- **Запись решений**: `recordRunDecisions` (тот же класс) записывает JSON с деталями решения (stale, tombstoned, queued, outcome).\n- **Сборка scope**: `scopeFromParts` (локальная функция) строит `RefreshStaleScope` из списков `sectionIds`, `files`, `paths`.",
+          "rendered": true,
+          "fingerprint": "deps=70abbcd19cc9567bb48c14fe00ce72923637927e4ede1d963a750b88f5252a55",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Метод использует `p-limit` через `runPipelineForSections` и `translateScope` для ограничения конкурентности вызовов LLM."
+          }
         },
         "limitations": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "body=4f80d84ecc9f1ec513cf8d7ce17d3fce81e058ac1fb8d6d88ed035ae1bec6d70"
+          "body": "- The method only regenerates sections whose dependency docs changed; sections whose dependency docs are unchanged are left untouched, enforced by the fingerprint comparison.\n- When a section has no target blocks remaining in its allowed set, the method records the section as skipped with reason \"No target blocks remain in the entity's allowed set.\"",
+          "rendered": true,
+          "fingerprint": "body=3832e14bedc48d718aeb9c459f66f3616d2a5032411d051914063010f2659a7d",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The method only regenerates sections whose dependency docs changed; sections with unchanged dependency docs are left untouched."
+          }
         }
       },
       "generationHistory": [
@@ -1972,8 +2541,108 @@
             "responsibility",
             "invariants"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.103Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "d1241d4a-6f75-4dba-a943-9b4d3fd432cf",
+          "timestamp": "2026-09-13T21:50:51.679Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "62857847-d626-48e6-877b-c4bf306b56e4",
+          "timestamp": "2026-09-13T22:17:37.878Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "62857847-d626-48e6-877b-c4bf306b56e4",
+          "timestamp": "2026-09-13T22:20:00.027Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations"
+          ]
+        },
+        {
+          "runId": "431f5f8b-2ca3-4792-bc88-7c992c2088d3",
+          "timestamp": "2026-09-13T22:30:43.598Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility"
+          ],
+          "manualReviewNeeded": true
+        },
+        {
+          "runId": "431f5f8b-2ca3-4792-bc88-7c992c2088d3",
+          "timestamp": "2026-09-13T22:31:19.093Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations"
+          ]
+        },
+        {
+          "runId": "55b12cfb-a086-477b-b289-838ba97ffaa0",
+          "timestamp": "2026-09-13T22:58:55.436Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "aaf363dc-04ff-494e-bac1-6880b9fbfa14",
+          "timestamp": "2026-09-14T06:42:18.592Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "aaf363dc-04ff-494e-bac1-6880b9fbfa14",
+          "timestamp": "2026-09-14T06:45:48.212Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies"
+          ],
+          "manualReviewNeeded": true
         }
-      ]
+      ],
+      "signature": "CodeloreService.fixStaleDocs(input: FixStaleDocsInput, runtime: GenerateDocsRuntime): Promise<GenerateDocsResult>",
+      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.appendGenerationHistory": {
       "heading": "appendGenerationHistory",
@@ -2085,8 +2754,8 @@
       ],
       "depends": [
         "symbol:src/llm/file-pipeline.ts#generateFileGroup",
-        "symbol:src/llm/provider.ts#createConfiguredProvider",
         "symbol:src/service/codelore-service.ts#CodeloreService.applyFileGenerationOutcome",
+        "symbol:src/service/codelore-service.ts#CodeloreService.createProviderPair",
         "symbol:src/service/codelore-service.ts#CodeloreService.loadOrRebuildIndexes",
         "symbol:src/service/helpers.ts#describeError"
       ],
@@ -2128,46 +2797,76 @@
           }
         },
         "responsibility": {
-          "body": "- Создаёт провайдер через `createConfiguredProvider`.\n- Фильтрует переданные `sectionIds` — пропускает только те, для которых существует секция в индексе и известен путь владельца.\n- Определяет целевые блоки из `targetBlocksBySection`, проверяет их допустимость по `collectAllowedBlocksForSection`.\n- Запускает фазы `propagating` и `terminal` последовательно, каждая вызывает `generateFileGroup` с ограничением параллелизма из `config.llm.concurrency`.\n- Собирает результаты: `updatedSections`, `skipped`, `failed`.",
+          "body": "- Создаёт основного и проверочного провайдеров, которые могут различаться, если настроен `llm.verifyProvider`.\n- Загружает индекс и группирует секции по файлу-владельцу, пропуская секции без владельца или без пути в индексе с добавлением в `skipped`.\n- Для каждой секции вычисляет эффективные целевые блоки: пересекает запрошенные блоки из `targetBlocksBySection` с разрешённым набором из `collectAllowedBlocksForSection`; секции, у которых не осталось допустимых целей, пропускаются.\n- Выполняет две фазы генерации последовательно: сначала `propagating`, затем `terminal`. Внутри каждой фазы файлы обрабатываются параллельно через `pLimit` с лимитом из `config.llm.concurrency`, вызывая `generateFileGroup`.\n- После каждой фазы применяет результаты через `applyFileGenerationOutcome`: сохраняет сгенерированные блоки, помечает секции на ручную проверку, записывает историю генерации.\n- После `terminal`-фазы сохраняет отпечатки документации зависимостей.\n- Нормализует итоговые списки: объединяет сводки секций, появившиеся в обеих фазах, через `mergeSectionSummaries`, и удаляет из пропущенных те секции, которые были записаны в другой фазе, через `dedupeSkipped`.",
           "rendered": true,
-          "fingerprint": "signature=d405e8ef2da87c39b95a4b71218f68c62da35c1de0163f6882ec6e63899db205,deps=64ce230c38504a7f43f607b57e2eea5f565679a9982c352a3f92d22c3c65f9e9,usage=f59129002c9d20bfabf523dc1b0ced4702974f30f75106ba5be477a87fbf6082",
+          "fingerprint": "signature=d405e8ef2da87c39b95a4b71218f68c62da35c1de0163f6882ec6e63899db205,deps=007bd255ac42e68689e99c142fe3180011ce081524d24f1fa56a33776f2360e1,usage=f59129002c9d20bfabf523dc1b0ced4702974f30f75106ba5be477a87fbf6082",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Метод дедуплицирует sectionIds, отбрасывает секции без владельца и применяет таргеты блоков."
-          }
+            "novelFact": "Метод выполняет две последовательные фазы генерации — propagating и terminal — где вторая фаза читает уже записанные результаты первой, чтобы разрешить зависимости между документами без сериализации по графу импортов."
+          },
+          "language": "ru"
         },
         "invariants": {
-          "body": "- Секции без владельца или без пути в индексе пропускаются с добавлением в `skipped`.\n- Дублирующиеся идентификаторы секций дедуплицируются через `new Set`.\n- Фазы выполняются последовательно; внутри каждой фазы файлы обрабатываются параллельно с лимитом `pLimit`.\n- Итоговые списки нормализуются: `mergeSectionSummaries` и `dedupeSkipped`.",
+          "body": "- Секции, чей владелец отсутствует в индексе или не имеет пути, пропускаются и попадают в `skipped`, а не вызывают ошибку.\n- Дублирующиеся идентификаторы секций во входном массиве дедуплицируются через `new Set(sectionIds)` до начала обработки.\n- Запрошенные целевые блоки пересекаются с разрешённым набором из `collectAllowedBlocksForSection`; блоки, не входящие в разрешённый набор, отбрасываются, а секция, у которой не осталось ни одной цели, пропускается.\n- Фазы `propagating` и `terminal` выполняются строго последовательно: вторая фаза стартует только после полного завершения первой, включая запись всех результатов через `applyFileGenerationOutcome`.\n- Внутри каждой фазы все файлы обрабатываются параллельно, но с ограничением одновременных запросов через `pLimit(this.config.llm.concurrency)`.\n- Итоговый результат нормализуется: `mergeSectionSummaries` объединяет блоки секции из обеих фаз в одну запись, `dedupeSkipped` удаляет из пропущенных те секции, которые были успешно записаны в другой фазе.",
           "rendered": true,
-          "fingerprint": "signature=d405e8ef2da87c39b95a4b71218f68c62da35c1de0163f6882ec6e63899db205,body=4625bf55ba54ee021151581ba68d4aef653807ac6c48e3efb162d2dd1518e72f",
+          "fingerprint": "signature=d405e8ef2da87c39b95a4b71218f68c62da35c1de0163f6882ec6e63899db205,body=9ff6f2909fb28785510ca4e2b3d3137b2d01c9ef58cdad1a03ac796e117a2ac7",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Конвейер гарантирует, что одна секция не появится дважды в результатах."
-          }
+            "novelFact": "Фазы `propagating` и `terminal` выполняются строго последовательно, с параллельной обработкой файлов внутри каждой фазы и ограничением конкуренции."
+          },
+          "language": "ru"
         },
         "dependencies": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "deps=64ce230c38504a7f43f607b57e2eea5f565679a9982c352a3f92d22c3c65f9e9"
+          "body": "Depends on `generateFileGroup` to generate documentation for each file group, and on `applyFileGenerationOutcome` to apply the generation result to the file. The pipeline groups sections by file and processes per file, so the outcome is applied per file.",
+          "rendered": true,
+          "fingerprint": "deps=007bd255ac42e68689e99c142fe3180011ce081524d24f1fa56a33776f2360e1",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The pipeline depends on `generateDocsForEntity` to produce the outcome and on `applyFileGenerationOutcome` to apply it."
+          }
         },
         "workflows": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "body=4625bf55ba54ee021151581ba68d4aef653807ac6c48e3efb162d2dd1518e72f,deps=64ce230c38504a7f43f607b57e2eea5f565679a9982c352a3f92d22c3c65f9e9"
+          "body": "Called by `generateDocsForScope` after the scope is split into sections. For each file group, it calls `generateFileGroup` to produce the outcome, then `applyFileGenerationOutcome` to apply it. The order matters: generation must complete before the outcome is applied.",
+          "rendered": true,
+          "fingerprint": "body=9ff6f2909fb28785510ca4e2b3d3137b2d01c9ef58cdad1a03ac796e117a2ac7,deps=007bd255ac42e68689e99c142fe3180011ce081524d24f1fa56a33776f2360e1",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Called by `generateDocsForScope` after splitting the scope, and it drives the per-section generation and outcome application."
+          }
         },
         "limitations": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "body=4625bf55ba54ee021151581ba68d4aef653807ac6c48e3efb162d2dd1518e72f"
+          "body": "The pipeline processes files in parallel using `Promise.allSettled` with a concurrency limit, so generation is parallelized across files.",
+          "rendered": true,
+          "fingerprint": "body=9ff6f2909fb28785510ca4e2b3d3137b2d01c9ef58cdad1a03ac796e117a2ac7",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "The pipeline processes sections sequentially, so no parallel generation occurs."
+          }
         },
         "changeGuide": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "body=4625bf55ba54ee021151581ba68d4aef653807ac6c48e3efb162d2dd1518e72f,deps=64ce230c38504a7f43f607b57e2eea5f565679a9982c352a3f92d22c3c65f9e9,usage=f59129002c9d20bfabf523dc1b0ced4702974f30f75106ba5be477a87fbf6082,placement=2dd5507b26a81649720d9072d723aba1e0c54b0b25431a8f1a1f3ba68810189e"
+          "body": "- The pipeline iterates over each file group and calls `generateFileGroup` for each, then applies the outcome via `applyFileGenerationOutcome`.\n- The outcome application is guarded by the `applyFileGenerationOutcome` method, which enforces the contract that the outcome is applied only when the generation succeeds.",
+          "rendered": true,
+          "fingerprint": "body=9ff6f2909fb28785510ca4e2b3d3137b2d01c9ef58cdad1a03ac796e117a2ac7,deps=007bd255ac42e68689e99c142fe3180011ce081524d24f1fa56a33776f2360e1,usage=f59129002c9d20bfabf523dc1b0ced4702974f30f75106ba5be477a87fbf6082,placement=2dd5507b26a81649720d9072d723aba1e0c54b0b25431a8f1a1f3ba68810189e",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The pipeline runs per section, and the outcome is applied via `applyFileGenerationOutcome`."
+          }
         }
       },
       "generationHistory": [
@@ -2182,8 +2881,34 @@
             "responsibility",
             "invariants"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.106Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "62857847-d626-48e6-877b-c4bf306b56e4",
+          "timestamp": "2026-09-13T22:20:00.056Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
-      ]
+      ],
+      "signature": "CodeloreService.runPipelineForSections(sectionIds: string[], intent: string | undefined, runtime: GenerateDocsRuntime, targetBlocksBySection: ReadonlyMap<string, BlockId[]> = new Map()): Promise<GenerateDocsResult>",
+      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.recordDepDocsFingerprints": {
       "heading": "recordDepDocsFingerprints",
@@ -3103,7 +3828,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "ac7b0e7e798be6593c18df9a757f9a0b06c55e00be87b9efd22d00d3eb39872e"
+      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
     }
   },
   "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"

@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/service/section-rewrite.codelore.md",
-  "generatedAt": "2026-07-03T16:25:43.583Z",
+  "generatedAt": "2026-09-13T22:20:00.078Z",
   "sectionOrder": [
     "symbol:src/service/section-rewrite.ts#groupRewritesByDoc",
     "symbol:src/service/section-rewrite.ts#applyRewritesToDoc",
@@ -146,7 +146,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "0d0c5fe90dee2cb0987b9c57eabf20b002d4129dfb42bddb667c8ee47bc9aac6"
+      "depDocsFingerprint": "1819703f2530d11054e772027e2bff8426ad8ce11c9fc559a81e20648a8d545d"
     },
     "symbol:src/service/section-rewrite.ts#applyRewritesToDoc": {
       "heading": "applyRewritesToDoc",
@@ -164,6 +164,7 @@
       "usedBy": [
         "file:src/service/codelore-service.ts",
         "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.generateDomainDocs",
         "symbol:src/service/codelore-service.ts#CodeloreService.rewriteSections"
       ],
       "status": "normal",
@@ -198,15 +199,16 @@
           }
         },
         "responsibility": {
-          "body": "- Загружает состояние документа через `storage.loadDocState`; если состояние отсутствует, выбрасывает `CodeloreError` с кодом `UNKNOWN_DOC`.\n- Для каждой перезаписи проверяет наличие секции в состоянии; если секция отсутствует, выбрасывает `CodeloreError` с кодом `UNKNOWN_SECTION`.\n- Вызывает `mergeGeneratedBlocksIntoSection` для каждой перезаписи, затем обновляет `state.generatedAt` и сохраняет через `storage.renderAndPersist`.\n- После сохранения вызывает `collectFilteredBlocksForRewrites` для сбора отфильтрованных блоков.",
+          "body": "- Загружает состояние документа через `storage.loadDocState(docPath)`; если состояние отсутствует, прерывает выполнение.\n- Для каждой перезаписи находит секцию в загруженном состоянии; если секция отсутствует, прерывает выполнение, иначе передаёт пару в `mergeGeneratedBlocksIntoSection`.\n- После обработки всех перезаписей обновляет `state.generatedAt` и один раз сохраняет документ через `storage.renderAndPersist`.\n- После сохранения наполняет переданный `filteredBySection` через `collectFilteredBlocksForRewrites`.",
           "rendered": true,
-          "fingerprint": "signature=9ec1c5d6b02542a6a6a4de84d263e42b056f72ab47fe54d22f6a21f594fb9edb,deps=a3fd7b26dba8d558e6dc91d1270ba2972a2b9ee0e8b8c2fc02ca4db048dc4eff,usage=5033dc67199560d6f81f771fe878ba06a7ec27d807c0e43f4d82cc8681c69e02",
+          "fingerprint": "signature=9ec1c5d6b02542a6a6a4de84d263e42b056f72ab47fe54d22f6a21f594fb9edb,deps=a3fd7b26dba8d558e6dc91d1270ba2972a2b9ee0e8b8c2fc02ca4db048dc4eff,usage=382eebcecdb35619424a303ea3a3e29e443680432c1c8dbb28c41295164c25de",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Последовательность загрузка-проверка-слияние-сохранение-сбор"
-          }
+            "novelFact": "Все перезаписи одного документа применяются к одному загруженному состоянию и сохраняются одним вызовом `renderAndPersist`."
+          },
+          "language": "ru"
         },
         "invariants": {
           "body": "- Выбрасывает `CodeloreError`, если состояние документа не найдено или секция отсутствует в состоянии.\n- `state.generatedAt` устанавливается в текущую метку времени после применения всех перезаписей.",
@@ -247,15 +249,16 @@
           "fingerprint": "body=5f9ad948062f07e7024ddf7d7af9f83110860a35417bb14c982780cf36a12a3a"
         },
         "changeGuide": {
-          "body": "1. Состояние документа должно существовать: проверка `if (!state) { throw new CodeloreError(\"UNKNOWN_DOC\", ...) }`.\n2. Каждая секция должна присутствовать в состоянии: проверка `if (!sectionState) { throw new CodeloreError(\"UNKNOWN_SECTION\", ...) }`.",
-          "rendered": true,
-          "fingerprint": "body=5f9ad948062f07e7024ddf7d7af9f83110860a35417bb14c982780cf36a12a3a,deps=a3fd7b26dba8d558e6dc91d1270ba2972a2b9ee0e8b8c2fc02ca4db048dc4eff,usage=5033dc67199560d6f81f771fe878ba06a7ec27d807c0e43f4d82cc8681c69e02,placement=1151344727d1d44088c69dc687d06a12262ec04e6ace6f4db2e7662099d9a283",
+          "body": "- Состояние документа должно существовать: проверка `if (!state) { throw new CodeloreError(\"UNKNOWN_DOC\", ...) }`.\n- Каждая секция должна присутствовать в состоянии: проверка `if (!sectionState) { throw new CodeloreError(\"UNKNOWN_SECTION\", ...) }`.",
+          "rendered": false,
+          "fingerprint": "body=5f9ad948062f07e7024ddf7d7af9f83110860a35417bb14c982780cf36a12a3a,deps=a3fd7b26dba8d558e6dc91d1270ba2972a2b9ee0e8b8c2fc02ca4db048dc4eff,usage=382eebcecdb35619424a303ea3a3e29e443680432c1c8dbb28c41295164c25de,placement=1151344727d1d44088c69dc687d06a12262ec04e6ace6f4db2e7662099d9a283",
           "scores": {
-            "informativeness": 0.75,
-            "novelty": 0.75,
+            "informativeness": 0.5,
+            "novelty": 0,
             "specificity": 0.75,
-            "novelFact": "Описывает два инварианта входа, защищённых выбросом CodeloreError."
-          }
+            "novelFact": "Функция прерывает выполнение, если состояние документа или секция отсутствуют в загруженном состоянии."
+          },
+          "language": "ru"
         }
       },
       "generationHistory": [
@@ -282,9 +285,30 @@
             "workflows",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.133Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:41:29.659Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "changeGuide"
+          ]
         }
       ],
-      "depDocsFingerprint": "0d0c5fe90dee2cb0987b9c57eabf20b002d4129dfb42bddb667c8ee47bc9aac6"
+      "depDocsFingerprint": "1819703f2530d11054e772027e2bff8426ad8ce11c9fc559a81e20648a8d545d",
+      "signature": "applyRewritesToDoc(docPath: string, rewrites: NormalizedRewriteSectionInput[], storage: DocStateStorage, entities: Record<string, CodeEntity>, config: CodeloreConfig, filteredBySection: Map<string, FilteredGeneratedBlock[]>): Promise<void>"
     },
     "symbol:src/service/section-rewrite.ts#collectFilteredBlocksForRewrites": {
       "heading": "collectFilteredBlocksForRewrites",
@@ -403,7 +427,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "0d0c5fe90dee2cb0987b9c57eabf20b002d4129dfb42bddb667c8ee47bc9aac6"
+      "depDocsFingerprint": "1819703f2530d11054e772027e2bff8426ad8ce11c9fc559a81e20648a8d545d"
     },
     "symbol:src/service/section-rewrite.ts#mergeGeneratedBlocksIntoSection": {
       "heading": "mergeGeneratedBlocksIntoSection",
@@ -465,14 +489,14 @@
           "language": "ru"
         },
         "invariants": {
-          "body": "- `blockOrder` и `allowedBlocks` никогда не содержат дубликатов: добавление происходит только при отсутствии (`!sectionState.blockOrder.includes(blockId)`).\n- `depends` и `usedBy` перезаписываются исключительно при наличии владельца (`if (owner) { ... }`).\n- Поля `staleSince`, `staleReason` и `staleFacets` сбрасываются в `undefined` для каждого влитого блока.",
+          "body": "- Пустой `rewrite.blocks` не добавляет и не изменяет блоки, но всё равно пересчитывает `depends`, `usedBy` и `signature` владельца и обновляет статус секции.\n- `blockOrder` и `allowedBlocks` сохраняют порядок первого появления и не накапливают дубликаты: `push` выполняется только при `!includes(blockId)`.\n- Если `sectionState.owns[0]` найден в `entities`, `depends` и `usedBy` становятся отсортированными уникальными значениями `owner.directDeps` и `owner.directUsages`; если владелец не найден, эти поля не изменяются.\n- Для каждого влитого блока `body` обрезается через `.trim()`, `language` равен `config.docs.language`, `rendered` равен `true`, а `staleSince`, `staleReason`, `staleFacets` сбрасываются в `undefined`.\n- Если `computeBlockFingerprint` возвращает `undefined`, существующий `fingerprint` блока не очищается; если значение определено, оно записывается.\n- Функция не выбрасывает исключений и мутирует `sectionState` на месте, не возвращая значения.",
           "rendered": true,
-          "fingerprint": "signature=2d2fc14fc676ed446dbdb1e518d4186c6134682c7695a5c3abf9a5b19b6380d3,body=a791afc8ec2880d703ab509975cab06068c824696173e82852c6105240956256",
+          "fingerprint": "signature=2d2fc14fc676ed446dbdb1e518d4186c6134682c7695a5c3abf9a5b19b6380d3,body=e1e6347b93e4538aa705b611c10f61a99b09714c1b0695818f59eb206f360e89",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 1,
-            "novelFact": "Дубликаты `blockOrder` и `allowedBlocks` предотвращаются проверкой `includes` перед добавлением."
+            "novelFact": "Даже при пустом `rewrite.blocks` функция пересчитывает метаданные владельца и статус секции."
           },
           "language": "ru"
         },
@@ -489,30 +513,37 @@
         },
         "workflows": {
           "body": "Вызывается `applyRewritesToDoc` для каждой перезаписи. Внутри: 1) Для каждого блока из `rewrite.blocks` вычисляется фингерпринт через `computeBlockFingerprint`, создаётся или обновляется `DocStateBlock` — устанавливаются `body` (обрезанный через `.trim()`), `language` из `config.docs.language`, `rendered` в `true`, `scores` (informativeness, novelty, specificity, novelFact), при наличии фингерпринта — `fingerprint`; поля `staleSince`, `staleReason`, `staleFacets` сбрасываются в `undefined`. Если `blockId` отсутствует в `blockOrder` или `allowedBlocks`, он добавляется. 2) После цикла, если у секции есть владелец (`sectionState.owns[0]` присутствует в `entities`), `depends` и `usedBy` перезаписываются через `uniqueSorted([...owner.directDeps])` и `uniqueSorted([...owner.directUsages])`. 3) В конце вызывается `updateSectionStatusForBlocks`.",
-          "rendered": true,
-          "fingerprint": "body=a791afc8ec2880d703ab509975cab06068c824696173e82852c6105240956256,deps=0ccdfbc3a131b30053b9ec5a8b1892fd3616088992188673eadf0750762e6818",
+          "rendered": false,
+          "fingerprint": "body=e1e6347b93e4538aa705b611c10f61a99b09714c1b0695818f59eb206f360e89,deps=0ccdfbc3a131b30053b9ec5a8b1892fd3616088992188673eadf0750762e6818",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.75,
+            "novelty": 0.25,
             "specificity": 0.75,
-            "novelFact": "После вливания блоков и обновления метаданных владельца вызывается `updateSectionStatusForBlocks` для пересчёта статуса секции."
+            "novelFact": "После вливания блоков функция перезаписывает `depends` и `usedBy` секции из сущности-владельца, если она найдена в `entities`."
           },
           "language": "ru"
         },
         "limitations": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "body=36b700fbf0f29dc691f822764baaee0adc43766d3f388c7873074203a4aa333b"
-        },
-        "changeGuide": {
-          "body": "1. Дубликаты в `blockOrder` и `allowedBlocks` предотвращены: перед `push` стоит `if (!sectionState.blockOrder.includes(blockId))` и `if (!sectionState.allowedBlocks.includes(blockId))`. Тестов не видно.\n2. Поля устаревания сбрасываются в `undefined` для каждого влитого блока: три присваивания `block.staleSince = undefined; block.staleReason = undefined; block.staleFacets = undefined;`. Тестов не видно.",
+          "body": "The function only processes blocks that appear in the `rewrite.blocks` input; any block not listed there is left unchanged, and the function does not add or remove blocks beyond the provided set. It does not handle the case where a block's `fingerprint` is undefined — in that situation the existing `fingerprint` value is preserved (not cleared).",
           "rendered": true,
-          "fingerprint": "body=a791afc8ec2880d703ab509975cab06068c824696173e82852c6105240956256,deps=0ccdfbc3a131b30053b9ec5a8b1892fd3616088992188673eadf0750762e6818,usage=297df2d141de0cb76458546378a9b9afa6b096b90cf3beab9cf2188db589032f,placement=552cc398861354cad602100b6203f33ece283a834f7435529c230083f6693910",
+          "fingerprint": "body=e1e6347b93e4538aa705b611c10f61a99b09714c1b0695818f59eb206f360e89",
+          "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Дубликаты в `blockOrder` и `allowedBlocks` предотвращены проверкой `!sectionState.blockOrder.includes(blockId)`."
+            "novelFact": "The function only updates blocks that are present in the rewrite input; blocks not listed in `rewrite.blocks` are left untouched, and the function does not remove or add blocks beyond the provided set."
+          }
+        },
+        "changeGuide": {
+          "body": "- Дубликаты в `blockOrder` и `allowedBlocks` предотвращены: перед `push` стоит `if (!sectionState.blockOrder.includes(blockId))` и `if (!sectionState.allowedBlocks.includes(blockId))`.\n- Поля устаревания сбрасываются в `undefined` для каждого влитого блока: три присваивания `block.staleSince = undefined; block.staleReason = undefined; block.staleFacets = undefined;`.",
+          "rendered": false,
+          "fingerprint": "body=e1e6347b93e4538aa705b611c10f61a99b09714c1b0695818f59eb206f360e89,deps=0ccdfbc3a131b30053b9ec5a8b1892fd3616088992188673eadf0750762e6818,usage=297df2d141de0cb76458546378a9b9afa6b096b90cf3beab9cf2188db589032f,placement=552cc398861354cad602100b6203f33ece283a834f7435529c230083f6693910",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0,
+            "specificity": 0.75,
+            "novelFact": "Поля устаревания сбрасываются в `undefined` для каждого влитого блока."
           },
           "language": "ru"
         }
@@ -564,9 +595,41 @@
             "workflows",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.134Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:41:29.661Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "workflows",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "62857847-d626-48e6-877b-c4bf306b56e4",
+          "timestamp": "2026-09-13T22:20:00.077Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "limitations"
+          ]
         }
       ],
-      "depDocsFingerprint": "ad262f27c814ca42dceaf9b0c0d3f02dada16a99f5c825d25a66396120f4ab98"
+      "depDocsFingerprint": "1819703f2530d11054e772027e2bff8426ad8ce11c9fc559a81e20648a8d545d",
+      "signature": "mergeGeneratedBlocksIntoSection(sectionState: DocStateSection, rewrite: NormalizedRewriteSectionInput, entities: Record<string, CodeEntity>, config: CodeloreConfig): void"
     },
     "symbol:src/service/section-rewrite.ts#updateSectionStatusForBlocks": {
       "heading": "updateSectionStatusForBlocks",
@@ -620,15 +683,16 @@
           }
         },
         "invariants": {
-          "body": "- Статус `review_needed` никогда не перезаписывается.\n- Статус `stale` устанавливается только когда все блоки устарели; при наличии хотя бы одного неустаревшего блока статус `normal`.",
+          "body": "- Функция всегда перезаписывает `sectionState.status`, включая `review_needed`: в коде нет проверки `review_needed`.\n- Переменная `anyStale` вычисляется, но не влияет на итоговый статус: обе ветви тернарного оператора при `allStale === false` дают `\"normal\"`.\n- Функция не мутирует блоки и не выбрасывает исключений; изменяет только `sectionState.status`.",
           "rendered": true,
-          "fingerprint": "signature=b132c46ffe4593a51f52dffd3582368c6604e44f428ead0542fa705e76948691,body=89bfb869dd47a4c4e1b84bc77264c7876208e7eca6b9719a20305092ac831ae8",
+          "fingerprint": "signature=b132c46ffe4593a51f52dffd3582368c6604e44f428ead0542fa705e76948691,body=d5f6199e38d249815cdd3480645de08e6ffd726545521a15f72b3fef177ff12b",
           "scores": {
-            "informativeness": 0.5,
+            "informativeness": 0.75,
             "novelty": 0.75,
-            "specificity": 0.75,
-            "novelFact": "Неприкосновенность review_needed и условие stale"
-          }
+            "specificity": 1,
+            "novelFact": "При пустом наборе блоков статус становится `normal`, а `review_needed` не сохраняется."
+          },
+          "language": "ru"
         },
         "dependencies": {
           "body": "Не имеет внешних зависимостей, кроме типов.",
@@ -642,20 +706,28 @@
           }
         },
         "workflows": {
-          "body": "Вызывается `mergeGeneratedBlocksIntoSection` после слияния блоков. Если статус секции `review_needed`, функция завершается досрочно. Иначе проверяет все блоки: если хотя бы один блок имеет `staleSince !== undefined`, но не все, статус становится `normal`; если все блоки устарели, статус становится `stale`. Результат записывается в `sectionState.status`.",
+          "body": "Вызывается `mergeGeneratedBlocksIntoSection` после слияния блоков. Функция проверяет все блоки секции: если все блоки имеют `staleSince !== undefined`, статус становится `stale`; иначе — `normal`. Результат записывается в `sectionState.status`.",
           "rendered": true,
-          "fingerprint": "body=89bfb869dd47a4c4e1b84bc77264c7876208e7eca6b9719a20305092ac831ae8,deps=a38bda3e804eeb86c0d6c54c46bd948d6b71aa4240b2c3da05518aa8ca16cbbe",
+          "fingerprint": "body=d5f6199e38d249815cdd3480645de08e6ffd726545521a15f72b3fef177ff12b,deps=a38bda3e804eeb86c0d6c54c46bd948d6b71aa4240b2c3da05518aa8ca16cbbe",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Пересчитывает статус секции на основе состояния устаревания блоков, игнорируя review_needed."
-          }
+            "novelFact": "Функция не имеет проверки на `review_needed` и всегда перезаписывает `sectionState.status`."
+          },
+          "language": "ru"
         },
         "limitations": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "body=89bfb869dd47a4c4e1b84bc77264c7876208e7eca6b9719a20305092ac831ae8"
+          "body": "The function only updates status for blocks that appear in the `rewrite.blocks` input; blocks not listed are left with their existing status. It does not handle the case where a block's `fingerprint` is undefined — in that situation the existing `fingerprint` value is preserved (not cleared).",
+          "rendered": true,
+          "fingerprint": "body=d5f6199e38d249815cdd3480645de08e6ffd726545521a15f72b3fef177ff12b",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function only updates status for blocks that are present in the `rewrite.blocks` input; blocks not listed are left with their existing status."
+          }
         }
       },
       "generationHistory": [
@@ -682,9 +754,40 @@
             "workflows",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.136Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:41:29.662Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "workflows"
+          ]
+        },
+        {
+          "runId": "62857847-d626-48e6-877b-c4bf306b56e4",
+          "timestamp": "2026-09-13T22:20:00.078Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "limitations"
+          ]
         }
       ],
-      "depDocsFingerprint": "0d0c5fe90dee2cb0987b9c57eabf20b002d4129dfb42bddb667c8ee47bc9aac6"
+      "depDocsFingerprint": "1819703f2530d11054e772027e2bff8426ad8ce11c9fc559a81e20648a8d545d",
+      "signature": "updateSectionStatusForBlocks(sectionState: DocStateSection): void"
     },
     "symbol:src/service/section-rewrite.ts#updateStatusFromBlocks": {
       "heading": "updateStatusFromBlocks",
@@ -817,7 +920,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "0d0c5fe90dee2cb0987b9c57eabf20b002d4129dfb42bddb667c8ee47bc9aac6"
+      "depDocsFingerprint": "1819703f2530d11054e772027e2bff8426ad8ce11c9fc559a81e20648a8d545d"
     },
     "symbol:src/service/section-rewrite.ts#normalizeGeneratedRewrite": {
       "heading": "normalizeGeneratedRewrite",
@@ -888,26 +991,28 @@
           }
         },
         "dependencies": {
-          "body": "- `CodeloreError` (`src/errors.ts`) — выбрасывается при пустом `input.generatedBlocks`.\n- `BLOCK_IDS` (`src/markdown/block-ids.ts`) — ограничивает набор допустимых идентификаторов блоков.\n- `BlockId` (`src/markdown/block-ids.ts`) — тип для ключей в результирующем объекте блоков.",
+          "body": "The function uses `BLOCK_IDS` from `src/markdown/block-ids.ts` to filter the input blocks, keeping only those whose IDs are in that set. It also uses the `BlockId` type from the same module to type the filtered result.",
           "rendered": true,
           "fingerprint": "deps=1836db06f1e7f84fd09bf9c372aaf4f6898a9e93a046d1ed97eb5f7033533bd5",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Использует CodeloreError и BLOCK_IDS для валидации и фильтрации."
-          }
+            "novelFact": "The function relies on `BLOCK_IDS` from `src/markdown/block-ids.ts` to filter input blocks."
+          },
+          "language": "ru"
         },
         "workflows": {
-          "body": "1. `CodeloreService.rewriteSections` вызывает функцию для каждого элемента массива `sections`.\n2. Полученные `NormalizedRewriteSectionInput` группируются по документу.\n3. Для каждой группы документов применяется слияние сгенерированных блоков в состояние.\n4. После применения всех перезаписей вызывается `patchDocIndexForDocs` для обновления индекса.\n5. В результате возвращается массив объектов с `sectionId`, `docPath` и опциональными `filteredBlocks`.",
+          "body": "The function is invoked by `CodeloreService.rewriteSections` (in `src/service/codelore-service.ts`) as part of the rewrite pipeline. It receives the raw rewrite input and returns a normalized version with only valid blocks, which is then used to update section states.",
           "rendered": true,
           "fingerprint": "body=87067c5c94da62d59e35692753dd9818bc766de1544d62f7edbfa1533d078b31,deps=1836db06f1e7f84fd09bf9c372aaf4f6898a9e93a046d1ed97eb5f7033533bd5",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Интегрируется в `CodeloreService.rewriteSections` как часть пайплайна групповой перезаписи."
-          }
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function is called by `CodeloreService.rewriteSections` to validate and filter the rewrite input before applying it."
+          },
+          "language": "ru"
         },
         "limitations": {
           "body": "",
@@ -915,15 +1020,16 @@
           "fingerprint": "body=87067c5c94da62d59e35692753dd9818bc766de1544d62f7edbfa1533d078b31"
         },
         "changeGuide": {
-          "body": "- Идентификаторы блоков, не входящие в `BLOCK_IDS`, отбрасываются. Конструкция: `for (const blockId of BLOCK_IDS) { const block = input.generatedBlocks[blockId]; if (block) { blocks[blockId] = block; } }`.\n- Пустой `input.generatedBlocks` вызывает ошибку `MISSING_GENERATED_BLOCKS`. Конструкция: `if (!input.generatedBlocks || Object.keys(input.generatedBlocks).length === 0) { throw new CodeloreError(...); }`.",
+          "body": "- The function enforces that only blocks with IDs in `BLOCK_IDS` are accepted; blocks with IDs outside this set are dropped. This is enforced by the `BLOCK_IDS` constant from `src/markdown/block-ids.ts`.\n- The function enforces that the input must include `generatedBlocks`; otherwise it throws an error with the message `Rewrite input for \"${input.sectionId}\" must include generatedBlocks.` This is enforced by the `if (!input.generatedBlocks)` check.",
           "rendered": true,
           "fingerprint": "body=87067c5c94da62d59e35692753dd9818bc766de1544d62f7edbfa1533d078b31,deps=1836db06f1e7f84fd09bf9c372aaf4f6898a9e93a046d1ed97eb5f7033533bd5,usage=bc17fcfe76edf268a00fcd559ff23ded315f061f9783f2bd29a477a132a5991f,placement=5cd1b11ef871db141829140b1c60fc636ca2374c65863734d0a7be90d77f90d3",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Описывает два ключевых контракта, защищённых явными проверками."
-          }
+            "novelFact": "The function enforces that only blocks with IDs in `BLOCK_IDS` are accepted, and that the `generatedBlocks` field is present in the input."
+          },
+          "language": "ru"
         }
       },
       "generationHistory": [
@@ -950,9 +1056,34 @@
             "workflows",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "2e8a08ea-46d1-4f9e-93ac-0ef39d026053",
+          "timestamp": "2026-09-13T20:34:15.633Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "62857847-d626-48e6-877b-c4bf306b56e4",
+          "timestamp": "2026-09-13T22:20:00.075Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "changeGuide"
+          ]
         }
       ],
-      "depDocsFingerprint": "0d0c5fe90dee2cb0987b9c57eabf20b002d4129dfb42bddb667c8ee47bc9aac6"
+      "depDocsFingerprint": "1819703f2530d11054e772027e2bff8426ad8ce11c9fc559a81e20648a8d545d",
+      "signature": "normalizeGeneratedRewrite(input: RewriteSectionInput, _config: CodeloreConfig): NormalizedRewriteSectionInput"
     },
     "symbol:src/service/section-rewrite.ts#collectFilteredBlocksForResponse": {
       "heading": "collectFilteredBlocksForResponse",
@@ -1019,26 +1150,28 @@
           }
         },
         "dependencies": {
-          "body": "- `DocStateSection`, `CodeloreConfig`, `FilteredGeneratedBlock` из `src/types.ts` — интерфейсы, используемые в сигнатуре и реализации.",
+          "body": "Функция использует только типовые интерфейсы из `src/types.ts`: `DocStateSection`, `CodeloreConfig`, `FilteredGeneratedBlock`. Других внешних зависимостей нет.",
           "rendered": true,
           "fingerprint": "deps=dd3805aac84ed0b813705e7657c60bc6b2e0dcf524f5ed56df57b316e73aaa5c",
           "scores": {
             "informativeness": 0.5,
             "novelty": 0.5,
-            "specificity": 0.75,
-            "novelFact": "Зависит только от типов из `src/types.ts`."
-          }
+            "specificity": 0.5,
+            "novelFact": "Не имеет внешних зависимостей, кроме типовых интерфейсов."
+          },
+          "language": "ru"
         },
         "workflows": {
-          "body": "1. `collectFilteredBlocksForRewrites` для каждой перезаписи с `showFiltered: true` вызывает `collectFilteredBlocksForResponse` с `includeText: true`.\n2. Функция собирает блоки с оценками и `rendered: false`, вычисляет `finalScore` и порог, опционально включает текст.\n3. Полученный массив сохраняется в карте `filteredBySection`, которая затем используется для построения ответа.",
+          "body": "1. `collectFilteredBlocksForRewrites` вызывает эту функцию для каждой перезаписи, у которой `showFiltered === true` и существует `sectionState`. 2. Функция собирает блоки с оценками и `rendered: false`, вычисляет `finalScore` как минимум из трёх метрик и определяет порог из конфигурации. 3. Поле `text` включается только если `includeText === true` и тело блока непустое. 4. Полученный массив сохраняется в карте `filteredBySection`.",
           "rendered": true,
           "fingerprint": "body=36a233165dc5e502c30be639fe50bbbd3cd77335c756e93c3c390b66f877b1f1,deps=dd3805aac84ed0b813705e7657c60bc6b2e0dcf524f5ed56df57b316e73aaa5c",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Вызывается после слияния блоков для сбора неотрендеренных блоков с оценками."
-          }
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается collectFilteredBlocksForRewrites для каждой перезаписи с showFiltered: true."
+          },
+          "language": "ru"
         },
         "limitations": {
           "body": "",
@@ -1046,15 +1179,16 @@
           "fingerprint": "body=36a233165dc5e502c30be639fe50bbbd3cd77335c756e93c3c390b66f877b1f1"
         },
         "changeGuide": {
-          "body": "- Порядок элементов в результате соответствует порядку `sectionState.allowedBlocks`. Конструкция: `for (const blockId of sectionState.allowedBlocks)`.\n- Поле `text` включается только при `includeText === true` и непустом `block.body`. Конструкция: `...(includeText && block.body ? { text: block.body } : {})`.",
+          "body": "- Порядок элементов в результате соответствует порядку `sectionState.allowedBlocks`. Конструкция: `for (const blockId of sectionState.allowedBlocks)`.\\n- Поле `text` включается только при `includeText === true` и непустом `block.body`. Конструкция: `...(includeText && block.body ? { text: block.body } : {})`.",
           "rendered": true,
           "fingerprint": "body=36a233165dc5e502c30be639fe50bbbd3cd77335c756e93c3c390b66f877b1f1,deps=dd3805aac84ed0b813705e7657c60bc6b2e0dcf524f5ed56df57b316e73aaa5c,usage=2d26f31a86aa8df051513e036f59dab606a035e75e394b5cd07f7a2a2551fd8a,placement=dd8427a151c49012117b9ed764fdbeb375caf8afdd2c603f69d9199bb9ec40eb",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Описывает два инварианта, реализованных через цикл и условный spread."
-          }
+            "novelFact": "Результат отсортирован по порядку allowedBlocks секции."
+          },
+          "language": "ru"
         }
       },
       "generationHistory": [
@@ -1081,9 +1215,22 @@
             "workflows",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "2e8a08ea-46d1-4f9e-93ac-0ef39d026053",
+          "timestamp": "2026-09-13T20:34:15.635Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "changeGuide"
+          ]
         }
       ],
-      "depDocsFingerprint": "0d0c5fe90dee2cb0987b9c57eabf20b002d4129dfb42bddb667c8ee47bc9aac6"
+      "depDocsFingerprint": "1819703f2530d11054e772027e2bff8426ad8ce11c9fc559a81e20648a8d545d",
+      "signature": "collectFilteredBlocksForResponse(sectionState: DocStateSection, config: CodeloreConfig, includeText: boolean): FilteredGeneratedBlock[]"
     }
   },
   "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"

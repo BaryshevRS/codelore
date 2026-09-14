@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/llm/json.codelore.md",
-  "generatedAt": "2026-07-03T16:25:43.567Z",
+  "generatedAt": "2026-09-13T19:41:29.620Z",
   "sectionOrder": [
     "symbol:src/llm/json.ts#parseJsonObject",
     "symbol:src/llm/json.ts#readOptionalString"
@@ -18,9 +18,13 @@
         "symbol:src/errors.ts#CodeloreError"
       ],
       "usedBy": [
+        "file:src/domains/assign.ts",
+        "file:src/domains/partition.ts",
         "file:src/llm/doc-verifier.ts",
         "file:src/llm/file-writer.ts",
         "file:src/llm/translator.ts",
+        "symbol:src/domains/assign.ts#parseAssignResponse",
+        "symbol:src/domains/partition.ts#parsePartitionResponse",
         "symbol:src/llm/doc-verifier.ts#parseVerifyResponse",
         "symbol:src/llm/file-writer.ts#parseFileWriteResponse"
       ],
@@ -56,14 +60,14 @@
           }
         },
         "responsibility": {
-          "body": "- Предварительно удаляет внешний Markdown-фенс (`` ```json `` или `` ``` ``) с помощью `stripOuterFence`, затем пытается распарсить результат стандартным `JSON.parse`.\n- При неудаче первого парсинга повторяет попытку после применения `repairKnownLlmEscapes`, которая исправляет три известных LLM-артефакта (экранированные `` ` ``, `$` и `\\.`).\n- Гарантирует, что итоговый результат — объект (не null, не массив), делегируя проверку `asJsonObject`.\n- Если обе попытки парсинга завершаются ошибкой, выбрасывает `CodeloreError` с кодом `INVALID_LLM_RESPONSE`, оборачивая исходную ошибку и включая первые 1000 символов ответа.",
+          "body": "- Удаляет внешний Markdown-фенс (```json или ```) через `stripOuterFence`.\n- Пытается распарсить результат стандартным `JSON.parse`; при успехе проверяет, что результат — объект, через `asJsonObject`.\n- При неудаче первого парсинга применяет `repairKnownLlmEscapes` (исправляет экранированные `` ` ``, `$` и `\\.`) и повторяет попытку.",
           "rendered": true,
-          "fingerprint": "signature=e25b82972ad5046190a32f48ed13073a6738e4ec3135a2b594893c92e97f8e64,deps=d32447c520c4aba58eb01969fe8018724de9226a7f88e5a15fbde71c73bf2ca8,usage=325a3999b7187ddb1fde7179e4602a9ce2a0afc413ad2153c7d2753384e35de2",
+          "fingerprint": "signature=e25b82972ad5046190a32f48ed13073a6738e4ec3135a2b594893c92e97f8e64,deps=d32447c520c4aba58eb01969fe8018724de9226a7f88e5a15fbde71c73bf2ca8,usage=c08a7e4861719aaa1ed5950c659fb9b753b9fe190993574eba4af47b581713c2",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "parseJsonObject выполняет парсинг в два этапа: сначала без исправлений, затем с исправлением трёх LLM-артефактов."
+            "novelFact": "Применяет двухэтапный парсинг: сначала стандартный JSON.parse, затем с исправлением известных LLM-артефактов."
           },
           "language": "ru"
         },
@@ -115,19 +119,19 @@
           "language": "ru"
         },
         "changeGuide": {
-          "body": "1. Инвариант «Всегда возвращает Record<string, unknown>» enforce-ится выражением `throw new Error(\"not an object\")` в функции `asJsonObject`. Названных тестов не видно.\n2. Инвариант «При неудаче парсинга выбрасывает CodeloreError с кодом INVALID_LLM_RESPONSE» enforce-ится выражением `throw new CodeloreError(\"INVALID_LLM_RESPONSE\", message, { cause: error instanceof Error ? error.message : String(error), response: content.slice(0, 1000), })`. Названных тестов не видно.",
+          "body": "1. Инвариант «Всегда возвращает Record<string, unknown>» enforce-ится выражением `throw new Error(\"not an object\")` в функции `asJsonObject`.\n2. Инвариант «При неудаче парсинга выбрасывает CodeloreError с кодом INVALID_LLM_RESPONSE» enforce-ится выражением `throw new CodeloreError(\"INVALID_LLM_RESPONSE\", message, { cause: error instanceof Error ? error.message : String(error), response: content.slice(0, 1000), })`.",
           "rendered": true,
-          "fingerprint": "body=7a450d7cc11784327f5aec0e6686a11fd588878a14d0449e7e57829b302feb42,deps=d32447c520c4aba58eb01969fe8018724de9226a7f88e5a15fbde71c73bf2ca8,usage=325a3999b7187ddb1fde7179e4602a9ce2a0afc413ad2153c7d2753384e35de2,placement=9b3e9d410710a4e55cefb03a154011b0e9f1e62043f3743a5e64181f7b33d99b",
+          "fingerprint": "body=7a450d7cc11784327f5aec0e6686a11fd588878a14d0449e7e57829b302feb42,deps=d32447c520c4aba58eb01969fe8018724de9226a7f88e5a15fbde71c73bf2ca8,usage=c08a7e4861719aaa1ed5950c659fb9b753b9fe190993574eba4af47b581713c2,placement=9b3e9d410710a4e55cefb03a154011b0e9f1e62043f3743a5e64181f7b33d99b",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.75,
+            "novelty": 1,
             "specificity": 0.75,
-            "novelFact": "Два ключевых инварианта enforce-ятся конкретными throw-выражениями."
+            "novelFact": "При неудаче парсинга выбрасывает CodeloreError с кодом INVALID_LLM_RESPONSE."
           },
           "language": "ru"
         }
       },
-      "depDocsFingerprint": "043766bbe87cafd90b69d5fa9b9aabcb58c88f75a234363cd593c50bdf52ab50",
+      "depDocsFingerprint": "cd434b5dbddbf27f1f78d0135c968c616d3d79a93115b50eb4d4829d095b8db7",
       "generationHistory": [
         {
           "runId": "f6a3f4ba-4e16-4227-9555-767c1c6e96a7",
@@ -199,8 +203,29 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.054Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:41:29.620Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "changeGuide"
+          ]
         }
-      ]
+      ],
+      "signature": "parseJsonObject(content: string, message: string): Record<string, unknown>"
     },
     "symbol:src/llm/json.ts#readOptionalString": {
       "heading": "readOptionalString",
@@ -303,7 +328,7 @@
           "language": "ru"
         }
       },
-      "depDocsFingerprint": "043766bbe87cafd90b69d5fa9b9aabcb58c88f75a234363cd593c50bdf52ab50",
+      "depDocsFingerprint": "cd434b5dbddbf27f1f78d0135c968c616d3d79a93115b50eb4d4829d095b8db7",
       "generationHistory": [
         {
           "runId": "f6a3f4ba-4e16-4227-9555-767c1c6e96a7",

@@ -50,6 +50,10 @@
 
 # orderBlocks
 
+```ts
+orderBlocks(allowed: BlockId[]): BlockId[]
+```
+
 ## Зачем это нужно
 
 Упорядочивает разрешённые идентификаторы блоков согласно каноническому порядку из `BLOCK_IDS`.
@@ -74,6 +78,10 @@
 Вызывается [`docStateSectionForPlannedEntity`](#docstatesectionforplannedentity) (тот же файл) для упорядочивания разрешённых блоков в порядке, заданном `BLOCK_IDS`. Результат используется для итерации при создании объектов блоков.
 
 # anchorForHeading
+
+```ts
+anchorForHeading(heading: string): string
+```
 
 ## Зачем это нужно
 
@@ -128,6 +136,10 @@
 
 # withPreservedBlockBodies
 
+```ts
+withPreservedBlockBodies(previous: DocStateSection, fresh: DocStateSection): DocStateSection
+```
+
 ## Зачем это нужно
 
 Сохраняет тела блоков из предыдущего состояния секции при обновлении, если новая секция не содержит собственного текста.
@@ -149,42 +161,54 @@
 
 ## Как менять и что проверять
 
-1. Блоки с пустым телом в `previous` игнорируются. Обеспечивает проверка `if (prevBlock.body.trim() === "") { continue; }`.
-2. Если в `fresh` уже есть блок с непустым телом, он не перезаписывается. Обеспечивает проверка `if (freshBlock && freshBlock.body.trim() !== "") { continue; }`.
+- Блоки с пустым телом в `previous` игнорируются — правило зафиксировано проверкой `prevBlock.body.trim() === ""`.
+- Если в `fresh` уже есть блок с непустым телом, он не перезаписывается — правило зафиксировано проверкой `freshBlock && freshBlock.body.trim() !== ""`.
 
 # docStateSectionForPlannedEntity
 
+```ts
+docStateSectionForPlannedEntity(planned: PlannedFileSection, entity: CodeEntity): DocStateSection
+```
+
 ## Зачем это нужно
 
-Создаёт пустой скелет секции документации для сущности, объединяя данные разметки файла (`planned.heading`, `planned.depth`) с зависимостями и потребителями сущности.
+Преобразует запланированную секцию файла и соответствующую сущность кода в структуру `DocStateSection`, готовую для сохранения в хранилище состояний документации, при этом сохраняя тела блоков из предыдущего состояния, если они не пусты.
 
 ## Что делает
 
-- Делегирует вычисление разрешённых блоков [`allowedBlockIds(entity)`](#allowedblockids), сортировку — [`orderBlocks`](#orderblocks).
-- Устанавливает `owns` как `[entity.id]`, `depends` и `usedBy` как отсортированные без дубликатов массивы из `entity.directDeps` и `entity.directUsages`.
-- Создаёт пустое тело для каждого блока (`body: ""`) и добавляет отпечаток `fingerprint` через [`computeBlockFingerprint`](../markdown/block-facets.codelore.md#computeblockfingerprint), если он определён.
-- Генерирует `anchor` из `planned.heading` функцией [`anchorForHeading`](#anchorforheading).
+- Устанавливает `body` и `rendered` для каждого блока.
+- Использует [`orderBlocks(allowed)`](#orderblocks) для определения порядка блоков.
+- Собирает `depends` и `usedBy` из `entity.directDeps` и `entity.directUsages`, и дедуплицирует их через [`uniqueSorted`](helpers.codelore.md#uniquesorted).
+- Включает `signature` только для не-файловых сущностей с непустой сигнатурой, и всегда устанавливает `owns` в `[entity.id]`.
 
 ## На что можно положиться
 
-- Возвращаемая секция всегда имеет `status: "normal"`.
-- Порядок блоков в `blockOrder` соответствует порядку, полученному из [`orderBlocks`](#orderblocks), который сам следует глобальному порядку `BLOCK_IDS`.
-- Поля `depends` и `usedBy` отсортированы и не содержат дубликатов (гарантируется [`uniqueSorted`](helpers.codelore.md#uniquesorted)).
+- `blockOrder` always matches the global order of `BLOCK_IDS` because it is produced by [`orderBlocks(allowed)`](#orderblocks).
+- `depends` and `usedBy` arrays are deduplicated and sorted via [`uniqueSorted([...entity.directDeps])`](helpers.codelore.md#uniquesorted) and [`uniqueSorted([...entity.directUsers])`](helpers.codelore.md#uniquesorted), so callers can rely on stable ordering and no duplicates.
+- The `signature` field is included only when `entity.type !== "file"` and `entity.signature` is truthy; otherwise it is omitted.
+- The `owns` array always contains exactly `[entity.id]`.
 
 ## От чего зависит
 
-Зависимости:
-- [`computeBlockFingerprint`](../markdown/block-facets.codelore.md#computeblockfingerprint) (`src/markdown/block-facets.ts`) — вычисляет отпечаток для каждого блока.
 - [`uniqueSorted`](helpers.codelore.md#uniquesorted) (`src/service/helpers.ts`) — дедуплицирует и сортирует массивы `depends` и `usedBy`.
 
 ## Кто и как использует
 
-Вызывается из [`CodeloreService.prepareInitialDocs`](codelore-service.codelore.md#prepareinitialdocs) для каждой запланированной секции в цикле по файлам и группам сущностей. Для каждой секции создаётся свежий `DocStateSection` с пустыми телами блоков. Если в хранилище уже есть предыдущая секция для той же сущности, вызывающий объединяет её с новой, иначе секция сохраняется как есть. Новая секция добавляется в `sectionOrder`, если её там ещё нет. Затем состояние сохраняется через `this.docStateStorage.saveDocState(state)`.
+1. [`CodeloreService.prepareInitialDocs`](codelore-service.codelore.md#prepareinitialdocs) calls this function for each planned entity to create a fresh `DocStateSection`.
+2. The caller then checks if a previous section exists in `state.sections`; if so, it uses [`withPreservedBlockBodies(previous, fresh)`](#withpreservedblockbodies) to keep existing block bodies, otherwise it uses the fresh section directly.
+3. The resulting section is stored in `state.sections` and its id is added to `sectionOrder` (unshifted for file entities, pushed for others).
+
+## Чего не делает
+
+- The `signature` field is omitted for file entities or when `entity.signature` is falsy, enforced by the condition `entity.type !== "file" && entity.signature`.
+- The `owns` array is always exactly `[entity.id]`, so it does not reflect any additional ownership beyond the entity itself.
 
 ## Как менять и что проверять
 
-1. [`orderBlocks(allowed)`](#orderblocks) гарантирует, что `blockOrder` совпадает с глобальным порядком `BLOCK_IDS`.
-2. [`uniqueSorted([...entity.directDeps])`](helpers.codelore.md#uniquesorted) и [`uniqueSorted([...entity.directUsages])`](helpers.codelore.md#uniquesorted) гарантируют отсутствие дубликатов и сортировку в массивах `depends` и `usedBy`.
+- The `blockOrder` is guaranteed to match the global order of `BLOCK_IDS` because it is produced by [`orderBlocks(allowed)`](#orderblocks).
+- The `depends` and `usedBy` arrays are deduplicated and sorted via [`uniqueSorted([...entity.directDeps])`](helpers.codelore.md#uniquesorted) and [`uniqueSorted([...entity.directUsers])`](helpers.codelore.md#uniquesorted), ensuring stable ordering and no duplicates.
+- The `signature` field is included only when `entity.type !== "file"` and `entity.signature` is truthy; otherwise it is omitted.
+- The `owns` array always contains exactly `[entity.id]`.
 
 # normalizePrepareScope
 

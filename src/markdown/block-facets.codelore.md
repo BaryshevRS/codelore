@@ -1,12 +1,16 @@
 # computeBlockFingerprint
 
+```ts
+computeBlockFingerprint(blockId: BlockId, ownedEntityIds: string[], entities: Record<string, CodeEntity>): string | undefined
+```
+
 ## Зачем это нужно
 
 Определяет, изменилось ли содержимое блока документации, путём вычисления хеша по релевантным фасетам сущностей.
 
 ## Что делает
 
-Собирает фасеты для каждой owned сущности. Игнорирует идентификаторы сущностей, отсутствующие в `entities`. Возвращает `undefined`, если список owned сущностей пуст или ни одна не найдена.
+Вычисляет отпечаток блока, хэшируя конкатенацию значений фасетов всех сущностей, которыми владеет секция, через `hashFacetAcrossEntities`; возвращает `undefined`, если нет владеющих сущностей или если ни одна из них не имеет записи в словаре entities. Определяет набор фасетов, участвующих в хэше, по фиксированному отображению `BLOCK_FACETS[blockId]`. Возвращает `undefined`, если нет владеющих сущностей или ни одна из них не присутствует в entities, иначе — строку отпечатка.
 
 ## На что можно положиться
 
@@ -16,7 +20,7 @@
 
 ## Кто и как использует
 
-Вызывается из `CodeloreService` ([`src/service/codelore-service.ts`](../service/codelore-service.codelore.md)) при проверке актуальности документации. Функция получает `blockId`, список идентификаторов сущностей и словарь сущностей. Для каждой сущности извлекает фасеты и передаёт их в `hashFacetAcrossEntities`. Результат — строка отпечатка или `undefined`.
+Вызывается из [`CodeloreService`](../service/codelore-service.codelore.md#codeloreservice) (`src/service/codelore-service.ts`) при проверке актуальности документации. Функция получает `blockId`, список идентификаторов сущностей и словарь сущностей. Для каждой сущности извлекает фасеты и передаёт их в `hashFacetAcrossEntities`. Результат — строка отпечатка или `undefined`.
 
 ## Чего не делает
 
@@ -24,8 +28,7 @@
 
 ## Как менять и что проверять
 
-- Возврат `undefined` при пустом `ownedEntityIds` — конструкция `if (ownedEntityIds.length === 0) { return undefined; }` гарантирует, что функция не вычисляет хеш для пустого списка. Тест: `block-facets.test.ts`.
-- Игнорирование отсутствующих сущностей — `const presentIds = sortedIds.filter((id) => entities[id]);` отфильтровывает идентификаторы, не представленные в словаре, что предотвращает ошибки обращения к `undefined`. Тест: `block-facets.test.ts`.
+When the set of facets that contribute to a block's fingerprint changes (e.g., adding a new facet to `BLOCK_FACETS[blockId]`), the fingerprint value changes for all entities, causing [`staleBlockInfoFor`](../service/stale-detection.codelore.md#staleblockinfofor) to report `drift: "facet_changed"` with the updated `changedFacets` list. The fingerprint is undefined when the block is not allowed for the entity, so callers like [`staleBlockInfoFor`](../service/stale-detection.codelore.md#staleblockinfofor) and `CodeloreService.stampUnwrittenBlocks` must handle the undefined case by skipping the block.
 
 # parseBlockFingerprintValue
 

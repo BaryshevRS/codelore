@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/analysis/decision-pass.codelore.md",
-  "generatedAt": "2026-06-05T19:28:31.529Z",
+  "generatedAt": "2026-09-13T22:20:00.082Z",
   "sectionOrder": [
     "symbol:src/analysis/decision-pass.ts#decideDocumentationRoles",
     "symbol:src/analysis/decision-pass.ts#calculateWeight"
@@ -59,15 +59,16 @@
           }
         },
         "invariants": {
-          "body": "- Каждая сущность в переданном entities получает ровно одно решение в возвращаемой Map.\n- Порядок обработки сущностей детерминирован: сущности сортируются по пути и начальному смещению.",
+          "body": "- Каждая сущность из переданного entities получает ровно одно решение в возвращаемой Map.\n- Порядок вставки записей в Map соответствует сортировке сущностей по пути и начальному смещению.\n- Для файловой сущности роль определяется вызовом decideFileRole (решение принимается после обработки всех не‑файловых сущностей).\n- Функция не изменяет переданные коллекции и не выбрасывает исключений.",
           "rendered": true,
-          "fingerprint": "signature=b38141f60764e56af9f9f21ae74e3d3f75d4bbcd84c425d302508bcacfc076f2,body=1d2f4e801c9dfd28008c5aa5e726a3f8bd23b10d1c5ee329da871da583821ca1",
+          "fingerprint": "signature=b38141f60764e56af9f9f21ae74e3d3f75d4bbcd84c425d302508bcacfc076f2,body=f4ecda8a2f71bfc954944ddeb4ba3fb8234222efd8b487b1e636cf86e6afb5d9",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 1,
-            "specificity": 0.75,
-            "novelFact": "Каждая сущность в переданном entities получает ровно одно решение в возвращаемой Map. Порядок обработки сущностей детерминирован: сущности сортируются по пути и начальному смещению."
-          }
+            "novelty": 0.75,
+            "specificity": 1,
+            "novelFact": "Файловая сущность получает роль, определяемую функцией decideFileRole."
+          },
+          "language": "ru"
         },
         "dependencies": {
           "body": "",
@@ -75,22 +76,64 @@
           "fingerprint": "deps=0e2961dd1fd22991357d8074876fd8a9b4129ddbed24b6c45cb2569f0eb36493"
         },
         "workflows": {
-          "body": "1. Вызывается из populateDocumentationMetadata в src/indexer/code-indexer.ts после вычисления метрик, связности и обнаружения обёрток.\n2. Результат используется для определения набора разрешённых блоков документации через determineBlockInclusion.",
+          "body": "Вызывается из populateDocumentationMetadata (внутри buildCodeIndex) после того, как собраны метрики, связность классов и обнаружены обёртки.",
           "rendered": true,
-          "fingerprint": "body=1d2f4e801c9dfd28008c5aa5e726a3f8bd23b10d1c5ee329da871da583821ca1,deps=0e2961dd1fd22991357d8074876fd8a9b4129ddbed24b6c45cb2569f0eb36493",
+          "fingerprint": "body=f4ecda8a2f71bfc954944ddeb4ba3fb8234222efd8b487b1e636cf86e6afb5d9,deps=0e2961dd1fd22991357d8074876fd8a9b4129ddbed24b6c45cb2569f0eb36493",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 1,
+            "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Вызывается из populateDocumentationMetadata в src/indexer/code-indexer.ts после вычисления метрик, связности и обнаружения обёрток. Результат используется для определения набора разрешённых блоков документации через determineBlockInclusion."
-          }
+            "novelFact": "Вызывается из populateDocumentationMetadata после вычисления метрик, связности и обёрток."
+          },
+          "language": "ru"
         },
         "limitations": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "body=1d2f4e801c9dfd28008c5aa5e726a3f8bd23b10d1c5ee329da871da583821ca1"
+          "body": "Решение о роли принимается исключительно на основе метрик, связности классов и обнаружения обёрток; содержимое существующей документации сущности не анализируется и не влияет на выбор роли. Для сущностей без метрик используется fallbackMetrics, который присваивает вес по умолчанию, что может привести к роли one_line для сущностей с неизвестным размером. Роль full_page присваивается только если вес превышает порог weightFull, заданный в конфигурации; при отсутствии порога или его значении по умолчанию сущности с весом ниже порога получают short_page или one_line.",
+          "rendered": true,
+          "fingerprint": "body=f4ecda8a2f71bfc954944ddeb4ba3fb8234222efd8b487b1e636cf86e6afb5d9",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Роль каждой сущности определяется только по метрикам, связности и обёрткам, но не по содержимому документации."
+          }
         }
-      }
+      },
+      "signature": "decideDocumentationRoles(entities: Record<string, CodeEntity>, metrics: Map<string, EntityMetrics>, cohesion: Map<string, ClassCohesion>, wrappers: WrapperDetection, config: CodeloreConfig): Map<string, EntityDocumentationDecision>",
+      "generationHistory": [
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:56.969Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:41:29.543Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "workflows"
+          ]
+        },
+        {
+          "runId": "62857847-d626-48e6-877b-c4bf306b56e4",
+          "timestamp": "2026-09-13T22:20:00.082Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "0ff8470e68d549e5b0764c193e0489e37e39ed0c4255ee277c2adf26e2609aa5"
     },
     "symbol:src/analysis/decision-pass.ts#calculateWeight": {
       "heading": "calculateWeight",

@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/llm/file-writer.codelore.md",
-  "generatedAt": "2026-07-03T17:46:48.571Z",
+  "generatedAt": "2026-09-13T19:41:29.611Z",
   "sectionOrder": [
     "symbol:src/llm/file-writer.ts#buildFileWriteRequest",
     "symbol:src/llm/file-writer.ts#parseFileWriteResponse",
@@ -15,7 +15,9 @@
       "owns": [
         "symbol:src/llm/file-writer.ts#buildFileWriteRequest"
       ],
-      "depends": [],
+      "depends": [
+        "symbol:src/llm/file-writer.ts#fileWriteResponseSchema"
+      ],
       "usedBy": [
         "file:src/llm/file-pipeline.ts",
         "symbol:src/llm/file-writer.ts#writeRequestOverheadChars"
@@ -50,67 +52,67 @@
           }
         },
         "responsibility": {
-          "body": "- Собирает системное сообщение с фиксированными правилами документирования и инструкцией возвращать JSON.\n- Формирует пользовательское сообщение, включающее языковое правило, правило намерения, правила блоков, описание формата JSON, контекст проекта, предпочитаемые термины, dependency docs, исходные файлы и секции для документирования.\n- Возвращает объект `ChatCompletionInput` с ровно одним системным и одним пользовательским сообщением.",
+          "body": "- Формирует системное сообщение с фиксированным набором правил документирования.\n- Собирает пользовательское сообщение, объединяя языковое правило, правило намерения, правила блоков, описание формата JSON, контекст проекта, термины, dependency docs, исходные файлы и секции; пустые опциональные части опускаются.\n- Генерирует схему ответа на основе переданных секций.\n- Возвращает `ChatCompletionInput` с ровно двумя сообщениями: системным и пользовательским.",
           "rendered": true,
-          "fingerprint": "signature=1fbc507e20736c92624b59cd7133c13a685a7765b4a483a0cf2296f9668a6289,deps=f843534285c898e61d2d5e0b7e6a06a582a4cbe63a1ea2bd4070537e8b6ddbbe,usage=7de65192a6d0590ed161a12d3bc1e2a2fb280bae540e04822485f6700cd0c286",
+          "fingerprint": "signature=1fbc507e20736c92624b59cd7133c13a685a7765b4a483a0cf2296f9668a6289,deps=63029870a0f157763d33affdc5e1daa5d445ba16aa213a85b500c6dcf8ae1dad,usage=7de65192a6d0590ed161a12d3bc1e2a2fb280bae540e04822485f6700cd0c286",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Собирает системное и пользовательское сообщения, включающие все контекстные данные для LLM."
+            "novelFact": "Формирует структурированный запрос к LLM, объединяя системные правила и пользовательский контекст."
           },
           "language": "ru"
         },
         "invariants": {
-          "body": "- Всегда возвращает объект с массивом `messages` длиной 2.\n- Поле `messages[0].content` содержит неизменный набор правил.\n- Поле `messages[1].content` включает `languageRule` и `intentRule`.\n- Не мутирует входные массивы или объекты.",
+          "body": "- Возвращаемый объект всегда содержит массив `messages` длиной 2.\n- Системное сообщение содержит неизменный набор правил документирования.\n- Пользовательское сообщение собирается из входных данных; пустые опциональные части (projectContext, terms, dependencyDocs) опускаются.\n- Схема ответа (`responseSchema`) детерминированно строится из переданных секций.\n- Не изменяет входные объекты.",
           "rendered": true,
-          "fingerprint": "signature=1fbc507e20736c92624b59cd7133c13a685a7765b4a483a0cf2296f9668a6289,body=0e39c1b2c4dc633adf9527bb642c7bb5e52c4d759be485d35cb5fb69f94eead0",
+          "fingerprint": "signature=1fbc507e20736c92624b59cd7133c13a685a7765b4a483a0cf2296f9668a6289,body=50bd8ee579fb12380305da4707a50b97ee6ccc54f6fba4ebd990618962db9c26",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
+            "informativeness": 0.75,
+            "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Всегда возвращает ровно два сообщения, причём системное сообщение фиксировано."
+            "novelFact": "Всегда возвращает объект с двумя сообщениями и детерминированной схемой ответа."
           },
           "language": "ru"
         },
         "dependencies": {
-          "body": "Зависит от внутренних функций `blockRules`, `writingRulesSegment` и `sectionsForPrompt`, определённых в том же файле, а также от типа `ChatCompletionInput` из `src/llm/provider.ts`. Для сериализации использует `JSON.stringify` — внешние пакеты или error-классы не задействованы.",
+          "body": "Использует локальные хелперы `blockRules`, `writingRulesSegment` и `sectionsForPrompt` из этого же файла для сборки текста правил и сериализации секций. Тип `ChatCompletionInput` импортирован из `src/llm/provider.ts`. Для формирования схемы ответа вызывает `fileWriteResponseSchema`.",
           "rendered": true,
-          "fingerprint": "deps=f843534285c898e61d2d5e0b7e6a06a582a4cbe63a1ea2bd4070537e8b6ddbbe",
+          "fingerprint": "deps=63029870a0f157763d33affdc5e1daa5d445ba16aa213a85b500c6dcf8ae1dad",
           "scores": {
-            "informativeness": 0.75,
+            "informativeness": 0.5,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "The function assembles a two-message ChatCompletionInput with a fixed system prompt and a user prompt that includes all context."
+            "novelFact": "Использует локальные хелперы `blockRules`, `writingRulesSegment` и `sectionsForPrompt` из этого же файла для сборки текста правил и сериализации секций."
           },
           "language": "ru"
         },
         "workflows": {
-          "body": "Единственный подтверждённый вызывающий — `writeRequestOverheadChars` (этот же файл): он передаёт пустые `files` и `sections` для подсчёта символов общего префикса. Вызовы из `buildRepairRequest`, `translator.ts` и `doc-verifier.ts` не используют данную функцию — в их телах запрос строится напрямую.",
+          "body": "Вызывается из `writeRequestOverheadChars` (этот же файл) с пустыми `files` и `sections` для подсчёта символов общего префикса промпта. В `generateFileGroup` (src/llm/file-pipeline.ts) формирует полный запрос для LLM-генерации документации, после чего результат разбивается на чанки и отправляется провайдеру. В `buildVerifyRequest` (src/llm/doc-verifier.ts) и `buildRepairRequest` (src/llm/file-pipeline.ts) не используется — они строят запросы напрямую. `buildDomainWriteRequest` (src/llm/domain-writer.ts) и `translator.ts` также не вызывают эту функцию.",
           "rendered": true,
-          "fingerprint": "body=0e39c1b2c4dc633adf9527bb642c7bb5e52c4d759be485d35cb5fb69f94eead0,deps=f843534285c898e61d2d5e0b7e6a06a582a4cbe63a1ea2bd4070537e8b6ddbbe",
+          "fingerprint": "body=50bd8ee579fb12380305da4707a50b97ee6ccc54f6fba4ebd990618962db9c26,deps=63029870a0f157763d33affdc5e1daa5d445ba16aa213a85b500c6dcf8ae1dad",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Only confirmed caller is `writeRequestOverheadChars`; other listed callers construct their own `ChatCompletionInput` directly."
+            "novelFact": "Вызывается из `writeRequestOverheadChars` с пустыми `files` и `sections` для подсчёта символов общего префикса промпта."
           },
           "language": "ru"
         },
         "limitations": {
-          "body": "- Значение `projectContext` вставляется целиком через `writingRulesSegment(input.projectContext)` без проверки или обрезки — размер не контролируется.\n- `dependencyDocs` сериализуются через `JSON.stringify(input.dependencyDocs, null, 2)` без лимита на размер.\n- Исходные файлы и секции передаются полностью, без разбивки — функция не производит чанкинг или трекинг.\n- Поддерживаются только текстовые сообщения; мультимодальные запросы не реализованы: `messages[0].content` и `messages[1].content` всегда строки.",
+          "body": "Не контролирует размер `projectContext` — он вставляется целиком через `writingRulesSegment(input.projectContext)`. `dependencyDocs` сериализуются через `JSON.stringify(input.dependencyDocs, null, 2)` без ограничения длины. Исходные файлы и секции передаются полностью — разбиение на части выполняется снаружи. Поддерживает только текстовые сообщения: `messages[0].content` и `messages[1].content` всегда строки.",
           "rendered": true,
-          "fingerprint": "body=0e39c1b2c4dc633adf9527bb642c7bb5e52c4d759be485d35cb5fb69f94eead0",
+          "fingerprint": "body=50bd8ee579fb12380305da4707a50b97ee6ccc54f6fba4ebd990618962db9c26",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 1,
+            "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Функция не контролирует размер projectContext, dependencyDocs, файлов и секций — полные данные передаются в промпт без чанкинга или обрезки."
+            "novelFact": "Не контролирует размер `projectContext` — он вставляется целиком через `writingRulesSegment(input.projectContext)`."
           },
           "language": "ru"
         }
       },
-      "depDocsFingerprint": "3fb47a74aeac622655b15fede520b1b5b3e7b5cd155e00670fe4b869ef7de9b5",
+      "depDocsFingerprint": "237299e4da9d9e16d5087fab2336dee8492592d2695d736f4a97fd4087b2de8e",
       "generationHistory": [
         {
           "runId": "22bccca0-cf47-476d-bbf5-52789133117c",
@@ -223,8 +225,32 @@
           "generatedBlocks": [
             "limitations"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.048Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:41:29.610Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
         }
-      ]
+      ],
+      "signature": "buildFileWriteRequest(input: BuildFileWriteRequestInput): ChatCompletionInput"
     },
     "symbol:src/llm/file-writer.ts#parseFileWriteResponse": {
       "heading": "parseFileWriteResponse",
@@ -238,7 +264,9 @@
         "symbol:src/llm/json.ts#parseJsonObject"
       ],
       "usedBy": [
+        "file:src/llm/domain-writer.ts",
         "file:src/llm/file-pipeline.ts",
+        "symbol:src/llm/domain-writer.ts#parseDomainWriteResponse",
         "symbol:src/llm/file-pipeline.ts#verifyChunkFacts"
       ],
       "status": "normal",
@@ -273,15 +301,16 @@
           }
         },
         "responsibility": {
-          "body": "- Не выполняет ретраи при невалидном ответе — это задача вызывающего (`file-pipeline.ts`).\n- Не проверяет содержательную корректность блоков (например, правильность `refs`) — только наличие и структуру.\n- Не отвечает за сериализацию ответа в секции документации — возвращает `FileWriteResult`.\n- Делегирует парсинг каждого блока внутренним функциям (`parseWrittenBlock`, `readRefs`).",
+          "body": "- Разбирает JSON-ответ LLM, проверяет наличие объекта `sections` и соответствие идентификаторов секций ожидаемым.\n- Для каждой секции делегирует валидацию и парсинг блоков функциям `parseSectionBlocks` и `parseWrittenBlock`, которые проверяют типы, обязательные поля и допустимые значения оценок.\n- При `requireCompleteness: true` (по умолчанию) проверяет наличие обязательных блоков `purpose` и `responsibility` через `assertRequiredBlocks`.\n- Возвращает `FileWriteResult`; при любом нарушении структуры выбрасывает `CodeloreError` с кодом `INVALID_LLM_RESPONSE`.",
           "rendered": true,
-          "fingerprint": "signature=7dc0b3b7bfd667f4ae080a2c1b083e2935a87bab8c347a0d4f018b00ac37a7a1,deps=72beee2fa7d56892befd214c38496333ee1c6d9289cea39fedb209db3ccc31d6,usage=dedacb21ea1b1e50ea83e3f233f3ff7c7cde1236e3587f2b4283b36b1874cbda",
+          "fingerprint": "signature=7dc0b3b7bfd667f4ae080a2c1b083e2935a87bab8c347a0d4f018b00ac37a7a1,deps=72beee2fa7d56892befd214c38496333ee1c6d9289cea39fedb209db3ccc31d6,usage=396af7d0b8f975ae18dab73d3d7ff0ddf572e1c3aaa5bb9d394f5f82b0dba79c",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.5,
+            "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Границы: только структурная валидация."
-          }
+            "novelFact": "Разбирает JSON-ответ LLM в типизированный результат, строго проверяя структуру и выбрасывая ошибки при несоответствии."
+          },
+          "language": "ru"
         },
         "invariants": {
           "body": "- Бросает `CodeloreError` с кодом `INVALID_LLM_RESPONSE` при любом нарушении структуры ответа.\n- Опция `requireCompleteness: true` (по умолчанию) гарантирует, что все обязательные блоки (`purpose`, `responsibility`) присутствуют; при `false` пропускает проверку.\n- Неизвестные `sectionId` в ответе LLM вызывают ошибку, а не игнорируются.",
@@ -331,19 +360,19 @@
           "language": "ru"
         },
         "changeGuide": {
-          "body": "Добавление нового идентификатора в `REQUIRED_TARGET_BLOCKS` (конструкция `REQUIRED_TARGET_BLOCKS.has(blockId)`) вызовет ошибку в `assertRequiredBlocks` для всех существующих LLM-ответов, не содержащих этот блок. Изменение `ALLOWED_SCORE_VALUES` (проверка `ALLOWED_SCORE_VALUES.has(value)`) приведёт к ошибке в `readScore` при несовпадении. Формат `refs` строго `string[]` — любое отклонение вызывает `CodeloreError` через проверку `value.some((entry) => typeof entry !== \"string\")`.",
+          "body": "- Набор обязательных блоков зафиксирован в `REQUIRED_TARGET_BLOCKS` — вызов `REQUIRED_TARGET_BLOCKS.has(blockId)` в `assertRequiredBlocks` определяет, какие блоки обязательны при `requireCompleteness: true`.\n- Допустимые значения оценок перечислены в `ALLOWED_SCORE_VALUES` — проверка `ALLOWED_SCORE_VALUES.has(value)` в `readScore` выбрасывает `CodeloreError` при любом отклонении.\n- Формат `refs` проверяется в `readRefs` условием `value.some((entry) => typeof entry !== \"string\")` — массив должен содержать только строки.",
           "rendered": true,
-          "fingerprint": "body=1ad12c329daf55cd203d14de8d4f40b89b7953c168f95f55709cd4a13096bf56,deps=72beee2fa7d56892befd214c38496333ee1c6d9289cea39fedb209db3ccc31d6,usage=dedacb21ea1b1e50ea83e3f233f3ff7c7cde1236e3587f2b4283b36b1874cbda,placement=9f1b6f03df9a158fc34a59944695862f9c29031b0311536e74488512df052c03",
+          "fingerprint": "body=1ad12c329daf55cd203d14de8d4f40b89b7953c168f95f55709cd4a13096bf56,deps=72beee2fa7d56892befd214c38496333ee1c6d9289cea39fedb209db3ccc31d6,usage=396af7d0b8f975ae18dab73d3d7ff0ddf572e1c3aaa5bb9d394f5f82b0dba79c,placement=9f1b6f03df9a158fc34a59944695862f9c29031b0311536e74488512df052c03",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Changes to `REQUIRED_TARGET_BLOCKS` or `ALLOWED_SCORE_VALUES` break compatibility immediately."
+            "novelFact": "Набор обязательных блоков зафиксирован в `REQUIRED_TARGET_BLOCKS` — вызов `REQUIRED_TARGET_BLOCKS.has(blockId)` в `assertRequiredBlocks` определяет, какие блоки обязательны при `requireCompleteness: true`."
           },
           "language": "ru"
         }
       },
-      "depDocsFingerprint": "3fb47a74aeac622655b15fede520b1b5b3e7b5cd155e00670fe4b869ef7de9b5",
+      "depDocsFingerprint": "237299e4da9d9e16d5087fab2336dee8492592d2695d736f4a97fd4087b2de8e",
       "generationHistory": [
         {
           "runId": "22bccca0-cf47-476d-bbf5-52789133117c",
@@ -437,8 +466,29 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.049Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:41:29.611Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "changeGuide"
+          ]
         }
-      ]
+      ],
+      "signature": "parseFileWriteResponse(content: string, sections: FileWriteSection[], options: { requireCompleteness?: boolean } = {}): FileWriteResult"
     },
     "symbol:src/llm/file-writer.ts#writeRequestOverheadChars": {
       "heading": "writeRequestOverheadChars",
@@ -563,7 +613,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "3fb47a74aeac622655b15fede520b1b5b3e7b5cd155e00670fe4b869ef7de9b5"
+      "depDocsFingerprint": "237299e4da9d9e16d5087fab2336dee8492592d2695d736f4a97fd4087b2de8e"
     }
   },
   "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"

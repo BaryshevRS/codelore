@@ -1,13 +1,17 @@
 # computeConfigFingerprint
 
+```ts
+computeConfigFingerprint(config: CodeloreConfig): string
+```
+
 ## Зачем это нужно
 
 Вычисляет детерминированный отпечаток полей конфигурации, влияющих на рендеринг документации, для обнаружения изменений.
 
 ## Что делает
 
-- Учитывает только `thresholds` и `blockHeadings`. Не затрагивает `sourceGlobs`, `llm`, `testGlobs` и другие поля.
-- Делегирует хеширование в `createHash` из `node:crypto`, каноническую сериализацию — во внутреннюю `stableStringify`.
+- Сериализует в канонический JSON ровно четыре поля конфигурации — `config.thresholds`, `config.docs.blockHeadings`, `config.docs.translations` и `config.docs.blockHeadingsByLanguage` — через внутреннюю `stableStringify`, которая сортирует ключи объектов и отбрасывает `undefined`.
+- Вычисляет SHA-256 от полученной строки через `createHash` из `node:crypto` и возвращает первые 32 символа hex-дайджеста.
 
 ## На что можно положиться
 
@@ -70,39 +74,47 @@
 
 # DocStateStorage
 
+```ts
+class DocStateStorage
+```
+
 ## Зачем это нужно
 
 Координирует сохранение и управление JSON-состоянием документа, его рендеринг в Markdown-файлы (включая переводы) и очистку устаревших файлов, обеспечивая атомарность записи и целостность файловой структуры.
 
 ## Что делает
 
-- Сохраняет JSON-состояние в поддиректории <indexDir>/state/ и рендерит Markdown-файл документа через [`renderDoc`](../markdown/render-doc.codelore.md#renderdoc), всегда используя атомарную запись: сначала во временный файл, затем `rename`.\n- Управляет файлами переводов: генерирует `*.language.codelore.md` для каждого языка из `config.docs.translations`, а также удаляет файлы переводов, у которых нет собственного состояния, через `cleanupTranslationFiles`.\n- Предоставляет метод `reapplyConfigToAllDocs`, который перебирает все состояния, сравнивает отпечаток конфигурации через [`computeConfigFingerprint`](#computeconfigfingerprint) и перерендеривает только документы с изменившимся отпечатком.
+- Управляет JSON-состояниями документов: загружает файл с проверкой версии, сохраняет и удаляет его по `docPath`, используя `statePathFor`, а список состояний получает обходом JSON-файлов через `listDocStates`.
+- Рендерит документ и все языки из `config.docs.translations` через [`renderDoc`](../markdown/render-doc.codelore.md#renderdoc) и записывает Markdown-файлы; при изменении отпечатка конфигурации пересчитывает решения рендеринга и сохраняет состояние, при совпадении — переписывает Markdown-файлы.
+- Поддерживает кэш контекста ссылок и `docInfo` для всех состояний, обновляя его при сохранении и удалении; очищает устаревшие файлы переводов.
+- При удалении документа целиком убирает JSON-состояние, основной `.md` и все переводы-сироты.
 
 ## На что можно положиться
 
-- `deleteDoc` удаляет и JSON-состояние, и основной Markdown-файл, и все файлы переводов, у которых нет собственного файла состояния.
-- `loadDocState` повышает версию до актуальной, если загруженный state версии меньше, не производя миграции данных.
-- `renderAndPersist` всегда вычисляет и обновляет `configFingerprint` в сохраняемом состоянии.
-- `cleanupTranslationFiles` удаляет только те файлы переводов, которые не имеют собственного JSON-состояния и не входят в множество `keep`.
+- Отсутствующий файл состояния не является ошибкой: `loadDocState` возвращает `undefined` при `ENOENT`, а `listDocStates` возвращает `[]`, если каталог состояния отсутствует.
+- Несовпадение `state.version` с `DOC_STATE_VERSION` выбрасывает ошибку с кодом `UNSUPPORTED_STATE_VERSION`; состояние не загружается.
+- Запись JSON и Markdown атомарна: содержимое сначала пишется в `<path>.tmp`, затем `rename` заменяет целевой файл.
+- `cleanupTranslationFiles` удаляет только файлы, соответствующие `<base>.<lang><suffix>`, не входящие в `keep` и не имеющие собственного JSON-состояния; кандидат с собственным state-файлом остаётся.
+- При сверке документов с состоянием обновляются только те, чей сохранённый `configFingerprint` отличается от текущего; при совпадении JSON-состояние не меняется, а `.md` переписывается только при отличии содержимого.
+- Кэш `renderContextPromise` создаётся один раз и обновляется при `saveDocState`/`deleteDocState`, которые добавляют или удаляют ссылки и `docInfo`.
 
 ## От чего зависит
 
-Использует внешние модули: `existsSync` из `node:fs`, `mkdir`, `readdir`, `readFile`, `rename`, `rm`, `writeFile` из `node:fs/promises`, `basename`, `dirname`, `join`, `relative`, `sep` из `node:path`. Также полагается на внутренние функции этого же файла: [`applyRenderDecision`](#applyrenderdecision), [`computeConfigFingerprint`](#computeconfigfingerprint), `translationDocPath`, `splitDocPath`, `stableStringify`, `escapeRegExp`, `stripMarkdownExtension`, `collectJsonFiles`. Рендер Markdown делегируется [`renderDoc`](../markdown/render-doc.codelore.md#renderdoc) из `src/markdown/render-doc.ts`.
+Использует [`CodeloreError`](../errors.codelore.md#codeloreerror) из `src/errors.ts` для выбрасывания ошибки при несовпадении версии состояния. Рендер Markdown делегирует [`renderDoc`](../markdown/render-doc.codelore.md#renderdoc) из `src/markdown/render-doc.ts`. Для управления картой ссылок и docInfo вызывает [`buildEntityLinkMap`](../markdown/linkify.codelore.md#buildentitylinkmap), [`addDocToLinkMap`](../markdown/linkify.codelore.md#adddoctolinkmap), [`removeDocFromLinkMap`](../markdown/linkify.codelore.md#removedocfromlinkmap) из `src/markdown/linkify.ts`. Путь к файлу перевода вычисляет через [`translationDocPath`](../markdown/doc-paths.codelore.md#translationdocpath) из `src/markdown/doc-paths.ts`. Остальные зависимости — внутренние функции этого же файла: [`applyRenderDecision`](#applyrenderdecision), [`computeConfigFingerprint`](#computeconfigfingerprint), `splitDocPath`, `escapeRegExp`, `stripMarkdownExtension`, `collectJsonFiles`, `docInfoOf`, а также модули `node:fs`, `node:fs/promises`, `node:path`, `node:crypto`.
 
 ## Кто и как использует
 
-`loadDocState` вызывается из [`buildDocIndex`](../indexer/state-indexer.codelore.md#builddocindex) и [`patchDocIndexPaths`](../indexer/state-indexer.codelore.md#patchdocindexpaths) (оба в `src/indexer/state-indexer.ts`) для загрузки существующего состояния документа при построении или обновлении индекса. `renderAndPersist` вызывается из `reapplyConfigToAllDocs` при массовом перерендере после изменения конфигурации и из [`applyRewritesToDoc`](../service/section-rewrite.codelore.md#applyrewritestodoc) (`src/service/section-rewrite.ts`) после применения правок к секциям. [`IndexManager`](../service/index-manager.codelore.md#indexmanager) (`src/service/index-manager.ts`) использует различные методы класса для управления состояниями документов.
+[`buildDocIndex`](../indexer/state-indexer.codelore.md#builddocindex) и [`patchDocIndexPaths`](../indexer/state-indexer.codelore.md#patchdocindexpaths) (оба в `src/indexer/state-indexer.ts`) вызывают `loadDocState` для загрузки существующего состояния документа при построении или обновлении индекса. [`applyRewritesToDoc`](../service/section-rewrite.codelore.md#applyrewritestodoc) (`src/service/section-rewrite.ts`) вызывает `renderAndPersist` после применения правок к секциям. [`IndexManager`](../service/index-manager.codelore.md#indexmanager) (`src/service/index-manager.ts`) использует различные методы класса для управления состояниями документов. `reconcileRenderedDocs` вызывается при сверке всех документов: для каждого состояния проверяет отпечаток конфигурации и либо пересохраняет состояние с перерендером, либо переписывает только Markdown-файлы при отличии содержимого.
 
 ## Чего не делает
 
-- Нет кэширования стейтов: каждый вызов `loadDocState` читает JSON-файл с диска.
-- Файлы стейтов не сжаты: `JSON.stringify` без сжатия.
-- Отпечаток конфигурации ([`computeConfigFingerprint`](#computeconfigfingerprint)) покрывает только поля `thresholds`, `blockHeadings`, `translations`, `blockHeadingsByLanguage`; изменения других полей конфигурации не вызывают перерендер.
-- `listDocStates` рекурсивно обходит все JSON-файлы в каталоге `state` без ограничения глубины, включая файлы, не являющиеся стейтами (исключаются только файлы с `.generation-debug.` в имени).
-- `saveDocState` и `writeDocFile` не содержат блокировки или повтора при сбое `rename`.
+- [`computeConfigFingerprint`](#computeconfigfingerprint) покрывает только поля `thresholds`, `blockHeadings`, `translations`, `blockHeadingsByLanguage` — изменения других полей конфигурации не вызывают перерендер.
+- `listDocStates` рекурсивно обходит все JSON-файлы в каталоге `state` без ограничения глубины, исключая только файлы с `.generation-debug.` в имени.
 - `loadDocState` выбрасывает исключение при непарсибельном JSON, не пытаясь восстановить данные.
 
 ## Как менять и что проверять
 
-- Атомарность записи: методы `saveDocState` и `writeDocFile` сначала записывают содержимое во временный файл с суффиксом `.tmp`, затем выполняют `rename`. Конструкции: `const tmpPath = \`${absolutePath}.tmp\`; await writeFile(tmpPath, ...); await rename(tmpPath, absolutePath);` в обоих методах. Тесты: нет.
-- Версионирование стейта: `loadDocState` повышает версию загруженного состояния до `DOC_STATE_VERSION` (текущее значение 4), если она меньше. Конструкция: `if (state.version < DOC_STATE_VERSION) { state.version = DOC_STATE_VERSION; }`. Тесты: нет.
+- Атомарность записи: `saveDocState` и `writeDocFile` сначала пишут содержимое во временный файл с суффиксом `.tmp`, затем выполняют `rename`. Конструкция: `const tmpPath = \`${absolutePath}.tmp\`; await writeFile(tmpPath, ...); await rename(tmpPath, absolutePath);`.
+- Версионирование состояния: `loadDocState` выбрасывает [`CodeloreError`](../errors.codelore.md#codeloreerror) с кодом `UNSUPPORTED_STATE_VERSION` при несовпадении `state.version` с `DOC_STATE_VERSION`. Конструкция: `if (state.version !== DOC_STATE_VERSION) { throw new CodeloreError("UNSUPPORTED_STATE_VERSION", ...); }`.
+- Очистка переводов-сирот: `cleanupTranslationFiles` удаляет только файлы, соответствующие шаблону `<base>.<lang><suffix>`, не входящие в `keep` и не имеющие собственного JSON-состояния. Конструкция: `if (existsSync(this.statePathFor(candidateDocPath))) { continue; }`.
+- Кэш контекста рендера: `renderContextPromise` создаётся один раз через `buildRenderContext` и обновляется при `saveDocState`/`deleteDocState`. Конструкция: `this.renderContextPromise ??= this.buildRenderContext();`.

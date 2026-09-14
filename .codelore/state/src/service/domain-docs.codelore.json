@@ -1,0 +1,699 @@
+{
+  "version": 4,
+  "docPath": "src/service/domain-docs.codelore.md",
+  "generatedAt": "2026-09-13T23:26:45.742Z",
+  "sectionOrder": [
+    "file:src/service/domain-docs.ts",
+    "symbol:src/service/domain-docs.ts#domainDocPath",
+    "symbol:src/service/domain-docs.ts#projectDocPath",
+    "symbol:src/service/domain-docs.ts#tierDocPathForEntity",
+    "symbol:src/service/domain-docs.ts#domainDocState",
+    "symbol:src/service/domain-docs.ts#buildDomainSkeletons"
+  ],
+  "sections": {
+    "file:src/service/domain-docs.ts": {
+      "heading": "domain-docs.ts",
+      "depth": 1,
+      "anchor": "domain-docsts",
+      "owns": [
+        "file:src/service/domain-docs.ts"
+      ],
+      "depends": [
+        "symbol:src/service/prepare-docs.ts#anchorForHeading",
+        "symbol:src/service/prepare-docs.ts#orderBlocks"
+      ],
+      "usedBy": [],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "The module defines the data shapes and path derivation rules that the domain-doc preparation flow relies on to persist and locate per-entity documentation.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The module defines the data shapes and path derivation rules that the domain-doc preparation flow relies on to persist and locate per-entity documentation."
+          },
+          "fingerprint": "signature=864fe90c6e951222174e0171b3c13f233ef1df4855b675e995846149efbf1f7f,placement=864fe90c6e951222174e0171b3c13f233ef1df4855b675e995846149efbf1f7f"
+        },
+        "responsibility": {
+          "body": "The module defines the doc-state shape and the tier path derivation rule, both used by the preparation flow to save and locate docs.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The module defines the doc-state shape and the tier path derivation rule, both used by the preparation flow to save and locate docs."
+          },
+          "fingerprint": "signature=864fe90c6e951222174e0171b3c13f233ef1df4855b675e995846149efbf1f7f,deps=f2aaeeac71a2d0b600c48ee770e5c8d6f00470f7a949faa51f3945b9a8bdec13,usage=d9a4309afa01217f69789405e010c7f1811cad1d36454b8055d5eabf070ca34a"
+        },
+        "invariants": {
+          "body": "The module establishes the domain-doc state contract: a doc state is a record of section bodies keyed by section id, with an optional memberDocsFingerprint, and tier doc paths are derived from entity ids via a deterministic mapping.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The module defines the domain-doc state contract: a doc state is a record of section bodies keyed by section id, with an optional memberDocsFingerprint, and tier doc paths are derived from entity ids via a deterministic mapping."
+          },
+          "fingerprint": "signature=864fe90c6e951222174e0171b3c13f233ef1df4855b675e995846149efbf1f7f,body=dbf20d7d60eccfb19bc984c3842c7b5a91dfb8907615ca70e9d35890034803e1"
+        },
+        "dependencies": {
+          "body": "Зависит от `domainDocState` и `tierDocPathForEntity` — оба определены в этом же файле и используются для построения скелета документа.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "Зависит от `domainDocState` и `tierDocPathForEntity` — оба определены в этом же файле и используются для построения скелета документа."
+          },
+          "fingerprint": "deps=f2aaeeac71a2d0b600c48ee770e5c8d6f00470f7a949faa51f3945b9a8bdec13"
+        },
+        "limitations": {
+          "body": "Функция не выполняет никакой проверки на дубликаты или самоссылки — она просто строит скелет на основе переданного массива сущностей, не анализируя их содержимое.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "Функция не выполняет никакой проверки на дубликаты или самоссылки — она просто строит скелет на основе переданного массива сущностей, не анализируя их содержимое."
+          },
+          "fingerprint": "body=dbf20d7d60eccfb19bc984c3842c7b5a91dfb8907615ca70e9d35890034803e1"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.802Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.736Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "4e49f5cef53cf7112721409b2403c729f97d6124ed9ff84e941dc2da45a931a9"
+    },
+    "symbol:src/service/domain-docs.ts#domainDocPath": {
+      "heading": "domainDocPath",
+      "depth": 1,
+      "anchor": "domaindocpath",
+      "signature": "domainDocPath(slug: string): string",
+      "owns": [
+        "symbol:src/service/domain-docs.ts#domainDocPath"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.domainDocSummary",
+        "symbol:src/service/domain-docs.ts#tierDocPathForEntity"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "signature=112c640f464d5120ed3f93c370cc1c9bf93c9b60e7e22e569425c8932575c94d,placement=04a2066e743f19c5df0220fc53b71be503b98e2f396cf6dfc8ac076e181db820"
+        },
+        "responsibility": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "signature=112c640f464d5120ed3f93c370cc1c9bf93c9b60e7e22e569425c8932575c94d,deps=307204d0568a2566c52ccd12f13a711362ed6a6708881bc6be956af5e1f6dcb7,usage=2c0182b43d3dd0ac48725f840ed1011a7d5b55e71f4360aa0a03a1f54a032346"
+        },
+        "invariants": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "signature=112c640f464d5120ed3f93c370cc1c9bf93c9b60e7e22e569425c8932575c94d,body=90fec8ca1ca2fdb50991d07a793dbc5502e224ddb66b0a7e956be931bde505a2"
+        },
+        "dependencies": {
+          "body": "Функция не вызывает tierDocPathForEntity.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция не вызывает tierDocPathForEntity."
+          },
+          "fingerprint": "deps=307204d0568a2566c52ccd12f13a711362ed6a6708881bc6be956af5e1f6dcb7"
+        },
+        "workflows": {
+          "body": "Используется для получения пути к документу каждой сущности, чтобы затем загрузить существующее состояние документа и сохранить обновленный скелет.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Используется для получения пути к документу каждой сущности, чтобы затем загрузить существующее состояние документа и сохранить обновленный скелет."
+          },
+          "fingerprint": "body=90fec8ca1ca2fdb50991d07a793dbc5502e224ddb66b0a7e956be931bde505a2,deps=307204d0568a2566c52ccd12f13a711362ed6a6708881bc6be956af5e1f6dcb7"
+        },
+        "limitations": {
+          "body": "Функция не проверяет существование файла по возвращаемому пути — она просто вычисляет путь на основе имени сущности.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "Функция не проверяет существование файла по возвращаемому пути — она просто вычисляет путь на основе имени сущности."
+          },
+          "fingerprint": "body=90fec8ca1ca2fdb50991d07a793dbc5502e224ddb66b0a7e956be931bde505a2"
+        }
+      },
+      "depDocsFingerprint": "4e49f5cef53cf7112721409b2403c729f97d6124ed9ff84e941dc2da45a931a9",
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.737Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
+        }
+      ]
+    },
+    "symbol:src/service/domain-docs.ts#projectDocPath": {
+      "heading": "projectDocPath",
+      "depth": 1,
+      "anchor": "projectdocpath",
+      "signature": "projectDocPath(): string",
+      "owns": [
+        "symbol:src/service/domain-docs.ts#projectDocPath"
+      ],
+      "depends": [],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.deleteOrphanTierDocs",
+        "symbol:src/service/domain-docs.ts#tierDocPathForEntity"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "signature=4c325d3fec947d611847058ad705238d186c54f9f0b97911191f01698f78f498,placement=bbf8e69c69f2b90473874e07da0121d0e61e6b58613ffc84755fde46104ccd7c"
+        },
+        "responsibility": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "signature=4c325d3fec947d611847058ad705238d186c54f9f0b97911191f01698f78f498,deps=424fa50423d2852088379db890eb83ec8273557237c526c4d4f06e5ccf4d7faa,usage=48e0e1a34ad43ebb2085ee146d3f60ddb573677360ad7334b4fca0f26c399ef7"
+        },
+        "invariants": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "signature=4c325d3fec947d611847058ad705238d186c54f9f0b97911191f01698f78f498,body=6c24ec91b1cc55e9951651bab4913817256538dd87954dbd9b74b54d7fdc61cf"
+        },
+        "dependencies": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "deps=424fa50423d2852088379db890eb83ec8273557237c526c4d4f06e5ccf4d7faa"
+        },
+        "workflows": {
+          "body": "Вызывается tierDocPathForEntity при entity.type === 'project'.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Вызывается tierDocPathForEntity при entity.type === 'project'."
+          },
+          "fingerprint": "body=6c24ec91b1cc55e9951651bab4913817256538dd87954dbd9b74b54d7fdc61cf,deps=424fa50423d2852088379db890eb83ec8273557237c526c4d4f06e5ccf4d7faa"
+        },
+        "limitations": {
+          "body": "Функция возвращает константу, не обрабатывая имя проекта.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция возвращает константу, не обрабатывая имя проекта."
+          },
+          "fingerprint": "body=6c24ec91b1cc55e9951651bab4913817256538dd87954dbd9b74b54d7fdc61cf"
+        }
+      },
+      "depDocsFingerprint": "4e49f5cef53cf7112721409b2403c729f97d6124ed9ff84e941dc2da45a931a9",
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.739Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "limitations"
+          ]
+        }
+      ]
+    },
+    "symbol:src/service/domain-docs.ts#tierDocPathForEntity": {
+      "heading": "tierDocPathForEntity",
+      "depth": 1,
+      "anchor": "tierdocpathforentity",
+      "signature": "tierDocPathForEntity(entity: CodeEntity): string | undefined",
+      "owns": [
+        "symbol:src/service/domain-docs.ts#tierDocPathForEntity"
+      ],
+      "depends": [
+        "symbol:src/service/domain-docs.ts#domainDocPath",
+        "symbol:src/service/domain-docs.ts#projectDocPath"
+      ],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.generateDomainDocs",
+        "symbol:src/service/codelore-service.ts#CodeloreService.stampMemberFingerprints",
+        "symbol:src/service/domain-docs.ts#buildDomainSkeletons",
+        "symbol:src/service/domain-docs.ts#domainDocState"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "signature=04d0bfc50ae7e8a53d33d01ad05456647cba78171aa5aedad40695a22d4146d5,placement=815d7a20a9ee2371bacd7c6998339f0f91909c5d9dd78feeb494093e965f772e"
+        },
+        "responsibility": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "signature=04d0bfc50ae7e8a53d33d01ad05456647cba78171aa5aedad40695a22d4146d5,deps=99047e2fd19c2faf7a375f95014bea6223aeaf2eb0a39dd1512ce79e65a3fc34,usage=40ab9973ee5855a4273b5d84a91fa53fee2bbe176a4aa7bb2ccb72bb2d70b31a"
+        },
+        "invariants": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "signature=04d0bfc50ae7e8a53d33d01ad05456647cba78171aa5aedad40695a22d4146d5,body=7b226f6714a8ef3195992d326c305ea7e7af06d0d0a3beb0c6c86fe08b7eb5c2"
+        },
+        "dependencies": {
+          "body": "Зависит от projectDocPath и domainDocPath.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Зависит от projectDocPath и domainDocPath."
+          },
+          "fingerprint": "deps=99047e2fd19c2faf7a375f95014bea6223aeaf2eb0a39dd1512ce79e65a3fc34"
+        },
+        "workflows": {
+          "body": "Используется для получения пути к документу каждой сущности, чтобы затем загрузить существующее состояние документа и сохранить обновленный скелет.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Используется для получения пути к документу каждой сущности, чтобы затем загрузить существующее состояние документа и сохранить обновленный скелет."
+          },
+          "fingerprint": "body=7b226f6714a8ef3195992d326c305ea7e7af06d0d0a3beb0c6c86fe08b7eb5c2,deps=99047e2fd19c2faf7a375f95014bea6223aeaf2eb0a39dd1512ce79e65a3fc34"
+        },
+        "limitations": {
+          "body": "Функция не проверяет корректность имени сущности, хотя сама не конкатенирует строки — делегирует другим функциям.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция не проверяет корректность имени сущности, хотя сама не конкатенирует строки — делегирует другим функциям."
+          },
+          "fingerprint": "body=7b226f6714a8ef3195992d326c305ea7e7af06d0d0a3beb0c6c86fe08b7eb5c2"
+        },
+        "changeGuide": {
+          "body": "При изменении структуры путей к документам необходимо обновить эту функцию, так как она используется в `buildDomainSkeletons`.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "При изменении структуры путей к документам необходимо обновить эту функцию, так как она используется в `buildDomainSkeletons`."
+          },
+          "fingerprint": "body=7b226f6714a8ef3195992d326c305ea7e7af06d0d0a3beb0c6c86fe08b7eb5c2,deps=99047e2fd19c2faf7a375f95014bea6223aeaf2eb0a39dd1512ce79e65a3fc34,usage=40ab9973ee5855a4273b5d84a91fa53fee2bbe176a4aa7bb2ccb72bb2d70b31a,placement=815d7a20a9ee2371bacd7c6998339f0f91909c5d9dd78feeb494093e965f772e"
+        }
+      },
+      "depDocsFingerprint": "4e49f5cef53cf7112721409b2403c729f97d6124ed9ff84e941dc2da45a931a9",
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.740Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    },
+    "symbol:src/service/domain-docs.ts#domainDocState": {
+      "heading": "domainDocState",
+      "depth": 1,
+      "anchor": "domaindocstate",
+      "signature": "domainDocState(entity: CodeEntity): DocState",
+      "owns": [
+        "symbol:src/service/domain-docs.ts#domainDocState"
+      ],
+      "depends": [
+        "symbol:src/service/domain-docs.ts#tierDocPathForEntity",
+        "symbol:src/service/prepare-docs.ts#anchorForHeading",
+        "symbol:src/service/prepare-docs.ts#orderBlocks"
+      ],
+      "usedBy": [
+        "symbol:src/service/domain-docs.ts#buildDomainSkeletons"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "signature=197106574dd2eac0df73164ee53ea195280079d5eb4a263636f5f6a335e97dc0,placement=fb5b8d4cf592e5b9b2ad484328c7bb1906259c48b21bc61c8eda0e3327758f23"
+        },
+        "responsibility": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "signature=197106574dd2eac0df73164ee53ea195280079d5eb4a263636f5f6a335e97dc0,deps=90bc725dbf2b3cf3ac839050a0fcf284779563edd2f555a6e838034cf064f726,usage=d36fea01831ffed2c93060c3b4b9497ca420b4fcd80b34763fb38cda97a6b83f"
+        },
+        "invariants": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "signature=197106574dd2eac0df73164ee53ea195280079d5eb4a263636f5f6a335e97dc0,body=5a76a169f2ebb0a426df7e6183aa0160c9c09af051709d35d8e676fa0395d991"
+        },
+        "dependencies": {
+          "body": "Импортирует DOC_STATE_VERSION, anchorForHeading, orderBlocks и вызывает tierDocPathForEntity и tierHeading.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Импортирует DOC_STATE_VERSION, anchorForHeading, orderBlocks и вызывает tierDocPathForEntity и tierHeading."
+          },
+          "fingerprint": "deps=90bc725dbf2b3cf3ac839050a0fcf284779563edd2f555a6e838034cf064f726"
+        },
+        "workflows": {
+          "body": "Используется для загрузки существующего состояния документа и сохранения обновленного скелета.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Используется для загрузки существующего состояния документа и сохранения обновленного скелета."
+          },
+          "fingerprint": "body=5a76a169f2ebb0a426df7e6183aa0160c9c09af051709d35d8e676fa0395d991,deps=90bc725dbf2b3cf3ac839050a0fcf284779563edd2f555a6e838034cf064f726"
+        },
+        "limitations": {
+          "body": "Тип не включает поле `memberDocsFingerprint` в обязательные поля — оно опционально, что позволяет сохранять его только при наличии.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "Тип не включает поле `memberDocsFingerprint` в обязательные поля — оно опционально, что позволяет сохранять его только при наличии."
+          },
+          "fingerprint": "body=5a76a169f2ebb0a426df7e6183aa0160c9c09af051709d35d8e676fa0395d991"
+        },
+        "changeGuide": {
+          "body": "При изменении структуры документа (например, добавлении нового поля) необходимо обновить все места, где создается или читается `domainDocState`, включая `buildDomainSkeletons`.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "При изменении структуры документа (например, добавлении нового поля) необходимо обновить все места, где создается или читается `domainDocState`, включая `buildDomainSkeletons`."
+          },
+          "fingerprint": "body=5a76a169f2ebb0a426df7e6183aa0160c9c09af051709d35d8e676fa0395d991,deps=90bc725dbf2b3cf3ac839050a0fcf284779563edd2f555a6e838034cf064f726,usage=d36fea01831ffed2c93060c3b4b9497ca420b4fcd80b34763fb38cda97a6b83f,placement=fb5b8d4cf592e5b9b2ad484328c7bb1906259c48b21bc61c8eda0e3327758f23"
+        }
+      },
+      "depDocsFingerprint": "4e49f5cef53cf7112721409b2403c729f97d6124ed9ff84e941dc2da45a931a9",
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.741Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ]
+    },
+    "symbol:src/service/domain-docs.ts#buildDomainSkeletons": {
+      "heading": "buildDomainSkeletons",
+      "depth": 1,
+      "anchor": "builddomainskeletons",
+      "signature": "buildDomainSkeletons(entities: Record<string, CodeEntity>): Map<string, DocState>",
+      "owns": [
+        "symbol:src/service/domain-docs.ts#buildDomainSkeletons"
+      ],
+      "depends": [
+        "symbol:src/service/domain-docs.ts#domainDocState",
+        "symbol:src/service/domain-docs.ts#tierDocPathForEntity"
+      ],
+      "usedBy": [
+        "file:src/service/codelore-service.ts",
+        "symbol:src/service/codelore-service.ts#CodeloreService",
+        "symbol:src/service/codelore-service.ts#CodeloreService.prepareDomainDocs"
+      ],
+      "status": "normal",
+      "allowedBlocks": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blockOrder": [
+        "purpose",
+        "responsibility",
+        "invariants",
+        "dependencies",
+        "workflows",
+        "limitations",
+        "changeGuide"
+      ],
+      "blocks": {
+        "purpose": {
+          "body": "The function builds the initial skeleton structure for each entity's domain doc, including the ordered list of section ids, so that the preparation flow can later fill in section bodies.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "The function builds the initial skeleton structure for each entity's domain doc, including the ordered list of section ids, so that the preparation flow can later fill in section bodies."
+          },
+          "fingerprint": "signature=cccdd038fb26cf3db090c1d74ae8d81c4eb188ae4661b7c2d8c552b290f11160,placement=3047a1a76cb8efb47090d4f97118245b6b22cac668585c1ec2ce3bda1f312b36"
+        },
+        "responsibility": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "signature=cccdd038fb26cf3db090c1d74ae8d81c4eb188ae4661b7c2d8c552b290f11160,deps=75f5056c0cc796c62abadd42f0eba2f8d257b7714d105da6d70094b4c3413a30,usage=741a5d0acdd8f2da54615557673c0f1d84c495013f355840828a10766a9b563e"
+        },
+        "invariants": {
+          "body": "",
+          "rendered": false,
+          "fingerprint": "signature=cccdd038fb26cf3db090c1d74ae8d81c4eb188ae4661b7c2d8c552b290f11160,body=99a55753684f27a411731b2432787e083f8b8d41235d3a56aea941d321083deb"
+        },
+        "dependencies": {
+          "body": "Использует `domainDocState` для создания структуры документа и `tierDocPathForEntity` для вычисления пути к файлу документа для каждой сущности.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "Использует `domainDocState` для создания структуры документа и `tierDocPathForEntity` для вычисления пути к файлу документа для каждой сущности."
+          },
+          "fingerprint": "deps=75f5056c0cc796c62abadd42f0eba2f8d257b7714d105da6d70094b4c3413a30"
+        },
+        "workflows": {
+          "body": "Вызывается из `CodeloreService.prepareDomainDocs` после перестройки индексов. Функция получает массив сущностей из индекса и для каждой создает скелет документа, который затем сохраняется через `docStateStorage.saveDocState`.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "Вызывается из `CodeloreService.prepareDomainDocs` после перестройки индексов."
+          },
+          "fingerprint": "body=99a55753684f27a411731b2432787e083f8b8d41235d3a56aea941d321083deb,deps=75f5056c0cc796c62abadd42f0eba2f8d257b7714d105da6d70094b4c3413a30"
+        },
+        "limitations": {
+          "body": "Функция не проверяет, существует ли уже документ по вычисленному пути — она всегда создает новый скелет, а проверка наличия выполняется позже в `prepareDomainDocs`.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "Функция не проверяет, существует ли уже документ по вычисленному пути — она всегда создает новый скелет, а проверка наличия выполняется позже в `prepareDomainDocs`."
+          },
+          "fingerprint": "body=99a55753684f27a411731b2432787e083f8b8d41235d3a56aea941d321083deb"
+        },
+        "changeGuide": {
+          "body": "При изменении порядка секций в скелете необходимо обновить `sectionOrder` в возвращаемом объекте, так как вызывающий код (`prepareDomainDocs`) полагается на этот порядок для сохранения предыдущих тел блоков.",
+          "rendered": true,
+          "language": "ru",
+          "scores": {
+            "informativeness": 1,
+            "novelty": 1,
+            "specificity": 1,
+            "novelFact": "При изменении порядка секций в скелете необходимо обновить `sectionOrder` в возвращаемом объекте, так как вызывающий код (`prepareDomainDocs`) полагается на этот порядок для сохранения предыдущих тел "
+          },
+          "fingerprint": "body=99a55753684f27a411731b2432787e083f8b8d41235d3a56aea941d321083deb,deps=75f5056c0cc796c62abadd42f0eba2f8d257b7714d105da6d70094b4c3413a30,usage=741a5d0acdd8f2da54615557673c0f1d84c495013f355840828a10766a9b563e,placement=3047a1a76cb8efb47090d4f97118245b6b22cac668585c1ec2ce3bda1f312b36"
+        }
+      },
+      "generationHistory": [
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:21:27.803Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "purpose"
+          ]
+        },
+        {
+          "runId": "33dac476-11fc-42d8-935a-ef9432abb7ce",
+          "timestamp": "2026-09-13T23:26:45.742Z",
+          "command": "generate",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
+        }
+      ],
+      "depDocsFingerprint": "4e49f5cef53cf7112721409b2403c729f97d6124ed9ff84e941dc2da45a931a9"
+    }
+  },
+  "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"
+}

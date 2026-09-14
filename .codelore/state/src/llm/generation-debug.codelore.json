@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/llm/generation-debug.codelore.md",
-  "generatedAt": "2026-06-13T20:32:16.446Z",
+  "generatedAt": "2026-09-13T19:41:29.616Z",
   "sectionOrder": [
     "symbol:src/llm/generation-debug.ts#writeGenerationDebug",
     "symbol:src/llm/generation-debug.ts#generationDebugPathForStatePath",
@@ -16,10 +16,11 @@
         "symbol:src/llm/generation-debug.ts#writeGenerationDebug"
       ],
       "depends": [
+        "symbol:src/llm/generation-debug.ts#generationDebugEnabled",
         "symbol:src/llm/generation-debug.ts#generationDebugPathForStatePath"
       ],
       "usedBy": [
-        "file:src/cli/run-cli.ts"
+        "file:src/llm/file-pipeline.ts"
       ],
       "status": "normal",
       "allowedBlocks": [
@@ -53,70 +54,76 @@
           }
         },
         "responsibility": {
-          "body": "Не валидирует входные данные и не обрабатывает ошибки файловой системы — исключения пробрасываются вызывающему.\nВычисляет целевой путь отладочного файла на основе `statePath` и необязательной `phase`.\nСоздаёт родительскую директорию при необходимости.\nОсуществляет атомарную запись: сначала во временный файл с уникальным именем, затем переименовывает в целевой путь.",
+          "body": "- Вычисляет целевой путь отладочного файла через `generationDebugPathForStatePath` и возвращает его в `{ debugPath }` независимо от того, включена ли отладка.\n- Если отладка выключена (переменная окружения `CODELORE_DEBUG` пуста или отсутствует), завершает работу сразу после вычисления пути, не создавая файлов и не изменяя файловую систему.\n- При включённой отладке рекурсивно создаёт родительскую директорию, сериализует `entry` в JSON с отступом 2 и завершающим переводом строки, пишет результат во временный файл с уникальным именем и атомарно заменяет им целевой файл.",
           "rendered": true,
-          "fingerprint": "signature=f739c7573d41fd2348772e7572949ee393e1abec8e1523e158772b79245ff63b,deps=0aa00e15254a91076593e5a2e8997ad69880a45be7512d483520e75d0e83e975,usage=fb92e18a38fdc1e9fb22a39f391eea6d6cccbb73a12d9cc02bf2c200fe635649",
+          "fingerprint": "signature=f739c7573d41fd2348772e7572949ee393e1abec8e1523e158772b79245ff63b,deps=0f65ca20363b67888fc2f94f82d5cda7dacde6392464b8a064a205a38f95c406,usage=fb92e18a38fdc1e9fb22a39f391eea6d6cccbb73a12d9cc02bf2c200fe635649",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Не валидирует входные данные и не обрабатывает ошибки файловой системы — исключения пробрасываются вызывающему."
-          }
+            "novelFact": "При включённой отладке функция пишет JSON во временный файл с уникальным именем и атомарно заменяет целевой путь."
+          },
+          "language": "ru"
         },
         "invariants": {
-          "body": "Путь отладки вычисляется исключительно по `statePath` через `generationDebugPathForStatePath`.\nФайл записывается только после создания всех родительских директорий.\nЗапись выполняется атомарно: сначала во временный файл, затем переименование.\nСериализация: `JSON.stringify(entry, null, 2) + '\\n'`, кодировка UTF-8.\nВозвращаемый `debugPath` всегда совпадает с путём, вычисленным `generationDebugPathForStatePath`.",
+          "body": "- При выключенной отладке файл не создаётся и не изменяется; возвращается тот же `debugPath`, который был бы использован при записи.\n- При включённой отладке запись атомарна: данные сначала попадают в уникальный временный файл `${debugPath}.${process.pid}.${Math.random().toString(36).slice(2, 8)}.tmp`, затем `rename` заменяет целевой файл; читатель видит либо старый, либо новый полный файл.\n- Сериализация всегда `${JSON.stringify(input.entry, null, 2)}` с завершающим переводом строки в кодировке UTF-8.\n- `debugPath` детерминированно получается из `statePath` заменой суффикса `.json`: без `phase` — `.generation-debug.json`, с `phase` — `.generation-debug.${phase}.json`; если суффикса `.json` нет, путь остаётся без изменений.\n- Ошибки файловой системы не перехватываются и пробрасываются вызывающему.",
           "rendered": true,
-          "fingerprint": "signature=f739c7573d41fd2348772e7572949ee393e1abec8e1523e158772b79245ff63b,body=c40f94ba3d986da45d7eedffbdcbb7fd0ca6cef65f0ceb23ca9ac527a3e2022d",
+          "fingerprint": "signature=f739c7573d41fd2348772e7572949ee393e1abec8e1523e158772b79245ff63b,body=de32f6f1dc237f265286616734603a7ec89d408a6e005976617c1750a7b7cdeb",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
-            "specificity": 0.75,
-            "novelFact": "Путь отладки вычисляется исключительно по `statePath` через `generationDebugPathForStatePath`."
-          }
+            "specificity": 1,
+            "novelFact": "Возвращаемый `debugPath` детерминированно вычисляется из `statePath` и `phase` и не зависит от того, включена ли отладка."
+          },
+          "language": "ru"
         },
         "dependencies": {
-          "body": "`generationDebugPathForStatePath` (`src/llm/generation-debug.ts`) — вычисляет путь отладочного файла на основе `statePath` и необязательной `phase`.",
+          "body": "`generationDebugPathForStatePath` (`src/llm/generation-debug.ts`) — вычисляет путь отладочного файла на основе `statePath` и необязательной `phase`.\n`generationDebugEnabled` (`src/llm/generation-debug.ts`) — проверяет, включена ли отладка через переменную окружения `CODELORE_DEBUG`.",
           "rendered": true,
-          "fingerprint": "deps=0aa00e15254a91076593e5a2e8997ad69880a45be7512d483520e75d0e83e975",
+          "fingerprint": "deps=0f65ca20363b67888fc2f94f82d5cda7dacde6392464b8a064a205a38f95c406",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
-            "specificity": 1,
-            "novelFact": "Единственная проект-зависимость — внутримодульная функция генерации пути."
-          }
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Зависит от двух локальных хелперов: один вычисляет путь, другой проверяет флаг отладки."
+          },
+          "language": "ru"
         },
         "workflows": {
-          "body": "Вызывается из `file-pipeline.ts` для сохранения отладочной записи генерационного прогона. Вычисляет целевой путь через `generationDebugPathForStatePath`, создаёт родительскую директорию, записывает сериализованный `GenerationDebugEntry` во временный файл с уникальным именем (PID + случайная строка), затем переименовывает для атомарности. Возвращает `{ debugPath }`.",
+          "body": "Вызывается из `generateFileGroup` (`src/llm/file-pipeline.ts`) через `debugSink.writeFinal` — это последний шаг пайплайна генерации, сохраняющий итоговую отладочную запись после завершения всех чанков. `debugSink` создаётся вызовом `createDebugSink`, который передаёт `input`, `sections`, `dependencyDocs`, `llmStages` и `docSections`; `writeFinal` дополняет запись нарушениями, исправленными нарушениями, записанными блоками и сохранёнными блоками, затем вызывает `writeGenerationDebug`. Функция вычисляет `debugPath` через `generationDebugPathForStatePath(statePath, phase)`, проверяет `generationDebugEnabled()` и, если отладка выключена, сразу возвращает `{ debugPath }` без операций ввода-вывода.",
           "rendered": true,
-          "fingerprint": "body=c40f94ba3d986da45d7eedffbdcbb7fd0ca6cef65f0ceb23ca9ac527a3e2022d,deps=0aa00e15254a91076593e5a2e8997ad69880a45be7512d483520e75d0e83e975",
+          "fingerprint": "body=de32f6f1dc237f265286616734603a7ec89d408a6e005976617c1750a7b7cdeb,deps=0f65ca20363b67888fc2f94f82d5cda7dacde6392464b8a064a205a38f95c406",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Атомарная запись через временный файл предотвращает повреждение при крахе."
-          }
+            "novelFact": "Вызывается только из `generateFileGroup` через `debugSink.writeFinal` как финальный шаг пайплайна генерации."
+          },
+          "language": "ru"
         },
         "limitations": {
-          "body": "Не обрабатывает ошибки ввода-вывода (диск заполнен, права доступа) — исключения пробрасываются вызывающему.\nПотокобезопасность не гарантируется: параллельные вызовы с одинаковым `statePath` приведут к гонке записи.\nФормат файла (JSON с отступом 2 и завершающим переводом строки) является контрактом для читающих инструментов.",
+          "body": "Не обрабатывает ошибки ввода-вывода — `mkdir`, `writeFile` и `rename` пробрасывают исключения вызывающему без перехвата.\nПотокобезопасность не гарантируется: параллельные вызовы с одинаковым `statePath` и `phase` приведут к гонке записи, поскольку временный файл включает `process.pid` и случайную строку, но целевой путь одинаков.",
           "rendered": true,
-          "fingerprint": "body=c40f94ba3d986da45d7eedffbdcbb7fd0ca6cef65f0ceb23ca9ac527a3e2022d",
+          "fingerprint": "body=de32f6f1dc237f265286616734603a7ec89d408a6e005976617c1750a7b7cdeb",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Не обрабатывает ошибки ввода-вывода и не гарантирует потокобезопасность."
-          }
+            "novelFact": "Ошибки ввода-вывода не перехватываются, а параллельные вызовы с одинаковым путём создают гонку записи."
+          },
+          "language": "ru"
         },
         "changeGuide": {
-          "body": "1. Удаление атомарной записи (прямая запись) приведёт к тому, что читатель может прочитать неполный файл — проверить всех потребителей в `file-pipeline.ts` и скрипты, читающие `.generation-debug.json`.\n2. Изменение форматирования JSON (отступы, trailing newline) сломает инструменты, которые парсят эти файлы по сигнатуре `JSON.parse`.\n3. Изменение пути через `generationDebugPathForStatePath` требует синхронизации с этой функцией — её документация описывает контракт преобразования.\n4. Если добавить обработку ошибок и изменить возвращаемый тип (например, `Promise<{ debugPath } | null>`), придётся обновить все места, где результат деструктурируется (см. `directUsages`).",
+          "body": "- Формат сериализации зафиксирован вызовом `JSON.stringify(input.entry, null, 2)` — изменение отступов или удаление завершающего перевода строки `\\n` сломает инструменты, читающие эти файлы через `JSON.parse`.\n- Атомарность записи обеспечивается связкой `writeFile` во временный файл + `rename` — замена на прямую запись в целевой файл приведёт к тому, что читатель может увидеть неполный JSON.\n- Имя временного файла строится как `${debugPath}.${process.pid}.${Math.random().toString(36).slice(2, 8)}.tmp` — изменение схемы именования может нарушить уникальность при параллельных вызовах.\n- Проверка `generationDebugEnabled()` через `if (!generationDebugEnabled())` — удаление этой проверки приведёт к созданию файлов даже при выключенной отладке.",
           "rendered": true,
-          "fingerprint": "body=c40f94ba3d986da45d7eedffbdcbb7fd0ca6cef65f0ceb23ca9ac527a3e2022d,deps=0aa00e15254a91076593e5a2e8997ad69880a45be7512d483520e75d0e83e975,usage=fb92e18a38fdc1e9fb22a39f391eea6d6cccbb73a12d9cc02bf2c200fe635649,placement=8cc7697dd65050dfe5c825b267b87f730ff322976008cea0ba90e838750d5322",
+          "fingerprint": "body=de32f6f1dc237f265286616734603a7ec89d408a6e005976617c1750a7b7cdeb,deps=0f65ca20363b67888fc2f94f82d5cda7dacde6392464b8a064a205a38f95c406,usage=fb92e18a38fdc1e9fb22a39f391eea6d6cccbb73a12d9cc02bf2c200fe635649,placement=8cc7697dd65050dfe5c825b267b87f730ff322976008cea0ba90e838750d5322",
           "scores": {
-            "informativeness": 1,
+            "informativeness": 0.75,
             "novelty": 0.75,
-            "specificity": 1,
-            "novelFact": "Изменение формата JSON сломает инструменты, читающие отладочные файлы."
-          }
+            "specificity": 0.75,
+            "novelFact": "Четыре критичных конструкта: формат сериализации, атомарная запись, схема именования временного файла и проверка флага отладки."
+          },
+          "language": "ru"
         }
       },
       "depDocsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
@@ -177,8 +184,33 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:32:57.052Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "c7415104-bffd-45f9-9b7a-f3d3d8c0f126",
+          "timestamp": "2026-09-13T19:41:29.616Z",
+          "command": "update",
+          "provider": "aitunnel",
+          "model": "deepseek-v4-pro",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
-      ]
+      ],
+      "signature": "writeGenerationDebug(input: {\n  statePath: string;\n  entry: GenerationDebugEntry;\n  phase?: string;\n}): Promise<{ debugPath: string }>"
     },
     "symbol:src/llm/generation-debug.ts#generationDebugPathForStatePath": {
       "heading": "generationDebugPathForStatePath",

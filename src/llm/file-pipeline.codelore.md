@@ -1,5 +1,9 @@
 # generateFileGroup
 
+```ts
+generateFileGroup(input: FileGenerationInput): Promise<FileGenerationOutcome>
+```
+
 ## Зачем это нужно
 
 Точка входа для LLM-генерации документации группы файлов: загружает контекст, разбивает на чанки, выполняет запросы с валидацией и ремонтом, собирает результат.
@@ -13,11 +17,10 @@
 
 ## На что можно положиться
 
-1. Если `input.phase` задан, фильтр блоков применяется до разбиения на чанки: генерируются только блоки указанной фазы (`propagating` или `terminal`).
-2. Если после фильтрации не осталось ни одной секции с целевыми блоками, функция немедленно возвращает пустой `FileGenerationOutcome` (через `emptyOutcome`).
-3. Чанки обрабатываются параллельно с ограничением конкуренции из `service.config.llm.concurrency` (через `pLimit`), но результаты объединяются последовательно — более поздние чанки могут перезаписывать одноимённые блоки от предыдущих.
-4. `generateFileGroup` не выполняет запись результирующей документации на диск — это ответственность вызывающего кода.
-5. Если секция не получила ни одного нового блока, а существующий блок непустой, он сохраняется в `keptBlocks` без замены (через `buildOutcome`).
+- Возвращает пустой `FileGenerationOutcome` (через `emptyOutcome`), если после фильтрации по фазе не осталось ни одной секции с целевыми блоками.
+- Результаты параллельной обработки чанков объединяются последовательно: для каждой секции блоки, сгенерированные в более позднем чанке, полностью заменяют одноимённые блоки из более ранних (через `mergeRepairedBlocks`).
+- Отсутствующие в результате генерации блоки не заменяют существующие непустые блоки документации — они попадают в `keptBlocks` без изменений; секции, где все целевые блоки отсутствуют и существующие пусты, получают статус ревью (`reviewSections`).
+- Функция никогда не выполняет запись документации на диск — возвращает только описание необходимых изменений (`FileGenerationOutcome`).
 
 ## От чего зависит
 
@@ -25,17 +28,22 @@ generateFileGroup использует resolveTerms для выбора терм
 
 ## Кто и как использует
 
-Вызывается из CodeloreService.runPipelineForSections после сбора секций для группы файлов. generateFileGroup загружает контекст секций, исходный код, документацию зависимостей (кроме фазы propagating), термины, разбивает на чанки через planWriterChunks, обрабатывает каждый чанк параллельно (с ограничением concurrency из service.config.llm.concurrency) функцией generateChunk, объединяет результаты, формирует FileGenerationOutcome и записывает отладочную информацию через debugSink.
+Вызывается из [`CodeloreService.runPipelineForSections`](../service/codelore-service.codelore.md#runpipelineforsections) после того, как сервис собрал секции для группы файлов. Функция загружает исходный код файлов через `readFile`, получает контекст каждой секции через `service.getSectionContext`, фильтрует целевые блоки по фазе (`input.phase`), собирает документацию зависимостей (кроме фазы `propagating`), термины и контекст проекта. Затем разбивает секции на чанки вызовом [`planWriterChunks`](file-chunks.codelore.md#planwriterchunks) с учётом бюджета провайдера и обрабатывает каждый чанк параллельно через `generateChunk`, ограничивая конкурентность значением `service.config.llm.concurrency` через `pLimit`. Результаты чанков объединяются, формируется `FileGenerationOutcome`, и записывается отладочная информация через `debugSink`.
 
 ## Чего не делает
 
-Если input.phase указан, генерируются только блоки этой фазы (propagating или terminal); секции без целевых блоков для фазы пропускаются. После фильтрации может остаться ноль секций — возвращается пустой outcome. Разбиение на чанки использует budget.maxSectionsPerChunk и maxSourceChars провайдера, класс и его методы всегда в одном чанке.
+Если задан `input.phase`, генерируются только блоки указанной фазы (`propagating` или `terminal`); секции, у которых после фильтрации не остаётся целевых блоков, пропускаются. Это ограничение введено условием `const phaseBlocks = blockSetForPhase(input.phase);` и последующей фильтрацией `const targets = phaseBlocks ? context.targets.filter((block) => phaseBlocks.has(block)) : context.targets;`. Функция не может за один вызов сгенерировать блоки обеих фаз.
 
 ## Как менять и что проверять
 
-Два инварианта: 1. Сбор документации зависимостей выполняется только при input.phase !== 'propagating' — условие (input.phase === 'propagating' ? [] : collectDependencyDocs(index, files)). 2. Параллельная обработка чанков ограничена конкуренцией: pLimit(service.config.llm.concurrency). Тесты: не видны.
+- Сбор документации зависимостей выполняется только когда `input.phase !== 'propagating'` — условие `input.phase === 'propagating' ? [] : collectDependencyDocs(index, files)`.
+- Параллельная обработка чанков ограничена конкурентностью: `pLimit(service.config.llm.concurrency)`.
 
 # dependencyDocsFingerprint
+
+```ts
+dependencyDocsFingerprint(dependencyDocs: DependencyDoc[]): string
+```
 
 ## Зачем это нужно
 
@@ -56,15 +64,15 @@ generateFileGroup использует resolveTerms для выбора терм
 
 ## От чего зависит
 
-Единственная внешняя зависимость — функция sha256 из [src/utils/hash.ts](../utils/hash.codelore.md).
+Вычисляется как SHA-256 от всех документаций зависимостей.
 
 ## Кто и как использует
 
-Вызывается из CodeloreService.recordDepDocsFingerprints для записи фингерпринта в состояние секции после генерации, и из collectDepDocStaleBlocks для сравнения текущего фингерпринта с сохранённым и обнаружения устаревших блоков (staleness).
+Используется для идентификации документации зависимостей группы, вероятно, для кэширования или проверки.
 
 ## Чего не делает
 
-Результат зависит от порядка полей в DependencyDoc при JSON.stringify — изменение порядка (например, добавление нового поля) изменит хеш без изменения семантики. Каноническая сериализация не применяется, что может вызвать ложные срабатывания staleness.
+Результат зависит от порядка полей в `DependencyDoc` при `JSON.stringify` — изменение порядка (например, добавление нового поля) изменит хеш без изменения семантики. Каноническая сериализация не применяется, что может вызвать ложные срабатывания staleness.
 
 # collectDependencyDocs
 
@@ -104,6 +112,10 @@ generateFileGroup использует resolveTerms для выбора терм
 
 # compactChunkCallers
 
+```ts
+compactChunkCallers(sections: FileWriteSection[]): FileWriteSection[]
+```
+
 ## Зачем это нужно
 
 Уменьшает дублирование тел вызывающих функций между секциями одного чанка, отдавая приоритет вызывающим с runtimeEvidence.
@@ -121,33 +133,51 @@ generateFileGroup использует resolveTerms для выбора терм
 2. Если вызывающий уже был отправлен с телом в предыдущей секции, его тело не дублируется в последующих (глобальный дедуплицирующий набор).
 3. Приоритет при распределении бюджета `SECTION_CALLER_BODIES_CAP` имеют вызывающие с `runtimeEvidence` (сортируются первыми).
 
-## От чего зависит
-
-Не имеет внешних зависимостей — использует только типы FileWriteCaller и FileWriteSection, определённые в этом же модуле.
-
 ## Чего не делает
 
-Приоритизация runtimeEvidence при распределении бюджета SECTION_CALLER_BODIES_CAP (8000) может привести к обрезанию тела важного статического вызывающего, если его тело превышает оставшийся бюджет. Бюджет распределяется последовательно в порядке сортировки — первые вызывающие получают тело, последние могут быть обрезаны.
+Бюджет `SECTION_CALLER_BODIES_CAP` (8000 символов) распределяется последовательно между вызывающими, отсортированными так, что вызывающие с `runtimeEvidence` получают приоритет: `const prioritized = [...section.callers].sort((left, right) => Number(right.runtimeEvidence !== undefined) - Number(left.runtimeEvidence !== undefined));`. Если бюджет исчерпан, тела оставшихся вызывающих (в первую очередь без `runtimeEvidence`) опускаются. Это может привести к потере тела важного статического вызывающего, если его длина превышает оставшийся бюджет.
 
 # verifyChunkFacts
 
+```ts
+verifyChunkFacts(args: {
+  sections: FileWriteSection[];
+  result: FileWriteResult;
+  sources: Array<{ path: string; source: string }>;
+  code: CodeIndex;
+  rootDir: string;
+  /** Include imported type declarations in the verification context. */
+  verifyTypeContext: boolean;
+  dependencyDocs: DependencyDoc[];
+  groupFiles: string[];
+  provider: ChatCompletionProvider;
+  /** Fact-check provider for verification/factRecheck; factRepair stays on `provider`. */
+  verifyProvider?: ChatCompletionProvider;
+  maxRetries: number;
+  stageSuffix: string;
+  llmStages: GenerationDebugLlmPipelineInput;
+  debugSink: { writeError: (extra: { error?: GenerationDebugError }) => Promise<Record<string, string>> };
+}): Promise<{ result: FileWriteResult; factViolations: DocViolation[]; remaining: DocViolation[] }>
+```
+
 ## Зачем это нужно
 
-Проверяет сгенерированные блоки документации на фактические противоречия с исходным кодом через LLM и исправляет найденные нарушения.
+Проверяет фактыческое содержание сгенерированных блоков документации: отправляет LLM исходный код и блоки, находит противоречия, запускает ремонт и повторную проверку, возвращает очищенный результат.
 
 ## Что делает
 
-- Не проверяет структурные нарушения (длину, ссылки) — это задача validateFileWrite.
-- Делегирует построение запроса верификации buildVerifyRequest, парсинг ответа — parseVerifyResponse.
-- При обнаружении противоречий запускает ремонт через buildRepairRequest и повторную верификацию.
-- Не модифицирует исходный result напрямую — возвращает новый объект с исправлениями.
+- Строит список секци для верификации вызовом [`buildVerifySections`](#buildverifysections): пропускает секции без сгенерированных блоков.
+- Делегирует фактчек LLM (через `verifyCall`), парсит ответ и преобразует противоречия в нарушения.
+- При наличии нарушени запускает ремонт через отдельный LLM-вызов (`factRepair`) с помощю [`buildRepairRequest`](#buildrepairrequest) и [`completeAndParse`](complete-and-parse.codelore.md#completeandparse), затем вливает исправленые блоки через `mergeRepairedBlocks`.
+- Выполняет повторную верификацию (`factRecheck`) только для исправленных секций; окончательно удаляет блоки с оставшимися противоречиями через `dropViolatingBlocks`.
 
 ## На что можно положиться
 
-- Если buildVerifySections не вернул ни одной секции, возвращает исходный result без изменений.
-- Если LLM не нашла противоречий, возвращает пустые массивы factViolations и remaining.
-- Блоки, не исправленные ремонтом, удаляются из результата (dropViolatingBlocks).
-- После ремонта выполняется повторная верификация (factRecheck); оставшиеся нарушения также удаляются.
+- Если [`buildVerifySections`](#buildverifysections) не отбрал ни одной секции (все сгенерированние блоки пусты), функция сразу возвращает исходный `result` без изменений.
+- Если LLM-верификация не находит ни одного противоречия, исходный результат также возвращается без изменений.
+- Не исправленый ремонтом блок (отсутствующй в ответе модели) удаляется из результата до повторной проверки.
+- Любой блок, на который повторная верификация выдала противоречия, полностью удаляется из итогового результата.
+- Ремонт вседа использует `args.provider`, даже если для верификации задан отдельный `verifyProvider`.
 
 ## От чего зависит
 
@@ -155,13 +185,18 @@ generateFileGroup использует resolveTerms для выбора терм
 
 ## Чего не делает
 
-Верификация полностью зависит от качества LLM: модель может не заметить противоречия или дать ложное срабатывание. Исходный код для верификации, формируемый через buildVerifySections, ограничен VERIFY_SOURCE_CAP и VERIFY_HELPER_CONTEXT_CAP с глубиной VERIFY_HELPER_CONTEXT_DEPTH, что может не включать все релевантные детали.
+Исходный код для верификации обрезается константами `VERIFY_SOURCE_CAP`, `VERIFY_HELPER_CONTEXT_CAP` и глубиной `VERIFY_HELPER_CONTEXT_DEPTH` (2). Это означает, что контекст вспомогательных функций ограничен двумя уровнями вызовов, а общий объём исходного кода и хелперов не превышает заданных лимитов. Детали реализации за пределами этих границ не попадают в промпт верификатору, что может скрыть релевантный код.
 
 ## Как менять и что проверять
 
-Два инварианта: 1. Если buildVerifySections возвращает пустой массив, функция сразу возвращает исходный результат без изменений: условие if (verifySections.length === 0) return { result: args.result, factViolations: [], remaining: [] };. 2. Если contradictions не найдены (claims.length === 0), функция возвращает результат без изменений: if (claims.length === 0) return { result: args.result, factViolations: [], remaining: [] };. Тесты: не видны.
+- Если [`buildVerifySections`](#buildverifysections) не отобрала ни одной секции, функция сразу возвращает исходный результат: `if (verifySections.length === 0) return { result: args.result, factViolations: [], remaining: [] };`.
+- Если верификация не нашла противоречий, результат возвращается без изменений: `if (claims.length === 0) return { result: args.result, factViolations: [], remaining: [] };`.
 
 # buildVerifySections
+
+```ts
+buildVerifySections(sections: FileWriteSection[], result: FileWriteResult, sources: Array<{ path: string; source: string }>, code: CodeIndex): VerifySectionInput[]
+```
 
 ## Зачем это нужно
 
@@ -183,25 +218,31 @@ generateFileGroup использует resolveTerms для выбора терм
 
 ## От чего зависит
 
-Использует типы из [`src/llm/doc-verifier.ts`](doc-verifier.codelore.md) (`VERIFY_SOURCE_CAP`, `VerifySectionInput`) и [`src/llm/file-writer.ts`](file-writer.codelore.md) (`FileWriteSection`, `FileWriteResult`). Внутренние зависимости: `verificationSource`, `sourceFileFromText`, `sameFileHelperContext`, `fileOutline`, `composeVerifySource` (все локальные). Также использует константы `VERIFY_HELPER_CONTEXT_CAP`, `VERIFY_HELPER_CONTEXT_DEPTH` и `VERIFY_OUTLINE_HEADING` из этого же файла.
+Зависит от локального помощника `verificationSource`, который собирает исходный код для проверки из среза документации сущности и всегда включаемого файлового обзора.
 
 ## Кто и как использует
 
-Вызывается из [`verifyChunkFacts`](#verifychunkfacts) (этот же файл) дважды: на первом проходе для всех секций, имеющих блоки в `result`, и на втором проходе (после ремонта) только для исправленных блоков. Для каждой секции проверяется наличие сущности в `code.entities` и исходного файла в `sources`; если отсутствует, секция пропускается. Затем через `verificationSource` формируется строка исходного кода с учётом капов.
+Вызывается конвейером проверки для подготовки секций к сверке фактов с документацией зависимостей; каждая секция получает свой исходный код для проверки.
 
 ## Чего не делает
 
-Секция пропускается, если сущность отсутствует в `code.entities` или её исходный файл не передан в `sources` (условия `if (!entity || fileSource === undefined) { continue; }`). Включаются только секции с хотя бы одним блоком с не-undefined значением (условие `if (blocks.length === 0) { continue; }`). Исходный код сущности обрезается по `VERIFY_SOURCE_CAP` (константа из [`src/llm/doc-verifier.ts`](doc-verifier.codelore.md)).
+Обрабатывает только те секции, для которых в карте кода существует сущность; секции без сущности пропускаются.
 
 ## Как менять и что проверять
 
-Два инварианта:
-1. Секция без сущности в `code.entities` или без исходного файла в `sources` молча пропускается: проверка `if (!entity || fileSource === undefined) { continue; }`.
-2. Секция не включается в результат, если `blocks.length === 0`: проверка `if (blocks.length === 0) { continue; }`.
-
-Тесты: не видны.
+- The verification source is composed from the documented entity slice plus an always-included file outline, enforced by the `composeVerifySource` helper.
+- The verification source is composed from the documented entity slice plus an always-included file outline, enforced by the `composeVerifySource` helper.
 
 # buildRepairRequest
+
+```ts
+buildRepairRequest(args: {
+  sections: FileWriteSection[];
+  result: FileWriteResult;
+  violations: DocViolation[];
+  refContext: { dependencyDocPaths: ReadonlySet<string>; groupFiles: string[] };
+}): ChatCompletionInput
+```
 
 ## Зачем это нужно
 
@@ -209,37 +250,34 @@ generateFileGroup использует resolveTerms для выбора терм
 
 ## Что делает
 
-- Не выполняет LLM-запрос — только возвращает `ChatCompletionInput`.
-- Не включает исходный код файлов или dependency docs — только нарушенные блоки и списки разрешённых ссылок.
-- Группирует нарушения по секции и блоку, чтобы LLM видела все проблемы одного блока совокупно.
-- Делегирует получение разрешённых ссылок [`allowedRefsForSection`](doc-validator.codelore.md#allowedrefsforsection).
+- Группирует нарушения по паре (sectionId, blockId) и включает в запрос текущее содержимое блока и массив нарушени.
+- Вычисляет список разрешённых ссылок для секции через [`allowedRefsForSection`](doc-validator.codelore.md#allowedrefsforsection) и передаёт его как часть контекста запроса.
+- Возвращает объект запроса с фиксированными инструкциями: модель должна тольку удалить или перефразировать утверждения из нарушени, не добавляя новых фактов.
 
 ## На что можно положиться
 
-Каждый блок в запросе содержит массив `violations` с текстовыми описаниями нарушений.
-Поле `allowedRefsBySection` содержит отсортированные списки разрешённых ссылок для каждой секции.
-Если секция или блок отсутствуют в `result`, они не включаются в запрос.
-Возвращаемый `ChatCompletionInput` всегда содержит ровно два сообщения: system и user.
+- Каждый блок в запросе снабжён полем `violations` — списком строковых описаний нарушени.
+- Поле `allowedRefsBySection` держит отсортированые списки разрешённых ссылок для каждой секции, ключ — sectionId.
+- Если секция или блок отсутствуют в `result`, они пропускаются (никакой пустой блок не отправляется).
+- Ответная схема (`responseSchema`) строится тольку из тех пар (sectionId, blockId), которые попади в запрос.
+- Возвращаемый `ChatCompletionInput` содержит ровно два сообщения: системное с запретом на добавление фактов и пользовательское с данными.
 
 ## От чего зависит
 
-Использует [`allowedRefsForSection`](doc-validator.codelore.md#allowedrefsforsection) из `src/llm/doc-validator.ts` для вычисления разрешённых ссылок. Типы: `DocViolation` (из `src/llm/doc-validator.ts`), `FileWriteSection`, `FileWriteResult` (из [`src/llm/file-writer.ts`](file-writer.codelore.md)), `ChatCompletionInput` (из [`src/llm/provider.ts`](provider.codelore.md)). Внутренняя группировка нарушений по секции и блоку.
+Использует [`allowedRefsForSection`](doc-validator.codelore.md#allowedrefsforsection) из `src/llm/doc-validator.ts` для вычисления разрешённых ссылок и `repairResponseSchema` из [`src/llm/file-writer.ts`](file-writer.codelore.md) для построения схемы ответа. Типы: `DocViolation` (из `src/llm/doc-validator.ts`), `FileWriteSection`, `FileWriteResult` (из `src/llm/file-writer.ts`), `ChatCompletionInput` (из [`src/llm/provider.ts`](provider.codelore.md)).
 
 ## Кто и как использует
 
-Вызывается из [`verifyChunkFacts`](#verifychunkfacts) (этот же файл) при факт-противоречиях в верификации. Функция группирует входящие нарушения по секции и блоку, для каждой уникальной пары запрашивает разрешённые ссылки через [`allowedRefsForSection`](doc-validator.codelore.md#allowedrefsforsection) и формирует `ChatCompletionInput` с двумя сообщениями: системная инструкция не добавлять новых фактов и пользовательское сообщение с JSON нарушенных блоков, их текущим содержимым и списками разрешённых ссылок.
+Вызывается из [`verifyChunkFacts`](#verifychunkfacts) при обнаружении факт-противоречий. Функция группирует нарушения по паре `(sectionId, blockId)`, для каждой уникальной пары вычисляет разрешённые ссылки через [`allowedRefsForSection`](doc-validator.codelore.md#allowedrefsforsection) и формирует объект `ChatCompletionInput`. Системное сообщение запрещает добавление новых фактов: `"Do not add new facts: only remove or minimally rephrase the statements named in the violations, fix or drop offending refs, and shorten over-long text."`. Пользовательское сообщение содержит JSON с текущим содержимым блоков, списком нарушений и разрешёнными ссылками. Ответная схема строится только для затронутых пар `(sectionId, blockId)`.
 
 ## Чего не делает
 
-Системное сообщение содержит команду `Do not add new facts: only remove or minimally rephrase the statements named in the violations`, что запрещает LLM добавлять факты, делая невозможным исправление блока, если единственное верное действие — заменить неверное утверждение на верное, а не удалить или перефразировать. Условие `if (!section || !block) { continue; }` пропускает секции и блоки, отсутствующие в `result`, не позволяя их исправить.
+Системное сообщение содержит инструкцию `"Do not add new facts: only remove or minimally rephrase the statements named in the violations, fix or drop offending refs, and shorten over-long text."`, что запрещает LLM добавлять новые утверждения. Это делает невозможным исправление блока, если корректное действие — заменить неверное утверждение на верное, а не удалить или перефразировать. Кроме того, условие `if (!section || !block) { continue; }` пропускает секции и блоки, отсутствующие в `result`, не позволяя их исправить.
 
 ## Как менять и что проверять
 
-Два инварианта:
-1. Системное сообщение содержит фразу `Do not add new facts: only remove or minimally rephrase the statements named in the violations` — если изменить это сообщение, разрешив добавление, LLM сможет заменять неверные утверждения на верные, но может внести необоснованные факты без контекста.
-2. Условие `if (!section || !block) { continue; }` пропускает секции и блоки, отсутствующие в `result`; при удалении этого условия запрос может содержать блоки с неопределёнными значениями, что приведёт к невалидному JSON.
-
-Тесты: не видны.
+- Системное сообщение содержит фразу `"Do not add new facts: only remove or minimally rephrase the statements named in the violations, fix or drop offending refs, and shorten over-long text."` — изменение этого сообщения может разрешить добавление фактов, но рискует внести необоснованные утверждения.
+- Условие `if (!section || !block) { continue; }` пропускает отсутствующие секции/блоки; удаление этого условия приведёт к отправке блоков с неопределёнными значениями.
 
 # verifyBlocksAgainstDeps
 

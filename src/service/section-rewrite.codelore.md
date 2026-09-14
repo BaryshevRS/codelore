@@ -29,16 +29,20 @@
 
 # applyRewritesToDoc
 
+```ts
+applyRewritesToDoc(docPath: string, rewrites: NormalizedRewriteSectionInput[], storage: DocStateStorage, entities: Record<string, CodeEntity>, config: CodeloreConfig, filteredBySection: Map<string, FilteredGeneratedBlock[]>): Promise<void>
+```
+
 ## Зачем это нужно
 
 Применяет набор перезаписей к состоянию одного документа и сохраняет результат.
 
 ## Что делает
 
-- Загружает состояние документа через `storage.loadDocState`; если состояние отсутствует, выбрасывает [`CodeloreError`](../errors.codelore.md#codeloreerror) с кодом `UNKNOWN_DOC`.
-- Для каждой перезаписи проверяет наличие секции в состоянии; если секция отсутствует, выбрасывает [`CodeloreError`](../errors.codelore.md#codeloreerror) с кодом `UNKNOWN_SECTION`.
-- Вызывает [`mergeGeneratedBlocksIntoSection`](#mergegeneratedblocksintosection) для каждой перезаписи, затем обновляет `state.generatedAt` и сохраняет через `storage.renderAndPersist`.
-- После сохранения вызывает [`collectFilteredBlocksForRewrites`](#collectfilteredblocksforrewrites) для сбора отфильтрованных блоков.
+- Загружает состояние документа через `storage.loadDocState(docPath)`; если состояние отсутствует, прерывает выполнение.
+- Для каждой перезаписи находит секцию в загруженном состоянии; если секция отсутствует, прерывает выполнение, иначе передаёт пару в [`mergeGeneratedBlocksIntoSection`](#mergegeneratedblocksintosection).
+- После обработки всех перезаписей обновляет `state.generatedAt` и один раз сохраняет документ через `storage.renderAndPersist`.
+- После сохранения наполняет переданный `filteredBySection` через [`collectFilteredBlocksForRewrites`](#collectfilteredblocksforrewrites).
 
 ## На что можно положиться
 
@@ -55,11 +59,6 @@
 ## Кто и как использует
 
 Вызывается [`CodeloreService.rewriteSections`](codelore-service.codelore.md#rewritesections) для каждого документа. Функция загружает состояние документа через `storage.loadDocState(docPath)`. При отсутствии состояния выбрасывает [`CodeloreError`](../errors.codelore.md#codeloreerror) с кодом `UNKNOWN_DOC`. Затем для каждой перезаписи проверяет наличие секции в состоянии; если секция отсутствует, выбрасывает [`CodeloreError`](../errors.codelore.md#codeloreerror) с кодом `UNKNOWN_SECTION`. Вызывает [`mergeGeneratedBlocksIntoSection`](#mergegeneratedblocksintosection) для слияния блоков. После обработки всех перезаписей обновляет `state.generatedAt` и сохраняет состояние через `storage.renderAndPersist(state)`. Затем вызывает [`collectFilteredBlocksForRewrites`](#collectfilteredblocksforrewrites) для сбора отфильтрованных блоков в предоставленный Map.
-
-## Как менять и что проверять
-
-1. Состояние документа должно существовать: проверка `if (!state) { throw new CodeloreError("UNKNOWN_DOC", ...) }`.
-2. Каждая секция должна присутствовать в состоянии: проверка `if (!sectionState) { throw new CodeloreError("UNKNOWN_SECTION", ...) }`.
 
 # collectFilteredBlocksForRewrites
 
@@ -88,6 +87,10 @@
 
 # mergeGeneratedBlocksIntoSection
 
+```ts
+mergeGeneratedBlocksIntoSection(sectionState: DocStateSection, rewrite: NormalizedRewriteSectionInput, entities: Record<string, CodeEntity>, config: CodeloreConfig): void
+```
+
 ## Зачем это нужно
 
 Вливает сгенерированные блоки перезаписи в состояние секции, обновляя фингерпринты, оценки, канонический язык и метаданные зависимостей.
@@ -101,9 +104,12 @@
 
 ## На что можно положиться
 
-- `blockOrder` и `allowedBlocks` никогда не содержат дубликатов: добавление происходит только при отсутствии (`!sectionState.blockOrder.includes(blockId)`).
-- `depends` и `usedBy` перезаписываются исключительно при наличии владельца (`if (owner) { ... }`).
-- Поля `staleSince`, `staleReason` и `staleFacets` сбрасываются в `undefined` для каждого влитого блока.
+- Пустой `rewrite.blocks` не добавляет и не изменяет блоки, но всё равно пересчитывает `depends`, `usedBy` и `signature` владельца и обновляет статус секции.
+- `blockOrder` и `allowedBlocks` сохраняют порядок первого появления и не накапливают дубликаты: `push` выполняется только при `!includes(blockId)`.
+- Если `sectionState.owns[0]` найден в `entities`, `depends` и `usedBy` становятся отсортированными уникальными значениями `owner.directDeps` и `owner.directUsages`; если владелец не найден, эти поля не изменяются.
+- Для каждого влитого блока `body` обрезается через `.trim()`, `language` равен `config.docs.language`, `rendered` равен `true`, а `staleSince`, `staleReason`, `staleFacets` сбрасываются в `undefined`.
+- Если [`computeBlockFingerprint`](../markdown/block-facets.codelore.md#computeblockfingerprint) возвращает `undefined`, существующий `fingerprint` блока не очищается; если значение определено, оно записывается.
+- Функция не выбрасывает исключений и мутирует `sectionState` на месте, не возвращая значения.
 
 ## От чего зависит
 
@@ -111,16 +117,15 @@
 [`uniqueSorted`](helpers.codelore.md#uniquesorted) (`src/service/helpers.ts`) — удаление дубликатов и сортировка.
 [`updateSectionStatusForBlocks`](#updatesectionstatusforblocks) (`src/service/section-rewrite.ts`) — обновление статуса секции.
 
-## Кто и как использует
+## Чего не делает
 
-Вызывается [`applyRewritesToDoc`](#applyrewritestodoc) для каждой перезаписи. Внутри: 1) Для каждого блока из `rewrite.blocks` вычисляется фингерпринт через [`computeBlockFingerprint`](../markdown/block-facets.codelore.md#computeblockfingerprint), создаётся или обновляется `DocStateBlock` — устанавливаются `body` (обрезанный через `.trim()`), `language` из `config.docs.language`, `rendered` в `true`, `scores` (informativeness, novelty, specificity, novelFact), при наличии фингерпринта — `fingerprint`; поля `staleSince`, `staleReason`, `staleFacets` сбрасываются в `undefined`. Если `blockId` отсутствует в `blockOrder` или `allowedBlocks`, он добавляется. 2) После цикла, если у секции есть владелец (`sectionState.owns[0]` присутствует в `entities`), `depends` и `usedBy` перезаписываются через [`uniqueSorted([...owner.directDeps])`](helpers.codelore.md#uniquesorted) и [`uniqueSorted([...owner.directUsages])`](helpers.codelore.md#uniquesorted). 3) В конце вызывается [`updateSectionStatusForBlocks`](#updatesectionstatusforblocks).
-
-## Как менять и что проверять
-
-1. Дубликаты в `blockOrder` и `allowedBlocks` предотвращены: перед `push` стоит `if (!sectionState.blockOrder.includes(blockId))` и `if (!sectionState.allowedBlocks.includes(blockId))`. Тестов не видно.
-2. Поля устаревания сбрасываются в `undefined` для каждого влитого блока: три присваивания `block.staleSince = undefined; block.staleReason = undefined; block.staleFacets = undefined;`. Тестов не видно.
+The function only processes blocks that appear in the `rewrite.blocks` input; any block not listed there is left unchanged, and the function does not add or remove blocks beyond the provided set. It does not handle the case where a block's `fingerprint` is undefined — in that situation the existing `fingerprint` value is preserved (not cleared).
 
 # updateSectionStatusForBlocks
+
+```ts
+updateSectionStatusForBlocks(sectionState: DocStateSection): void
+```
 
 ## Зачем это нужно
 
@@ -134,8 +139,9 @@
 
 ## На что можно положиться
 
-- Статус `review_needed` никогда не перезаписывается.
-- Статус `stale` устанавливается только когда все блоки устарели; при наличии хотя бы одного неустаревшего блока статус `normal`.
+- Функция всегда перезаписывает `sectionState.status`, включая `review_needed`: в коде нет проверки `review_needed`.
+- Переменная `anyStale` вычисляется, но не влияет на итоговый статус: обе ветви тернарного оператора при `allStale === false` дают `"normal"`.
+- Функция не мутирует блоки и не выбрасывает исключений; изменяет только `sectionState.status`.
 
 ## От чего зависит
 
@@ -143,7 +149,11 @@
 
 ## Кто и как использует
 
-Вызывается [`mergeGeneratedBlocksIntoSection`](#mergegeneratedblocksintosection) после слияния блоков. Если статус секции `review_needed`, функция завершается досрочно. Иначе проверяет все блоки: если хотя бы один блок имеет `staleSince !== undefined`, но не все, статус становится `normal`; если все блоки устарели, статус становится `stale`. Результат записывается в `sectionState.status`.
+Вызывается [`mergeGeneratedBlocksIntoSection`](#mergegeneratedblocksintosection) после слияния блоков. Функция проверяет все блоки секции: если все блоки имеют `staleSince !== undefined`, статус становится `stale`; иначе — `normal`. Результат записывается в `sectionState.status`.
+
+## Чего не делает
+
+The function only updates status for blocks that appear in the `rewrite.blocks` input; blocks not listed are left with their existing status. It does not handle the case where a block's `fingerprint` is undefined — in that situation the existing `fingerprint` value is preserved (not cleared).
 
 # updateStatusFromBlocks
 
@@ -177,6 +187,10 @@
 
 # normalizeGeneratedRewrite
 
+```ts
+normalizeGeneratedRewrite(input: RewriteSectionInput, _config: CodeloreConfig): NormalizedRewriteSectionInput
+```
+
 ## Зачем это нужно
 
 Преобразует входные данные перезаписи секции в нормализованный формат для последующей обработки, проверяя наличие сгенерированных блоков и отфильтровывая только известные идентификаторы блоков.
@@ -197,24 +211,22 @@
 
 ## От чего зависит
 
-- [`CodeloreError`](../errors.codelore.md#codeloreerror) (`src/errors.ts`) — выбрасывается при пустом `input.generatedBlocks`.
-- `BLOCK_IDS` (`src/markdown/block-ids.ts`) — ограничивает набор допустимых идентификаторов блоков.
-- `BlockId` (`src/markdown/block-ids.ts`) — тип для ключей в результирующем объекте блоков.
+The function uses `BLOCK_IDS` from `src/markdown/block-ids.ts` to filter the input blocks, keeping only those whose IDs are in that set. It also uses the `BlockId` type from the same module to type the filtered result.
 
 ## Кто и как использует
 
-1. [`CodeloreService.rewriteSections`](codelore-service.codelore.md#rewritesections) вызывает функцию для каждого элемента массива `sections`.
-2. Полученные `NormalizedRewriteSectionInput` группируются по документу.
-3. Для каждой группы документов применяется слияние сгенерированных блоков в состояние.
-4. После применения всех перезаписей вызывается `patchDocIndexForDocs` для обновления индекса.
-5. В результате возвращается массив объектов с `sectionId`, `docPath` и опциональными `filteredBlocks`.
+The function is invoked by [`CodeloreService.rewriteSections`](codelore-service.codelore.md#rewritesections) (in `src/service/codelore-service.ts`) as part of the rewrite pipeline. It receives the raw rewrite input and returns a normalized version with only valid blocks, which is then used to update section states.
 
 ## Как менять и что проверять
 
-- Идентификаторы блоков, не входящие в `BLOCK_IDS`, отбрасываются. Конструкция: `for (const blockId of BLOCK_IDS) { const block = input.generatedBlocks[blockId]; if (block) { blocks[blockId] = block; } }`.
-- Пустой `input.generatedBlocks` вызывает ошибку `MISSING_GENERATED_BLOCKS`. Конструкция: `if (!input.generatedBlocks || Object.keys(input.generatedBlocks).length === 0) { throw new CodeloreError(...); }`.
+- The function enforces that only blocks with IDs in `BLOCK_IDS` are accepted; blocks with IDs outside this set are dropped. This is enforced by the `BLOCK_IDS` constant from `src/markdown/block-ids.ts`.
+- The function enforces that the input must include `generatedBlocks`; otherwise it throws an error with the message `Rewrite input for "${input.sectionId}" must include generatedBlocks.` This is enforced by the `if (!input.generatedBlocks)` check.
 
 # collectFilteredBlocksForResponse
+
+```ts
+collectFilteredBlocksForResponse(sectionState: DocStateSection, config: CodeloreConfig, includeText: boolean): FilteredGeneratedBlock[]
+```
 
 ## Зачем это нужно
 
@@ -238,15 +250,12 @@
 
 ## От чего зависит
 
-- `DocStateSection`, `CodeloreConfig`, `FilteredGeneratedBlock` из `src/types.ts` — интерфейсы, используемые в сигнатуре и реализации.
+Функция использует только типовые интерфейсы из `src/types.ts`: `DocStateSection`, `CodeloreConfig`, `FilteredGeneratedBlock`. Других внешних зависимостей нет.
 
 ## Кто и как использует
 
-1. [`collectFilteredBlocksForRewrites`](#collectfilteredblocksforrewrites) для каждой перезаписи с `showFiltered: true` вызывает `collectFilteredBlocksForResponse` с `includeText: true`.
-2. Функция собирает блоки с оценками и `rendered: false`, вычисляет `finalScore` и порог, опционально включает текст.
-3. Полученный массив сохраняется в карте `filteredBySection`, которая затем используется для построения ответа.
+1. [`collectFilteredBlocksForRewrites`](#collectfilteredblocksforrewrites) вызывает эту функцию для каждой перезаписи, у которой `showFiltered === true` и существует `sectionState`. 2. Функция собирает блоки с оценками и `rendered: false`, вычисляет `finalScore` как минимум из трёх метрик и определяет порог из конфигурации. 3. Поле `text` включается только если `includeText === true` и тело блока непустое. 4. Полученный массив сохраняется в карте `filteredBySection`.
 
 ## Как менять и что проверять
 
-- Порядок элементов в результате соответствует порядку `sectionState.allowedBlocks`. Конструкция: `for (const blockId of sectionState.allowedBlocks)`.
-- Поле `text` включается только при `includeText === true` и непустом `block.body`. Конструкция: `...(includeText && block.body ? { text: block.body } : {})`.
+- Порядок элементов в результате соответствует порядку `sectionState.allowedBlocks`. Конструкция: `for (const blockId of sectionState.allowedBlocks)`.\n- Поле `text` включается только при `includeText === true` и непустом `block.body`. Конструкция: `...(includeText && block.body ? { text: block.body } : {})`.

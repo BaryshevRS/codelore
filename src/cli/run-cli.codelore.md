@@ -1,21 +1,31 @@
 # runCli
 
+```ts
+runCli(argv: string[], runtime: CliRuntime): Promise<number>
+```
+
 ## Зачем это нужно
 
 Точка входа CLI, объединяющая парсинг глобальных аргументов, диспетчеризацию команд и обработку ошибок с возвратом кода выхода.
 
 ## Что делает
 
-- Не выполняет бизнес-логику команд — делегирует [`CodeloreService`](../service/codelore-service.codelore.md#codeloreservice) или [`startStdioServer`](../server/start-stdio-server.codelore.md#startstdioserver).
-- Не управляет MCP-сервером после запуска — [`startStdioServer`](../server/start-stdio-server.codelore.md#startstdioserver) управляет своим жизненным циклом.
-- Не валидирует аргументы каждой команды — это делают `assertExpectedArgs` и `parse*` функции.
-- Форматирует вывод: сериализует результат в JSON с отступами и выводит в `stdout`.
+- Если команда `help`, `--help` или `-h` — выводит справочный текст и возвращает 0, не обрабатывая остальные опции.
+- Если команда `mcp`, запускает [`startStdioServer`](../server/start-stdio-server.codelore.md#startstdioserver) и возвращает 0, не создавая [`CodeloreService`](../service/codelore-service.codelore.md#codeloreservice).
+- Для всех остальных команд создаётся [`CodeloreService`](../service/codelore-service.codelore.md#codeloreservice) и выполняется `runCommand`, который проверяет аргументы, выполняет метод сервиса и возвращает результат; результат (не `undefined`) сериализуется в JSON и пишется в stdout.
+- При любом исключении ошибка через [`toCodeloreErrorPayload`](../errors.codelore.md#tocodeloreerrorpayload) записывается в stderr и возвращается 1; при успехе, если результат содержит непустые `failed` или `issues`, возвращается 2, иначе 0.
+
+runCli всегда сериализует результат работы команды как JSON в stdout, ошибки — в stderr, и возвращает один из трёх кодов выхода: 0, 1, 2.
 
 ## На что можно положиться
 
-- Всегда возвращает 0 при успешном выполнении, 1 при непредвиденной ошибке, 2 при наличии секций с `failed` в результате.
-- Любое исключение перехватывается и выводится в `stderr` как JSON с полями `ok: false` и `error` через [`toCodeloreErrorPayload`](../errors.codelore.md#tocodeloreerrorpayload).
-- Результат (если не `undefined`) выводится в `stdout` как JSON.
+- При пустом `argv` (аргументов нет) команда подразумевается `help`: выводится справочный текст, возвращается 0.
+- Код возврата детерминирован: 0 при успехе, 1 при любом исключении, 2 при налии в резултате непустого масива `failed` или `issues`.
+- Резултат комманды (не `undefined`) всегда выводится в stdout как отформатированный JSON с двумя пробелами отступа.
+- Каждое неперехваченное исключение выводится в stderr в виде `{ ok: false, error: <toCodeloreErrorPayload> }`.
+- Запуск `mcp` не порождает вывода в stdout, не требует [`CodeloreService`](../service/codelore-service.codelore.md#codeloreservice) и завершается только после остаовки сервера.
+
+Гарантирует детерминированный код возврата: 0 при успехе, 1 при исключении, 2 при непустых `failed` или `issues`, и всегда записывает ошибку в stderr как `{ ok: false, error: ... }`.
 
 ## От чего зависит
 
@@ -23,25 +33,26 @@ runCli использует три внешних модуля: [`toCodeloreErro
 
 ## Кто и как использует
 
-Файл `src/bin/codelore.ts` вызывает `runCli`, передавая `process.argv.slice(2)` и объект `runtime` с `cwd`, `env`, `stdout`, `stderr`. После возврата `process.exitCode` устанавливается в результат `runCli`.
+Два бинарных файла вызывают `runCli`:
+- `src/bin/codelore.ts` передаёт `process.argv.slice(2)` и `runtime` с `cwd`, `env`, `stdout`, `stderr`; после возврата присваивает `process.exitCode`.
+- `src/bin/codelore-mcp.ts` делает то же самое, но предваряет аргументы командой `"mcp"`, поэтому `runCli` сразу переходит к запуску [`startStdioServer`](../server/start-stdio-server.codelore.md#startstdioserver).
 
 Внутри `runCli`:
 1. `parseGlobalArgs` извлекает `--root` (или `cwd` по умолчанию), `--provider` и команду; при отсутствии команды по умолчанию `help`.
-2. Если команда `help` или `--help`/`-h` — выводит `helpText()` в `stdout` и возвращает 0.
+2. Если команда `help`, `--help` или `-h` — выводит `helpText()` в `stdout` и возвращает 0.
 3. Если команда `mcp` — вызывает [`startStdioServer`](../server/start-stdio-server.codelore.md#startstdioserver) и после его успешного завершения возвращает 0.
-4. Для остальных команд создаётся [`CodeloreService`](../service/codelore-service.codelore.md#codeloreservice), вызывается `runCommand`, который проверяет аргументы через `assertExpectedArgs`, парсит специфичные аргументы (через `parseScope`, `parseAnalyzeChangeInput`, `parseRefreshStaleDocsInput`) и вызывает соответствующий метод сервиса.
+4. Для остальных команд создаётся [`CodeloreService`](../service/codelore-service.codelore.md#codeloreservice), вызывается `runCommand`, который проверяет аргументы через `assertExpectedArgs`, парсит специфичные аргументы и вызывает соответствующий метод сервиса.
 5. Результат (если не `undefined`) сериализуется в JSON с отступами и выводится в `stdout`.
-6. Если в результате есть секции с `failed` (проверка `hasFailedSections`), возвращается 2, иначе 0.
+6. Если в результате есть непустые `failed` или `issues` (проверка `isUnclean`), возвращается 2, иначе 0.
 7. Любое исключение перехватывается, сериализуется через [`toCodeloreErrorPayload`](../errors.codelore.md#tocodeloreerrorpayload) и выводится в `stderr` как JSON с полями `{ ok: false, error: ... }`, возвращается 1.
 
 ## Чего не делает
 
 - Команда `mcp` блокирует процесс навсегда — конструкция `await startStdioServer({ rootDir: parsed.rootDir })` без таймаута или graceful shutdown.
-- Для `graph --html` путь вывода фиксирован: `join(parsed.rootDir, '.codelore', 'render-graph', 'index.html')`, без опции переопределения.
 - Нет поддержки конфигурационных файлов — параметры `--root` и `--provider` читаются только из CLI-аргументов.
-- Обрабатывается только девять команд — `switch` в `runCommand` покрывает эти случаи; остальное выдаёт сообщение об ошибке.
+- Обрабатывается только девят команд — `switch` в `runCommand` покрывает эти случаи; остальное выдает сообщеные об ошибке.
 
 ## Как менять и что проверять
 
-- Формат вывода ошибки в stderr фиксирован: JSON с полями `ok` и `error`. Конструкция: `runtime.stderr.write(\`\${JSON.stringify({ ok: false, error: toCodeloreErrorPayload(error) }, null, 2)}\n\`)`.
-- Код возврата для успеха (0), исключения (1), и наличия секций с `failed` (2) зафиксирован. Конструкции: `return 0;`, `return 1;`, `return 2;` в соответствующих ветвях.
+- Формат вывода ошибки в stderr фиксирован: JSON с полями `ok` и `error`. Конструкция: `runtime.stderr.write(\`${JSON.stringify({ ok: false, error: toCodeloreErrorPayload(error) }, null, 2)}\n\`)`.
+- Код возврата для успеха (0), исключения (1), и наличия непустых `failed` или `issues` (2) зафиксирован. Конструкции: `return 0;`, `return 1;`, `return 2;` в соответствующих ветвях.

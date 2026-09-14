@@ -115,7 +115,11 @@ export function buildDomainEntities(code: CodeIndex, map: DomainMap): Record<str
       directUsages: usedByDomains,
       contentHash: sha256(directDeps.join("|")),
       facets: synthFacets(directDeps, usedByDomains, domain.slug),
-      metadata: synthMetadata(DOMAIN_BLOCKS),
+      // A one-file domain has no cross-file story to tell: its only source of facts
+      // is that file, whose own doc already tells it. The chapter keeps its heading,
+      // composition and relations (rendered from `depends`/`usedBy`, not from blocks)
+      // and carries no prose of its own.
+      metadata: synthMetadata(memberFiles.length === 1 ? [] : DOMAIN_BLOCKS),
     };
   }
 

@@ -1,15 +1,18 @@
 # parseJsonObject
 
+```ts
+parseJsonObject(content: string, message: string): Record<string, unknown>
+```
+
 ## Зачем это нужно
 
 Точка входа для парсинга JSON-ответа LLM.
 
 ## Что делает
 
-- Предварительно удаляет внешний Markdown-фенс (`` ```json `` или `` ``` ``) с помощью `stripOuterFence`, затем пытается распарсить результат стандартным `JSON.parse`.
-- При неудаче первого парсинга повторяет попытку после применения `repairKnownLlmEscapes`, которая исправляет три известных LLM-артефакта (экранированные `` ` ``, `$` и `\.`).
-- Гарантирует, что итоговый результат — объект (не null, не массив), делегируя проверку `asJsonObject`.
-- Если обе попытки парсинга завершаются ошибкой, выбрасывает [`CodeloreError`](../errors.codelore.md#codeloreerror) с кодом `INVALID_LLM_RESPONSE`, оборачивая исходную ошибку и включая первые 1000 символов ответа.
+- Удаляет внешний Markdown-фенс (```json или ```) через `stripOuterFence`.
+- Пытается распарсить результат стандартным `JSON.parse`; при успехе проверяет, что результат — объект, через `asJsonObject`.
+- При неудаче первого парсинга применяет `repairKnownLlmEscapes` (исправляет экранированные `` ` ``, `$` и `\.`) и повторяет попытку.
 
 ## На что можно положиться
 
@@ -34,8 +37,8 @@ repairKnownLlmEscapes заменяет только три паттерна (`` 
 
 ## Как менять и что проверять
 
-1. Инвариант «Всегда возвращает Record<string, unknown>» enforce-ится выражением `throw new Error("not an object")` в функции `asJsonObject`. Названных тестов не видно.
-2. Инвариант «При неудаче парсинга выбрасывает CodeloreError с кодом INVALID_LLM_RESPONSE» enforce-ится выражением `throw new CodeloreError("INVALID_LLM_RESPONSE", message, { cause: error instanceof Error ? error.message : String(error), response: content.slice(0, 1000), })`. Названных тестов не видно.
+1. Инвариант «Всегда возвращает Record<string, unknown>» enforce-ится выражением `throw new Error("not an object")` в функции `asJsonObject`.
+2. Инвариант «При неудаче парсинга выбрасывает CodeloreError с кодом INVALID_LLM_RESPONSE» enforce-ится выражением `throw new CodeloreError("INVALID_LLM_RESPONSE", message, { cause: error instanceof Error ? error.message : String(error), response: content.slice(0, 1000), })`.
 
 # readOptionalString
 

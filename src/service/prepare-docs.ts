@@ -1,5 +1,4 @@
 import type { CodeIndexScope } from "../indexer/code-indexer.js";
-import { computeBlockFingerprint } from "../markdown/block-facets.js";
 import { BLOCK_IDS, type BlockId } from "../markdown/block-ids.js";
 import { DOC_STATE_VERSION } from "../storage/doc-state-storage.js";
 import type {
@@ -81,11 +80,18 @@ export function preparedDocsResult(
 
 /**
  * Recreating a section must never erase written documentation: any non-empty
- * block from the previous state survives into the fresh skeleton.
+ * block from the previous state survives into the fresh skeleton. An empty block's
+ * fingerprint survives too — it is the record that the writer was asked about this
+ * code and declined, and a rebuilt skeleton carries none, so without this the answer
+ * is lost on every rebuild and the block is re-requested for as long as it stays empty.
  */
 export function withPreservedBlockBodies(previous: DocStateSection, fresh: DocStateSection): DocStateSection {
   for (const [blockId, prevBlock] of Object.entries(previous.blocks) as Array<[BlockId, DocStateBlock]>) {
     if (prevBlock.body.trim() === "") {
+      const freshBlock = fresh.blocks[blockId];
+      if (freshBlock && freshBlock.body.trim() === "" && prevBlock.fingerprint !== undefined) {
+        freshBlock.fingerprint = prevBlock.fingerprint;
+      }
       continue;
     }
     const freshBlock = fresh.blocks[blockId];
@@ -103,20 +109,19 @@ export function withPreservedBlockBodies(previous: DocStateSection, fresh: DocSt
   return fresh;
 }
 
-export function docStateSectionForPlannedEntity(
-  planned: PlannedFileSection,
-  entity: CodeEntity,
-  entities: Record<string, CodeEntity>
-): DocStateSection {
+export function docStateSectionForPlannedEntity(planned: PlannedFileSection, entity: CodeEntity): DocStateSection {
   const allowed = allowedBlockIds(entity);
   const order = orderBlocks(allowed);
   const blocks: Record<string, DocStateBlock> = {};
   for (const blockId of order) {
-    const fingerprint = computeBlockFingerprint(blockId, [entity.id], entities);
+    // No fingerprint on a skeleton: the fingerprint asserts "this text was written
+    // against this code", and there is no text yet. Stamping one at creation makes
+    // an empty block read as up-to-date, so nothing ever queues it for writing.
+    // It is stamped when the block is written, or when the writer is asked and
+    // declines — both are real answers about this code.
     blocks[blockId] = {
       body: "",
       rendered: false,
-      ...(fingerprint !== undefined ? { fingerprint } : {}),
     };
   }
   return {

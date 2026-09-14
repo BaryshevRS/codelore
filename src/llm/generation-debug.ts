@@ -1,5 +1,5 @@
 import { mkdir, rename, writeFile } from "node:fs/promises";
-import { dirname } from "node:path";
+import { dirname, join } from "node:path";
 import type { BlockId } from "../markdown/block-ids.js";
 import type { DocViolation } from "./doc-validator.js";
 import type { DependencyDoc, FileWriteSection } from "./file-writer.js";
@@ -146,6 +146,54 @@ export async function writeGenerationDebug(input: {
   await writeFile(tmpPath, `${JSON.stringify(input.entry, null, 2)}\n`, "utf8");
   await rename(tmpPath, debugPath);
   return { debugPath };
+}
+
+/**
+ * What one run decided before it ever spoke to the model: what the stale scan
+ * found, what reached the work queue, and what the pipeline reported back. The
+ * per-doc debug files only exist for docs that made it into the pipeline, so a
+ * block that was silently never queued leaves no trace at all there — its absence
+ * is indistinguishable from debugging being off. This record closes that gap.
+ */
+export interface RunDecisionsEntry {
+  version: 1;
+  runId: string;
+  timestamp: string;
+  command: string;
+  found: {
+    stale: Array<{ sectionId: string; blockId: string; drift: string; changedFacets: string[] }>;
+    tombstoned: Array<{ sectionId: string; blockId: string }>;
+  };
+  queued: Array<{ sectionId: string; blocks: string[] }>;
+  outcome: {
+    updated: Array<{ sectionId: string; blocks: string[] }>;
+    skipped: Array<{ sectionId: string; reason: string }>;
+    failed: Array<{ sectionId: string; reason: string }>;
+  };
+  /** Domain/overview docs, which the file pipeline's result never covers. */
+  tier?: { generated: string[]; droppedBlocks: number };
+}
+
+/** `<indexDir>/runs/<timestamp>-<runId>.json` — one file per run, newest last by name. */
+export function runDecisionsPath(rootDir: string, indexDir: string, entry: RunDecisionsEntry): string {
+  const stamp = entry.timestamp.replace(/[:.]/g, "-");
+  return join(rootDir, indexDir, "runs", `${stamp}-${entry.runId}.json`);
+}
+
+export async function writeRunDecisions(input: {
+  rootDir: string;
+  indexDir: string;
+  entry: RunDecisionsEntry;
+}): Promise<{ decisionsPath: string }> {
+  const decisionsPath = runDecisionsPath(input.rootDir, input.indexDir, input.entry);
+  if (!generationDebugEnabled()) {
+    return { decisionsPath };
+  }
+  await mkdir(dirname(decisionsPath), { recursive: true });
+  const tmpPath = `${decisionsPath}.${process.pid}.${Math.random().toString(36).slice(2, 8)}.tmp`;
+  await writeFile(tmpPath, `${JSON.stringify(input.entry, null, 2)}\n`, "utf8");
+  await rename(tmpPath, decisionsPath);
+  return { decisionsPath };
 }
 
 /** Per-phase debug files so a two-phase run keeps both traces instead of overwriting. */
