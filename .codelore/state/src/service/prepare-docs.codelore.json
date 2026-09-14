@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/service/prepare-docs.codelore.md",
-  "generatedAt": "2026-09-14T07:09:11.581Z",
+  "generatedAt": "2026-09-14T10:13:07.251Z",
   "sectionOrder": [
     "symbol:src/service/prepare-docs.ts#emptyDocState",
     "symbol:src/service/prepare-docs.ts#allowedBlockIds",
@@ -56,59 +56,64 @@
       ],
       "blocks": {
         "purpose": {
-          "body": "Создаёт пустой `DocState` для нового документа, заданного путём.",
+          "body": "Создаёт пустое состояние документа — стартовую точку, с которой `prepareInitialDocs` начинает наполнять новый файл, когда в хранилище нет сохранённого состояния (`existing ?? emptyDocState(docPath)`).",
           "rendered": true,
           "fingerprint": "signature=9c60f1aa68f5434f3fd4bebebac29bd04840500737c1841042aed3c6257fe518,placement=137d7fe32a823e7536dc931686f0b8603dad4eb7c53332bcab1a1ab7ccca7e41",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 1,
-            "specificity": 1,
-            "novelFact": "Функция инициализирует `DocState` с версией `DOC_STATE_VERSION` и текущей датой."
-          }
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Функция служит стартовой точкой для новых документов: `prepareInitialDocs` подставляет её через `existing ?? emptyDocState(docPath)`, когда сохранённого состояния нет."
+          },
+          "language": "ru"
         },
         "responsibility": {
-          "body": "- Устанавливает `version` из константы `DOC_STATE_VERSION`.\n- Устанавливает `docPath` переданным значением, `generatedAt` — текущей ISO-строкой.\n- Инициализирует `sectionOrder` пустым массивом и `sections` пустым объектом.\n- Не создаёт никаких секций или блоков — `DocState` готов к наполнению.",
+          "body": "- Заполняет `version` константой `DOC_STATE_VERSION`, `docPath` — переданным аргументом без нормализации, а `generatedAt` — ISO-строкой текущего момента.\n- Инициализирует `sectionOrder` пустым массивом и `sections` пустым объектом, поэтому результат готов к наполнению секциями.\n- Не обращается к диску и не проверяет существование пути.",
           "rendered": true,
           "fingerprint": "signature=9c60f1aa68f5434f3fd4bebebac29bd04840500737c1841042aed3c6257fe518,deps=eae5064853704783c5644f3d78d2c8831bb9441acb8ad064b13c42a911f4e345,usage=d954ae3b32c520d7679bb7c6a7ba0f8564452654f2f88bc2fd310dc897cc1f67",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.75,
-            "specificity": 1,
-            "novelFact": "Функция не валидирует `docPath` и не проверяет существование файла."
-          }
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Единственный атрибут, меняющийся от вызова к вызову, — `generatedAt`, фиксирующий момент создания; остальные поля повторяются в каждом результате."
+          },
+          "language": "ru"
         },
         "invariants": {
-          "body": "Всегда возвращает объект с `version: DOC_STATE_VERSION`, `docPath` как передано, `generatedAt` — текущей датой, `sectionOrder` пуст, `sections` пуст. Никогда не бросает исключения.",
+          "body": "- Каждый вызов возвращает новый независимый объект: изменения в `sectionOrder` или `sections` результата не затрагивают результаты других вызовов.\n- Функция не бросает исключений при любом строковом аргументе.",
           "rendered": true,
           "fingerprint": "signature=9c60f1aa68f5434f3fd4bebebac29bd04840500737c1841042aed3c6257fe518,body=e30361825219b9ab7c16d93fa7a3429843085d8051c46e4535fade70e64e045a",
           "scores": {
-            "informativeness": 0.75,
+            "informativeness": 0.5,
             "novelty": 0.5,
-            "specificity": 1,
-            "novelFact": "Возвращаемый объект не содержит ссылок на внешние данные."
-          }
+            "specificity": 0.75,
+            "novelFact": "Результат — свежий объект, независимый от других вызовов, а сама функция не бросает исключений."
+          },
+          "language": "ru"
         },
         "dependencies": {
-          "body": "Использует константу `DOC_STATE_VERSION` из модуля `../storage/doc-state-storage.js` для установки версии состояния.",
+          "body": "Единственные внешние зависимости — константа `DOC_STATE_VERSION` из `../storage/doc-state-storage.js`, которая попадает в поле `version` результата, и тип `DocState` из `../types.js`, задающий форму возвращаемого объекта. Больше модулей функция не импортирует: `docPath` приходит аргументом, а `generatedAt` функция вычисляет сама через `new Date()`.",
           "rendered": true,
           "fingerprint": "deps=eae5064853704783c5644f3d78d2c8831bb9441acb8ad064b13c42a911f4e345",
           "scores": {
             "informativeness": 0.5,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Зависимость определяет версию DocState"
-          }
+            "novelFact": "Версия состояния берётся из общей константы `DOC_STATE_VERSION` модуля doc-state-storage, а не задаётся локально."
+          },
+          "language": "ru"
         },
         "workflows": {
-          "body": "Вызывается `CodeloreService.prepareInitialDocs` (src/service/codelore-service.ts), когда для файла источника не найдено сохранённое состояние (`existing ?? emptyDocState(docPath)`). Результат затем наполняется секциями и сохраняется в хранилище.",
+          "body": "Единственный вызывающий — `CodeloreService.prepareInitialDocs` (src/service/codelore-service.ts). Внутри цикла по группам пропущенных сущностей он пробует `loadDocState(docPath)`, и когда хранилище не вернуло состояние, создаёт его через `existing ?? emptyDocState(docPath)`. Возвращённый объект метод мутирует на месте: добавляет id сущностей в `sectionOrder` (файловые — в начало, остальные — в конец), обновляет `generatedAt` и сохраняет результат через `docStateStorage.saveDocState(state)`.",
           "rendered": true,
           "fingerprint": "body=e30361825219b9ab7c16d93fa7a3429843085d8051c46e4535fade70e64e045a,deps=eae5064853704783c5644f3d78d2c8831bb9441acb8ad064b13c42a911f4e345",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.75,
+            "novelty": 1,
             "specificity": 0.75,
-            "novelFact": "Единственный вызывающий — prepareInitialDocs, при отсутствии существующего состояния"
-          }
+            "novelFact": "Результат не используется как есть: единственный вызывающий мутирует объект на месте и сохраняет его в хранилище."
+          },
+          "language": "ru"
         },
         "limitations": {
           "body": "",
@@ -139,9 +144,33 @@
             "dependencies",
             "workflows"
           ]
+        },
+        {
+          "runId": "f0d9db27-8d2d-4338-a2e9-7112c0b35593",
+          "timestamp": "2026-09-14T09:53:18.121Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "purpose",
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "f0d9db27-8d2d-4338-a2e9-7112c0b35593",
+          "timestamp": "2026-09-14T10:13:07.251Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows"
+          ]
         }
       ],
-      "depDocsFingerprint": "d317ea696c7a1ebee0760ab04dcdb3fbe5278d533d389cf90966af3b5eadb965"
+      "depDocsFingerprint": "d317ea696c7a1ebee0760ab04dcdb3fbe5278d533d389cf90966af3b5eadb965",
+      "signature": "emptyDocState(docPath: string): DocState"
     },
     "symbol:src/service/prepare-docs.ts#allowedBlockIds": {
       "heading": "allowedBlockIds",

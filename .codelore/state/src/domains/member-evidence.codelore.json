@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/domains/member-evidence.codelore.md",
-  "generatedAt": "2026-09-13T23:26:45.661Z",
+  "generatedAt": "2026-09-14T10:13:07.153Z",
   "sectionOrder": [
     "file:src/domains/member-evidence.ts",
     "symbol:src/domains/member-evidence.ts#collectDomainMemberEvidence",
@@ -128,7 +128,6 @@
         "file:src/service/codelore-service.ts",
         "file:src/service/stale-detection.ts",
         "symbol:src/service/codelore-service.ts#CodeloreService",
-        "symbol:src/service/codelore-service.ts#CodeloreService.staleDomainSlugs",
         "symbol:src/service/codelore-service.ts#CodeloreService.stampMemberFingerprints",
         "symbol:src/service/stale-detection.ts#collectMemberDocStaleBlocks"
       ],
@@ -165,9 +164,16 @@
           "fingerprint": "signature=9244aa2ea772d6468b9e04b4aaa8f0f8d44e73a165115f31e5283b90406a7f01,placement=55d8f8ca98efaa154b2a448047001aa24c5add45076a92ff4d97d58ff908064a"
         },
         "responsibility": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "signature=9244aa2ea772d6468b9e04b4aaa8f0f8d44e73a165115f31e5283b90406a7f01,deps=0ccb16e200e04ce3fd33a7b50b841fcf543f1389efcb0e2b6a3314aa3a749e73,usage=3a15ad43883fa07a4d48b19d03671d88276120a5c294f59c6f99a24bf2b84110"
+          "body": "Собирает текстовые свидетельства о зависимостях сущности из индекса и возвращает их одной отсортированной строкой. Для project-сущности берёт только зависимости с префиксом домена (DOMAIN_ID_PREFIX) и для каждой добавляет строку «depId — purpose responsibility» из соответствующей секции документации. Для остальных сущностей группирует секции документации по файлу-владельцу: для каждой зависимости, чей id раскрывается в путь файла, добавляет строку «path — heading: purpose responsibility». Секции без пути-владельца пропускает, а итоговый список сортирует лексикографически, поэтому одинаковый набор зависимостей и секций даёт одинаковую строку независимо от порядка обхода.",
+          "rendered": true,
+          "fingerprint": "signature=9244aa2ea772d6468b9e04b4aaa8f0f8d44e73a165115f31e5283b90406a7f01,deps=0ccb16e200e04ce3fd33a7b50b841fcf543f1389efcb0e2b6a3314aa3a749e73,usage=9e167eb7561c046630eeb6d726a87c8296e62c4c02185ef7896949332aca9500",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Для project-сущности учитываются только зависимости с префиксом домена, а для остальных — только те, чей id раскрывается в путь файла; результат всегда сортируется лексикографически."
+          }
         },
         "invariants": {
           "body": "The function returns a string of concatenated dependency information. It does not mutate the index or the section.",
@@ -218,16 +224,16 @@
           "fingerprint": "body=e29545c0e13c936a3697a21e2be4e6a4eb801bdc8637653458af5874163ef097"
         },
         "changeGuide": {
-          "body": "- The function enforces that only evidence present in the index is included, via the check `if (slug === undefined) { continue; }`.\n- The function enforces that the purpose block is considered filled only when its body is non-empty, via the check `block.body.trim() !== \"\"`.",
+          "body": "- Для project-сущности в свидетельство попадают только зависимости с доменным префиксом: ветка отбрасывает остальные по условию `!depId.startsWith(DOMAIN_ID_PREFIX)`.\n- Для остальных сущностей зависимости, чей id не раскрывается в путь файла, не дают записей: `const path = sourcePathOf(depId);` с последующей проверкой `if (!path) { continue; }`.\n- Итоговая строка всегда отсортирована лексикографически независимо от порядка обхода зависимостей: `return parts.sort().join(\"\\n\");`.",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "The function enforces that only evidence present in the index is included, via the check `if (slug === undefined) { continue; }`."
+            "informativeness": 0.75,
+            "novelty": 1,
+            "specificity": 0.75,
+            "novelFact": "Для project-сущности учитываются только зависимости с доменным префиксом (`!depId.startsWith(DOMAIN_ID_PREFIX)`), для остальных — только раскрываемые в путь файла (`if (!path) { continue; }`), а вывод всегда сортируется (`parts.sort()`)."
           },
-          "fingerprint": "body=e29545c0e13c936a3697a21e2be4e6a4eb801bdc8637653458af5874163ef097,deps=0ccb16e200e04ce3fd33a7b50b841fcf543f1389efcb0e2b6a3314aa3a749e73,usage=3a15ad43883fa07a4d48b19d03671d88276120a5c294f59c6f99a24bf2b84110,placement=55d8f8ca98efaa154b2a448047001aa24c5add45076a92ff4d97d58ff908064a"
+          "fingerprint": "body=e29545c0e13c936a3697a21e2be4e6a4eb801bdc8637653458af5874163ef097,deps=0ccb16e200e04ce3fd33a7b50b841fcf543f1389efcb0e2b6a3314aa3a749e73,usage=9e167eb7561c046630eeb6d726a87c8296e62c4c02185ef7896949332aca9500,placement=55d8f8ca98efaa154b2a448047001aa24c5add45076a92ff4d97d58ff908064a"
         }
       },
       "generationHistory": [
@@ -254,6 +260,26 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "f0d9db27-8d2d-4338-a2e9-7112c0b35593",
+          "timestamp": "2026-09-14T09:53:18.005Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "f0d9db27-8d2d-4338-a2e9-7112c0b35593",
+          "timestamp": "2026-09-14T10:13:07.153Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "changeGuide"
+          ]
         }
       ],
       "depDocsFingerprint": "36717df337effa09fe12a6a709ba92f1c6fbc1dda880a65be738af60b969dd34"
@@ -273,7 +299,6 @@
         "file:src/service/codelore-service.ts",
         "file:src/service/stale-detection.ts",
         "symbol:src/service/codelore-service.ts#CodeloreService",
-        "symbol:src/service/codelore-service.ts#CodeloreService.staleDomainSlugs",
         "symbol:src/service/codelore-service.ts#CodeloreService.stampMemberFingerprints",
         "symbol:src/service/stale-detection.ts#collectMemberDocStaleBlocks"
       ],
@@ -308,16 +333,16 @@
           "fingerprint": "signature=b3231f5d69828472f90967c31438ff8b6f32e71eeef107601e49843993d47253,placement=696fbc1b5be3e0547971a60fabf59c9091bb1a390a6c1b882c286942734a322b"
         },
         "responsibility": {
-          "body": "Hashes the serialized evidence to produce a fingerprint. The fingerprint is stable for identical evidence inputs, and it does not mutate the evidence.",
+          "body": "Считает SHA-256 от строки свидетельств и возвращает его как отпечаток. Функция чистая: одинаковый вход всегда даёт одинаковый отпечаток, а сам вход не изменяется.",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 0.75,
-            "novelty": 0.75,
-            "specificity": 0.75,
-            "novelFact": "It hashes the serialized evidence to produce a fingerprint."
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.5,
+            "novelFact": "Отпечаток — это SHA-256 от строки свидетельств, вычисляемый чистой функцией без мутаций."
           },
-          "fingerprint": "signature=b3231f5d69828472f90967c31438ff8b6f32e71eeef107601e49843993d47253,deps=5e182653abf487336051b0302906e43ba6f5f145cb916ea5d994652905484a96,usage=833d917d850a63f43c8da97e9633faac66f24bd677e6b365537b2dd5fcc7f7d8"
+          "fingerprint": "signature=b3231f5d69828472f90967c31438ff8b6f32e71eeef107601e49843993d47253,deps=5e182653abf487336051b0302906e43ba6f5f145cb916ea5d994652905484a96,usage=bb3cb11db108eff03c8c87fa24502f9e746516c206d1b2725ab1116a5648b06c"
         },
         "invariants": {
           "body": "The function returns a stable hash string for identical evidence inputs, and it does not mutate the evidence.",
@@ -391,6 +416,16 @@
             "dependencies",
             "workflows",
             "limitations"
+          ]
+        },
+        {
+          "runId": "f0d9db27-8d2d-4338-a2e9-7112c0b35593",
+          "timestamp": "2026-09-14T09:53:18.006Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "responsibility"
           ]
         }
       ],

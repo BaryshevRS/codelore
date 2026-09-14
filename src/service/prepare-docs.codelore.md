@@ -1,27 +1,31 @@
 # emptyDocState
 
+```ts
+emptyDocState(docPath: string): DocState
+```
+
 ## Зачем это нужно
 
-Создаёт пустой `DocState` для нового документа, заданного путём.
+Создаёт пустое состояние документа — стартовую точку, с которой [`prepareInitialDocs`](codelore-service.codelore.md#prepareinitialdocs) начинает наполнять новый файл, когда в хранилище нет сохранённого состояния (`existing ?? emptyDocState(docPath)`).
 
 ## Что делает
 
-- Устанавливает `version` из константы `DOC_STATE_VERSION`.
-- Устанавливает `docPath` переданным значением, `generatedAt` — текущей ISO-строкой.
-- Инициализирует `sectionOrder` пустым массивом и `sections` пустым объектом.
-- Не создаёт никаких секций или блоков — `DocState` готов к наполнению.
+- Заполняет `version` константой `DOC_STATE_VERSION`, `docPath` — переданным аргументом без нормализации, а `generatedAt` — ISO-строкой текущего момента.
+- Инициализирует `sectionOrder` пустым массивом и `sections` пустым объектом, поэтому результат готов к наполнению секциями.
+- Не обращается к диску и не проверяет существование пути.
 
 ## На что можно положиться
 
-Всегда возвращает объект с `version: DOC_STATE_VERSION`, `docPath` как передано, `generatedAt` — текущей датой, `sectionOrder` пуст, `sections` пуст. Никогда не бросает исключения.
+- Каждый вызов возвращает новый независимый объект: изменения в `sectionOrder` или `sections` результата не затрагивают результаты других вызовов.
+- Функция не бросает исключений при любом строковом аргументе.
 
 ## От чего зависит
 
-Использует константу `DOC_STATE_VERSION` из модуля `../storage/doc-state-storage.js` для установки версии состояния.
+Единственные внешние зависимости — константа `DOC_STATE_VERSION` из `../storage/doc-state-storage.js`, которая попадает в поле `version` результата, и тип `DocState` из `../types.js`, задающий форму возвращаемого объекта. Больше модулей функция не импортирует: `docPath` приходит аргументом, а `generatedAt` функция вычисляет сама через `new Date()`.
 
 ## Кто и как использует
 
-Вызывается [`CodeloreService.prepareInitialDocs`](codelore-service.codelore.md#prepareinitialdocs) (src/service/codelore-service.ts), когда для файла источника не найдено сохранённое состояние (`existing ?? emptyDocState(docPath)`). Результат затем наполняется секциями и сохраняется в хранилище.
+Единственный вызывающий — [`CodeloreService.prepareInitialDocs`](codelore-service.codelore.md#prepareinitialdocs) (src/service/codelore-service.ts). Внутри цикла по группам пропущенных сущностей он пробует `loadDocState(docPath)`, и когда хранилище не вернуло состояние, создаёт его через `existing ?? emptyDocState(docPath)`. Возвращённый объект метод мутирует на месте: добавляет id сущностей в `sectionOrder` (файловые — в начало, остальные — в конец), обновляет `generatedAt` и сохраняет результат через `docStateStorage.saveDocState(state)`.
 
 # allowedBlockIds
 

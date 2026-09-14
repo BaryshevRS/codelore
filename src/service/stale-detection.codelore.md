@@ -133,16 +133,20 @@ filterSectionsByScope(sections: DocSection[], scope: RefreshStaleScope | undefin
 
 # collectDepDocStaleBlocks
 
+```ts
+collectDepDocStaleBlocks(sections: DocSection[], index: ProjectIndex): StaleBlockInfo[]
+```
+
 ## Зачем это нужно
 
 Обнаруживает секции, чья документация зависимостей изменилась, что приводит к устареванию непропагирующих блоков.
 
 ## Что делает
 
-- Обрабатывает только секции, у которых есть сохранённый `depDocsFingerprint`.
-- Сравнивает текущий отпечаток зависимостей с сохранённым, используя [`dependencyDocsFingerprint`](../llm/file-pipeline.codelore.md#dependencydocsfingerprint).
-- Пропускает блоки, которые уже устарели, пусты, или являются пропагирующими (`PROPAGATING_BLOCKS`).
-- Сообщает об устаревании с `changedFacets: ["depDocs"]`.
+- Пропускает секции без сохранённого `depDocsFingerprint` — они исключаются из рассмотрения.
+- Вычисляет текущий отпечаток через `dependencyDocsFingerprint(collectDependencyDocs(index, [file]))`, беря путь файла из первой owned-сущности секции, и кэширует результат в `fingerprintByFile`, чтобы не пересчитывать его для нескольких секций одного файла.
+- При расхождении текущего и сохранённого отпечатков помечает каждый известный, непустой, ещё не устаревший блок секции записью с `changedFacets: ["depDocs"]` и `drift: "facet_changed"`.
+- Исключает пропагирующие блоки (`PROPAGATING_BLOCKS`): они генерируются без dependency docs, поэтому не могут устареть по этой причине.
 
 ## На что можно положиться
 
@@ -158,7 +162,7 @@ filterSectionsByScope(sections: DocSection[], scope: RefreshStaleScope | undefin
 
 ## Кто и как использует
 
-Вызывается из [`CodeloreService.refreshStaleDocs`](codelore-service.codelore.md#refreshstaledocs). Перебирает секции, для каждой с сохранённым `depDocsFingerprint` вычисляет текущий отпечаток и сравнивает. Если отпечаток изменился, помечает все непустые, не-пропагирующие блоки, которые ещё не помечены как устаревшие, как устаревшие с фасетом `depDocs`.
+Вызывается из `CodeloreService.refreshStaleDocs`. Перебирает секции, для каждой с сохранённым `depDocsFingerprint` вычисляет текущий отпечаток и сравнивает. Если отпечаток изменился, помечает все непустые, не-пропагирующие блоки, которые ещё не помечены как устаревшие, как устаревшие с фасетом `depDocs`.
 
 ## Чего не делает
 
@@ -167,9 +171,15 @@ filterSectionsByScope(sections: DocSection[], scope: RefreshStaleScope | undefin
 
 ## Как менять и что проверять
 
-- Секции без сохранённого `depDocsFingerprint` пропускаются: условие `if (section.depDocsFingerprint === undefined) { continue; }`.
+- Отпечаток документации зависимостей пересчитывается не чаще одного раза на файл: перед расчётом код проверяет кэш через `fingerprintByFile.get(file)`, а после — сохраняет результат через `fingerprintByFile.set(file, current)`.
+- В запись об устаревании попадают только известные, непустые и ещё не похороненные блоки: `if (!isKnownBlockId(block.id) || block.staleSince !== undefined || block.body.trim() === "") { continue; }`.
+- Совпадение текущего и сохранённого отпечатков досрочно завершает обработку секции: `if (current === section.depDocsFingerprint) { continue; }`.
 
 # mergeStaleBlocks
+
+```ts
+mergeStaleBlocks(...passes: StaleBlockInfo[][]): StaleBlockInfo[]
+```
 
 ## Зачем это нужно
 
@@ -177,9 +187,9 @@ filterSectionsByScope(sections: DocSection[], scope: RefreshStaleScope | undefin
 
 ## Что делает
 
-- Дедуплицирует записи по составному ключу `sectionId + \\0 + blockId`.
-- При повторном появлении одного и того же блока объединяет массивы `changedFacets` (объединение множеств).
-- Сохраняет остальные поля первой найденной записи.
+- Схлопывает записи из разных проходов по составному ключу `sectionId + "\u0000" + blockId`: первая запись пары сохраняется целиком.
+- При повторном вхождении той же пары объединяет `changedFacets` в union через `Set`, остальные поля первой записи не меняет.
+- Возвращает новый массив значений Map, не мутируя входные массивы проходов.
 
 ## На что можно положиться
 
@@ -188,7 +198,7 @@ filterSectionsByScope(sections: DocSection[], scope: RefreshStaleScope | undefin
 
 ## Кто и как использует
 
-Вызывается из [`CodeloreService.refreshStaleDocs`](codelore-service.codelore.md#refreshstaledocs) для объединения устаревших блоков, устраняя дубликаты по составному ключу `sectionId + '\\u0000' + blockId`, и объединяя массивы `changedFacets` при повторных вхождениях.
+Вызывается из `CodeloreService.refreshStaleDocs` для объединения устаревших блоков, устраняя дубликаты по составному ключу `sectionId + '\\u0000' + blockId`, и объединяя массивы `changedFacets` при повторных вхождениях.
 
 ## Чего не делает
 
@@ -197,10 +207,14 @@ filterSectionsByScope(sections: DocSection[], scope: RefreshStaleScope | undefin
 
 ## Как менять и что проверять
 
-- Дубликаты устраняются по составному ключу: `const key = entry.sectionId + '\u0000' + entry.blockId;`.
-- При повторном вхождении фасеты объединяются: `existing.changedFacets = [...new Set([...existing.changedFacets, ...entry.changedFacets])];`.
+- Ключ дедупликации склеивает sectionId и blockId нуль-символом, чтобы граница между ними не терялась: `` `${entry.sectionId}\u0000${entry.blockId}` ``.
+- Первая встреченная запись для пары сохраняется целиком, повторные вхождения лишь пополняют её `changedFacets` через `existing.changedFacets = [...new Set([...existing.changedFacets, ...entry.changedFacets])];`, поэтому `drift` и `docPath` всегда берутся из первого прохода.
 
 # collectStaleBlocks
+
+```ts
+collectStaleBlocks(sections: DocSection[], entities: Record<string, CodeEntity>): StaleBlockInfo[]
+```
 
 ## Зачем это нужно
 
@@ -208,10 +222,9 @@ filterSectionsByScope(sections: DocSection[], scope: RefreshStaleScope | undefin
 
 ## Что делает
 
-- Делегирует проверку отдельных блоков функции [`staleBlockInfoFor`](#staleblockinfofor) для секций, у которых есть хотя бы одна принадлежащая сущность.
-- Для секций, все принадлежащие сущности которых удалены, делегирует [`deletedOwnedEntityBlocks`](#deletedownedentityblocks), которая помечает все блоки как устаревшие с причиной `owned_entity_deleted`.
-- Возвращает плоский массив; каждый элемент содержит идентификатор секции, блока и список изменившихся фасетов.
-- Не изменяет переданные секции или сущности.
+- Для секций, у которых хотя бы одна owned-сущность присутствует в `entities`, делегирует проверку каждого блока в [`staleBlockInfoFor`](#staleblockinfofor).
+- Для секций, потерявших все owned-сущности, делегирует [`deletedOwnedEntityBlocks`](#deletedownedentityblocks), которая помечает все известные непустые блоки с `drift: "owned_entity_deleted"`.
+- Возвращает плоский массив записей, не мутируя переданные секции и сущности.
 
 ## На что можно положиться
 
@@ -226,7 +239,7 @@ filterSectionsByScope(sections: DocSection[], scope: RefreshStaleScope | undefin
 
 ## Кто и как использует
 
-Вызывается из [`CodeloreService.refreshStaleDocs`](codelore-service.codelore.md#refreshstaledocs) (`src/service/codelore-service.ts`) после фильтрации секций по scope.
+Вызывается из `CodeloreService.refreshStaleDocs` ([`src/service/codelore-service.ts`](codelore-service.codelore.md#codelore-servicets)) после фильтрации секций по scope.
 1. Для каждой секции фильтруются owned-сущности, присутствующие в `entities`.
 2. Если ни одна owned-сущность не найдена, вызывается [`deletedOwnedEntityBlocks`](#deletedownedentityblocks).
 3. Иначе для каждого блока секции вызывается [`staleBlockInfoFor`](#staleblockinfofor).
@@ -237,10 +250,14 @@ filterSectionsByScope(sections: DocSection[], scope: RefreshStaleScope | undefin
 
 ## Как менять и что проверять
 
-- Если изменить условие `presentOwns.length === 0` на другую проверку, секции с удалёнными owned-сущностями перестанут помечаться как stale — тест `collectStaleBlocks` должен покрывать этот сценарий.
-- Если убрать вызов [`staleBlockInfoFor`](#staleblockinfofor) из цикла по блокам, блоки с изменившимся отпечатком не будут обнаружены — тест `collectStaleBlocks` должен проверять обнаружение изменений фасетов.
+- Секция переходит в ветку удаления владельцев только когда `presentOwns.length === 0`, где `presentOwns` получен фильтром `section.owns.filter((id) => entities[id])`; при частичной потере владельцев блоки по-прежнему проверяются по отпечаткам.
+- Решение по каждому блоку целиком делегировано [`staleBlockInfoFor`](#staleblockinfofor), и в результат попадает только его непустой возврат: `const info = staleBlockInfoFor(section, block, presentOwns, entities); if (info) { stale.push(info); }`.
 
 # collectTombstonedBlocks
+
+```ts
+collectTombstonedBlocks(sections: DocSection[], entities: Record<string, CodeEntity>): StaleBlockInfo[]
+```
 
 ## Зачем это нужно
 
@@ -248,10 +265,10 @@ filterSectionsByScope(sections: DocSection[], scope: RefreshStaleScope | undefin
 
 ## Что делает
 
-- Для секций с существующими принадлежащими сущностями проверяет каждый блок через [`tombstonedBlockInfoFor`](#tombstonedblockinfofor), который возвращает информацию только для блоков с `staleSince`.
-- Для секций без принадлежащих сущностей вызывает [`deletedOwnedEntityBlocks`](#deletedownedentityblocks) с `tombstonedOnly: true`, включая только уже похороненные блоки (с `staleSince`).
-- Возвращает только блоки, у которых тело не пусто и у которых `staleSince` установлен.
-- Не требует вычисления отпечатков или доступа к актуальному коду сущностей.
+- Для секций с живыми owned-сущностями делегирует [`tombstonedBlockInfoFor`](#tombstonedblockinfofor), который возвращает запись только для блоков с установленным `staleSince` и непустым телом.
+- Для секций без owned-сущностей делегирует [`deletedOwnedEntityBlocks`](#deletedownedentityblocks) с `tombstonedOnly: true`, включая только уже похороненные блоки.
+- Возвращает записи с `drift: "tombstoned"`; фасеты берёт из сохранённого `staleFacets` блока, а при его отсутствии — из `BLOCK_FACETS[block.id]`.
+- Не вычисляет отпечатки и не обращается к коду сущностей — работает только по метаданным блоков.
 
 ## На что можно положиться
 
@@ -266,7 +283,7 @@ filterSectionsByScope(sections: DocSection[], scope: RefreshStaleScope | undefin
 
 ## Кто и как использует
 
-Вызывается из [`CodeloreService.refreshStaleDocs`](codelore-service.codelore.md#refreshstaledocs) (`src/service/codelore-service.ts`). Результат используется для формирования `rewritePlan` или для применения tombstone.
+Вызывается из `CodeloreService.refreshStaleDocs` ([`src/service/codelore-service.ts`](codelore-service.codelore.md#codelore-servicets)). Результат используется для формирования `rewritePlan` или для применения tombstone.
 1. Для каждой секции фильтруются owned-сущности, присутствующие в `entities`.
 2. Если ни одна owned-сущность не найдена, вызывается [`deletedOwnedEntityBlocks`](#deletedownedentityblocks) с `tombstonedOnly: true`.
 3. Иначе для каждого блока секции вызывается [`tombstonedBlockInfoFor`](#tombstonedblockinfofor).
@@ -277,8 +294,8 @@ filterSectionsByScope(sections: DocSection[], scope: RefreshStaleScope | undefin
 
 ## Как менять и что проверять
 
-- Если изменить условие `presentOwns.length === 0` на другую проверку, секции с удалёнными owned-сущностями перестанут обрабатываться через [`deletedOwnedEntityBlocks`](#deletedownedentityblocks) — тест `collectTombstonedBlocks` должен покрывать этот сценарий.
-- Если убрать вызов [`tombstonedBlockInfoFor`](#tombstonedblockinfofor) из цикла по блокам, tombstoned-блоки не будут обнаружены — тест `collectTombstonedBlocks` должен проверять обнаружение блоков с `staleSince`.
+- В ветке секций без живых владельцев отбираются только уже похороненные блоки, потому что опция передаётся явно: [`deletedOwnedEntityBlocks(section, { tombstonedOnly: true })`](#deletedownedentityblocks).
+- Для секций с живыми владельцами решение по блоку делегировано [`tombstonedBlockInfoFor`](#tombstonedblockinfofor), и в результат попадает только его непустой возврат: `const info = tombstonedBlockInfoFor(section, block); if (info) { tombstoned.push(info); }`.
 
 # deletedOwnedEntityBlocks
 
@@ -486,15 +503,19 @@ filterSectionsByScope(sections: DocSection[], scope: RefreshStaleScope | undefin
 
 # collectLanguageStaleBlocks
 
+```ts
+collectLanguageStaleBlocks(sections: DocSection[], canonicalLanguage: string | undefined): StaleBlockInfo[]
+```
+
 ## Зачем это нужно
 
 Обнаруживает блоки документации, язык которых не соответствует текущему каноническому языку, чтобы отметить их как устаревшие для последующей регенерации.
 
 ## Что делает
 
-- Проверяет, что `canonicalLanguage` задан; при отсутствии возвращает пустой массив.
-- Пропускает блоки с неизвестным идентификатором, уже помеченные как устаревшие, пустые или не имеющие языковой метки (`block.language === undefined`).
-- Для каждого блока, чья метка `block.language` отличается от `canonicalLanguage`, создаёт запись `StaleBlockInfo` с фасетом `"language"`.
+- При `canonicalLanguage === undefined` сразу возвращает пустой массив — без канонического языка нечего сравнивать.
+- Пропускает блоки с неизвестным id, уже устаревшие (`staleSince`), пустые и без языковой метки (`block.language === undefined`).
+- Для каждого блока, чья метка `block.language` отличается от `canonicalLanguage`, создаёт запись с `changedFacets: ["language"]` и `drift: "facet_changed"`.
 
 ## На что можно положиться
 
@@ -508,7 +529,7 @@ filterSectionsByScope(sections: DocSection[], scope: RefreshStaleScope | undefin
 
 ## Кто и как использует
 
-Вызывается из [`CodeloreService.refreshStaleDocs`](codelore-service.codelore.md#refreshstaledocs) с аргументом `this.config.docs.language` в качестве канонического языка. Функция последовательно обходит все секции и блоки, отфильтровывая блоки без языковой метки, и возвращает массив устаревших блоков для последующей обработки.
+Вызывается из `CodeloreService.refreshStaleDocs` с аргументом `this.config.docs.language` в качестве канонического языка. Функция последовательно обходит все секции и блоки, отфильтровывая блоки без языковой метки, и возвращает массив устаревших блоков для последующей обработки.
 
 ## Чего не делает
 
@@ -516,5 +537,5 @@ filterSectionsByScope(sections: DocSection[], scope: RefreshStaleScope | undefin
 
 ## Как менять и что проверять
 
-- Если `canonicalLanguage` равен `undefined`, функция возвращает пустой массив — это обеспечивается ранним возвратом `if (canonicalLanguage === undefined) { return []; }`.
-- Только блоки с известным идентификатором, не являющиеся устаревшими, непустые и с установленной языковой меткой проходят проверку — это гарантирует условие `if (!isKnownBlockId(block.id) || block.staleSince !== undefined || block.body.trim() === "" || block.language === undefined) { continue; }`.
+- Языковая проверка стоит последней: блоки с неизвестным id, уже похороненные или пустые отсекаются раньше условием `if (!isKnownBlockId(block.id) || block.staleSince !== undefined || block.body.trim() === "") { continue; }`.
+- Запись об устаревании всегда несёт ровно фасет `language` — он зафиксирован литералом `changedFacets: ["language"]`, а не вычислен из diff отпечатков.

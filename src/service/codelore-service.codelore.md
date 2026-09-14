@@ -6,19 +6,28 @@ The file provides two private methods that both traverse an entity's direct depe
 
 ## Что делает
 
-gatherTierDependencies: for non-project entities, iterates directDeps, filters by DOMAIN_ID_PREFIX, fetches a domain summary, and pushes a dependency object with name (from entity name or summary.label) and optional purpose from the summary's first section. gatherTierMembers: for project entities, returns direct domain summaries for domain-prefixed deps; for non-projects, resolves each dep to a file path and looks up the member in the provided map, skipping missing entries.
+- Собирает в один слой оркестрацию всей документационной системы: класс [`CodeloreService`](#codeloreservice) связывает конфиг, индексы кода и документации, состояние документов на диске и LLM-провайдеров, а хелперы файла (`splitTierSections`, `collectAllowedBlocksForSection`, `resolveTargets`, `scopeFromParts`, `sourceFilePathOf`) задают общие правила, на которых держатся методы класса.
+- Разводит генерацию по двум конвейерам с общей границей `splitTierSections`: исходные секции (`file:`/`symbol:`) идут файловым конвейером двумя плоскими фазами — propagating, затем terminal, — а tier-секции (`DOMAIN_ID_PREFIX`/`PROJECT_ID`) — доменным конвейером волнами зависимостей leaves-first.
+- Вводит сквозные конвенции фингерпринтов: блоки штампуются [`computeBlockFingerprint`](../markdown/block-facets.codelore.md#computeblockfingerprint), tier-документы — [`domainMemberFingerprint`](../domains/member-evidence.codelore.md#domainmemberfingerprint), документации зависимостей — [`dependencyDocsFingerprint`](../llm/file-pipeline.codelore.md#dependencydocsfingerprint); отклонённые и пустые блоки тоже получают штамп, чтобы последующие прогоны не переспрашивали одно и то же.
+- Задаёт единые правила работы с LLM: пару провайдеров writer/verify создаёт [`createProviderPair`](#codeloreservicecreateproviderpair), промпт партиционирования ограничен бюджетом модели через `assertRequestFitsBudget`, невалидный ответ LLM повторяется один раз с описанием ошибки через `appendPartitionRetry`.
 
 ## На что можно положиться
 
-For project entities, both gatherTierDependencies and gatherTierMembers return an empty array (dependencies) or a list of direct domain summaries (members), never file members. For non-project entities, both methods iterate entity.directDeps in order, filtering by DOMAIN_ID_PREFIX (dependencies) or resolving file paths (members).
+- Идентификаторы сущностей кодируют вид: `file:`/`symbol:` — исходный код, `DOMAIN_ID_PREFIX` — tier-домен, `PROJECT_ID` — обзорный документ (tier-секция — это и есть её entity id, `domain:<slug>` или `project:`). `sourceFilePathOf` возвращает путь только для исходных id, для tier-ид — undefined; на этом держатся `splitTierSections`, сборка member-данных и поиск владельца секции.
+- `resolveTargets` без запрошенных целей возвращает весь `allowedBlocks`, а цель вне allowed-набора бросает [`CodeloreError`](../errors.codelore.md#codeloreerror) с кодом `MISSING_BLOCK`; поэтому [`runPipelineForSections`](#runpipelineforsections) заранее пересекает запрошенные цели с allowed-набором и пропускает секции, у которых целей не осталось.
+- Секция генерируется в обеих фазах и может попасть в сводку дважды: `mergeSectionSummaries` схлопывает записи одной секции в одну с объединением `generatedBlocks`, а `dedupeSkipped` убирает из skipped секции, которые записала другая фаза.
+- `scopeFromParts` с пустыми списками возвращает undefined — отсутствие фильтра, а не пустой набор; [`filterSectionsByScope`](stale-detection.codelore.md#filtersectionsbyscope) в этом случае видит все секции репозитория, поэтому вызывающие передают undefined только когда скоупа нет вовсе.
 
 ## От чего зависит
 
-Зависит от функции [`domainDocPath`](domain-docs.codelore.md#domaindocpath) из `src/service/domain-docs.ts` для получения пути к файлу доменного документа по идентификатору зависимости.
+Файл подключает всё окружение сервиса: [`loadConfig`](../config.codelore.md#loadconfig) и [`resolveTerms`](../config.codelore.md#resolveterms) (`src/config.ts`) дают конфигурацию и термины для файла/языка; [`JsonStorage`](../storage/json-storage.codelore.md#jsonstorage), [`DocStateStorage`](../storage/doc-state-storage.codelore.md#docstatestorage), [`IndexManager`](index-manager.codelore.md#indexmanager) — состояние на диске, индексы кода и документации. Индекс/граф: [`buildCodeIndex`](../indexer/code-indexer.codelore.md#buildcodeindex), [`parseUnifiedDiff`](../graph/diff.codelore.md#parseunifieddiff), [`buildFileDag`](../graph/file-dag.codelore.md#buildfiledag), [`buildDomainDag`](../graph/domain-dag.codelore.md#builddomaindag), [`dependencyWaves`](../graph/waves.codelore.md#dependencywaves), [`getAffectedSectionsForEntities`](../graph/impact.codelore.md#getaffectedsectionsforentities), [`getImpactForEntity`](../graph/impact.codelore.md#getimpactforentity) и константы/функции `DOMAIN_ID_PREFIX`, `PROJECT_ID`, [`domainIdFor`](../indexer/domain-entities.codelore.md#domainidfor), [`isDomainTierEntity`](../indexer/domain-entities.codelore.md#isdomaintierentity), [`isSourceCodeEntity`](../indexer/domain-entities.codelore.md#issourcecodeentity) дают карту сущностей, рёбер и волн. Доменные чистые функции: [`buildPartitionRequest`](../domains/partition.codelore.md#buildpartitionrequest)/[`parsePartitionResponse`](../domains/partition.codelore.md#parsepartitionresponse), [`buildAssignRequest`](../domains/assign.codelore.md#buildassignrequest)/[`parseAssignResponse`](../domains/assign.codelore.md#parseassignresponse), [`domainCoverage`](../domains/domain-map.codelore.md#domaincoverage)/[`fileToDomainSlug`](../domains/domain-map.codelore.md#filetodomainslug), [`collectDomainMemberEvidence`](../domains/member-evidence.codelore.md#collectdomainmemberevidence)/[`domainMemberFingerprint`](../domains/member-evidence.codelore.md#domainmemberfingerprint) — формирование и разбор LLM-сообщений и отпечатки tier-членов. LLM-слой: [`createConfiguredProvider`](../llm/provider.codelore.md#createconfiguredprovider) (фабрика провайдеров и их бюджет), [`generateFileGroup`](../llm/file-pipeline.codelore.md#generatefilegroup), [`generateDomainDoc`](../llm/domain-pipeline.codelore.md#generatedomaindoc), [`verifyBlocksAgainstDeps`](../llm/file-pipeline.codelore.md#verifyblocksagainstdeps), [`collectDependencyDocs`](../llm/file-pipeline.codelore.md#collectdependencydocs)/[`dependencyDocsFingerprint`](../llm/file-pipeline.codelore.md#dependencydocsfingerprint), [`translateBlocks`](../llm/translator.codelore.md#translateblocks), `writeRunDecisions`. Разметка/состояние: [`computeBlockFingerprint`](../markdown/block-facets.codelore.md#computeblockfingerprint), [`translationSourceFingerprint`](../markdown/block-facets.codelore.md#translationsourcefingerprint), [`docResponsibilities`](../markdown/linkify.codelore.md#docresponsibilities), [`renderSection`](../markdown/render-doc.codelore.md#rendersection), `BLOCK_IDS`/`BlockId`. Внутренние модули той же директории (`prepare-docs`, `section-rewrite`, `stale-detection`/`stale-detector`, `doc-reconcile`, `doc-validation`, `domain-docs`, `file-layout`, `index-manager`, `helpers`) задают правила скоупа, томбстоуны, перезапись, проверки и планы раскладки.
 
 ## Чего не делает
 
-Ограничений нет.
+На уровне файла действуют три рамки:
+- `assertRequestFitsBudget` суммирует длины всех `message.content` промпта партиционирования и при `estimatedTokens > maxPromptTokens` бросает `PARTITION_TOO_LARGE`; текст ошибки прямо говорит `Batched partition is not yet implemented`, поэтому слишком большой набор файлов нельзя разбить одним запросом — нужен меньший вход.
+- Невалидный ответ LLM переспрашивается ровно один раз: в [`partitionDomainMap`](#codeloreservicepartitiondomainmap) и [`assignUncoveredFiles`](#codeloreserviceassignuncoveredfiles) повторный [`parsePartitionResponse`](../domains/partition.codelore.md#parsepartitionresponse)/[`parseAssignResponse`](../domains/assign.codelore.md#parseassignresponse) стоит вне `try`, значит второй сбой парсинга пробрасывается наверх и останавливает команду без дальнейших попыток.
+- `readGitDiff` ловит любую ошибку `execFile` и молча возвращает пустую строку; если вызывающий не передал `diff` и `changedFiles` явно, [`analyzeChange`](#analyzechange) увидит пустой diff и не сообщит о сбое git.
 
 # CodeloreService
 
@@ -32,27 +41,45 @@ class CodeloreService
 
 ## Что делает
 
-Проверяет входной массив на пустоту и дубликаты `sectionId`, выбрасывая [`CodeloreError`](../errors.codelore.md#codeloreerror) при дубликате. Загружает или перестраивает индексы через [`loadOrRebuildIndexes`](#loadorrebuildindexes). Нормализует каждый запрос через [`normalizeGeneratedRewrite`](section-rewrite.codelore.md#normalizegeneratedrewrite) и группирует их по документам через [`groupRewritesByDoc`](section-rewrite.codelore.md#grouprewritesbydoc). Для каждой группы вызывает [`applyRewritesToDoc`](section-rewrite.codelore.md#applyrewritestodoc), собирая отфильтрованные блоки в `filteredBySection`. После применения всех изменений вызывает [`patchDocIndexForDocs`](#patchdocindexfordocs) для затронутых документов. Формирует итоговый ответ, включая `filteredBlocks` только если они не пусты.
+- Перестраивает и держит актуальными индексы проекта: [`rebuildIndexes`](#rebuildindexes)/[`loadOrRebuildIndexes`](#loadorrebuildindexes) строят индекс кода и документации через [`IndexManager`](index-manager.codelore.md#indexmanager), [`patchDocIndexForDocs`](#patchdocindexfordocs) инкрементально обновляет doc-индекс после записи, а каждая перестройка сбрасывает кэш `projectContextCache`.
+- Запускает генерацию и применяет её результаты: [`runPipelineForSections`](#runpipelineforsections) гоняет исходные секции через [`generateFileGroup`](../llm/file-pipeline.codelore.md#generatefilegroup) с лимитом `pLimit(config.llm.concurrency)`, фазы выполняются по очереди, запись идёт последовательно через `applyFileGenerationOutcome`; [`generateDomainDocs`](#codeloreservicegeneratedomaindocs) переписывает tier-документы волнами зависимостей.
+- Управляет устареванием: [`refreshStaleDocs`](#refreshstaledocs) в режимах report/rewrite_plan/tombstone, `applyTombstones` прячет устаревшие блоки за callout, [`restoreKeptBlocks`](#codeloreservicerestorekeptblocks)/[`stampUnwrittenBlocks`](#codeloreservicestampunwrittenblocks) штампуют фингерпринты, а `gateDepDocsCascade` снимает ложное depDocs-старение факт-чекингом на verify-провайдере.
+- Обслуживает внешние запросы: read-методы ([`readDocSection`](#readdocsection), [`readCodeEntity`](#readcodeentity), [`readImpact`](#readimpact), [`readChange`](#readchange), [`readDocFile`](#readdocfile)), [`validateDocs`](#validatedocs) собирает все классы проблем (владельцы, зависимости, stale-блоки, качество, переводы, неохваченные файлы), [`translateScope`](#codeloreservicetranslatescope) дозаполняет переводы во всём скоупе, [`markReviewNeeded`](#markreviewneeded) ставит секции статус `review_needed`.
 
 ## На что можно положиться
 
-Empty input returns `{ updatedSections: [] }` without touching storage or indexes. Duplicate `sectionId` values throw [`CodeloreError`](../errors.codelore.md#codeloreerror) with code `DUPLICATE_SECTION`. The returned `updatedSections` array preserves the input order and always includes `sectionId` and `docPath`; `filteredBlocks` is present only when the filtered list is non-empty. The service never mutates the input array.
+- [`rewriteSections`](#rewritesections) с пустым массивом возвращает `{ updatedSections: [] }`, не трогая хранилище и индексы; дубликат `sectionId` бросает [`CodeloreError`](../errors.codelore.md#codeloreerror) с кодом `DUPLICATE_SECTION` до любой записи.
+- LLM-вызовы идут параллельно, а запись результатов строго последовательна: [`rewriteSections`](#rewritesections) и [`markReviewNeeded`](#markreviewneeded) мутируют общий doc-индекс, поэтому `applyFileGenerationOutcome` и доменные волны применяются по одному.
+- Томбстоун пишет блоку `staleSince`, `staleReason`, `staleFacets` и скрывает его из рендера; [`restoreKeptBlocks`](#codeloreservicerestorekeptblocks) снимает эти поля, заново штампует `fingerprint` и оставляет секцию в статусе `review_needed`; [`stampUnwrittenBlocks`](#codeloreservicestampunwrittenblocks) штампует только блоки с пустым телом, чтобы пустой блок не запрашивался повторно.
+- Read-методы бросают типизированные ошибки: [`resolveSection`](#resolvesection) — `UNKNOWN_SECTION`, [`requireSectionState`](#requiresectionstate) — `UNKNOWN_DOC`/`UNKNOWN_SECTION`, [`readCodeEntity`](#readcodeentity) — `UNKNOWN_ENTITY`, [`readChange`](#readchange) — `UNKNOWN_CHANGE`; перед чтением индекс всегда загружается или пересобирается, так что ответ отражает состояние на диске.
 
 ## От чего зависит
 
-Метод использует this.loadOrRebuildIndexes(), this.docStateStorage, this.config, а также функции normalizeGeneratedRewrite, groupRewritesByDoc, applyRewritesToDoc, patchDocIndexForDocs и класс CodeloreError.
+Класс напрямую владеет четырьмя зависимостями: [`loadConfig`](../config.codelore.md#loadconfig) в конструкторе вместо `this.config`, и три объекта хранилища/индексов — [`JsonStorage`](../storage/json-storage.codelore.md#jsonstorage), [`DocStateStorage`](../storage/doc-state-storage.codelore.md#docstatestorage), [`IndexManager`](index-manager.codelore.md#indexmanager). Способ работы одинаков: [`IndexManager`](index-manager.codelore.md#indexmanager) единственный из них принимает из класса коллбек сброса `projectContextCache`. Весь остальной функционал (доменные парсеры, рендер, графы) класс только импортирует и вызывает из методов, не держит его в полях; провайдеры LLM создаются на лету через [`createConfiguredProvider`](../llm/provider.codelore.md#createconfiguredprovider) внутри [`createProviderPair`](#codeloreservicecreateproviderpair). Таким образом внешний мир классу нужен в двух формах: синтаксические LLM-провайдеры (`ChatCompletionProvider`) и объекты `GenerateDocsRuntime` с хуком `onProgress`, которые приходят от CLI/MCP и отдают продвижение выполнения.
 
 ## Кто и как использует
 
-Метод вызывается извне сервиса для перезаписи секций. При пустом входе сразу возвращает пустой результат. При дубликате sectionId выбрасывает ошибку. Затем загружает или пересобирает индексы, нормализует входные данные, группирует по документам, применяет правки к каждому документу и обновляет индекс документации.
+Главный вход — [`runCli`](../cli/run-cli.codelore.md#runcli): для каждой команды создаётся один `new CodeloreService(parsed.rootDir)`, а `runCommand` диспетчирует сценарии (`generate` → [`generateDocsForScope`](#generatedocsforscope), `fix-stale` → [`fixStaleDocs`](#fixstaledocs), `analize-change` → [`analyzeChange`](#analyzechange), `rebuild-index` → [`rebuildIndex`](#rebuildindex)); при этом `runtime.onProgress` получает интерфейс из CLI, поэтому прогресс-сообщения пишутся в stdout. Ошибки класса ловятся в [`runCli`](../cli/run-cli.codelore.md#runcli) и сериализуются в stderr.
+
+Второй путь — MCP: команда `mcp` запускает `startStdioServer({ rootDir })`, а [`createCodeloreServer`](../server/create-server.codelore.md#createcodeloreserver) (та же директория server) поднимает `McpServer` поверх того же сервиса, так что редактор обращается к тем же методам как к инструментам протокола.
+
+Третий путь есть внутри самого класса: [`verifyBlocksAgainstDeps`](../llm/file-pipeline.codelore.md#verifyblocksagainstdeps) получает экземпляр `service` как аргумент и сам читает `service.config.rootDir` и `service.config.llm.concurrency` — здесь класс выступает источником конфига для внешнего валидатора.
 
 ## Чего не делает
 
-Метод не обрабатывает пустой массив sections — он возвращает пустой результат без побочных эффектов. Также он не допускает дубликатов sectionId — выбрасывает CodeloreError. Для секций, не найденных в индексе, docPath возвращается как пустая строка.
+Три границы класса:
+
+- Доменная карта не создаётся автоматически: [`refreshDomainDocs`](#codeloreservicerefreshdomaindocs) и бесскоупный [`generateDocsForScope`](#generatedocsforscope) при отсутствии сохранённой карты выходят с пустым результатом без единого вызова partition — для появления доменов нужен явный запуск [`partitionDomainMap`](#codeloreservicepartitiondomainmap).
+- Переводы дозаполняются только для блоков, которые пропускает генератор `translatableBlocks`: блок должен быть `rendered`, не stale (`staleSince === undefined`) и с непустым телом; скрытые за томбстоун тексты и пустые блоки перевода не получают.
+- Параллельность LLM-вызовов упирается в единый лимит `pLimit(this.config.llm.concurrency)`: генерация и переводы делят этот кэп, сколько бы каналов ни запустил вызывающий.
 
 ## Как менять и что проверять
 
-Метод rewriteSections — единственная точка входа для перезаписи секций документации; он координирует загрузку индексов, нормализацию входных данных, группировку по документам, применение правок и обновление индекса документации.
+- Целевые блоки ограничены разрешённым набором до любой записи: [`runPipelineForSections`](#runpipelineforsections) заранее применяет `const filtered = requested.filter((blockId) => allowed.has(blockId));`, а `resolveTargets` бросает `MISSING_BLOCK` лишь тогда, когда цель всё-таки туда долетела (конструкция `const invalid = requested.filter((id) => !allowed.has(id)); if (invalid.length > 0)`). 
+
+- Фингерпринт зависимостей-документов пишется только по завершении терминальной фазы: код выполняет `await this.recordDepDocsFingerprints(...)` строго под условием `if (phase === "terminal")` — этим держится контракт «depDocs-финпринт валиден только после перегенерации терминальных блоков». 
+
+- Сходимость томбсоундов обеспечивает двойная инконсистентная запись: [`restoreKeptBlocks`](#codeloreservicerestorekeptblocks) снимает stale-поля только если `block.staleSince !== undefined` и затем перетирает `block.fingerprint`, а [`stampUnwrittenBlocks`](#codeloreservicestampunwrittenblocks) штампит только пустые тело (`if (!sectionState || !block || block.body.trim() !== "") { continue; }`).
 
 ## rebuildIndexes
 
@@ -443,27 +470,44 @@ CodeloreService.refreshStaleDocs(input: RefreshStaleDocsInput = {}): Promise<Ref
 
 ### Что делает
 
-Находит сущности, помеченные как устаревшие, и запускает для каждой из них генерацию документации через generateDocForEntity.
+- В любом режиме сначала перестраивает индекс ([`rebuildIndexes`](#rebuildindexes)), фильтрует секции по `input.scope` через [`filterSectionsByScope`](stale-detection.codelore.md#filtersectionsbyscope) и вычисляет списки stale и tombstoned.
+- В режиме `report` возвращает оба списка через [`refreshStaleResult`](stale-detection.codelore.md#refreshstaleresult); в `rewrite_plan` дополнительно строит `rewritePlan` из [`buildRewriteContextBundle`](stale-detection.codelore.md#buildrewritecontextbundle) для каждой записи обоих списков.
+- В режиме `tombstone` применяет `applyTombstones` к stale-блокам; если записано нечего — возвращает результат без изменений, иначе патчит doc-индекс ([`patchDocIndexForDocs`](#patchdocindexfordocs)), пересобирает индекс и пересчитывает tombstoned уже на обновлённом индексе.
 
 ### На что можно положиться
 
-Метод обновляет документацию только для сущностей, помеченных как устаревшие. Сущности без такой пометки не затрагиваются.
+- Режим по умолчанию — `report`; режимы `report` и `rewrite_plan` не изменяют ни состояние документов, ни индексы.
+- Пустой `scope` означает отсутствие фильтра: [`filterSectionsByScope`](stale-detection.codelore.md#filtersectionsbyscope) пропускает все секции репозитория, поэтому вызов может затомбстоунить весь проект; [`generateDocsForScope`](#generatedocsforscope) передаёт undefined только когда скоупа нет вовсе.
+- В режиме `tombstone` запись происходит только если `applyTombstones` вернул непустой список; при пустом списке устаревших метод возвращает результат, не меняя состояние.
+- Возвращённый список устаревших после записи пересчитан на индексе после применения томбстоунов ([`loadOrRebuildIndexes`](#loadorrebuildindexes)), а список до записи остаётся неизменным; [`fixStaleDocs`](#fixstaledocs) строит целевые блоки генерации именно из пересчитанного списка.
 
 ### От чего зависит
 
-Зависит от [`rebuildIndexes`](#rebuildindexes), `applyTombstones`, [`patchDocIndexForDocs`](#patchdocindexfordocs) и [`loadOrRebuildIndexes`](#loadorrebuildindexes).
+Метод работает только через соседние модули и собственные помощники класса: [`rebuildIndexes`](#rebuildindexes)/[`loadOrRebuildIndexes`](#loadorrebuildindexes) — перезагрузка индекса; `StaleDetector` — вычисление списков stale и tombstoned; [`filterSectionsByScope`](stale-detection.codelore.md#filtersectionsbyscope), [`refreshStaleResult`](stale-detection.codelore.md#refreshstaleresult), [`buildRewriteContextBundle`](stale-detection.codelore.md#buildrewritecontextbundle) из `stale-detection.js` — фильр по скоупу, оформление результата и контекст для `rewrite_plan`; `applyTombstones` — единственная запись в state; [`patchDocIndexForDocs`](#patchdocindexfordocs) — инкрементальное обновление doc-индекса после записи.
 
 ### Кто и как использует
 
-Обновляет устаревшую документацию.
+Метод вызывается из трёх мест прогона:
+
+- [`generateDocsForScope`](#generatedocsforscope) (команда `generate` без `--force`) вызывает `refreshStaleDocs({ mode: "tombstone", scope })` и каждый элемент `refreshed.tombstoned` превращает в цель переген​ерации — так заблокированные блоки попадают в ближайший файловый прогон.
+- [`fixStaleDocs`](#fixstaledocs) совершает тот же вызов и строит целевую карту из результата через `targetBlocksFromTombstones(refreshed.tombstoned)`, дальше передавая её в дальнейший прогон.
+- `gateDepDocsCascade` вызывает режим `report`, чтобы отобрать секции, устаревшие только по `changedFacets == ["depDocs"]` и потом проверять их на verify-провайдере.
+- CLI (`run-cli.ts`) со стороны пользователя дёртится сама — литеральные `report`/`tombstone` там задают режим команды, и результат `report` печатается в stdout.
 
 ### Чего не делает
 
-Не проверяет актуальность документации иными способами, кроме сбора устаревших блоков.
+Два ограничения:
+
+- Метод не знает «почему» сделан рендер: он доверяет целиком `StaleDetector`; если детектор посчитал секцию свежей, никакие другие сигналы не проверяются, и в исполняемом режиме не будет создан ни один tombstone.
+- При применении рендера `applyTombstones` молча пропускает записи, для которых в состоянии нет секции/блока (`if (!sectionState || !block) { continue; }`), и не сообщает о них: такие находки исчезают из результата и не попадают в дальнейшую перегенерацию.
 
 ### Как менять и что проверять
 
-- Сбор устаревших блоков: метод собирает устаревшие блоки и применяет их в зависимости от режима работы.
+- Безопасный вызов без режима: `const mode = input.mode ?? "report";` вместе с ранним возвратом `if (mode === "report")` гарантируют, что чтение состояния не меняет ни документы, ни индексы.
+
+- В режиме `tombstone` запись происходит только если реально есть что применять: `if (appliedTombstones.length === 0) { return refreshStaleResult(mode, stale, tombstoned, appliedTombstones); }` — пустой список устаревших не оставляет следов на диске.
+
+- После записи список tombstones пересчитывается заново: `new StaleDetector(refreshed, this.config.docs.langage).tombstoned(refreshedScoped)` — результат tombstoned всегда относится к индексу после записи, а не к старому обчислению.
 
 ## generateDocsForEntity
 
@@ -926,11 +970,28 @@ The method calls parititionDomainMap, then for each partition calls gatherTierDe
 
 ## На что можно положиться
 
-The method returns a Promise<DomainWriteResult> and is likely the main orchestration method that calls the partition and gather helpers.
+- Возвращает `docPaths` в отсортированном порядке (`.sort()`).
+- `deleteOrphanTierDocs` удаляет ровно те tier-документы — обзорный документ проекта и пути с префиксом `docs/domains/`, — которых нет в текущем наборе скелетов; при пустом наборе это все tier-документы.
+- Код загружает существующее состояние документа, но записывает исходный `skeleton`: результат [`withPreservedBlockBodies(previous, skeleton.sections[sectionId])`](prepare-docs.codelore.md#withpreservedblockbodies) и скопированный `previous.memberDocsFingerprint` присваиваются локальной `fresh`, которая не возвращается в скелет; на диск уходит `skeleton`.
+- После записи всех скелетов метод всегда перестраивает индекс ([`rebuildIndexes({ renderDocs: false })`](#rebuildindexes)) и вызывает [`reconcileRenderedDocs`](#codeloreservicereconcilerendereddocs), так что к возврату рендеры сходятся с состоянием.
+
+## Кто и как использует
+
+Метод стоит в начале всех трёх доменных прогонов:
+
+- [`generateDomainDocs`](#codeloreservicegeneratedomaindocs) первым же оператором вызывает `await this.prepareDomainDocs()`, и только после этого читает карту и строит волны — так волны гарантировано опираются на актуальные скелеты tier-документов.
+- [`refreshDomainDocs`](#codeloreservicerefreshdomaindocs) вызывает сначала назначение неохваченных файлов, затем `prepareDomainDocs()` — сначала распределение неохваченных файлов меняет членство, затем скелеты пересобраны.
+- [`fixStaleDocs`](#fixstaledocs) по той же схеме: назначение файлов, затем `prepareDomainDocs()`, затем обновление томпстоун-скоупа.
 
 ## Чего не делает
 
-Ограничений нет.
+Скоуп метода узко ограничен tier-документацией: удаление осществляет только по путям проектных документов и префиксу `docs/domains/`, файловые doc-state при этом не трогаются. Метод ни пишет ни одной LLM-генерации: тексты блоков в скелетах пусты либо сохранены как было, и наполнение происходит позже в [`generateDomainDocs`](#codeloreservicegeneratedomaindocs).
+
+## Как менять и что проверять
+
+- Граница удаления осиротевших стабильна: в `deleteOrphanTierDocs` код проверяет `const isTierDoc = docPath === overview || docPath.startsWith("docs/domains/");` — только такая запись может быть удалена.
+
+- После записи скелетов индексацию и рендер доводит последовательность: `await this.rebuildIndexes({ renderDocs: false });` затем `await this.reconcileRenderedDocs();` — гарантия, что по выходе метод оставляет дисковый индекс и отрендеренные doc-файлы в согласованном виде.
 
 # CodeloreService.partitionDomainMap
 
@@ -1058,29 +1119,33 @@ CodeloreService.refreshDomainDocs(runtime: GenerateDocsRuntime): Promise<{ gener
 
 ## Что делает
 
-- Принимает массив доменных документов и заменяет содержимое `this.domainDocs` на переданные данные.
-- Не выполняет проверок на дубликаты или корректность, полагаясь на входные данные.
-- Не взаимодействует с другими методами сервиса.
+- Возвращает пустой результат `{ generated: [], droppedBlocks: 0, failed: [] }`, если карты доменов нет (метод получения карты вернул undefined): проект без доменов метод не трогает.
+- При наличии карты распределяет задокументированные файлы без домена через [`assignUncoveredFiles`](#codeloreserviceassignuncoveredfiles) (один лёгкий LLM-вызов на verify-провайдере), пересобирает скелеты через [`prepareDomainDocs`](#codeloreservicepreparedomaindocs) и перестраивает индекс.
+- Вычисляет устаревшие tier-слаги; если их нет — возвращает empty, иначе передаёт их в [`generateDomainDocs`](#codeloreservicegeneratedomaindocs) с опцией `{ slugs }`, чтобы переписать только изменившиеся tier-документы, и возвращает его результат.
 
 ## На что можно положиться
 
-Метод возвращает `void`. Он изменяет состояние сервиса, обновляя `this.domainDocs`. При вызове с пустым массивом `docs` метод не выполняет никаких действий и не изменяет состояние. Метод не проверяет корректность переданных документов и не выбрасывает исключений. Метод не изменяет другие поля сервиса.
+- Вызов безопасен в любом состоянии: без карты доменов метод выходит до перестройки индексов и записи; при пустом наборе устаревших слагов он доходит до возврата empty после пересборки скелетов, но tier-документы не переписывает.
+- [`assignUncoveredFiles`](#codeloreserviceassignuncoveredfiles) выполняется до вычисления устаревания: добавление файла меняет членство домена, и принимающий домен попадает в список устаревших tier-документов этого же прогона.
+- Переписываются только tier-документы, чьи члены изменились или которые ещё не написаны: вычисление устаревания опирается на фингерпринты member-доков, поэтому домен с неизменившимися членами не перегенерируется.
 
 ## От чего зависит
 
-Использует провайдера LLM для обновления документации домена.
+Метод образует короткую цепочку собственных вызовов: `storage.loadDomainMap` (JSON, проверка карты), [`assignUncoveredFiles`](#codeloreserviceassignuncoveredfiles) (назначение неохваченных, LLM-распределение), [`prepareDomainDocs`](#codeloreservicepreparedomaindocs) (скелеты), [`rebuildIndexes({ renderDocs: false })`](#rebuildindexes) (индекс после скелетов), определение устаревших tier-документов, [`generateDomainDocs(runtime, { slugs })`](#codeloreservicegeneratedomaindocs) (перегенерация).
 
 ## Кто и как использует
 
-Вызывается после изменений в коде для обновления документации домена.
+Единственный лист: yea — это конец команды `generate` без входного scope. [`generateDocsForScope`](#generatedocsforscope) выполняет файловую генерацию, перевод и реконсиль, и только потом `if (!hasScope) { await this.refreshDomainDocs(runtime); }`. Другими словами, woно-проектный документ после (пере)генерации всех исходных файлов дополнительно обновляет tier: распределяет неохваченных, перестраивает скелеты и переген экспорт только те tier-докумерения, которые действиности стали устаревшими.
 
 ## Чего не делает
 
-Не обрабатывает случаи, когда домен не изменился — пропускает обновление.
+Метод никогда не рисует доменную карта: `if (!(await this.storage.loadDomainMap())) return empty;` — если карты нет, выход до любых вызовов и LLM; проекту приходится явно создать доменную карту. Также при `slugs.size === 0` метод возвращает пустой результат и не пишет никаких tier-документов, даже если пользователь явно ждёт полное обновление.
 
 ## Как менять и что проверять
 
-Обновляет документацию домена на основе изменений в коде.
+- Безопасность при отсутствии карты стабильна: `if (!(await this.storage.loadDomainMap())) { return empty; }` — переход по-настоящему не запускает ни один вызов LLM/стораджа, кроме чтения карты.
+
+- Дорогостоящая генерация включается только набором юл: `if (slugs.size === 0) { return empty; } return this.generateDomainDocs(runtime, { slugs });` — если список устаревших пуст, провайдеры не вызываются. Аналогичную ветку не имеет ни один другой метод данных в этой цепи.
 
 # CodeloreService.assignUncoveredFiles
 
@@ -1130,25 +1195,26 @@ CodeloreService.queueUnwrittenBlocks(scope: RefreshStaleScope | undefined, targe
 
 ## Что делает
 
-- Добавляет каждый переданный блок в коллекцию `this.pendingBlocks`.
-- Не выполняет проверок на дубликаты или существование блоков, полагаясь на корректность входных данных.
-- Не взаимодействует с другими методами сервиса и не изменяет другие состояния.
+- Загружает индекс ([`loadOrRebuildIndexes`](#loadorrebuildindexes)), фильтрует секции по скоупу через [`filterSectionsByScope`](stale-detection.codelore.md#filtersectionsbyscope) и находит unwritten-блоки через `StaleDetector.unwritten(scoped)` — пустые разрешённые блоки, чей код сдвинулся.
+- Добавляет каждый найденный блок в переданный Map `targets` через [`addTargetBlock(sectionId, blockId)`](stale-detection.codelore.md#addtargetblock), мутируя его; ничего не возвращает.
+- Не читает и не пишет состояние документов: работает только с индексом и переданной картой целей.
 
 ## На что можно положиться
 
-Метод возвращает `void`. Он изменяет состояние сервиса, добавляя записи в `this.pendingBlocks`. При вызове с пустым массивом `blocks` метод не выполняет никаких действий и не изменяет состояние. При вызове с массивом, содержащим дубликаты идентификаторов блоков, метод добавляет каждый блок в `this.pendingBlocks` без дедупликации, что может привести к дублированию записей. Метод не проверяет, существует ли блок с указанным идентификатором в системе, и не выбрасывает исключений при отсутствии такого блока. Метод не изменяет другие поля сервиса.
+- Метод возвращает void и мутирует переданный `targets`: записи добавляются через [`addTargetBlock`](stale-detection.codelore.md#addtargetblock); если unwritten-блоков нет, `targets` остаётся без изменений.
+- Пустой `scope` — отсутствие фильтра: [`filterSectionsByScope`](stale-detection.codelore.md#filtersectionsbyscope) пропускает все секции, и в очередь попадают unwritten-блоки всего репозитория.
+- В очередь попадают только блоки, которые детекция устаревания счёл незаписанными; блоки с непустым телом не добавляются.
 
 ## От чего зависит
 
-Использует провайдера LLM для генерации недостающих блоков документации.
+Метод использует только четыре опорные точки: [`loadOrRebuildIndexes`](#loadorrebuildindexes) (актуальный индекс), [`filterSectionsByScope`](stale-detection.codelore.md#filtersectionsbyscope) (сужение по scope), `StaleDetector.unwritten(scoped)` (детекция пустых разрешённых блоков), [`addTargetBlock`](stale-detection.codelore.md#addtargetblock) (мутацию разделяемой карты целей). Никаких записей в storage и никаких LLM-вызовов внутри нет.
 
 ## Кто и как использует
 
-Вызывается после сбора заголовков для заполнения пробелов в документации.
+Две родные точки вызова:
 
-## Чего не делает
-
-Не обрабатывает блоки, которые уже записаны — они пропускаются.
+- [`generateDocsForScope`](#generatedocsforscope): после согласования состояний документов (и до ветки `force`/refresh) вызывает `await this.queueUnwrittenBlocks(scope, targetBlocksBySection)` — таким образом пустые блоки попадают в общий список целей ещё до решения о томбстоинах.
+- [`fixStaleDocs`](#fixstaledocs): зовёт его после [`refreshStaleDocs({ mode: "tombstone", scope })`](#refreshstaledocs), с комментарием источника: tombstoning скрывает тело, но у пустого тела прикрывать нечего, поэтому такой блок не был бы найден при сборе удалённых блоков — он доходит до генерации только этим предидущим путём.
 
 # CodeloreService.reconcileRenderedDocs
 

@@ -30,19 +30,16 @@ createCodeloreServer(options: { rootDir: string }): Promise<McpServer>
 
 ## Кто и как использует
 
-Вызывается функцией [`startStdioServer`](start-stdio-server.codelore.md#startstdioserver) (`src/server/start-stdio-server.ts`):
-1. [`startStdioServer`](start-stdio-server.codelore.md#startstdioserver) вызывает `createCodeloreServer({ rootDir })` и ожидает возврата `McpServer`.
-2. Внутри `createCodeloreServer` создаётся экземпляр `new CodeloreService(rootDir)`, определяется строка `baseInstructions`, создаётся `new McpServer` с именем `"codelore"` и версией из `package.json`.
-3. Вызываются `registerResources` и `registerTools`, которые регистрируют пять ресурсов (`doc-section`, `code-entity`, `impact-graph`, `change-analysis`, `doc-file`) и четыре инструмента (`document`, `update`, `mark_stale`, `check`).
-4. Сервер возвращается.
-5. [`startStdioServer`](start-stdio-server.codelore.md#startstdioserver) создаёт `StdioServerTransport` и вызывает `server.connect(transport)`.
+Вызывается из [`startStdioServer`](start-stdio-server.codelore.md#startstdioserver) (`src/server/start-stdio-server.ts`), который ожидает Promise и только после получения сервера запускает stdio-транспорт MCP. К моменту разрешения Promise сервер уже полностью сконфигурирован: внутри вызова создаётся CodeloreService, собираются baseInstructions, конструируется McpServer и вызываются registerResources с registerTools.
 
 ## Чего не делает
 
-- Не проверяет существование `rootDir`; ошибки ввода-вывода возникают только при первом обращении к методам [`CodeloreService`](../service/codelore-service.codelore.md#codeloreservice) (конструкция: отсутствие guards).
-- Ошибки при регистрации ресурсов или инструментов не перехватываются; исключение в `registerResources` или `registerTools` вызывает необработанное отклонение промиса (конструкция: отсутствие `try-catch`).
+- Сигнатура принимает только `rootDir`; параметры транспорта, модели или порта не предусмотрены — ограничение типа `options: { rootDir: string }`.
+- baseInstructions фиксируют документированную область: `.codelore.md` — рендер-артефакты, которые нельзя редактировать вручную, а сервер выполняет полный LLM-конвейер сам, не выставляя нижнеуровневые шаги перезаписи.
 
 ## Как менять и что проверять
 
-- Сервис [`CodeloreService`](../service/codelore-service.codelore.md#codeloreservice) всегда создаётся с параметром `rootDir` из аргументов, что гарантируется вызовом `new CodeloreService(options.rootDir)`. Изменение параметров вызова изменит корневую директорию сервера.
-- Функция всегда возвращает новый экземпляр `McpServer`, так как оператор `return server;` выполняется без условной логики или кэширующего механизма. Изменение этой строки на условный возврат или кэш повлияет на поведение вызова.
+- Сервер всегда создаётся с доменными инструкциями: конструкция `instructions: baseInstructions` в параметрах McpServer.
+- Функция всегда завершается возвратом собранного сервера: `return server;`.
+- Идентификаторы секций всегда кодируются перед встраиванием в URI ресурса: `doc://section/${encodeResourceId(section.id)}`.
+- Обработчики инструментов всегда обёрнуты в защитный слой нормализации ошибок: `safely(() => service.generateDocsForScope(input, generateRuntime("document")))`.

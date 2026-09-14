@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/service/codelore-service.codelore.md",
-  "generatedAt": "2026-09-14T08:11:29.614Z",
+  "generatedAt": "2026-09-14T10:13:07.232Z",
   "sectionOrder": [
     "file:src/service/codelore-service.ts",
     "symbol:src/service/codelore-service.ts#CodeloreService",
@@ -146,7 +146,6 @@
         "symbol:src/service/codelore-service.ts#CodeloreService.rewriteSection",
         "symbol:src/service/codelore-service.ts#CodeloreService.rewriteSections",
         "symbol:src/service/codelore-service.ts#CodeloreService.runPipelineForSections",
-        "symbol:src/service/codelore-service.ts#CodeloreService.staleDomainSlugs",
         "symbol:src/service/codelore-service.ts#CodeloreService.stampMemberFingerprints",
         "symbol:src/service/codelore-service.ts#CodeloreService.stampUnwrittenBlocks",
         "symbol:src/service/codelore-service.ts#CodeloreService.tierGenerationWaves",
@@ -189,17 +188,11 @@
         "symbol:src/service/section-rewrite.ts#updateStatusFromBlocks",
         "symbol:src/service/stale-detection.ts#addTargetBlock",
         "symbol:src/service/stale-detection.ts#buildRewriteContextBundle",
-        "symbol:src/service/stale-detection.ts#collectDepDocStaleBlocks",
-        "symbol:src/service/stale-detection.ts#collectLanguageStaleBlocks",
-        "symbol:src/service/stale-detection.ts#collectMemberDocStaleBlocks",
-        "symbol:src/service/stale-detection.ts#collectStaleBlocks",
-        "symbol:src/service/stale-detection.ts#collectTombstonedBlocks",
-        "symbol:src/service/stale-detection.ts#collectUnwrittenBlocks",
         "symbol:src/service/stale-detection.ts#filterSectionsByScope",
-        "symbol:src/service/stale-detection.ts#mergeStaleBlocks",
         "symbol:src/service/stale-detection.ts#refreshStaleResult",
         "symbol:src/service/stale-detection.ts#staleReasonFor",
         "symbol:src/service/stale-detection.ts#targetBlocksFromTombstones",
+        "symbol:src/service/stale-detector.ts#StaleDetector",
         "symbol:src/storage/doc-state-storage.ts#DocStateStorage",
         "symbol:src/storage/json-storage.ts#JsonStorage"
       ],
@@ -244,75 +237,75 @@
           "language": "ru"
         },
         "responsibility": {
-          "body": "Проверяет входной массив на пустоту и дубликаты `sectionId`, выбрасывая `CodeloreError` при дубликате. Загружает или перестраивает индексы через `loadOrRebuildIndexes`. Нормализует каждый запрос через `normalizeGeneratedRewrite` и группирует их по документам через `groupRewritesByDoc`. Для каждой группы вызывает `applyRewritesToDoc`, собирая отфильтрованные блоки в `filteredBySection`. После применения всех изменений вызывает `patchDocIndexForDocs` для затронутых документов. Формирует итоговый ответ, включая `filteredBlocks` только если они не пусты.",
+          "body": "- Перестраивает и держит актуальными индексы проекта: `rebuildIndexes`/`loadOrRebuildIndexes` строят индекс кода и документации через `IndexManager`, `patchDocIndexForDocs` инкрементально обновляет doc-индекс после записи, а каждая перестройка сбрасывает кэш `projectContextCache`.\n- Запускает генерацию и применяет её результаты: `runPipelineForSections` гоняет исходные секции через `generateFileGroup` с лимитом `pLimit(config.llm.concurrency)`, фазы выполняются по очереди, запись идёт последовательно через `applyFileGenerationOutcome`; `generateDomainDocs` переписывает tier-документы волнами зависимостей.\n- Управляет устареванием: `refreshStaleDocs` в режимах report/rewrite_plan/tombstone, `applyTombstones` прячет устаревшие блоки за callout, `restoreKeptBlocks`/`stampUnwrittenBlocks` штампуют фингерпринты, а `gateDepDocsCascade` снимает ложное depDocs-старение факт-чекингом на verify-провайдере.\n- Обслуживает внешние запросы: read-методы (`readDocSection`, `readCodeEntity`, `readImpact`, `readChange`, `readDocFile`), `validateDocs` собирает все классы проблем (владельцы, зависимости, stale-блоки, качество, переводы, неохваченные файлы), `translateScope` дозаполняет переводы во всём скоупе, `markReviewNeeded` ставит секции статус `review_needed`.",
           "rendered": true,
-          "fingerprint": "signature=c249d027a4e0793cb002a98eab08ffb25a48117b2a094e6f1a9b871470b7e01e,deps=d16204f9e414f7804fb14e8b349f8b64ea759a290ab5ec1f3322f208360e0f56,usage=87d20d21aa0cb62a0eff6665009d37cb8485a0463ad40c90a60be480d4d77e59",
+          "fingerprint": "signature=c249d027a4e0793cb002a98eab08ffb25a48117b2a094e6f1a9b871470b7e01e,deps=1538b73c562fb50cad1d334e82ae29440911bb90ccee404fcc726dd53d8e5543,usage=87d20d21aa0cb62a0eff6665009d37cb8485a0463ad40c90a60be480d4d77e59",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "The service delegates to loadOrRebuildIndexes, normalizeGeneratedRewrite, groupRewritesByDoc, applyRewritesToDoc, and patchDocIndexForDocs, and it aggregates filtered blocks per section."
+            "novelFact": "Класс оркестрирует два конвейера генерации — файловый (две фазы через `generateFileGroup` с лимитом `pLimit`) и доменный (волны зависимостей) — поверх общего управления индексами и устареванием."
           },
           "language": "ru"
         },
         "invariants": {
-          "body": "Empty input returns `{ updatedSections: [] }` without touching storage or indexes. Duplicate `sectionId` values throw `CodeloreError` with code `DUPLICATE_SECTION`. The returned `updatedSections` array preserves the input order and always includes `sectionId` and `docPath`; `filteredBlocks` is present only when the filtered list is non-empty. The service never mutates the input array.",
+          "body": "- `rewriteSections` с пустым массивом возвращает `{ updatedSections: [] }`, не трогая хранилище и индексы; дубликат `sectionId` бросает `CodeloreError` с кодом `DUPLICATE_SECTION` до любой записи.\n- LLM-вызовы идут параллельно, а запись результатов строго последовательна: `rewriteSections` и `markReviewNeeded` мутируют общий doc-индекс, поэтому `applyFileGenerationOutcome` и доменные волны применяются по одному.\n- Томбстоун пишет блоку `staleSince`, `staleReason`, `staleFacets` и скрывает его из рендера; `restoreKeptBlocks` снимает эти поля, заново штампует `fingerprint` и оставляет секцию в статусе `review_needed`; `stampUnwrittenBlocks` штампует только блоки с пустым телом, чтобы пустой блок не запрашивался повторно.\n- Read-методы бросают типизированные ошибки: `resolveSection` — `UNKNOWN_SECTION`, `requireSectionState` — `UNKNOWN_DOC`/`UNKNOWN_SECTION`, `readCodeEntity` — `UNKNOWN_ENTITY`, `readChange` — `UNKNOWN_CHANGE`; перед чтением индекс всегда загружается или пересобирается, так что ответ отражает состояние на диске.",
           "rendered": true,
-          "fingerprint": "signature=c249d027a4e0793cb002a98eab08ffb25a48117b2a094e6f1a9b871470b7e01e,body=9566e11d93a4186992e95eb03b3bfa7ff8fbcc2f041ef3099cc4baa1399455fe",
+          "fingerprint": "signature=c249d027a4e0793cb002a98eab08ffb25a48117b2a094e6f1a9b871470b7e01e,body=61d4035a3f8674caf5e624dccf22c9b7be88442483c9adcbf701b9f1f13ae408",
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "The service enforces a duplicate-section guard and an empty-input early return, and it returns filtered blocks only when non-empty."
+            "novelFact": "Томбстоун скрывает устаревший блок из рендера, а `restoreKeptBlocks`/`stampUnwrittenBlocks` штампуют фингерпринты, чтобы следующие прогоны не переспрашивали отклонённое или пустое."
           }
         },
         "dependencies": {
-          "body": "Метод использует this.loadOrRebuildIndexes(), this.docStateStorage, this.config, а также функции normalizeGeneratedRewrite, groupRewritesByDoc, applyRewritesToDoc, patchDocIndexForDocs и класс CodeloreError.",
+          "body": "Класс напрямую владеет четырьмя зависимостями: `loadConfig` в конструкторе вместо `this.config`, и три объекта хранилища/индексов — `JsonStorage`, `DocStateStorage`, `IndexManager`. Способ работы одинаков: `IndexManager` единственный из них принимает из класса коллбек сброса `projectContextCache`. Весь остальной функционал (доменные парсеры, рендер, графы) класс только импортирует и вызывает из методов, не держит его в полях; провайдеры LLM создаются на лету через `createConfiguredProvider` внутри `createProviderPair`. Таким образом внешний мир классу нужен в двух формах: синтаксические LLM-провайдеры (`ChatCompletionProvider`) и объекты `GenerateDocsRuntime` с хуком `onProgress`, которые приходят от CLI/MCP и отдают продвижение выполнения.",
           "rendered": true,
-          "fingerprint": "deps=d16204f9e414f7804fb14e8b349f8b64ea759a290ab5ec1f3322f208360e0f56",
+          "fingerprint": "deps=1538b73c562fb50cad1d334e82ae29440911bb90ccee404fcc726dd53d8e5543",
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.75,
+            "novelty": 0.5,
             "specificity": 0.75,
-            "novelFact": "Метод использует this.loadOrRebuildIndexes(), this.docStateStorage, this.config, а также функции normalizeGeneratedRewrite, groupRewritesByDoc, applyRewritesToDoc, patchDocIndexForDocs и класс CodeloreError."
+            "novelFact": "Класс хранит только конфиг и три объекта хранения; провайдеры и LLM-конвейер он собирает динамически, а не держит в полях."
           }
         },
         "workflows": {
-          "body": "Метод вызывается извне сервиса для перезаписи секций. При пустом входе сразу возвращает пустой результат. При дубликате sectionId выбрасывает ошибку. Затем загружает или пересобирает индексы, нормализует входные данные, группирует по документам, применяет правки к каждому документу и обновляет индекс документации.",
+          "body": "Главный вход — `runCli`: для каждой команды создаётся один `new CodeloreService(parsed.rootDir)`, а `runCommand` диспетчирует сценарии (`generate` → `generateDocsForScope`, `fix-stale` → `fixStaleDocs`, `analize-change` → `analyzeChange`, `rebuild-index` → `rebuildIndex`); при этом `runtime.onProgress` получает интерфейс из CLI, поэтому прогресс-сообщения пишутся в stdout. Ошибки класса ловятся в `runCli` и сериализуются в stderr.\n\nВторой путь — MCP: команда `mcp` запускает `startStdioServer({ rootDir })`, а `createCodeloreServer` (та же директория server) поднимает `McpServer` поверх того же сервиса, так что редактор обращается к тем же методам как к инструментам протокола.\n\nТретий путь есть внутри самого класса: `verifyBlocksAgainstDeps` получает экземпляр `service` как аргумент и сам читает `service.config.rootDir` и `service.config.llm.concurrency` — здесь класс выступает источником конфига для внешнего валидатора.",
           "rendered": true,
-          "fingerprint": "body=9566e11d93a4186992e95eb03b3bfa7ff8fbcc2f041ef3099cc4baa1399455fe,deps=d16204f9e414f7804fb14e8b349f8b64ea759a290ab5ec1f3322f208360e0f56",
+          "fingerprint": "body=61d4035a3f8674caf5e624dccf22c9b7be88442483c9adcbf701b9f1f13ae408,deps=1538b73c562fb50cad1d334e82ae29440911bb90ccee404fcc726dd53d8e5543",
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Метод вызывается извне сервиса для перезаписи секций. При пустом входе сразу возвращает пустой результат. При дубликате sectionId выбрасывает ошибку. Затем загружает или пересобирает индексы, нормализует входные данные, группирует по документам, применяет правки к каждому документу и обновляет индекс документации."
+            "novelFact": "Сервис живёт ровно один прогон CLI/MCP-команды: каждый вызов `runCli` создаёт новый экземпляр, и LLM-верификатор получает его конфиг как аргумент."
           }
         },
         "limitations": {
-          "body": "Метод не обрабатывает пустой массив sections — он возвращает пустой результат без побочных эффектов. Также он не допускает дубликатов sectionId — выбрасывает CodeloreError. Для секций, не найденных в индексе, docPath возвращается как пустая строка.",
+          "body": "Три границы класса:\n\n- Доменная карта не создаётся автоматически: `refreshDomainDocs` и бесскоупный `generateDocsForScope` при отсутствии сохранённой карты выходят с пустым результатом без единого вызова partition — для появления доменов нужен явный запуск `partitionDomainMap`.\n- Переводы дозаполняются только для блоков, которые пропускает генератор `translatableBlocks`: блок должен быть `rendered`, не stale (`staleSince === undefined`) и с непустым телом; скрытые за томбстоун тексты и пустые блоки перевода не получают.\n- Параллельность LLM-вызовов упирается в единый лимит `pLimit(this.config.llm.concurrency)`: генерация и переводы делят этот кэп, сколько бы каналов ни запустил вызывающий.",
           "rendered": true,
-          "fingerprint": "body=9566e11d93a4186992e95eb03b3bfa7ff8fbcc2f041ef3099cc4baa1399455fe",
+          "fingerprint": "body=61d4035a3f8674caf5e624dccf22c9b7be88442483c9adcbf701b9f1f13ae408",
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Метод не обрабатывает пустой массив sections — он возвращает пустой результат без побочных эффектов. Также он не допускает дубликатов sectionId — выбрасывает CodeloreError. Для секций, не найденных в индексе, docPath возвращается как пустая строка."
+            "novelFact": "Класс никогда не запускает партиционирование сам — без сохранённой карты домены остаются нетронутыми, как бы полно документ ни был запрошен."
           }
         },
         "changeGuide": {
-          "body": "Метод rewriteSections — единственная точка входа для перезаписи секций документации; он координирует загрузку индексов, нормализацию входных данных, группировку по документам, применение правок и обновление индекса документации.",
+          "body": "- Целевые блоки ограничены разрешённым набором до любой записи: `runPipelineForSections` заранее применяет `const filtered = requested.filter((blockId) => allowed.has(blockId));`, а `resolveTargets` бросает `MISSING_BLOCK` лишь тогда, когда цель всё-таки туда долетела (конструкция `const invalid = requested.filter((id) => !allowed.has(id)); if (invalid.length > 0)`). \n\n- Фингерпринт зависимостей-документов пишется только по завершении терминальной фазы: код выполняет `await this.recordDepDocsFingerprints(...)` строго под условием `if (phase === \"terminal\")` — этим держится контракт «depDocs-финпринт валиден только после перегенерации терминальных блоков». \n\n- Сходимость томбсоундов обеспечивает двойная инконсистентная запись: `restoreKeptBlocks` снимает stale-поля только если `block.staleSince !== undefined` и затем перетирает `block.fingerprint`, а `stampUnwrittenBlocks` штампит только пустые тело (`if (!sectionState || !block || block.body.trim() !== \"\") { continue; }`).",
           "rendered": true,
-          "fingerprint": "body=9566e11d93a4186992e95eb03b3bfa7ff8fbcc2f041ef3099cc4baa1399455fe,deps=d16204f9e414f7804fb14e8b349f8b64ea759a290ab5ec1f3322f208360e0f56,usage=87d20d21aa0cb62a0eff6665009d37cb8485a0463ad40c90a60be480d4d77e59,placement=122146b66c56badbb86dbceb27a7b9fa43083e6e58687fdae072ec269357ac8a",
+          "fingerprint": "body=61d4035a3f8674caf5e624dccf22c9b7be88442483c9adcbf701b9f1f13ae408,deps=1538b73c562fb50cad1d334e82ae29440911bb90ccee404fcc726dd53d8e5543,usage=87d20d21aa0cb62a0eff6665009d37cb8485a0463ad40c90a60be480d4d77e59,placement=122146b66c56badbb86dbceb27a7b9fa43083e6e58687fdae072ec269357ac8a",
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Метод rewriteSections — единственная точка входа для перезаписи секций документации; он координирует загрузку индексов, нормализацию входных данных, группировку по документам, применение правок и обновление индекса документации."
+            "novelFact": "Целевые id блоков режутся по allowed-набору до обращения к `resolveTargets`, а фингерпринт dependency-docs ставится исключительно после терминальной фазы."
           }
         }
       },
@@ -518,10 +511,34 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "f0d9db27-8d2d-4338-a2e9-7112c0b35593",
+          "timestamp": "2026-09-14T09:53:18.081Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "f0d9db27-8d2d-4338-a2e9-7112c0b35593",
+          "timestamp": "2026-09-14T10:13:07.197Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
       ],
       "signature": "class CodeloreService",
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.rebuildIndexes": {
       "heading": "rebuildIndexes",
@@ -2593,14 +2610,9 @@
         "symbol:src/service/codelore-service.ts#CodeloreService.patchDocIndexForDocs",
         "symbol:src/service/codelore-service.ts#CodeloreService.rebuildIndexes",
         "symbol:src/service/stale-detection.ts#buildRewriteContextBundle",
-        "symbol:src/service/stale-detection.ts#collectDepDocStaleBlocks",
-        "symbol:src/service/stale-detection.ts#collectLanguageStaleBlocks",
-        "symbol:src/service/stale-detection.ts#collectMemberDocStaleBlocks",
-        "symbol:src/service/stale-detection.ts#collectStaleBlocks",
-        "symbol:src/service/stale-detection.ts#collectTombstonedBlocks",
         "symbol:src/service/stale-detection.ts#filterSectionsByScope",
-        "symbol:src/service/stale-detection.ts#mergeStaleBlocks",
-        "symbol:src/service/stale-detection.ts#refreshStaleResult"
+        "symbol:src/service/stale-detection.ts#refreshStaleResult",
+        "symbol:src/service/stale-detector.ts#StaleDetector"
       ],
       "usedBy": [
         "symbol:src/service/codelore-service.ts#CodeloreService",
@@ -2641,75 +2653,75 @@
           "language": "ru"
         },
         "responsibility": {
-          "body": "Находит сущности, помеченные как устаревшие, и запускает для каждой из них генерацию документации через generateDocForEntity.",
+          "body": "- В любом режиме сначала перестраивает индекс (`rebuildIndexes`), фильтрует секции по `input.scope` через `filterSectionsByScope` и вычисляет списки stale и tombstoned.\n- В режиме `report` возвращает оба списка через `refreshStaleResult`; в `rewrite_plan` дополнительно строит `rewritePlan` из `buildRewriteContextBundle` для каждой записи обоих списков.\n- В режиме `tombstone` применяет `applyTombstones` к stale-блокам; если записано нечего — возвращает результат без изменений, иначе патчит doc-индекс (`patchDocIndexForDocs`), пересобирает индекс и пересчитывает tombstoned уже на обновлённом индексе.",
           "rendered": true,
-          "fingerprint": "signature=956c57c98e4b7048f0a2a2c789b14068c224f8e25a07775876bfdadbb2ea79e7,deps=4641671a987399847913c5f1e429a9a264da3a2de7408e1feeb0c65d58c82ca3,usage=bf70aee07422b474c1f9628b5c2d2621337a04f0dad3e43db9a8e51eacd823ea",
+          "fingerprint": "signature=956c57c98e4b7048f0a2a2c789b14068c224f8e25a07775876bfdadbb2ea79e7,deps=067d8284186d8cafbc8e6b3c6b1241a6f4fbda31ddb8081547bdae8cc0bd52e8,usage=bf70aee07422b474c1f9628b5c2d2621337a04f0dad3e43db9a8e51eacd823ea",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Метод находит устаревшие сущности и запускает для них генерацию документации."
+            "novelFact": "Метод трёхрежимный: `report` ничего не пишет, `rewrite_plan` строит план перезаписи, а `tombstone` применяет томбстоуны и пересчитывает `tombstoned` на индексе после записи."
           },
           "language": "ru"
         },
         "invariants": {
-          "body": "Метод обновляет документацию только для сущностей, помеченных как устаревшие. Сущности без такой пометки не затрагиваются.",
+          "body": "- Режим по умолчанию — `report`; режимы `report` и `rewrite_plan` не изменяют ни состояние документов, ни индексы.\n- Пустой `scope` означает отсутствие фильтра: `filterSectionsByScope` пропускает все секции репозитория, поэтому вызов может затомбстоунить весь проект; `generateDocsForScope` передаёт undefined только когда скоупа нет вовсе.\n- В режиме `tombstone` запись происходит только если `applyTombstones` вернул непустой список; при пустом списке устаревших метод возвращает результат, не меняя состояние.\n- Возвращённый список устаревших после записи пересчитан на индексе после применения томбстоунов (`loadOrRebuildIndexes`), а список до записи остаётся неизменным; `fixStaleDocs` строит целевые блоки генерации именно из пересчитанного списка.",
           "rendered": true,
-          "fingerprint": "signature=956c57c98e4b7048f0a2a2c789b14068c224f8e25a07775876bfdadbb2ea79e7,body=ec91612492cc830c271e3f61e62a183ffd1b84eaf054d002b1a28744c4d8148e",
+          "fingerprint": "signature=956c57c98e4b7048f0a2a2c789b14068c224f8e25a07775876bfdadbb2ea79e7,body=c09cfe877f195ef8b524d23f6285d12a75b0a259a039b9c5f594e212a3c09431",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Метод обновляет документацию только для сущностей, помеченных как устаревшие."
+            "novelFact": "В режиме `tombstone` возвращённый `tombstoned` пересчитан на индексе после записи, а `stale` — список до записи; из `tombstoned` вызывающий строит цели генерации."
           },
           "language": "ru"
         },
         "dependencies": {
-          "body": "Зависит от `rebuildIndexes`, `applyTombstones`, `patchDocIndexForDocs` и `loadOrRebuildIndexes`.",
+          "body": "Метод работает только через соседние модули и собственные помощники класса: `rebuildIndexes`/`loadOrRebuildIndexes` — перезагрузка индекса; `StaleDetector` — вычисление списков stale и tombstoned; `filterSectionsByScope`, `refreshStaleResult`, `buildRewriteContextBundle` из `stale-detection.js` — фильр по скоупу, оформление результата и контекст для `rewrite_plan`; `applyTombstones` — единственная запись в state; `patchDocIndexForDocs` — инкрементальное обновление doc-индекса после записи.",
           "rendered": true,
-          "fingerprint": "deps=4641671a987399847913c5f1e429a9a264da3a2de7408e1feeb0c65d58c82ca3",
+          "fingerprint": "deps=067d8284186d8cafbc8e6b3c6b1241a6f4fbda31ddb8081547bdae8cc0bd52e8",
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
+            "informativeness": 0.75,
             "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Метод зависит от `rebuildIndexes`, `applyTombstones`, `patchDocIndexForDocs` и `loadOrRebuildIndexes`."
+            "specificity": 0.75,
+            "novelFact": "Информация об устаревании полностью происходит от `StaleDetector` и зависит от scope-фильтра; сам метод не смотрит тело блоков."
           }
         },
         "workflows": {
-          "body": "Обновляет устаревшую документацию.",
+          "body": "Метод вызывается из трёх мест прогона:\n\n- `generateDocsForScope` (команда `generate` без `--force`) вызывает `refreshStaleDocs({ mode: \"tombstone\", scope })` и каждый элемент `refreshed.tombstoned` превращает в цель переген​ерации — так заблокированные блоки попадают в ближайший файловый прогон.\n- `fixStaleDocs` совершает тот же вызов и строит целевую карту из результата через `targetBlocksFromTombstones(refreshed.tombstoned)`, дальше передавая её в дальнейший прогон.\n- `gateDepDocsCascade` вызывает режим `report`, чтобы отобрать секции, устаревшие только по `changedFacets == [\"depDocs\"]` и потом проверять их на verify-провайдере.\n- CLI (`run-cli.ts`) со стороны пользователя дёртится сама — литеральные `report`/`tombstone` там задают режим команды, и результат `report` печатается в stdout.",
           "rendered": true,
-          "fingerprint": "body=ec91612492cc830c271e3f61e62a183ffd1b84eaf054d002b1a28744c4d8148e,deps=4641671a987399847913c5f1e429a9a264da3a2de7408e1feeb0c65d58c82ca3",
+          "fingerprint": "body=c09cfe877f195ef8b524d23f6285d12a75b0a259a039b9c5f594e212a3c09431,deps=067d8284186d8cafbc8e6b3c6b1241a6f4fbda31ddb8081547bdae8cc0bd52e8",
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Обновляет устаревшую документацию."
+            "novelFact": "Все генеративные пути берут цели перезаписи именно из `tombstoned` этого метода, который таким образом решает, какие блоки пойдут на перегенерацию."
           }
         },
         "limitations": {
-          "body": "Не проверяет актуальность документации иными способами, кроме сбора устаревших блоков.",
+          "body": "Два ограничения:\n\n- Метод не знает «почему» сделан рендер: он доверяет целиком `StaleDetector`; если детектор посчитал секцию свежей, никакие другие сигналы не проверяются, и в исполняемом режиме не будет создан ни один tombstone.\n- При применении рендера `applyTombstones` молча пропускает записи, для которых в состоянии нет секции/блока (`if (!sectionState || !block) { continue; }`), и не сообщает о них: такие находки исчезают из результата и не попадают в дальнейшую перегенерацию.",
           "rendered": true,
-          "fingerprint": "body=ec91612492cc830c271e3f61e62a183ffd1b84eaf054d002b1a28744c4d8148e",
-          "language": "ru",
-          "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
-            "specificity": 0.75,
-            "novelFact": "Метод не проверяет актуальность документации иными способами, кроме сбора устаревших блоков."
-          }
-        },
-        "changeGuide": {
-          "body": "- Сбор устаревших блоков: метод собирает устаревшие блоки и применяет их в зависимости от режима работы.",
-          "rendered": true,
-          "fingerprint": "body=ec91612492cc830c271e3f61e62a183ffd1b84eaf054d002b1a28744c4d8148e,deps=4641671a987399847913c5f1e429a9a264da3a2de7408e1feeb0c65d58c82ca3,usage=bf70aee07422b474c1f9628b5c2d2621337a04f0dad3e43db9a8e51eacd823ea,placement=b150a948340f00c1afd1d3e80abc0010fefdf4e7161c3a0bf55af31998e78e20",
+          "fingerprint": "body=c09cfe877f195ef8b524d23f6285d12a75b0a259a039b9c5f594e212a3c09431",
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Метод собирает устаревшие блоки и применяет их в зависимости от режима работы."
+            "novelFact": "В `tombstone`-режиме записи, у которых блок уже исчез из state, просто теряются — `applyTombstones` молча их игнорирует."
+          }
+        },
+        "changeGuide": {
+          "body": "- Безопасный вызов без режима: `const mode = input.mode ?? \"report\";` вместе с ранним возвратом `if (mode === \"report\")` гарантируют, что чтение состояния не меняет ни документы, ни индексы.\n\n- В режиме `tombstone` запись происходит только если реально есть что применять: `if (appliedTombstones.length === 0) { return refreshStaleResult(mode, stale, tombstoned, appliedTombstones); }` — пустой список устаревших не оставляет следов на диске.\n\n- После записи список tombstones пересчитывается заново: `new StaleDetector(refreshed, this.config.docs.langage).tombstoned(refreshedScoped)` — результат tombstoned всегда относится к индексу после записи, а не к старому обчислению.",
+          "rendered": true,
+          "fingerprint": "body=c09cfe877f195ef8b524d23f6285d12a75b0a259a039b9c5f594e212a3c09431,deps=067d8284186d8cafbc8e6b3c6b1241a6f4fbda31ddb8081547bdae8cc0bd52e8,usage=bf70aee07422b474c1f9628b5c2d2621337a04f0dad3e43db9a8e51eacd823ea,placement=b150a948340f00c1afd1d3e80abc0010fefdf4e7161c3a0bf55af31998e78e20",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Режим по умолчанию `report` — вызов без аргументов безопасен, а `tombstone`-запись происходит только когда список применён не пуст."
           }
         }
       },
@@ -2818,10 +2830,34 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "f0d9db27-8d2d-4338-a2e9-7112c0b35593",
+          "timestamp": "2026-09-14T09:53:18.088Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "f0d9db27-8d2d-4338-a2e9-7112c0b35593",
+          "timestamp": "2026-09-14T10:13:07.206Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
       ],
       "signature": "CodeloreService.refreshStaleDocs(input: RefreshStaleDocsInput = {}): Promise<RefreshStaleDocsResult>",
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.generateDocsForEntity": {
       "heading": "generateDocsForEntity",
@@ -5234,17 +5270,11 @@
         "symbol:src/service/section-rewrite.ts#updateStatusFromBlocks",
         "symbol:src/service/stale-detection.ts#addTargetBlock",
         "symbol:src/service/stale-detection.ts#buildRewriteContextBundle",
-        "symbol:src/service/stale-detection.ts#collectDepDocStaleBlocks",
-        "symbol:src/service/stale-detection.ts#collectLanguageStaleBlocks",
-        "symbol:src/service/stale-detection.ts#collectMemberDocStaleBlocks",
-        "symbol:src/service/stale-detection.ts#collectStaleBlocks",
-        "symbol:src/service/stale-detection.ts#collectTombstonedBlocks",
-        "symbol:src/service/stale-detection.ts#collectUnwrittenBlocks",
         "symbol:src/service/stale-detection.ts#filterSectionsByScope",
-        "symbol:src/service/stale-detection.ts#mergeStaleBlocks",
         "symbol:src/service/stale-detection.ts#refreshStaleResult",
         "symbol:src/service/stale-detection.ts#staleReasonFor",
         "symbol:src/service/stale-detection.ts#targetBlocksFromTombstones",
+        "symbol:src/service/stale-detector.ts#StaleDetector",
         "symbol:src/storage/doc-state-storage.ts#DocStateStorage",
         "symbol:src/storage/json-storage.ts#JsonStorage"
       ],
@@ -5278,52 +5308,52 @@
           "fingerprint": "signature=9ae5d230c9574249a5582e867bae2fc39279ca69f8e1a7e10ab10eeff9d8b22e,placement=9ae5d230c9574249a5582e867bae2fc39279ca69f8e1a7e10ab10eeff9d8b22e"
         },
         "responsibility": {
-          "body": "gatherTierDependencies: for non-project entities, iterates directDeps, filters by DOMAIN_ID_PREFIX, fetches a domain summary, and pushes a dependency object with name (from entity name or summary.label) and optional purpose from the summary's first section. gatherTierMembers: for project entities, returns direct domain summaries for domain-prefixed deps; for non-projects, resolves each dep to a file path and looks up the member in the provided map, skipping missing entries.",
+          "body": "- Собирает в один слой оркестрацию всей документационной системы: класс `CodeloreService` связывает конфиг, индексы кода и документации, состояние документов на диске и LLM-провайдеров, а хелперы файла (`splitTierSections`, `collectAllowedBlocksForSection`, `resolveTargets`, `scopeFromParts`, `sourceFilePathOf`) задают общие правила, на которых держатся методы класса.\n- Разводит генерацию по двум конвейерам с общей границей `splitTierSections`: исходные секции (`file:`/`symbol:`) идут файловым конвейером двумя плоскими фазами — propagating, затем terminal, — а tier-секции (`DOMAIN_ID_PREFIX`/`PROJECT_ID`) — доменным конвейером волнами зависимостей leaves-first.\n- Вводит сквозные конвенции фингерпринтов: блоки штампуются `computeBlockFingerprint`, tier-документы — `domainMemberFingerprint`, документации зависимостей — `dependencyDocsFingerprint`; отклонённые и пустые блоки тоже получают штамп, чтобы последующие прогоны не переспрашивали одно и то же.\n- Задаёт единые правила работы с LLM: пару провайдеров writer/verify создаёт `createProviderPair`, промпт партиционирования ограничен бюджетом модели через `assertRequestFitsBudget`, невалидный ответ LLM повторяется один раз с описанием ошибки через `appendPartitionRetry`.",
           "rendered": true,
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "gatherTierDependencies filters by DOMAIN_ID_PREFIX and falls back to summary.label; gatherTierMembers for projects returns direct domain summaries, for non-projects resolves file paths via sourceFilePathOf."
+            "novelFact": "Генерация разделена на два конвейера с общей границей `splitTierSections`: файловый идёт двумя плоскими фазами propagating→terminal, доменный — волнами зависимостей."
           },
-          "fingerprint": "signature=9ae5d230c9574249a5582e867bae2fc39279ca69f8e1a7e10ab10eeff9d8b22e,deps=472d7c6a52f94234d51d83a08949b11fe16ad64a752f4f355395edf9861f7689,usage=74610ac148428498cda64a003036d43f1f172fbd0626f7c391db2ef047fd4e50"
+          "fingerprint": "signature=9ae5d230c9574249a5582e867bae2fc39279ca69f8e1a7e10ab10eeff9d8b22e,deps=d687a7a8ea4b8c1302850b9349cb3b06e1f7acb1e2f634181c2ffa43220c806b,usage=74610ac148428498cda64a003036d43f1f172fbd0626f7c391db2ef047fd4e50"
         },
         "invariants": {
-          "body": "For project entities, both gatherTierDependencies and gatherTierMembers return an empty array (dependencies) or a list of direct domain summaries (members), never file members. For non-project entities, both methods iterate entity.directDeps in order, filtering by DOMAIN_ID_PREFIX (dependencies) or resolving file paths (members).",
+          "body": "- Идентификаторы сущностей кодируют вид: `file:`/`symbol:` — исходный код, `DOMAIN_ID_PREFIX` — tier-домен, `PROJECT_ID` — обзорный документ (tier-секция — это и есть её entity id, `domain:<slug>` или `project:`). `sourceFilePathOf` возвращает путь только для исходных id, для tier-ид — undefined; на этом держатся `splitTierSections`, сборка member-данных и поиск владельца секции.\n- `resolveTargets` без запрошенных целей возвращает весь `allowedBlocks`, а цель вне allowed-набора бросает `CodeloreError` с кодом `MISSING_BLOCK`; поэтому `runPipelineForSections` заранее пересекает запрошенные цели с allowed-набором и пропускает секции, у которых целей не осталось.\n- Секция генерируется в обеих фазах и может попасть в сводку дважды: `mergeSectionSummaries` схлопывает записи одной секции в одну с объединением `generatedBlocks`, а `dedupeSkipped` убирает из skipped секции, которые записала другая фаза.\n- `scopeFromParts` с пустыми списками возвращает undefined — отсутствие фильтра, а не пустой набор; `filterSectionsByScope` в этом случае видит все секции репозитория, поэтому вызывающие передают undefined только когда скоупа нет вовсе.",
           "rendered": true,
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "The file's entities consistently treat project entities as a boundary: both gatherTierDependencies and gatherTierMembers return empty or direct-domain summaries for projects, never file members."
+            "novelFact": "Идентификаторы сущностей кодируют вид (`file:`/`symbol:` — исходный код, `DOMAIN_ID_PREFIX` — домен, `PROJECT_ID` — обзор), и `sourceFilePathOf` возвращает путь только для исходных id."
           },
-          "fingerprint": "signature=9ae5d230c9574249a5582e867bae2fc39279ca69f8e1a7e10ab10eeff9d8b22e,body=4b3e2d44415711e87079131aa963a59b06f048da8c2374ea0a32c6535bc8b0b9"
+          "fingerprint": "signature=9ae5d230c9574249a5582e867bae2fc39279ca69f8e1a7e10ab10eeff9d8b22e,body=5b0a62c1517b180e152ded57b879fae2d21c0514f7cd85647bcbe56d5e424896"
         },
         "dependencies": {
-          "body": "Зависит от функции `domainDocPath` из `src/service/domain-docs.ts` для получения пути к файлу доменного документа по идентификатору зависимости.",
+          "body": "Файл подключает всё окружение сервиса: `loadConfig` и `resolveTerms` (`src/config.ts`) дают конфигурацию и термины для файла/языка; `JsonStorage`, `DocStateStorage`, `IndexManager` — состояние на диске, индексы кода и документации. Индекс/граф: `buildCodeIndex`, `parseUnifiedDiff`, `buildFileDag`, `buildDomainDag`, `dependencyWaves`, `getAffectedSectionsForEntities`, `getImpactForEntity` и константы/функции `DOMAIN_ID_PREFIX`, `PROJECT_ID`, `domainIdFor`, `isDomainTierEntity`, `isSourceCodeEntity` дают карту сущностей, рёбер и волн. Доменные чистые функции: `buildPartitionRequest`/`parsePartitionResponse`, `buildAssignRequest`/`parseAssignResponse`, `domainCoverage`/`fileToDomainSlug`, `collectDomainMemberEvidence`/`domainMemberFingerprint` — формирование и разбор LLM-сообщений и отпечатки tier-членов. LLM-слой: `createConfiguredProvider` (фабрика провайдеров и их бюджет), `generateFileGroup`, `generateDomainDoc`, `verifyBlocksAgainstDeps`, `collectDependencyDocs`/`dependencyDocsFingerprint`, `translateBlocks`, `writeRunDecisions`. Разметка/состояние: `computeBlockFingerprint`, `translationSourceFingerprint`, `docResponsibilities`, `renderSection`, `BLOCK_IDS`/`BlockId`. Внутренние модули той же директории (`prepare-docs`, `section-rewrite`, `stale-detection`/`stale-detector`, `doc-reconcile`, `doc-validation`, `domain-docs`, `file-layout`, `index-manager`, `helpers`) задают правила скоупа, томбстоуны, перезапись, проверки и планы раскладки.",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 1,
-            "novelty": 1,
-            "specificity": 1,
-            "novelFact": "Зависит от функции `domainDocPath` из `src/service/domain-docs.ts` для получения пути к файлу доменного документа по идентификатору зависимости."
+            "informativeness": 0.75,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Файл единой точкой сводит четыре слоя: конфиг/хранилище, граф-индекс кода, чистые доменные функции форматов LLM и сам LLM-конвейер с провайдерами."
           },
-          "fingerprint": "deps=472d7c6a52f94234d51d83a08949b11fe16ad64a752f4f355395edf9861f7689"
+          "fingerprint": "deps=d687a7a8ea4b8c1302850b9349cb3b06e1f7acb1e2f634181c2ffa43220c806b"
         },
         "limitations": {
-          "body": "Ограничений нет.",
+          "body": "На уровне файла действуют три рамки:\n- `assertRequestFitsBudget` суммирует длины всех `message.content` промпта партиционирования и при `estimatedTokens > maxPromptTokens` бросает `PARTITION_TOO_LARGE`; текст ошибки прямо говорит `Batched partition is not yet implemented`, поэтому слишком большой набор файлов нельзя разбить одним запросом — нужен меньший вход.\n- Невалидный ответ LLM переспрашивается ровно один раз: в `partitionDomainMap` и `assignUncoveredFiles` повторный `parsePartitionResponse`/`parseAssignResponse` стоит вне `try`, значит второй сбой парсинга пробрасывается наверх и останавливает команду без дальнейших попыток.\n- `readGitDiff` ловит любую ошибку `execFile` и молча возвращает пустую строку; если вызывающий не передал `diff` и `changedFiles` явно, `analyzeChange` увидит пустой diff и не сообщит о сбое git.",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 1,
-            "novelty": 1,
-            "specificity": 1,
-            "novelFact": "Ограничений нет."
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Партиционирование ограничено бюджетом промпта провайдера (guard `PARTITION_TOO_LARGE`), а невалидный ответ LLM имеет только одну повторную попытку."
           },
-          "fingerprint": "body=4b3e2d44415711e87079131aa963a59b06f048da8c2374ea0a32c6535bc8b0b9"
+          "fingerprint": "body=5b0a62c1517b180e152ded57b879fae2d21c0514f7cd85647bcbe56d5e424896"
         }
       },
       "generationHistory": [
@@ -5349,9 +5379,31 @@
             "dependencies",
             "limitations"
           ]
+        },
+        {
+          "runId": "f0d9db27-8d2d-4338-a2e9-7112c0b35593",
+          "timestamp": "2026-09-14T09:53:18.032Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "f0d9db27-8d2d-4338-a2e9-7112c0b35593",
+          "timestamp": "2026-09-14T10:13:07.190Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations"
+          ]
         }
       ],
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.reconcileScopedDocStates": {
       "heading": "CodeloreService.reconcileScopedDocStates",
@@ -5548,16 +5600,16 @@
           "fingerprint": "signature=70d7b4b53a8ba4974a60b9ae8b5ced4def9959684d4baa60ccc92cb7fd7769f2,deps=833b2f2e902a9cf1503cf490588cb46fa0faaee02bd30fe9bd72e6910c0f3797,usage=82225fc87361590e1a11005eecbf4e3d846b815fa9990f865292937f5cb70366"
         },
         "invariants": {
-          "body": "The method returns a Promise<DomainWriteResult> and is likely the main orchestration method that calls the partition and gather helpers.",
+          "body": "- Возвращает `docPaths` в отсортированном порядке (`.sort()`).\n- `deleteOrphanTierDocs` удаляет ровно те tier-документы — обзорный документ проекта и пути с префиксом `docs/domains/`, — которых нет в текущем наборе скелетов; при пустом наборе это все tier-документы.\n- Код загружает существующее состояние документа, но записывает исходный `skeleton`: результат `withPreservedBlockBodies(previous, skeleton.sections[sectionId])` и скопированный `previous.memberDocsFingerprint` присваиваются локальной `fresh`, которая не возвращается в скелет; на диск уходит `skeleton`.\n- После записи всех скелетов метод всегда перестраивает индекс (`rebuildIndexes({ renderDocs: false })`) и вызывает `reconcileRenderedDocs`, так что к возврату рендеры сходятся с состоянием.",
           "rendered": true,
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "The method returns a Promise<DomainWriteResult> and is likely the main orchestration method that calls the partition and gather helpers."
+            "novelFact": "Результат `withPreservedBlockBodies` присваивается локальной `fresh` и не возвращается в скелет — на диск уходит исходный `skeleton`, так что прежние тела блоков в записанное состояние не переносятся."
           },
-          "fingerprint": "signature=70d7b4b53a8ba4974a60b9ae8b5ced4def9959684d4baa60ccc92cb7fd7769f2,body=93a4613980c8031854e3c013c58a63270654a9daf2e5af9c3902644b8e843ad7"
+          "fingerprint": "signature=70d7b4b53a8ba4974a60b9ae8b5ced4def9959684d4baa60ccc92cb7fd7769f2,body=530817fdadc3a5ad80be3128bb406f6698c0694f1a87b8d09087cad7016b1697"
         },
         "dependencies": {
           "body": "",
@@ -5565,26 +5617,40 @@
           "fingerprint": "deps=833b2f2e902a9cf1503cf490588cb46fa0faaee02bd30fe9bd72e6910c0f3797"
         },
         "workflows": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "body=93a4613980c8031854e3c013c58a63270654a9daf2e5af9c3902644b8e843ad7,deps=833b2f2e902a9cf1503cf490588cb46fa0faaee02bd30fe9bd72e6910c0f3797"
+          "body": "Метод стоит в начале всех трёх доменных прогонов:\n\n- `generateDomainDocs` первым же оператором вызывает `await this.prepareDomainDocs()`, и только после этого читает карту и строит волны — так волны гарантировано опираются на актуальные скелеты tier-документов.\n- `refreshDomainDocs` вызывает сначала назначение неохваченных файлов, затем `prepareDomainDocs()` — сначала распределение неохваченных файлов меняет членство, затем скелеты пересобраны.\n- `fixStaleDocs` по той же схеме: назначение файлов, затем `prepareDomainDocs()`, затем обновление томпстоун-скоупа.",
+          "rendered": true,
+          "fingerprint": "body=530817fdadc3a5ad80be3128bb406f6698c0694f1a87b8d09087cad7016b1697,deps=833b2f2e902a9cf1503cf490588cb46fa0faaee02bd30fe9bd72e6910c0f3797",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Этот метод обязательный предзапрос для всех трёх доменных веток: он заранее материалализует скелеты перед чтением карты и расчётом волн."
+          }
         },
         "limitations": {
-          "body": "Ограничений нет.",
+          "body": "Скоуп метода узко ограничен tier-документацией: удаление осществляет только по путям проектных документов и префиксу `docs/domains/`, файловые doc-state при этом не трогаются. Метод ни пишет ни одной LLM-генерации: тексты блоков в скелетах пусты либо сохранены как было, и наполнение происходит позже в `generateDomainDocs`.",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 1,
-            "novelty": 1,
-            "specificity": 1,
-            "novelFact": "Ограничений нет."
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Удаление и запись внутри метода — только для tier-путей (`docs/domains/` и обзора проекта); файловые doc-state не трогаются."
           },
-          "fingerprint": "body=93a4613980c8031854e3c013c58a63270654a9daf2e5af9c3902644b8e843ad7"
+          "fingerprint": "body=530817fdadc3a5ad80be3128bb406f6698c0694f1a87b8d09087cad7016b1697"
         },
         "changeGuide": {
-          "body": "",
-          "rendered": false,
-          "fingerprint": "body=93a4613980c8031854e3c013c58a63270654a9daf2e5af9c3902644b8e843ad7,deps=833b2f2e902a9cf1503cf490588cb46fa0faaee02bd30fe9bd72e6910c0f3797,usage=82225fc87361590e1a11005eecbf4e3d846b815fa9990f865292937f5cb70366,placement=0f6ee1e28aae6e30b0ee320233c5188096fdb883816f3d5dee346686b14f44bd"
+          "body": "- Граница удаления осиротевших стабильна: в `deleteOrphanTierDocs` код проверяет `const isTierDoc = docPath === overview || docPath.startsWith(\"docs/domains/\");` — только такая запись может быть удалена.\n\n- После записи скелетов индексацию и рендер доводит последовательность: `await this.rebuildIndexes({ renderDocs: false });` затем `await this.reconcileRenderedDocs();` — гарантия, что по выходе метод оставляет дисковый индекс и отрендеренные doc-файлы в согласованном виде.",
+          "rendered": true,
+          "fingerprint": "body=530817fdadc3a5ad80be3128bb406f6698c0694f1a87b8d09087cad7016b1697,deps=833b2f2e902a9cf1503cf490588cb46fa0faaee02bd30fe9bd72e6910c0f3797,usage=82225fc87361590e1a11005eecbf4e3d846b815fa9990f865292937f5cb70366,placement=0f6ee1e28aae6e30b0ee320233c5188096fdb883816f3d5dee346686b14f44bd",
+          "language": "ru",
+          "scores": {
+            "informativeness": 0.5,
+            "novelty": 0.5,
+            "specificity": 0.75,
+            "novelFact": "Чистка и удаление ограничены tier-путями, а по завершении метода индексы и рендеры всегда пересобраны."
+          }
         }
       },
       "generationHistory": [
@@ -5609,9 +5675,31 @@
           "generatedBlocks": [
             "limitations"
           ]
+        },
+        {
+          "runId": "f0d9db27-8d2d-4338-a2e9-7112c0b35593",
+          "timestamp": "2026-09-14T09:53:18.096Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "f0d9db27-8d2d-4338-a2e9-7112c0b35593",
+          "timestamp": "2026-09-14T10:13:07.216Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
       ],
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.partitionDomainMap": {
       "heading": "CodeloreService.partitionDomainMap",
@@ -6192,7 +6280,7 @@
         "symbol:src/service/codelore-service.ts#CodeloreService.generateDomainDocs",
         "symbol:src/service/codelore-service.ts#CodeloreService.prepareDomainDocs",
         "symbol:src/service/codelore-service.ts#CodeloreService.rebuildIndexes",
-        "symbol:src/service/codelore-service.ts#CodeloreService.staleDomainSlugs"
+        "symbol:src/service/stale-detector.ts#StaleDetector"
       ],
       "usedBy": [
         "symbol:src/service/codelore-service.ts#CodeloreService",
@@ -6231,76 +6319,76 @@
           "fingerprint": "signature=bf63290a0a67cc3c24dcf315124cea2906332e73dca07f46d324ca292ea98628,placement=b580edce02010437755f66979c59c1d8d693ec4bf9d0252c662c7ac9d22e9bb7"
         },
         "responsibility": {
-          "body": "- Принимает массив доменных документов и заменяет содержимое `this.domainDocs` на переданные данные.\n- Не выполняет проверок на дубликаты или корректность, полагаясь на входные данные.\n- Не взаимодействует с другими методами сервиса.",
+          "body": "- Возвращает пустой результат `{ generated: [], droppedBlocks: 0, failed: [] }`, если карты доменов нет (метод получения карты вернул undefined): проект без доменов метод не трогает.\n- При наличии карты распределяет задокументированные файлы без домена через `assignUncoveredFiles` (один лёгкий LLM-вызов на verify-провайдере), пересобирает скелеты через `prepareDomainDocs` и перестраивает индекс.\n- Вычисляет устаревшие tier-слаги; если их нет — возвращает empty, иначе передаёт их в `generateDomainDocs` с опцией `{ slugs }`, чтобы переписать только изменившиеся tier-документы, и возвращает его результат.",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "- Принимает массив доменных документов и заменяет содержимое `this.domainDocs` на переданные данные."
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Без карты доменов метод — полный no-op, а при её наличии переписывает только tier-документы, чьи члены изменились."
           },
-          "fingerprint": "signature=bf63290a0a67cc3c24dcf315124cea2906332e73dca07f46d324ca292ea98628,deps=1c54b73bf5d2ad43079d8d7f5a9fd6a6574f48dced98e409be3308476d60a714,usage=c85e63b0064c090193e0f488f197ea8d7a9020d95a55f1ccda05cdf3dd52eb0f"
+          "fingerprint": "signature=bf63290a0a67cc3c24dcf315124cea2906332e73dca07f46d324ca292ea98628,deps=0dab7793caf8dfc73e7c568443fe5f1309b13edba855aa63eefa821f0f2bf67c,usage=c85e63b0064c090193e0f488f197ea8d7a9020d95a55f1ccda05cdf3dd52eb0f"
         },
         "invariants": {
-          "body": "Метод возвращает `void`. Он изменяет состояние сервиса, обновляя `this.domainDocs`. При вызове с пустым массивом `docs` метод не выполняет никаких действий и не изменяет состояние. Метод не проверяет корректность переданных документов и не выбрасывает исключений. Метод не изменяет другие поля сервиса.",
+          "body": "- Вызов безопасен в любом состоянии: без карты доменов метод выходит до перестройки индексов и записи; при пустом наборе устаревших слагов он доходит до возврата empty после пересборки скелетов, но tier-документы не переписывает.\n- `assignUncoveredFiles` выполняется до вычисления устаревания: добавление файла меняет членство домена, и принимающий домен попадает в список устаревших tier-документов этого же прогона.\n- Переписываются только tier-документы, чьи члены изменились или которые ещё не написаны: вычисление устаревания опирается на фингерпринты member-доков, поэтому домен с неизменившимися членами не перегенерируется.",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
+            "informativeness": 0.75,
             "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Метод возвращает `void`."
+            "specificity": 0.75,
+            "novelFact": "`assignUncoveredFiles` бежит до вычисления устаревания, поэтому домен, принявший новый файл, перегенерируется в этом же прогоне."
           },
-          "fingerprint": "signature=bf63290a0a67cc3c24dcf315124cea2906332e73dca07f46d324ca292ea98628,body=feb6cde94aaf56e6f4389071f659f3cd2b3932a0085dd1b0b0530d50d08714a3"
+          "fingerprint": "signature=bf63290a0a67cc3c24dcf315124cea2906332e73dca07f46d324ca292ea98628,body=f96338dd8ad05205269193296408f03d3a8b3802bbd712cddd8a2eebcffe98fa"
         },
         "dependencies": {
-          "body": "Использует провайдера LLM для обновления документации домена.",
+          "body": "Метод образует короткую цепочку собственных вызовов: `storage.loadDomainMap` (JSON, проверка карты), `assignUncoveredFiles` (назначение неохваченных, LLM-распределение), `prepareDomainDocs` (скелеты), `rebuildIndexes({ renderDocs: false })` (индекс после скелетов), определение устаревших tier-документов, `generateDomainDocs(runtime, { slugs })` (перегенерация).",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
+            "informativeness": 0.75,
             "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Зависит от провайдера LLM для обновления."
+            "specificity": 0.75,
+            "novelFact": "В цепи сначала назначаются файлы без домена, затем пересобираются скелеты и только потом считается набор устаревших tier-слагов."
           },
-          "fingerprint": "deps=1c54b73bf5d2ad43079d8d7f5a9fd6a6574f48dced98e409be3308476d60a714"
+          "fingerprint": "deps=0dab7793caf8dfc73e7c568443fe5f1309b13edba855aa63eefa821f0f2bf67c"
         },
         "workflows": {
-          "body": "Вызывается после изменений в коде для обновления документации домена.",
+          "body": "Единственный лист: yea — это конец команды `generate` без входного scope. `generateDocsForScope` выполняет файловую генерацию, перевод и реконсиль, и только потом `if (!hasScope) { await this.refreshDomainDocs(runtime); }`. Другими словами, woно-проектный документ после (пере)генерации всех исходных файлов дополнительно обновляет tier: распределяет неохваченных, перестраивает скелеты и переген экспорт только те tier-докумерения, которые действиности стали устаревшими.",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Вызывается после изменений в коде для обновления документации."
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Тиер-обновление происходит только в исходном проекте документом: `generateDocsForScope` вызывает `refreshDomainDocs` при отсутствии scope и не вызывает при передаче paths/files/entityIds."
           },
-          "fingerprint": "body=feb6cde94aaf56e6f4389071f659f3cd2b3932a0085dd1b0b0530d50d08714a3,deps=1c54b73bf5d2ad43079d8d7f5a9fd6a6574f48dced98e409be3308476d60a714"
+          "fingerprint": "body=f96338dd8ad05205269193296408f03d3a8b3802bbd712cddd8a2eebcffe98fa,deps=0dab7793caf8dfc73e7c568443fe5f1309b13edba855aa63eefa821f0f2bf67c"
         },
         "limitations": {
-          "body": "Не обрабатывает случаи, когда домен не изменился — пропускает обновление.",
+          "body": "Метод никогда не рисует доменную карта: `if (!(await this.storage.loadDomainMap())) return empty;` — если карты нет, выход до любых вызовов и LLM; проекту приходится явно создать доменную карту. Также при `slugs.size === 0` метод возвращает пустой результат и не пишет никаких tier-документов, даже если пользователь явно ждёт полное обновление.",
           "rendered": true,
           "language": "ru",
           "scores": {
             "informativeness": 0.5,
             "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Ограничение: не обрабатывает случаи, когда домен не изменился."
+            "specificity": 0.75,
+            "novelFact": "без карты доменов это no-op с ранним выходом, и даже при сп написания слагов генерация стенки только для `tierSlugs`."
           },
-          "fingerprint": "body=feb6cde94aaf56e6f4389071f659f3cd2b3932a0085dd1b0b0530d50d08714a3"
+          "fingerprint": "body=f96338dd8ad05205269193296408f03d3a8b3802bbd712cddd8a2eebcffe98fa"
         },
         "changeGuide": {
-          "body": "Обновляет документацию домена на основе изменений в коде.",
+          "body": "- Безопасность при отсутствии карты стабильна: `if (!(await this.storage.loadDomainMap())) { return empty; }` — переход по-настоящему не запускает ни один вызов LLM/стораджа, кроме чтения карты.\n\n- Дорогостоящая генерация включается только набором юл: `if (slugs.size === 0) { return empty; } return this.generateDomainDocs(runtime, { slugs });` — если список устаревших пуст, провайдеры не вызываются. Аналогичную ветку не имеет ни один другой метод данных в этой цепи.",
           "rendered": true,
           "language": "ru",
           "scores": {
             "informativeness": 0.5,
             "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Обновляет документацию домена."
+            "specificity": 0.75,
+            "novelFact": "Две гвардии подряд (`loadDomainMap` и `tierSlugs`) делают метод полностью безопасным при отсутствии карт или изменений."
           },
-          "fingerprint": "body=feb6cde94aaf56e6f4389071f659f3cd2b3932a0085dd1b0b0530d50d08714a3,deps=1c54b73bf5d2ad43079d8d7f5a9fd6a6574f48dced98e409be3308476d60a714,usage=c85e63b0064c090193e0f488f197ea8d7a9020d95a55f1ccda05cdf3dd52eb0f,placement=b580edce02010437755f66979c59c1d8d693ec4bf9d0252c662c7ac9d22e9bb7"
+          "fingerprint": "body=f96338dd8ad05205269193296408f03d3a8b3802bbd712cddd8a2eebcffe98fa,deps=0dab7793caf8dfc73e7c568443fe5f1309b13edba855aa63eefa821f0f2bf67c,usage=c85e63b0064c090193e0f488f197ea8d7a9020d95a55f1ccda05cdf3dd52eb0f,placement=b580edce02010437755f66979c59c1d8d693ec4bf9d0252c662c7ac9d22e9bb7"
         }
       },
       "generationHistory": [
@@ -6328,9 +6416,33 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "f0d9db27-8d2d-4338-a2e9-7112c0b35593",
+          "timestamp": "2026-09-14T09:53:18.102Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "f0d9db27-8d2d-4338-a2e9-7112c0b35593",
+          "timestamp": "2026-09-14T10:13:07.223Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations",
+            "changeGuide"
+          ]
         }
       ],
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.assignUncoveredFiles": {
       "heading": "CodeloreService.assignUncoveredFiles",
@@ -6499,8 +6611,8 @@
       "depends": [
         "symbol:src/service/codelore-service.ts#CodeloreService.loadOrRebuildIndexes",
         "symbol:src/service/stale-detection.ts#addTargetBlock",
-        "symbol:src/service/stale-detection.ts#collectUnwrittenBlocks",
-        "symbol:src/service/stale-detection.ts#filterSectionsByScope"
+        "symbol:src/service/stale-detection.ts#filterSectionsByScope",
+        "symbol:src/service/stale-detector.ts#StaleDetector"
       ],
       "usedBy": [
         "symbol:src/service/codelore-service.ts#CodeloreService",
@@ -6538,64 +6650,64 @@
           "fingerprint": "signature=a969c0d1e1def988bde4a0b03f3bfca13539c0b3916a209b879683bcd7ecb8ab,placement=f10311357df0e0eca88746e4a36be6da5fce5df6e1c02d8bfb0a7069a38f1e95"
         },
         "responsibility": {
-          "body": "- Добавляет каждый переданный блок в коллекцию `this.pendingBlocks`.\n- Не выполняет проверок на дубликаты или существование блоков, полагаясь на корректность входных данных.\n- Не взаимодействует с другими методами сервиса и не изменяет другие состояния.",
+          "body": "- Загружает индекс (`loadOrRebuildIndexes`), фильтрует секции по скоупу через `filterSectionsByScope` и находит unwritten-блоки через `StaleDetector.unwritten(scoped)` — пустые разрешённые блоки, чей код сдвинулся.\n- Добавляет каждый найденный блок в переданный Map `targets` через `addTargetBlock(sectionId, blockId)`, мутируя его; ничего не возвращает.\n- Не читает и не пишет состояние документов: работает только с индексом и переданной картой целей.",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "- Добавляет каждый переданный блок в коллекцию `this.pendingBlocks`."
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "Метод не возвращает результат, а добавляет найденные unwritten-блоки в переданный Map `targets` через `addTargetBlock`, мутируя его."
           },
-          "fingerprint": "signature=a969c0d1e1def988bde4a0b03f3bfca13539c0b3916a209b879683bcd7ecb8ab,deps=3447450d08275beab209882a92fd120591b0bf358bcb0be7e5aecea8e140e237,usage=d5edf642bb40b8d1c0e7fc69dd01c694dcb4ec45544f358c33c0f5778c8c9459"
+          "fingerprint": "signature=a969c0d1e1def988bde4a0b03f3bfca13539c0b3916a209b879683bcd7ecb8ab,deps=8e6b673817c95d251e2f383f13345228f2aba8af06dba690b85d6e614db40f9a,usage=d5edf642bb40b8d1c0e7fc69dd01c694dcb4ec45544f358c33c0f5778c8c9459"
         },
         "invariants": {
-          "body": "Метод возвращает `void`. Он изменяет состояние сервиса, добавляя записи в `this.pendingBlocks`. При вызове с пустым массивом `blocks` метод не выполняет никаких действий и не изменяет состояние. При вызове с массивом, содержащим дубликаты идентификаторов блоков, метод добавляет каждый блок в `this.pendingBlocks` без дедупликации, что может привести к дублированию записей. Метод не проверяет, существует ли блок с указанным идентификатором в системе, и не выбрасывает исключений при отсутствии такого блока. Метод не изменяет другие поля сервиса.",
+          "body": "- Метод возвращает void и мутирует переданный `targets`: записи добавляются через `addTargetBlock`; если unwritten-блоков нет, `targets` остаётся без изменений.\n- Пустой `scope` — отсутствие фильтра: `filterSectionsByScope` пропускает все секции, и в очередь попадают unwritten-блоки всего репозитория.\n- В очередь попадают только блоки, которые детекция устаревания счёл незаписанными; блоки с непустым телом не добавляются.",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
+            "informativeness": 0.75,
             "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Метод возвращает `void`."
+            "specificity": 0.75,
+            "novelFact": "В очередь попадают только блоки, которые `StaleDetector.unwritten` счёл незаписанными; при пустом `scope` это блоки всего репозитория."
           },
-          "fingerprint": "signature=a969c0d1e1def988bde4a0b03f3bfca13539c0b3916a209b879683bcd7ecb8ab,body=47d9823f7f4a0ae3afdd88b3dbabc8c1f5bd419a6eb66050c764516ce2f49a51"
+          "fingerprint": "signature=a969c0d1e1def988bde4a0b03f3bfca13539c0b3916a209b879683bcd7ecb8ab,body=401cac69b31ea18946b026d0455fff717700740471f967f86ae3a32c6b067570"
         },
         "dependencies": {
-          "body": "Использует провайдера LLM для генерации недостающих блоков документации.",
+          "body": "Метод использует только четыре опорные точки: `loadOrRebuildIndexes` (актуальный индекс), `filterSectionsByScope` (сужение по scope), `StaleDetector.unwritten(scoped)` (детекция пустых разрешённых блоков), `addTargetBlock` (мутацию разделяемой карты целей). Никаких записей в storage и никаких LLM-вызовов внутри нет.",
           "rendered": true,
           "language": "ru",
           "scores": {
             "informativeness": 0.5,
             "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Зависит от провайдера LLM для генерации блоков."
+            "specificity": 0.75,
+            "novelFact": "Метод только читает индекс и мутирует переданную Map — никакого другого эффекта у него нет."
           },
-          "fingerprint": "deps=3447450d08275beab209882a92fd120591b0bf358bcb0be7e5aecea8e140e237"
+          "fingerprint": "deps=8e6b673817c95d251e2f383f13345228f2aba8af06dba690b85d6e614db40f9a"
         },
         "workflows": {
-          "body": "Вызывается после сбора заголовков для заполнения пробелов в документации.",
+          "body": "Две родные точки вызова:\n\n- `generateDocsForScope`: после согласования состояний документов (и до ветки `force`/refresh) вызывает `await this.queueUnwrittenBlocks(scope, targetBlocksBySection)` — таким образом пустые блоки попадают в общий список целей ещё до решения о томбстоинах.\n- `fixStaleDocs`: зовёт его после `refreshStaleDocs({ mode: \"tombstone\", scope })`, с комментарием источника: tombstoning скрывает тело, но у пустого тела прикрывать нечего, поэтому такой блок не был бы найден при сборе удалённых блоков — он доходит до генерации только этим предидущим путём.",
           "rendered": true,
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Вызывается после сбора заголовков для заполнения пробелов."
+            "informativeness": 0.75,
+            "novelty": 0.75,
+            "specificity": 0.75,
+            "novelFact": "В `fixStaleDocs` именно этот метод закрывает дыру: пустой блок не может быть затомбструнен, поэтому его добавляет прямо в очередь целей."
           },
-          "fingerprint": "body=47d9823f7f4a0ae3afdd88b3dbabc8c1f5bd419a6eb66050c764516ce2f49a51,deps=3447450d08275beab209882a92fd120591b0bf358bcb0be7e5aecea8e140e237"
+          "fingerprint": "body=401cac69b31ea18946b026d0455fff717700740471f967f86ae3a32c6b067570,deps=8e6b673817c95d251e2f383f13345228f2aba8af06dba690b85d6e614db40f9a"
         },
         "limitations": {
-          "body": "Не обрабатывает блоки, которые уже записаны — они пропускаются.",
-          "rendered": true,
+          "body": "Метод возвращает `void`, конкретику выполненного не возвраяет: вызывающий видит только изменения переданного Map (добавление через `addTargetBlock`) и не получает отдельного признака, сколько блоков встало в очередь. Список братьев обновляем один раз за вызов — повторного вызова в том же прогоне не происходит, так что растёт при повторном запуске пока не снимется причиной.",
+          "rendered": false,
           "language": "ru",
           "scores": {
-            "informativeness": 0.5,
-            "novelty": 0.5,
-            "specificity": 0.5,
-            "novelFact": "Ограничение: не обрабатывает блоки, которые уже записаны."
+            "informativeness": 0.25,
+            "novelty": 0.25,
+            "specificity": 0.25,
+            "novelFact": "Наблюдаемость метода ограничена мутацией переданного Map — возвращаемого отступа о количестве добавленных нет."
           },
-          "fingerprint": "body=47d9823f7f4a0ae3afdd88b3dbabc8c1f5bd419a6eb66050c764516ce2f49a51"
+          "fingerprint": "body=401cac69b31ea18946b026d0455fff717700740471f967f86ae3a32c6b067570"
         }
       },
       "generationHistory": [
@@ -6622,9 +6734,32 @@
             "workflows",
             "limitations"
           ]
+        },
+        {
+          "runId": "f0d9db27-8d2d-4338-a2e9-7112c0b35593",
+          "timestamp": "2026-09-14T09:53:18.110Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "responsibility",
+            "invariants"
+          ]
+        },
+        {
+          "runId": "f0d9db27-8d2d-4338-a2e9-7112c0b35593",
+          "timestamp": "2026-09-14T10:13:07.231Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "dependencies",
+            "workflows",
+            "limitations"
+          ]
         }
       ],
-      "depDocsFingerprint": "b687d8823cf32c5a1b074f40c4416d1ba8e9e7cfe54d7c6cbea58a534faf78e5"
+      "depDocsFingerprint": "c235270caffd15365a9916b28a662c9dfd1774acdef8aa6dcb7584d6000e8131"
     },
     "symbol:src/service/codelore-service.ts#CodeloreService.reconcileRenderedDocs": {
       "heading": "CodeloreService.reconcileRenderedDocs",

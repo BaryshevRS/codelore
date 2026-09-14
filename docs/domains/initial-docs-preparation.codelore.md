@@ -4,7 +4,7 @@
 
 - [domain-docs](../../src/service/domain-docs.codelore.md#domain-docsts) — The module defines the data shapes and path derivation rules that the domain-doc preparation flow relies on to persist and locate per-entity documentation.
 - [file-layout](../../src/service/file-layout.codelore.md) — Преобразует список сущностей кода в структурированный план секций документации для одного файла.
-- [prepare-docs](../../src/service/prepare-docs.codelore.md) — Создаёт пустой `DocState` для нового документа, заданного путём.
+- [prepare-docs](../../src/service/prepare-docs.codelore.md) — Создаёт пустое состояние документа — стартовую точку, с которой `prepareInitialDocs` начинает наполнять новый файл, когда в хранилище нет сохранённого состояния (`existing ??
 
 **Зависит от:** [Общие низкоуровневые утилиты](common-utils.codelore.md#общие-низкоуровневые-утилиты) · [Общие вспомогательные функции сервиса](service-helpers.codelore.md#общие-вспомогательные-функции-сервиса)
 **Используется в:** [Фасад сервиса Codelore](codelore-service-facade.codelore.md#фасад-сервиса-codelore)

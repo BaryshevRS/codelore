@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/service/stale-detection.codelore.md",
-  "generatedAt": "2026-09-13T23:30:54.633Z",
+  "generatedAt": "2026-09-14T10:13:07.275Z",
   "sectionOrder": [
     "symbol:src/service/stale-detection.ts#targetBlocksFromTombstones",
     "symbol:src/service/stale-detection.ts#addTargetBlock",
@@ -670,9 +670,9 @@
         "symbol:src/service/helpers.ts#isKnownBlockId"
       ],
       "usedBy": [
-        "file:src/service/codelore-service.ts",
-        "symbol:src/service/codelore-service.ts#CodeloreService",
-        "symbol:src/service/codelore-service.ts#CodeloreService.refreshStaleDocs"
+        "file:src/service/stale-detector.ts",
+        "symbol:src/service/stale-detector.ts#StaleDetector",
+        "symbol:src/service/stale-detector.ts#StaleDetector.stale"
       ],
       "status": "normal",
       "allowedBlocks": [
@@ -706,15 +706,16 @@
           }
         },
         "responsibility": {
-          "body": "- Обрабатывает только секции, у которых есть сохранённый `depDocsFingerprint`.\n- Сравнивает текущий отпечаток зависимостей с сохранённым, используя `dependencyDocsFingerprint`.\n- Пропускает блоки, которые уже устарели, пусты, или являются пропагирующими (`PROPAGATING_BLOCKS`).\n- Сообщает об устаревании с `changedFacets: [\"depDocs\"]`.",
+          "body": "- Пропускает секции без сохранённого `depDocsFingerprint` — они исключаются из рассмотрения.\n- Вычисляет текущий отпечаток через `dependencyDocsFingerprint(collectDependencyDocs(index, [file]))`, беря путь файла из первой owned-сущности секции, и кэширует результат в `fingerprintByFile`, чтобы не пересчитывать его для нескольких секций одного файла.\n- При расхождении текущего и сохранённого отпечатков помечает каждый известный, непустой, ещё не устаревший блок секции записью с `changedFacets: [\"depDocs\"]` и `drift: \"facet_changed\"`.\n- Исключает пропагирующие блоки (`PROPAGATING_BLOCKS`): они генерируются без dependency docs, поэтому не могут устареть по этой причине.",
           "rendered": true,
-          "fingerprint": "signature=724a2252be55f20afc59f50baa61805894fdcd01008bf94eba8809dbf4c25aad,deps=a56ce5e672f5d9275e19a10aa35207033459463cdd256ba4ad9d061a0ce1e0fe,usage=644603c60b3b82230ea89a647ed6509915fa98ff6cc3b5c5a58fd2cfa3124772",
+          "fingerprint": "signature=724a2252be55f20afc59f50baa61805894fdcd01008bf94eba8809dbf4c25aad,deps=a56ce5e672f5d9275e19a10aa35207033459463cdd256ba4ad9d061a0ce1e0fe,usage=faa5061a1f4cb4ba338bba671c98181631917a9de06c9de0429415f6c8703b2a",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Сравнение fingerprint, пропуск propagating."
-          }
+            "novelFact": "Отпечаток dependency docs вычисляется один раз на файл и кэшируется в `fingerprintByFile`, а путь файла берётся только из первой owned-сущности секции."
+          },
+          "language": "ru"
         },
         "invariants": {
           "body": "- Каждая секция порождает не более одной записи об устаревании на блок.\n- Пропагирующие блоки (`PROPAGATING_BLOCKS`) никогда не считаются устаревшими из-за изменения зависимостей.",
@@ -761,15 +762,16 @@
           }
         },
         "changeGuide": {
-          "body": "- Секции без сохранённого `depDocsFingerprint` пропускаются: условие `if (section.depDocsFingerprint === undefined) { continue; }`.",
+          "body": "- Отпечаток документации зависимостей пересчитывается не чаще одного раза на файл: перед расчётом код проверяет кэш через `fingerprintByFile.get(file)`, а после — сохраняет результат через `fingerprintByFile.set(file, current)`.\n- В запись об устаревании попадают только известные, непустые и ещё не похороненные блоки: `if (!isKnownBlockId(block.id) || block.staleSince !== undefined || block.body.trim() === \"\") { continue; }`.\n- Совпадение текущего и сохранённого отпечатков досрочно завершает обработку секции: `if (current === section.depDocsFingerprint) { continue; }`.",
           "rendered": true,
-          "fingerprint": "body=a0b176bb382ee2607a6f43f0f3a4aba115c3e5b774e189ff5ab3ea9925d54f5b,deps=a56ce5e672f5d9275e19a10aa35207033459463cdd256ba4ad9d061a0ce1e0fe,usage=644603c60b3b82230ea89a647ed6509915fa98ff6cc3b5c5a58fd2cfa3124772,placement=18f7e398329c599d1594e3fc9b29c4e0963385c8864bf1ec54986a62da0f763d",
+          "fingerprint": "body=a0b176bb382ee2607a6f43f0f3a4aba115c3e5b774e189ff5ab3ea9925d54f5b,deps=a56ce5e672f5d9275e19a10aa35207033459463cdd256ba4ad9d061a0ce1e0fe,usage=faa5061a1f4cb4ba338bba671c98181631917a9de06c9de0429415f6c8703b2a,placement=18f7e398329c599d1594e3fc9b29c4e0963385c8864bf1ec54986a62da0f763d",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "- Секции без сохранённого `depDocsFingerprint` пропускаются: условие `if (section.depDocsFingerprint === undefined) { continue; }`."
-          }
+            "novelFact": "Отпечаток документации зависимостей пересчитывается не чаще одного раза на файл благодаря кэшу fingerprintByFile."
+          },
+          "language": "ru"
         }
       },
       "generationHistory": [
@@ -797,9 +799,30 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "f0d9db27-8d2d-4338-a2e9-7112c0b35593",
+          "timestamp": "2026-09-14T09:53:18.128Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "f0d9db27-8d2d-4338-a2e9-7112c0b35593",
+          "timestamp": "2026-09-14T10:13:07.265Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "changeGuide"
+          ]
         }
       ],
-      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234"
+      "depDocsFingerprint": "ad5653c7c1f37bd6dc70e8da3d0c97a5fd37d27ce208aa08b0dd28debe7682ff",
+      "signature": "collectDepDocStaleBlocks(sections: DocSection[], index: ProjectIndex): StaleBlockInfo[]"
     },
     "symbol:src/service/stale-detection.ts#mergeStaleBlocks": {
       "heading": "mergeStaleBlocks",
@@ -810,9 +833,9 @@
       ],
       "depends": [],
       "usedBy": [
-        "file:src/service/codelore-service.ts",
-        "symbol:src/service/codelore-service.ts#CodeloreService",
-        "symbol:src/service/codelore-service.ts#CodeloreService.refreshStaleDocs"
+        "file:src/service/stale-detector.ts",
+        "symbol:src/service/stale-detector.ts#StaleDetector",
+        "symbol:src/service/stale-detector.ts#StaleDetector.stale"
       ],
       "status": "normal",
       "allowedBlocks": [
@@ -846,15 +869,16 @@
           }
         },
         "responsibility": {
-          "body": "- Дедуплицирует записи по составному ключу `sectionId + \\\\0 + blockId`.\n- При повторном появлении одного и того же блока объединяет массивы `changedFacets` (объединение множеств).\n- Сохраняет остальные поля первой найденной записи.",
+          "body": "- Схлопывает записи из разных проходов по составному ключу `sectionId + \"\\u0000\" + blockId`: первая запись пары сохраняется целиком.\n- При повторном вхождении той же пары объединяет `changedFacets` в union через `Set`, остальные поля первой записи не меняет.\n- Возвращает новый массив значений Map, не мутируя входные массивы проходов.",
           "rendered": true,
-          "fingerprint": "signature=5c208f9e6b1e74d82509f14c0cab137cdcc8e516e02603c02bc40c1d0930d12b,deps=3d24a7e2abc34547025842d0c0c63814555696fada62d34355ba28262bf2af83,usage=8d012e9ca9bd04d284047fc5c669a2bf32b027a6867ee3bf4236defabe17379c",
+          "fingerprint": "signature=5c208f9e6b1e74d82509f14c0cab137cdcc8e516e02603c02bc40c1d0930d12b,deps=3d24a7e2abc34547025842d0c0c63814555696fada62d34355ba28262bf2af83,usage=e8ccac78f471906652dde883408ab2a6201c934d2430e31920c23fd6120e0991",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Дедупликация по ключу, объединение facets."
-          }
+            "novelFact": "Записи одной пары (sectionId, blockId) из разных проходов схлопываются в одну, а их `changedFacets` объединяются в union."
+          },
+          "language": "ru"
         },
         "invariants": {
           "body": "- Возвращает новый массив — исходные массивы не мутируются.\n- Каждая результирующая запись уникальна для пары (sectionId, blockId).",
@@ -901,15 +925,16 @@
           }
         },
         "changeGuide": {
-          "body": "- Дубликаты устраняются по составному ключу: `const key = entry.sectionId + '\\u0000' + entry.blockId;`.\n- При повторном вхождении фасеты объединяются: `existing.changedFacets = [...new Set([...existing.changedFacets, ...entry.changedFacets])];`.",
+          "body": "- Ключ дедупликации склеивает sectionId и blockId нуль-символом, чтобы граница между ними не терялась: `` `${entry.sectionId}\\u0000${entry.blockId}` ``.\n- Первая встреченная запись для пары сохраняется целиком, повторные вхождения лишь пополняют её `changedFacets` через `existing.changedFacets = [...new Set([...existing.changedFacets, ...entry.changedFacets])];`, поэтому `drift` и `docPath` всегда берутся из первого прохода.",
           "rendered": true,
-          "fingerprint": "body=27ca5feb5b262c149d1c8baa9c8a95870863f742b24ecda12357aa1a81941ee2,deps=3d24a7e2abc34547025842d0c0c63814555696fada62d34355ba28262bf2af83,usage=8d012e9ca9bd04d284047fc5c669a2bf32b027a6867ee3bf4236defabe17379c,placement=d02a3e0c22217b18345c53828108c8c5caa3297414f285577689a1190b2e515b",
+          "fingerprint": "body=27ca5feb5b262c149d1c8baa9c8a95870863f742b24ecda12357aa1a81941ee2,deps=3d24a7e2abc34547025842d0c0c63814555696fada62d34355ba28262bf2af83,usage=e8ccac78f471906652dde883408ab2a6201c934d2430e31920c23fd6120e0991,placement=d02a3e0c22217b18345c53828108c8c5caa3297414f285577689a1190b2e515b",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "- Дубликаты устраняются по составному ключу: `const key = entry.sectionId + '\\u0000' + entry.blockId;`."
-          }
+            "novelFact": "Первая запись для пары (sectionId, blockId) сохраняется целиком, повторные вхождения лишь пополняют её changedFacets через Set-union."
+          },
+          "language": "ru"
         }
       },
       "generationHistory": [
@@ -937,9 +962,30 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "f0d9db27-8d2d-4338-a2e9-7112c0b35593",
+          "timestamp": "2026-09-14T09:53:18.131Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "f0d9db27-8d2d-4338-a2e9-7112c0b35593",
+          "timestamp": "2026-09-14T10:13:07.267Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "changeGuide"
+          ]
         }
       ],
-      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234"
+      "depDocsFingerprint": "ad5653c7c1f37bd6dc70e8da3d0c97a5fd37d27ce208aa08b0dd28debe7682ff",
+      "signature": "mergeStaleBlocks(...passes: StaleBlockInfo[][]): StaleBlockInfo[]"
     },
     "symbol:src/service/stale-detection.ts#collectStaleBlocks": {
       "heading": "collectStaleBlocks",
@@ -953,9 +999,9 @@
         "symbol:src/service/stale-detection.ts#staleBlockInfoFor"
       ],
       "usedBy": [
-        "file:src/service/codelore-service.ts",
-        "symbol:src/service/codelore-service.ts#CodeloreService",
-        "symbol:src/service/codelore-service.ts#CodeloreService.refreshStaleDocs"
+        "file:src/service/stale-detector.ts",
+        "symbol:src/service/stale-detector.ts#StaleDetector",
+        "symbol:src/service/stale-detector.ts#StaleDetector.stale"
       ],
       "status": "normal",
       "allowedBlocks": [
@@ -989,15 +1035,16 @@
           }
         },
         "responsibility": {
-          "body": "- Делегирует проверку отдельных блоков функции `staleBlockInfoFor` для секций, у которых есть хотя бы одна принадлежащая сущность.\n- Для секций, все принадлежащие сущности которых удалены, делегирует `deletedOwnedEntityBlocks`, которая помечает все блоки как устаревшие с причиной `owned_entity_deleted`.\n- Возвращает плоский массив; каждый элемент содержит идентификатор секции, блока и список изменившихся фасетов.\n- Не изменяет переданные секции или сущности.",
+          "body": "- Для секций, у которых хотя бы одна owned-сущность присутствует в `entities`, делегирует проверку каждого блока в `staleBlockInfoFor`.\n- Для секций, потерявших все owned-сущности, делегирует `deletedOwnedEntityBlocks`, которая помечает все известные непустые блоки с `drift: \"owned_entity_deleted\"`.\n- Возвращает плоский массив записей, не мутируя переданные секции и сущности.",
           "rendered": true,
-          "fingerprint": "signature=a70fcb6962cf615f016c4eed281d8750db6897c2b12d917d65fd5fc8b39f77ee,deps=09c82c44fc245a78a37ea7ca091809a56373bf182262d6c9a2c8ff384df9e9a0,usage=335b622842bb7e4f87cc19ce8279d11a6c60142c401db77c4c789f668dcc03c8",
+          "fingerprint": "signature=a70fcb6962cf615f016c4eed281d8750db6897c2b12d917d65fd5fc8b39f77ee,deps=09c82c44fc245a78a37ea7ca091809a56373bf182262d6c9a2c8ff384df9e9a0,usage=a62265a73d7de2eb6a5422e9ef8df052b268ce0581895fcff7c8f27f5d2f339d",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "- Делегирует проверку отдельных блоков функции `staleBlockInfoFor` для секций, у которых есть хотя бы одна принадлежащая сущность."
-          }
+            "novelFact": "Секция, потерявшая все owned-сущности, обрабатывается целиком через `deletedOwnedEntityBlocks` — все её известные непустые блоки помечаются как устаревшие с `drift: \"owned_entity_deleted\"` без проверки отпечатков."
+          },
+          "language": "ru"
         },
         "invariants": {
           "body": "- Каждый элемент возвращаемого массива имеет `drift` равный `\"facet_changed\"` (если получен от `staleBlockInfoFor`) или `\"owned_entity_deleted\"` (от `deletedOwnedEntityBlocks`).\n- Не включает блоки с пустым телом, неизвестным идентификатором или уже установленным `staleSince`.\n- Функция чистая — не мутирует аргументы.",
@@ -1044,15 +1091,16 @@
           }
         },
         "changeGuide": {
-          "body": "- Если изменить условие `presentOwns.length === 0` на другую проверку, секции с удалёнными owned-сущностями перестанут помечаться как stale — тест `collectStaleBlocks` должен покрывать этот сценарий.\n- Если убрать вызов `staleBlockInfoFor` из цикла по блокам, блоки с изменившимся отпечатком не будут обнаружены — тест `collectStaleBlocks` должен проверять обнаружение изменений фасетов.",
+          "body": "- Секция переходит в ветку удаления владельцев только когда `presentOwns.length === 0`, где `presentOwns` получен фильтром `section.owns.filter((id) => entities[id])`; при частичной потере владельцев блоки по-прежнему проверяются по отпечаткам.\n- Решение по каждому блоку целиком делегировано `staleBlockInfoFor`, и в результат попадает только его непустой возврат: `const info = staleBlockInfoFor(section, block, presentOwns, entities); if (info) { stale.push(info); }`.",
           "rendered": true,
-          "fingerprint": "body=9a720b71a7704d985af7f4ca86cd9886754eb458b37023f2a4aebe5c92763ce0,deps=09c82c44fc245a78a37ea7ca091809a56373bf182262d6c9a2c8ff384df9e9a0,usage=335b622842bb7e4f87cc19ce8279d11a6c60142c401db77c4c789f668dcc03c8,placement=0edb4882450560e3a78a2bfaadb7f52de81c0a58a7528a0f88b793107abea6a0",
+          "fingerprint": "body=9a720b71a7704d985af7f4ca86cd9886754eb458b37023f2a4aebe5c92763ce0,deps=09c82c44fc245a78a37ea7ca091809a56373bf182262d6c9a2c8ff384df9e9a0,usage=a62265a73d7de2eb6a5422e9ef8df052b268ce0581895fcff7c8f27f5d2f339d,placement=0edb4882450560e3a78a2bfaadb7f52de81c0a58a7528a0f88b793107abea6a0",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Два инварианта: проверка `presentOwns.length === 0` и вызов `staleBlockInfoFor`."
-          }
+            "novelFact": "Секция считается потерявшей всех владельцев только когда фильтр `section.owns.filter((id) => entities[id])` вернул пустой массив."
+          },
+          "language": "ru"
         }
       },
       "generationHistory": [
@@ -1080,9 +1128,30 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "f0d9db27-8d2d-4338-a2e9-7112c0b35593",
+          "timestamp": "2026-09-14T09:53:18.135Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "f0d9db27-8d2d-4338-a2e9-7112c0b35593",
+          "timestamp": "2026-09-14T10:13:07.269Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "changeGuide"
+          ]
         }
       ],
-      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234"
+      "depDocsFingerprint": "ad5653c7c1f37bd6dc70e8da3d0c97a5fd37d27ce208aa08b0dd28debe7682ff",
+      "signature": "collectStaleBlocks(sections: DocSection[], entities: Record<string, CodeEntity>): StaleBlockInfo[]"
     },
     "symbol:src/service/stale-detection.ts#collectTombstonedBlocks": {
       "heading": "collectTombstonedBlocks",
@@ -1096,9 +1165,9 @@
         "symbol:src/service/stale-detection.ts#tombstonedBlockInfoFor"
       ],
       "usedBy": [
-        "file:src/service/codelore-service.ts",
-        "symbol:src/service/codelore-service.ts#CodeloreService",
-        "symbol:src/service/codelore-service.ts#CodeloreService.refreshStaleDocs"
+        "file:src/service/stale-detector.ts",
+        "symbol:src/service/stale-detector.ts#StaleDetector",
+        "symbol:src/service/stale-detector.ts#StaleDetector.tombstoned"
       ],
       "status": "normal",
       "allowedBlocks": [
@@ -1132,15 +1201,16 @@
           }
         },
         "responsibility": {
-          "body": "- Для секций с существующими принадлежащими сущностями проверяет каждый блок через `tombstonedBlockInfoFor`, который возвращает информацию только для блоков с `staleSince`.\n- Для секций без принадлежащих сущностей вызывает `deletedOwnedEntityBlocks` с `tombstonedOnly: true`, включая только уже похороненные блоки (с `staleSince`).\n- Возвращает только блоки, у которых тело не пусто и у которых `staleSince` установлен.\n- Не требует вычисления отпечатков или доступа к актуальному коду сущностей.",
+          "body": "- Для секций с живыми owned-сущностями делегирует `tombstonedBlockInfoFor`, который возвращает запись только для блоков с установленным `staleSince` и непустым телом.\n- Для секций без owned-сущностей делегирует `deletedOwnedEntityBlocks` с `tombstonedOnly: true`, включая только уже похороненные блоки.\n- Возвращает записи с `drift: \"tombstoned\"`; фасеты берёт из сохранённого `staleFacets` блока, а при его отсутствии — из `BLOCK_FACETS[block.id]`.\n- Не вычисляет отпечатки и не обращается к коду сущностей — работает только по метаданным блоков.",
           "rendered": true,
-          "fingerprint": "signature=3f17d9d139f525d7b6a4488c6bde9395ecca68cb346bd5868bf02937a11900ec,deps=5fec58ab54bce70d7261c349f6db080b5b408b17daeb66c7f8856329bc5f5a9f,usage=6190a7192a816052232b24d97669cb5b4ef8773964bff2b5421fc04453193f75",
+          "fingerprint": "signature=3f17d9d139f525d7b6a4488c6bde9395ecca68cb346bd5868bf02937a11900ec,deps=5fec58ab54bce70d7261c349f6db080b5b408b17daeb66c7f8856329bc5f5a9f,usage=9f490d14b15c46d10534210b22a245fd05942e002a96fc69bb5933237b2489d7",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "- Для секций с существующими принадлежащими сущностями проверяет каждый блок через `tombstonedBlockInfoFor`, который возвращает информацию только для блоков с `staleSince`."
-          }
+            "novelFact": "Для tombstoned-блоков фасеты берутся из сохранённого `staleFacets`, а не вычисляются заново; при отсутствии поля — весь набор `BLOCK_FACETS[block.id]`."
+          },
+          "language": "ru"
         },
         "invariants": {
           "body": "- Все возвращённые записи имеют `drift: \"tombstoned\"`.\n- Изменённые фасеты берутся из поля `staleFacets` блока, если оно есть, иначе из `BLOCK_FACETS[block.id]`.\n- Не изменяет состояние.",
@@ -1187,15 +1257,16 @@
           }
         },
         "changeGuide": {
-          "body": "- Если изменить условие `presentOwns.length === 0` на другую проверку, секции с удалёнными owned-сущностями перестанут обрабатываться через `deletedOwnedEntityBlocks` — тест `collectTombstonedBlocks` должен покрывать этот сценарий.\n- Если убрать вызов `tombstonedBlockInfoFor` из цикла по блокам, tombstoned-блоки не будут обнаружены — тест `collectTombstonedBlocks` должен проверять обнаружение блоков с `staleSince`.",
+          "body": "- В ветке секций без живых владельцев отбираются только уже похороненные блоки, потому что опция передаётся явно: `deletedOwnedEntityBlocks(section, { tombstonedOnly: true })`.\n- Для секций с живыми владельцами решение по блоку делегировано `tombstonedBlockInfoFor`, и в результат попадает только его непустой возврат: `const info = tombstonedBlockInfoFor(section, block); if (info) { tombstoned.push(info); }`.",
           "rendered": true,
-          "fingerprint": "body=c62f464269f1f98665e5785a01ed4a47c57a37133106c256adaeaf69e2c3c376,deps=5fec58ab54bce70d7261c349f6db080b5b408b17daeb66c7f8856329bc5f5a9f,usage=6190a7192a816052232b24d97669cb5b4ef8773964bff2b5421fc04453193f75,placement=bdef3618219f8ed0f1e47dd1bc3042df49058b2cadb9978b693a2915c823447e",
+          "fingerprint": "body=c62f464269f1f98665e5785a01ed4a47c57a37133106c256adaeaf69e2c3c376,deps=5fec58ab54bce70d7261c349f6db080b5b408b17daeb66c7f8856329bc5f5a9f,usage=9f490d14b15c46d10534210b22a245fd05942e002a96fc69bb5933237b2489d7,placement=bdef3618219f8ed0f1e47dd1bc3042df49058b2cadb9978b693a2915c823447e",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Два инварианта: проверка `presentOwns.length === 0` и вызов `tombstonedBlockInfoFor`."
-          }
+            "novelFact": "В ветке удалённых владельцев отбираются только похороненные блоки благодаря явной опции `{ tombstonedOnly: true }`."
+          },
+          "language": "ru"
         }
       },
       "generationHistory": [
@@ -1223,9 +1294,30 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "f0d9db27-8d2d-4338-a2e9-7112c0b35593",
+          "timestamp": "2026-09-14T09:53:18.138Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "f0d9db27-8d2d-4338-a2e9-7112c0b35593",
+          "timestamp": "2026-09-14T10:13:07.272Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "changeGuide"
+          ]
         }
       ],
-      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234"
+      "depDocsFingerprint": "ad5653c7c1f37bd6dc70e8da3d0c97a5fd37d27ce208aa08b0dd28debe7682ff",
+      "signature": "collectTombstonedBlocks(sections: DocSection[], entities: Record<string, CodeEntity>): StaleBlockInfo[]"
     },
     "symbol:src/service/stale-detection.ts#deletedOwnedEntityBlocks": {
       "heading": "deletedOwnedEntityBlocks",
@@ -2035,9 +2127,9 @@
         "symbol:src/service/helpers.ts#isKnownBlockId"
       ],
       "usedBy": [
-        "file:src/service/codelore-service.ts",
-        "symbol:src/service/codelore-service.ts#CodeloreService",
-        "symbol:src/service/codelore-service.ts#CodeloreService.refreshStaleDocs"
+        "file:src/service/stale-detector.ts",
+        "symbol:src/service/stale-detector.ts#StaleDetector",
+        "symbol:src/service/stale-detector.ts#StaleDetector.stale"
       ],
       "status": "normal",
       "allowedBlocks": [
@@ -2072,15 +2164,15 @@
           }
         },
         "responsibility": {
-          "body": "- Проверяет, что `canonicalLanguage` задан; при отсутствии возвращает пустой массив.\n- Пропускает блоки с неизвестным идентификатором, уже помеченные как устаревшие, пустые или не имеющие языковой метки (`block.language === undefined`).\n- Для каждого блока, чья метка `block.language` отличается от `canonicalLanguage`, создаёт запись `StaleBlockInfo` с фасетом `\"language\"`.",
+          "body": "- При `canonicalLanguage === undefined` сразу возвращает пустой массив — без канонического языка нечего сравнивать.\n- Пропускает блоки с неизвестным id, уже устаревшие (`staleSince`), пустые и без языковой метки (`block.language === undefined`).\n- Для каждого блока, чья метка `block.language` отличается от `canonicalLanguage`, создаёт запись с `changedFacets: [\"language\"]` и `drift: \"facet_changed\"`.",
           "rendered": true,
-          "fingerprint": "signature=f588759d6684b393ec5d4f07f63dc19cd9a2398e614b2ae3279e071a3502828b,deps=bf6c999f7815c68259f817fe55470b4bf1bc95ddd3cffd564feb610a323cccd2,usage=dac8beef236d311a934a423ab0594c23ca3889d47af7c7a8dfb9af9d9335f471",
+          "fingerprint": "signature=f588759d6684b393ec5d4f07f63dc19cd9a2398e614b2ae3279e071a3502828b,deps=bf6c999f7815c68259f817fe55470b4bf1bc95ddd3cffd564feb610a323cccd2,usage=5660144518605cd001b7e6311803c1a95b344e297bc2fb0d8c99409f29b68655",
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.5,
+            "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Проверяет только блоки с меткой языка, отличной от канонической."
+            "novelFact": "Блоки без языковой метки не считаются устаревшими по языку — флагуются только блоки с меткой, отличающейся от канонического языка."
           }
         },
         "invariants": {
@@ -2132,15 +2224,15 @@
           }
         },
         "changeGuide": {
-          "body": "- Если `canonicalLanguage` равен `undefined`, функция возвращает пустой массив — это обеспечивается ранним возвратом `if (canonicalLanguage === undefined) { return []; }`.\n- Только блоки с известным идентификатором, не являющиеся устаревшими, непустые и с установленной языковой меткой проходят проверку — это гарантирует условие `if (!isKnownBlockId(block.id) || block.staleSince !== undefined || block.body.trim() === \"\" || block.language === undefined) { continue; }`.",
+          "body": "- Языковая проверка стоит последней: блоки с неизвестным id, уже похороненные или пустые отсекаются раньше условием `if (!isKnownBlockId(block.id) || block.staleSince !== undefined || block.body.trim() === \"\") { continue; }`.\n- Запись об устаревании всегда несёт ровно фасет `language` — он зафиксирован литералом `changedFacets: [\"language\"]`, а не вычислен из diff отпечатков.",
           "rendered": true,
-          "fingerprint": "body=6554396f8c13e9093fbcaf29d8b84d9cb67a181e8d6c9adc0890a07cf897c54a,deps=bf6c999f7815c68259f817fe55470b4bf1bc95ddd3cffd564feb610a323cccd2,usage=dac8beef236d311a934a423ab0594c23ca3889d47af7c7a8dfb9af9d9335f471,placement=7192638aa1e0c61bfbe3177507c1c98bf58f767ff478af1f3f948c56ec9d1126",
+          "fingerprint": "body=6554396f8c13e9093fbcaf29d8b84d9cb67a181e8d6c9adc0890a07cf897c54a,deps=bf6c999f7815c68259f817fe55470b4bf1bc95ddd3cffd564feb610a323cccd2,usage=5660144518605cd001b7e6311803c1a95b344e297bc2fb0d8c99409f29b68655,placement=7192638aa1e0c61bfbe3177507c1c98bf58f767ff478af1f3f948c56ec9d1126",
           "language": "ru",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Ранний возврат при `canonicalLanguage === undefined` предотвращает любую фильтрацию, когда язык не задан."
+            "novelFact": "Запись об устаревании всегда несёт ровно фасет language — он зафиксирован литералом `changedFacets: [\"language\"]`."
           }
         }
       },
@@ -2169,9 +2261,30 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "f0d9db27-8d2d-4338-a2e9-7112c0b35593",
+          "timestamp": "2026-09-14T09:53:18.140Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "responsibility"
+          ]
+        },
+        {
+          "runId": "f0d9db27-8d2d-4338-a2e9-7112c0b35593",
+          "timestamp": "2026-09-14T10:13:07.274Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash-0731",
+          "generatedBlocks": [
+            "changeGuide"
+          ]
         }
       ],
-      "depDocsFingerprint": "84e16f761cb3de5c9c025632951e0d88dafec726b941b7eba207f64cce287234"
+      "depDocsFingerprint": "ad5653c7c1f37bd6dc70e8da3d0c97a5fd37d27ce208aa08b0dd28debe7682ff",
+      "signature": "collectLanguageStaleBlocks(sections: DocSection[], canonicalLanguage: string | undefined): StaleBlockInfo[]"
     }
   },
   "configFingerprint": "ff1889b5089c55b6e99aa61a8b5e75b7"

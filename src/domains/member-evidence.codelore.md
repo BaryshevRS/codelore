@@ -22,6 +22,10 @@ collectDomainMemberEvidence(entity: CodeEntity, index: ProjectIndex): string
 
 It exists to gather the evidence needed to compute a fingerprint for a domain member, so that the doc's dependency facet and skeleton can be updated only when the member's membership or cross-domain edges change.
 
+## Что делает
+
+Собирает текстовые свидетельства о зависимостях сущности из индекса и возвращает их одной отсортированной строкой. Для project-сущности берёт только зависимости с префиксом домена (DOMAIN_ID_PREFIX) и для каждой добавляет строку «depId — purpose responsibility» из соответствующей секции документации. Для остальных сущностей группирует секции документации по файлу-владельцу: для каждой зависимости, чей id раскрывается в путь файла, добавляет строку «path — heading: purpose responsibility». Секции без пути-владельца пропускает, а итоговый список сортирует лексикографически, поэтому одинаковый набор зависимостей и секций даёт одинаковую строку независимо от порядка обхода.
+
 ## На что можно положиться
 
 The function returns a string of concatenated dependency information. It does not mutate the index or the section.
@@ -32,8 +36,9 @@ The function gathers evidence before computing the fingerprint.
 
 ## Как менять и что проверять
 
-- The function enforces that only evidence present in the index is included, via the check `if (slug === undefined) { continue; }`.
-- The function enforces that the purpose block is considered filled only when its body is non-empty, via the check `block.body.trim() !== ""`.
+- Для project-сущности в свидетельство попадают только зависимости с доменным префиксом: ветка отбрасывает остальные по условию `!depId.startsWith(DOMAIN_ID_PREFIX)`.
+- Для остальных сущностей зависимости, чей id не раскрывается в путь файла, не дают записей: `const path = sourcePathOf(depId);` с последующей проверкой `if (!path) { continue; }`.
+- Итоговая строка всегда отсортирована лексикографически независимо от порядка обхода зависимостей: `return parts.sort().join("\n");`.
 
 # domainMemberFingerprint
 
@@ -47,7 +52,7 @@ It exists to produce a stable fingerprint of the evidence, so that the doc's dep
 
 ## Что делает
 
-Hashes the serialized evidence to produce a fingerprint. The fingerprint is stable for identical evidence inputs, and it does not mutate the evidence.
+Считает SHA-256 от строки свидетельств и возвращает его как отпечаток. Функция чистая: одинаковый вход всегда даёт одинаковый отпечаток, а сам вход не изменяется.
 
 ## На что можно положиться
 
