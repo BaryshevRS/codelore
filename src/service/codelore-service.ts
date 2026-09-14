@@ -144,6 +144,13 @@ export interface GenerateDocsRuntime {
   command: string;
   runId?: string;
   providerName?: string;
+  /**
+   * Progress for a human watching a run that takes minutes. stdout carries the JSON
+   * result contract (the same object the MCP tool returns), so the CLI sends these to
+   * stderr instead: a phase that makes model calls without writing a doc is otherwise
+   * indistinguishable from a hang.
+   */
+  onProgress?: (message: string) => void;
 }
 
 export interface GenerateDocsForEntityInput {
@@ -484,6 +491,9 @@ export class CodeloreService {
     if (waves.length === 0) {
       return { generated: [], droppedBlocks: 0, failed: [] };
     }
+    runtime.onProgress?.(
+      `tier: ${waves.flat().length} chapter(s) in ${waves.length} wave(s) (each wave waits for the one before)`
+    );
 
     const { provider, verifyProvider } = this.createProviderPair(runtime);
     const fileMembers = this.buildFileMemberLookup(index);
@@ -1195,6 +1205,7 @@ export class CodeloreService {
     // the current code index, which buildDomainEntities always rebuilds from the map on
     // disk — so assigning here lets that existing cascade catch and regenerate the
     // receiving domain in this same run, instead of leaving it one run behind.
+    runtime.onProgress?.("assigning uncovered files and rebuilding tier skeletons");
     await this.assignUncoveredFiles(runtime);
     await this.prepareDomainDocs();
     const scope = scopeFromParts(input.sectionIds ?? [], input.files ?? [], input.paths ?? []);
@@ -1206,6 +1217,9 @@ export class CodeloreService {
     await this.reconcileScopedDocStates(scope);
     const refreshed = await this.refreshStaleDocs({ mode: "tombstone", scope });
     const targetBlocksBySection = targetBlocksFromTombstones(refreshed.tombstoned);
+    runtime.onProgress?.(
+      `stale: ${refreshed.stale.length} block(s) in ${new Set(refreshed.stale.map((e) => e.sectionId)).size} section(s)`
+    );
     // Unwritten blocks reach the queue directly: tombstoning hides a block's body
     // behind a callout, and an empty block has no body to hide, so
     // `collectTombstonedBlocks` skips it and it would never arrive here.
@@ -1322,6 +1336,9 @@ export class CodeloreService {
     if (depDocsOnly.length === 0) {
       return;
     }
+    runtime.onProgress?.(
+      `dep-docs gate: verifying ${new Set(depDocsOnly.map((e) => e.sectionId)).size} section(s) against their dependency docs`
+    );
 
     const blocksBySection = new Map<string, BlockId[]>();
     for (const entry of depDocsOnly) {
@@ -1434,6 +1451,7 @@ export class CodeloreService {
     const limit = pLimit(this.config.llm.concurrency);
 
     const runPhase = async (phase: GenerationPhase): Promise<void> => {
+      runtime.onProgress?.(`${phase}: ${files.length} file(s) to the writer`);
       const phaseIndex = await this.loadOrRebuildIndexes();
       const settled = await Promise.allSettled(
         files.map((file) =>
@@ -1467,6 +1485,7 @@ export class CodeloreService {
           continue;
         }
         try {
+          runtime.onProgress?.(`${phase}: writing ${files[i]}`);
           await this.applyFileGenerationOutcome(outcome.value, runtime.command, runId, intent, provider, phase, {
             updatedSections,
             skipped,

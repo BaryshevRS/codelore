@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/service/prepare-docs.codelore.md",
-  "generatedAt": "2026-09-13T23:00:01.905Z",
+  "generatedAt": "2026-09-14T07:09:11.581Z",
   "sectionOrder": [
     "symbol:src/service/prepare-docs.ts#emptyDocState",
     "symbol:src/service/prepare-docs.ts#allowedBlockIds",
@@ -729,15 +729,16 @@
           "language": "ru"
         },
         "invariants": {
-          "body": "Мутирует объект `fresh` in-place. Если в `previous` есть блоки с пустым телом, они игнорируются. Если в `fresh` уже есть блок с непустым телом, он не перезаписывается. Функция никогда не удаляет блоки из `fresh`.",
+          "body": "- Мутирует переданный объект `fresh` in-place и возвращает его.\n- Блоки из `previous` с пустым телом не копируются; исключение: если в `fresh` есть блок с тем же идентификатором и пустым телом, а у предыдущего блока задан `fingerprint`, то `fingerprint` копируется в свежий блок.\n- Блоки из `previous` с непустым телом копируются в `fresh` только при условии, что в `fresh` нет блока с тем же идентификатором или его тело пустое.\n- Функция никогда не удаляет блоки из `fresh` и не перезаписывает блоки с непустым телом.",
           "rendered": true,
-          "fingerprint": "signature=ef596bdddfccee9837fadbb069974be1da6ce46d9f9979f3a3f2c16e1e4b5f89,body=13241a996cb7dbf60487d20db1a8d5ff4e9e49d3df3a7c1a21f14996e2ccc63e",
+          "fingerprint": "signature=ef596bdddfccee9837fadbb069974be1da6ce46d9f9979f3a3f2c16e1e4b5f89,body=69d0f41c673d0904089a6e41f6eb725c5f97b110b3f64ebf6d49d73f568e8a3b",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.5,
-            "specificity": 1,
-            "novelFact": "Функция не проверяет, что идентификатор блока действителен; он просто копируется."
-          }
+            "novelty": 1,
+            "specificity": 0.75,
+            "novelFact": "Функция копирует непустые тела блоков из previous в fresh, но никогда не перезаписывает блоки, уже имеющие непустое тело в fresh."
+          },
+          "language": "ru"
         },
         "dependencies": {
           "body": "Не использует внешних модулей во время выполнения; все операции — над переданными объектами.",
@@ -751,30 +752,31 @@
           }
         },
         "workflows": {
-          "body": "Вызывается `CodeloreService.prepareInitialDocs` (src/service/codelore-service.ts) при обновлении существующей секции документа. После создания свежей секции вызывается `withPreservedBlockBodies(previous, fresh)`, если `previous` существует. Сохраняет текстовое наполнение блоков из `previous`, если в `fresh` нет непустого тела.",
+          "body": "Два метода вызывают `withPreservedBlockBodies` при обновлении существующей секции: `prepareDomainDocs` и `prepareInitialDocs`.",
           "rendered": true,
-          "fingerprint": "body=13241a996cb7dbf60487d20db1a8d5ff4e9e49d3df3a7c1a21f14996e2ccc63e,deps=de086f4491d8c7bcf778adde2b5855cf5df07d62845653fc7a76e0ccc8e9d028",
+          "fingerprint": "body=69d0f41c673d0904089a6e41f6eb725c5f97b110b3f64ebf6d49d73f568e8a3b,deps=de086f4491d8c7bcf778adde2b5855cf5df07d62845653fc7a76e0ccc8e9d028",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Обновление секции с сохранением непустого текста"
-          }
+            "novelFact": "D`CodeloreService.prepareInitialDocs` evaluates the function for each updated section and passes the result to the state."
+          },
+          "language": "ru"
         },
         "limitations": {
           "body": "",
           "rendered": false,
-          "fingerprint": "body=13241a996cb7dbf60487d20db1a8d5ff4e9e49d3df3a7c1a21f14996e2ccc63e"
+          "fingerprint": "body=69d0f41c673d0904089a6e41f6eb725c5f97b110b3f64ebf6d49d73f568e8a3b"
         },
         "changeGuide": {
-          "body": "- Блоки с пустым телом в `previous` игнорируются — правило зафиксировано проверкой `prevBlock.body.trim() === \"\"`.\n- Если в `fresh` уже есть блок с непустым телом, он не перезаписывается — правило зафиксировано проверкой `freshBlock && freshBlock.body.trim() !== \"\"`.",
+          "body": "- Пустой блок из previous не копируется — проверка `prevBlock.body.trim() === \"\"` пропускает его тело, копируя только `fingerprint` при совпадении у fresh.\n- Блок с непустым телом из previous не перезаписывает непустой блок в fresh — проверка `freshBlock && freshBlock.body.trim() !== \"\"` прерывает копирование.",
           "rendered": true,
-          "fingerprint": "body=13241a996cb7dbf60487d20db1a8d5ff4e9e49d3df3a7c1a21f14996e2ccc63e,deps=de086f4491d8c7bcf778adde2b5855cf5df07d62845653fc7a76e0ccc8e9d028,usage=59b02f2a73c3b1999db368ae8dff56f94cd1aad9bf25dbac424bffaadcc46e8b,placement=7c3adab65edfb5830932f4108084524cdfced1b4ac68d6aab5a84ec47f565b9d",
+          "fingerprint": "body=69d0f41c673d0904089a6e41f6eb725c5f97b110b3f64ebf6d49d73f568e8a3b,deps=de086f4491d8c7bcf778adde2b5855cf5df07d62845653fc7a76e0ccc8e9d028,usage=59b02f2a73c3b1999db368ae8dff56f94cd1aad9bf25dbac424bffaadcc46e8b,placement=7c3adab65edfb5830932f4108084524cdfced1b4ac68d6aab5a84ec47f565b9d",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.5,
+            "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Функция никогда не удаляет блоки из fresh — только добавляет или перезаписывает пустые."
+            "novelFact": "Блок с непустым телом из previous не перезаписывает непустой блок в fresh — проверка `freshBlock && freshBlock.body.trim() !== \"\"` прерывает копирование."
           },
           "language": "ru"
         }
@@ -821,6 +823,27 @@
           "provider": "aitunnel",
           "model": "deepseek-v4-pro",
           "generatedBlocks": [
+            "changeGuide"
+          ]
+        },
+        {
+          "runId": "edae7cc6-f228-4316-9cd4-f2b2b6045399",
+          "timestamp": "2026-09-14T07:08:10.006Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "edae7cc6-f228-4316-9cd4-f2b2b6045399",
+          "timestamp": "2026-09-14T07:09:11.581Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
             "changeGuide"
           ]
         }

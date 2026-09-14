@@ -18,7 +18,7 @@
 
 ## Кто и как использует
 
-Вызывается из `CodeloreService.reconcileScopedDocStates` ([`src/service/codelore-service.ts`](codelore-service.codelore.md)) для каждого `docPath`, чьи секции попадают под переданный `scope`. Если `reconcileDocStateWithCode` вернул `true`, вызывающий либо удаляет документ (при пустом `state.sectionOrder`), либо перезаписывает его, а затем перестраивает индексы без рендера документов.
+Вызывается из [`CodeloreService.reconcileScopedDocStates`](codelore-service.codelore.md#codeloreservicereconcilescopeddocstates) (`src/service/codelore-service.ts`) для каждого `docPath`, чьи секции попадают под переданный `scope`. Если `reconcileDocStateWithCode` вернул `true`, вызывающий либо удаляет документ (при пустом `state.sectionOrder`), либо перезаписывает его, а затем перестраивает индексы без рендера документов.
 
 ## Как менять и что проверять
 

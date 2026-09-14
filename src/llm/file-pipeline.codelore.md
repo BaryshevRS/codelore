@@ -281,6 +281,15 @@ buildRepairRequest(args: {
 
 # verifyBlocksAgainstDeps
 
+```ts
+verifyBlocksAgainstDeps(args: {
+  service: CodeloreService;
+  index: ProjectIndex;
+  targets: Array<{ sectionId: string; blockIds: BlockId[] }>;
+  provider: ChatCompletionProvider;
+}): Promise<Set<string>>
+```
+
 ## Зачем это нужно
 
 Проверяет, что существующие тексты блоков не противоречат документации файловых зависимостей, и возвращает идентификаторы секций, прошедших проверку.
@@ -294,10 +303,13 @@ buildRepairRequest(args: {
 
 ## На что можно положиться
 
-- Для файла без зависимостей (пустой результат [`collectDependencyDocs`](#collectdependencydocs)) функция не выполняет LLM-запрос и не включает секции этого файла в возвращаемое множество.
-- Порядок обработки файлов детерминирован: итерация по записям `Map`, сформированному из входного массива `targets`.
-- Всегда возвращает `Set<string>` (не `null`, не `undefined`), даже если все секции отвергнуты.
-- Загружает исходный код с диска при каждом вызове; ошибка чтения файла пробрасывается вызывающему.
+- Для пустого массива `targets` функция возвращает пустое множество (не `null`, не `undefined`).
+- Если для файла [`collectDependencyDocs`](#collectdependencydocs) вернул пустой массив, функция не выполняет LLM-запрос для этого файла и не включает ни одну его секцию в возвращаемое множество.
+- Порядок обработки файлов детерминирован: итерация по записям `Map`, построенного из входного массива `targets` в порядке его обхода.
+- Функция не изменяет переданные объекты (`service`, `index`, `targets`, `provider`).
+- Загружает исходный код с диска при каждом вызове через `readFile`; ошибка чтения файла пробрасывается вызывающему.
+- Ошибка LLM-запроса (`provider.complete`) или парсинга ответа ([`parseVerifyResponse`](doc-verifier.codelore.md#parseverifyresponse)) пробрасывается без повторных попыток.
+- Возвращаемое множество содержит только идентификаторы секций, для которых не найдено противоречий; секции, для которых LLM не вызывался (нет зависимостей) или которые оказались в `contradicted`, в множество не попадают.
 
 ## От чего зависит
 
@@ -305,11 +317,11 @@ buildRepairRequest(args: {
 
 ## Кто и как использует
 
-Вызывается из `CodeloreService.gateDepDocsCascade` ([`src/service/codelore-service.ts`](../service/codelore-service.codelore.md)) с целями — секциями и их блоками, подлежащими верификации. Функция группирует цели по файлу их владельца, для каждого файла собирает документацию прямых зависимостей через [`collectDependencyDocs`](#collectdependencydocs). Если зависимости есть, загружает исходный код файла с диска (`readFile`), для каждой целевой секции формирует `VerifySectionInput` с исходным кодом сущности (через `verificationSource`, включающий helper-контекст) и передаёт запрос в LLM через [`buildVerifyRequest`](doc-verifier.codelore.md#buildverifyrequest) плюс `provider.complete`. Извлекает противоречия через [`parseVerifyResponse`](doc-verifier.codelore.md#parseverifyresponse). Возвращает множество идентификаторов секций, для которых не найдено противоречий.
+Вызывается из `CodeloreService.gateDepDocsCascade` ([`src/service/codelore-service.ts`](../service/codelore-service.codelore.md#codelore-servicets)) с целями — списком секций и идентификаторов блоков, которые нужно проверить. Функция группирует цели по файлу-владельцу: обходит входной массив `args.targets`, для каждой секции получает путь к файлу через `index.code.entities[ownerId]?.path`. Для каждого такого файла собирает документацию прямых зависимостей через [`collectDependencyDocs(index, [file])`](#collectdependencydocs). Если массив зависимостей пуст — LLM не вызывается, секции не попадают в результат. Иначе загружает исходный код файла с диска через `readFile(join(service.config.rootDir, file), "utf8")`, формирует `VerifySectionInput` для каждой целевой секции с блоком `source`, построенным через `verificationSource` (включает исходный код сущности, оглавление файла и reachable helper-контекст). Передаёт запрос в LLM через `provider.complete(buildVerifyRequest({ sections: verifySections, dependencyDocs }))`. Извлекает противоречия через [`parseVerifyResponse(response.content, verifySections)`](doc-verifier.codelore.md#parseverifyresponse). Возвращает множество идентификаторов секций, для которых set `contradicted` не содержит `sectionId`. Обработка файлов независима и ограничена `pLimit(service.config.llm.concurrency)`. Ошибка LLM-запроса или парсинга пробрасывается без retry.
 
 ## Чего не делает
 
-Условие `if (dependencyDocs.length === 0) { continue; }` пропускает файлы без зависимостей, не выполняя для них LLM-верификацию, т.е. такая секция гарантированно не попадает в возвращаемое множество. Отсутствие ретраев: при ошибке LLM-запроса (`provider.complete`) ошибка пробрасывается без повторных попыток. Загрузка исходного кода с диска при каждом вызове через `const fileSource = await readFile(join(service.config.rootDir, file), "utf8")`; ошибка чтения файла пробрасывается вызывающему. Результат — только множество идентификаторов секций, а не конкретных блоков: функция не указывает, какие блоки какой секции нарушены.
+Отсутствие retry при ошибке LLM: если `provider.complete` выбрасывает исключение или [`parseVerifyResponse`](doc-verifier.codelore.md#parseverifyresponse) не удаётся, ошибка пробрасывается вызывающему без повторной попытки — строка `await provider.complete(buildVerifyRequest(…))` не обёрнута в цикл повторений. Если [`collectDependencyDocs`](#collectdependencydocs) возвращает пустой массив, `continue` пропускает файл — его секции гарантированно не попадают в возвращаемое множество. Функция не сообщает, какие именно блоки какой секции вызвали противоречие: возвращает только `Set<string>` идентификаторов секций, а не детализацию по блокам. Загрузка исходного кода с диска при каждом вызове через `readFile` без кэширования может повторно читать один и тот же файл для разных вызовов `verifyBlocksAgainstDeps`.
 
 ## Как менять и что проверять
 

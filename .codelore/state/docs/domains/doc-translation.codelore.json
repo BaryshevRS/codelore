@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "docs/domains/doc-translation.codelore.md",
-  "generatedAt": "2026-09-14T06:50:18.101Z",
+  "generatedAt": "2026-09-14T07:28:47.944Z",
   "sectionOrder": [
     "domain:doc-translation"
   ],
@@ -14,10 +14,10 @@
         "domain:doc-translation"
       ],
       "depends": [
-        "domain:error-handling",
-        "domain:llm-json-response-parsing",
         "file:src/llm/translator.ts",
-        "file:src/markdown/doc-paths.ts"
+        "file:src/markdown/doc-paths.ts",
+        "domain:error-handling",
+        "domain:llm-json-response-parsing"
       ],
       "usedBy": [
         "domain:codelore-service-facade",

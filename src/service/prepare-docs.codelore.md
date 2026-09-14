@@ -153,16 +153,19 @@ withPreservedBlockBodies(previous: DocStateSection, fresh: DocStateSection): Doc
 
 ## На что можно положиться
 
-Мутирует объект `fresh` in-place. Если в `previous` есть блоки с пустым телом, они игнорируются. Если в `fresh` уже есть блок с непустым телом, он не перезаписывается. Функция никогда не удаляет блоки из `fresh`.
+- Мутирует переданный объект `fresh` in-place и возвращает его.
+- Блоки из `previous` с пустым телом не копируются; исключение: если в `fresh` есть блок с тем же идентификатором и пустым телом, а у предыдущего блока задан `fingerprint`, то `fingerprint` копируется в свежий блок.
+- Блоки из `previous` с непустым телом копируются в `fresh` только при условии, что в `fresh` нет блока с тем же идентификатором или его тело пустое.
+- Функция никогда не удаляет блоки из `fresh` и не перезаписывает блоки с непустым телом.
 
 ## Кто и как использует
 
-Вызывается [`CodeloreService.prepareInitialDocs`](codelore-service.codelore.md#prepareinitialdocs) (src/service/codelore-service.ts) при обновлении существующей секции документа. После создания свежей секции вызывается `withPreservedBlockBodies(previous, fresh)`, если `previous` существует. Сохраняет текстовое наполнение блоков из `previous`, если в `fresh` нет непустого тела.
+Два метода вызывают `withPreservedBlockBodies` при обновлении существующей секции: [`prepareDomainDocs`](codelore-service.codelore.md#codeloreservicepreparedomaindocs) и [`prepareInitialDocs`](codelore-service.codelore.md#prepareinitialdocs).
 
 ## Как менять и что проверять
 
-- Блоки с пустым телом в `previous` игнорируются — правило зафиксировано проверкой `prevBlock.body.trim() === ""`.
-- Если в `fresh` уже есть блок с непустым телом, он не перезаписывается — правило зафиксировано проверкой `freshBlock && freshBlock.body.trim() !== ""`.
+- Пустой блок из previous не копируется — проверка `prevBlock.body.trim() === ""` пропускает его тело, копируя только `fingerprint` при совпадении у fresh.
+- Блок с непустым телом из previous не перезаписывает непустой блок в fresh — проверка `freshBlock && freshBlock.body.trim() !== ""` прерывает копирование.
 
 # docStateSectionForPlannedEntity
 

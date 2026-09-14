@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "docs/domains/code-doc-indexing.codelore.md",
-  "generatedAt": "2026-09-14T06:50:18.096Z",
+  "generatedAt": "2026-09-14T07:28:47.944Z",
   "sectionOrder": [
     "domain:code-doc-indexing"
   ],
@@ -14,15 +14,15 @@
         "domain:code-doc-indexing"
       ],
       "depends": [
+        "file:src/domains/domain-map.ts",
+        "file:src/indexer/code-indexer.ts",
+        "file:src/indexer/domain-entities.ts",
+        "file:src/indexer/state-indexer.ts",
         "domain:change-impact-graph",
         "domain:code-metrics-analysis",
         "domain:common-utils",
         "domain:doc-state-storage",
-        "domain:error-handling",
-        "file:src/domains/domain-map.ts",
-        "file:src/indexer/code-indexer.ts",
-        "file:src/indexer/domain-entities.ts",
-        "file:src/indexer/state-indexer.ts"
+        "domain:error-handling"
       ],
       "usedBy": [
         "domain:codelore-service-facade",

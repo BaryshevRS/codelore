@@ -24,7 +24,7 @@ Depends on local helpers `writeWithRetries`, `verifyBlocks`, `repairContradicted
 
 ## Кто и как использует
 
-Called by `CodeloreService.generateDomainDocs` for each tier entity.
+Called by [`CodeloreService.generateDomainDocs`](../service/codelore-service.codelore.md#codeloreservicegeneratedomaindocs) for each tier entity.
 
 ## Чего не делает
 

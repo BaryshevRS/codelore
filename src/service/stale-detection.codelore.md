@@ -55,7 +55,7 @@ The function records a block as a target only when it is a known block ID — ot
 ## Кто и как использует
 
 - Called by [`CodeloreService.generateDocsForScope`](codelore-service.codelore.md#generatedocsforscope) to add target blocks for scoped sections.
-- Called by `CodeloreService.queueUnwrittenBlocks` to add target blocks for unwritten blocks.
+- Called by [`CodeloreService.queueUnwrittenBlocks`](codelore-service.codelore.md#codeloreservicequeueunwrittenblocks) to add target blocks for unwritten blocks.
 
 ## Чего не делает
 
@@ -343,7 +343,7 @@ filterSectionsByScope(sections: DocSection[], scope: RefreshStaleScope | undefin
 
 ## Кто и как использует
 
-Вызывается из `CodeloreService.applyTombstones` ([`src/service/codelore-service.ts`](codelore-service.codelore.md)) для каждого stale-блока, чтобы получить строку причины для поля `staleReason`. Также используется в `staleValidationIssue` ([`src/service/doc-validation.ts`](doc-validation.codelore.md)) при формировании сообщения валидации — там литерал `"code_changed"` используется как fallback в шаблоне строки.
+Вызывается из `CodeloreService.applyTombstones` ([`src/service/codelore-service.ts`](codelore-service.codelore.md#codelore-servicets)) для каждого stale-блока, чтобы получить строку причины для поля `staleReason`. Также используется в `staleValidationIssue` ([`src/service/doc-validation.ts`](doc-validation.codelore.md)) при формировании сообщения валидации — там литерал `"code_changed"` используется как fallback в шаблоне строки.
 
 ## Чего не делает
 

@@ -26,7 +26,7 @@ createConfiguredProvider(config: CodeloreConfig, providerName: string | undefine
 
 ## Кто и как использует
 
-Вызывается из `CodeloreService.createProviderPair`, `CodeloreService.partitionDomainMap` и [`CodeloreService.translateScope`](../service/codelore-service.codelore.md#codeloreservicetranslatescope) при создании LLM-провайдера для генерации документации. Каждый вызывающий передаёт `runtime.providerName`, `runtime.env` и `runtime.fetch`. Функция разрешает имя провайдера как `providerName ?? config.llm.provider`, проверяет наличие конфигурации в `config.llm.providers` и делегирует создание провайдера в `createProvider`. Возвращённый `ChatCompletionProvider` используется вызывающими для выполнения запросов к LLM на соответствующих этапах пайплайна.
+Вызывается из [`CodeloreService.createProviderPair`](../service/codelore-service.codelore.md#codeloreservicecreateproviderpair), [`CodeloreService.partitionDomainMap`](../service/codelore-service.codelore.md#codeloreservicepartitiondomainmap) и [`CodeloreService.translateScope`](../service/codelore-service.codelore.md#codeloreservicetranslatescope) при создании LLM-провайдера для генерации документации. Каждый вызывающий передаёт `runtime.providerName`, `runtime.env` и `runtime.fetch`. Функция разрешает имя провайдера как `providerName ?? config.llm.provider`, проверяет наличие конфигурации в `config.llm.providers` и делегирует создание провайдера в `createProvider`. Возвращённый `ChatCompletionProvider` используется вызывающими для выполнения запросов к LLM на соответствующих этапах пайплайна.
 
 ## Чего не делает
 

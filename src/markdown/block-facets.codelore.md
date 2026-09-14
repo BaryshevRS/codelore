@@ -28,7 +28,7 @@ computeBlockFingerprint(blockId: BlockId, ownedEntityIds: string[], entities: Re
 
 ## Как менять и что проверять
 
-When the set of facets that contribute to a block's fingerprint changes (e.g., adding a new facet to `BLOCK_FACETS[blockId]`), the fingerprint value changes for all entities, causing [`staleBlockInfoFor`](../service/stale-detection.codelore.md#staleblockinfofor) to report `drift: "facet_changed"` with the updated `changedFacets` list. The fingerprint is undefined when the block is not allowed for the entity, so callers like [`staleBlockInfoFor`](../service/stale-detection.codelore.md#staleblockinfofor) and `CodeloreService.stampUnwrittenBlocks` must handle the undefined case by skipping the block.
+When the set of facets that contribute to a block's fingerprint changes (e.g., adding a new facet to `BLOCK_FACETS[blockId]`), the fingerprint value changes for all entities, causing [`staleBlockInfoFor`](../service/stale-detection.codelore.md#staleblockinfofor) to report `drift: "facet_changed"` with the updated `changedFacets` list. The fingerprint is undefined when the block is not allowed for the entity, so callers like [`staleBlockInfoFor`](../service/stale-detection.codelore.md#staleblockinfofor) and [`CodeloreService.stampUnwrittenBlocks`](../service/codelore-service.codelore.md#codeloreservicestampunwrittenblocks) must handle the undefined case by skipping the block.
 
 # parseBlockFingerprintValue
 
@@ -49,7 +49,7 @@ When the set of facets that contribute to a block's fingerprint changes (e.g., a
 
 ## Кто и как использует
 
-Вызывается из `CodeloreService` ([`src/service/codelore-service.ts`](../service/codelore-service.codelore.md)) при загрузке сохранённого отпечатка из хранилища. Функция принимает строку, разделяет её по запятым, извлекает пары `фасет=хеш` и возвращает объект. Результат передаётся для сравнения с текущим отпечатком.
+Вызывается из `CodeloreService` ([`src/service/codelore-service.ts`](../service/codelore-service.codelore.md#codelore-servicets)) при загрузке сохранённого отпечатка из хранилища. Функция принимает строку, разделяет её по запятым, извлекает пары `фасет=хеш` и возвращает объект. Результат передаётся для сравнения с текущим отпечатком.
 
 ## Чего не делает
 
@@ -78,7 +78,7 @@ When the set of facets that contribute to a block's fingerprint changes (e.g., a
 
 ## Кто и как использует
 
-Вызывается из `CodeloreService` ([`src/service/codelore-service.ts`](../service/codelore-service.codelore.md)) после загрузки сохранённого отпечатка и вычисления текущего. Функция принимает два объекта, сравнивает значения по каждому фасету и возвращает массив изменившихся фасетов. Результат используется для определения необходимости перегенерации блоков.
+Вызывается из `CodeloreService` ([`src/service/codelore-service.ts`](../service/codelore-service.codelore.md#codelore-servicets)) после загрузки сохранённого отпечатка и вычисления текущего. Функция принимает два объекта, сравнивает значения по каждому фасету и возвращает массив изменившихся фасетов. Результат используется для определения необходимости перегенерации блоков.
 
 ## Чего не делает
 

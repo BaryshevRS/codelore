@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "docs/domains/llm-generation-pipeline.codelore.md",
-  "generatedAt": "2026-09-14T06:50:18.108Z",
+  "generatedAt": "2026-09-14T07:28:47.944Z",
   "sectionOrder": [
     "domain:llm-generation-pipeline"
   ],
@@ -14,6 +14,11 @@
         "domain:llm-generation-pipeline"
       ],
       "depends": [
+        "file:src/llm/domain-pipeline.ts",
+        "file:src/llm/file-chunks.ts",
+        "file:src/llm/file-pipeline.ts",
+        "file:src/llm/file-writer.ts",
+        "file:src/llm/generation-debug.ts",
         "domain:change-impact-graph",
         "domain:codelore-service-facade",
         "domain:common-utils",
@@ -22,12 +27,7 @@
         "domain:llm-json-response-parsing",
         "domain:llm-source-context-prep",
         "domain:project-config",
-        "domain:runtime-context",
-        "file:src/llm/domain-pipeline.ts",
-        "file:src/llm/file-chunks.ts",
-        "file:src/llm/file-pipeline.ts",
-        "file:src/llm/file-writer.ts",
-        "file:src/llm/generation-debug.ts"
+        "domain:runtime-context"
       ],
       "usedBy": [
         "domain:codelore-service-facade",

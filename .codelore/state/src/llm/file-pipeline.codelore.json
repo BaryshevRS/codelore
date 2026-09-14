@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/llm/file-pipeline.codelore.md",
-  "generatedAt": "2026-09-13T21:03:28.024Z",
+  "generatedAt": "2026-09-14T07:25:05.563Z",
   "sectionOrder": [
     "symbol:src/llm/file-pipeline.ts#generateFileGroup",
     "symbol:src/llm/file-pipeline.ts#dependencyDocsFingerprint",
@@ -2183,7 +2183,7 @@
         "symbol:src/service/codelore-service.ts#CodeloreService",
         "symbol:src/service/codelore-service.ts#CodeloreService.gateDepDocsCascade"
       ],
-      "status": "normal",
+      "status": "review_needed",
       "allowedBlocks": [
         "purpose",
         "responsibility",
@@ -2226,15 +2226,16 @@
           }
         },
         "invariants": {
-          "body": "- Для файла без зависимостей (пустой результат `collectDependencyDocs`) функция не выполняет LLM-запрос и не включает секции этого файла в возвращаемое множество.\n- Порядок обработки файлов детерминирован: итерация по записям `Map`, сформированному из входного массива `targets`.\n- Всегда возвращает `Set<string>` (не `null`, не `undefined`), даже если все секции отвергнуты.\n- Загружает исходный код с диска при каждом вызове; ошибка чтения файла пробрасывается вызывающему.",
+          "body": "- Для пустого массива `targets` функция возвращает пустое множество (не `null`, не `undefined`).\n- Если для файла `collectDependencyDocs` вернул пустой массив, функция не выполняет LLM-запрос для этого файла и не включает ни одну его секцию в возвращаемое множество.\n- Порядок обработки файлов детерминирован: итерация по записям `Map`, построенного из входного массива `targets` в порядке его обхода.\n- Функция не изменяет переданные объекты (`service`, `index`, `targets`, `provider`).\n- Загружает исходный код с диска при каждом вызове через `readFile`; ошибка чтения файла пробрасывается вызывающему.\n- Ошибка LLM-запроса (`provider.complete`) или парсинга ответа (`parseVerifyResponse`) пробрасывается без повторных попыток.\n- Возвращаемое множество содержит только идентификаторы секций, для которых не найдено противоречий; секции, для которых LLM не вызывался (нет зависимостей) или которые оказались в `contradicted`, в множество не попадают.",
           "rendered": true,
-          "fingerprint": "signature=51057d9212493339da2e5c783a12ba4095fb5acc541f7b556e1340da952f7dcb,body=d454e0d32bef71d62e3cb0a9edec910617091d5ab972dc225edff349d681450b",
+          "fingerprint": "signature=51057d9212493339da2e5c783a12ba4095fb5acc541f7b556e1340da952f7dcb,body=97985ecca66b2af25469946428565edf4695f17d0c20202813f9b3b0dc723d01",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 0.5,
+            "novelty": 1,
             "specificity": 0.75,
-            "novelFact": "Загрузка кода с диска, проброс ошибок"
-          }
+            "novelFact": "Для файла без зависимостей функция не выполняет LLM-запрос и не включает секции этого файла в возвращаемое множество."
+          },
+          "language": "ru"
         },
         "dependencies": {
           "body": "Использует `buildVerifyRequest` и `parseVerifyResponse` из `src/llm/doc-verifier.ts`, `collectDependencyDocs`, `verificationSource`, `sourceFileFromText`, `sameFileHelperContext`, `fileOutline`, `composeVerifySource` (все из этого файла), и `CodeloreService` из `src/service/codelore-service.ts`.",
@@ -2249,33 +2250,33 @@
           "language": "ru"
         },
         "workflows": {
-          "body": "Вызывается из `CodeloreService.gateDepDocsCascade` (`src/service/codelore-service.ts`) с целями — секциями и их блоками, подлежащими верификации. Функция группирует цели по файлу их владельца, для каждого файла собирает документацию прямых зависимостей через `collectDependencyDocs`. Если зависимости есть, загружает исходный код файла с диска (`readFile`), для каждой целевой секции формирует `VerifySectionInput` с исходным кодом сущности (через `verificationSource`, включающий helper-контекст) и передаёт запрос в LLM через `buildVerifyRequest` плюс `provider.complete`. Извлекает противоречия через `parseVerifyResponse`. Возвращает множество идентификаторов секций, для которых не найдено противоречий.",
+          "body": "Вызывается из `CodeloreService.gateDepDocsCascade` (`src/service/codelore-service.ts`) с целями — списком секций и идентификаторов блоков, которые нужно проверить. Функция группирует цели по файлу-владельцу: обходит входной массив `args.targets`, для каждой секции получает путь к файлу через `index.code.entities[ownerId]?.path`. Для каждого такого файла собирает документацию прямых зависимостей через `collectDependencyDocs(index, [file])`. Если массив зависимостей пуст — LLM не вызывается, секции не попадают в результат. Иначе загружает исходный код файла с диска через `readFile(join(service.config.rootDir, file), \"utf8\")`, формирует `VerifySectionInput` для каждой целевой секции с блоком `source`, построенным через `verificationSource` (включает исходный код сущности, оглавление файла и reachable helper-контекст). Передаёт запрос в LLM через `provider.complete(buildVerifyRequest({ sections: verifySections, dependencyDocs }))`. Извлекает противоречия через `parseVerifyResponse(response.content, verifySections)`. Возвращает множество идентификаторов секций, для которых set `contradicted` не содержит `sectionId`. Обработка файлов независима и ограничена `pLimit(service.config.llm.concurrency)`. Ошибка LLM-запроса или парсинга пробрасывается без retry.",
           "rendered": true,
-          "fingerprint": "body=d454e0d32bef71d62e3cb0a9edec910617091d5ab972dc225edff349d681450b,deps=bd6bc3c3ae8e80a12fda7e0e9654118eb231654009ba6fbc6191eb8591be80b0",
+          "fingerprint": "body=97985ecca66b2af25469946428565edf4695f17d0c20202813f9b3b0dc723d01,deps=bd6bc3c3ae8e80a12fda7e0e9654118eb231654009ba6fbc6191eb8591be80b0",
           "scores": {
-            "informativeness": 0.75,
-            "novelty": 0.75,
+            "informativeness": 1,
+            "novelty": 0.5,
             "specificity": 0.75,
-            "novelFact": "Вызывается из CodeloreService.gateDepDocsCascade; группирует цели по файлу, для каждого файла собирает зависимости, загружает исходный код, формирует VerifySectionInput и вызывает LLM через provider.complete."
+            "novelFact": "Секция попадает в возвращаемое множество только если LLM не обнаружил её среди contradicted; если зависимости пусты или LLM не вызывался, секция не включается."
           },
           "language": "ru"
         },
         "limitations": {
-          "body": "Условие `if (dependencyDocs.length === 0) { continue; }` пропускает файлы без зависимостей, не выполняя для них LLM-верификацию, т.е. такая секция гарантированно не попадает в возвращаемое множество. Отсутствие ретраев: при ошибке LLM-запроса (`provider.complete`) ошибка пробрасывается без повторных попыток. Загрузка исходного кода с диска при каждом вызове через `const fileSource = await readFile(join(service.config.rootDir, file), \"utf8\")`; ошибка чтения файла пробрасывается вызывающему. Результат — только множество идентификаторов секций, а не конкретных блоков: функция не указывает, какие блоки какой секции нарушены.",
+          "body": "Отсутствие retry при ошибке LLM: если `provider.complete` выбрасывает исключение или `parseVerifyResponse` не удаётся, ошибка пробрасывается вызывающему без повторной попытки — строка `await provider.complete(buildVerifyRequest(…))` не обёрнута в цикл повторений. Если `collectDependencyDocs` возвращает пустой массив, `continue` пропускает файл — его секции гарантированно не попадают в возвращаемое множество. Функция не сообщает, какие именно блоки какой секции вызвали противоречие: возвращает только `Set<string>` идентификаторов секций, а не детализацию по блокам. Загрузка исходного кода с диска при каждом вызове через `readFile` без кэширования может повторно читать один и тот же файл для разных вызовов `verifyBlocksAgainstDeps`.",
           "rendered": true,
-          "fingerprint": "body=d454e0d32bef71d62e3cb0a9edec910617091d5ab972dc225edff349d681450b",
+          "fingerprint": "body=97985ecca66b2af25469946428565edf4695f17d0c20202813f9b3b0dc723d01",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Файлы без зависимостей пропускаются без LLM-верификации; отсутствуют ретраи при ошибке LLM; загрузка исходного кода с диска при каждом вызове без кэширования; возвращает только идентификаторы секций, а не конкретных блоков."
+            "novelFact": "Ошибка LLM-запроса пробрасывается без retry, а пустой dependencyDocs приводит к пропуску файла без включения его секций в результат."
           },
           "language": "ru"
         },
         "changeGuide": {
           "body": "Два инварианта:\n1. Условие `if (dependencyDocs.length === 0) { continue; }` — при его удалении функция будет вызывать LLM с пустым массивом зависимостей, что приведёт к лишним запросам, подтверждающим все блоки.\n2. Вызов `readFile` с `join(service.config.rootDir, file)` пробрасывает ошибки чтения; при добавлении `try-catch` или замене на другой метод загрузки (например, кэширующий) изменится поведение при отсутствии файла.\n\nТесты: не видны.",
           "rendered": true,
-          "fingerprint": "body=d454e0d32bef71d62e3cb0a9edec910617091d5ab972dc225edff349d681450b,deps=bd6bc3c3ae8e80a12fda7e0e9654118eb231654009ba6fbc6191eb8591be80b0,usage=46eaf60c7cab95f3a837c65a65fe1d5b557a0374fe8a757112b1a94c58c06bca,placement=26f75ebed2a6c702e851abe3fe9c7d5da323593d5ee9075aedae13db2b8486cc",
+          "fingerprint": "body=97985ecca66b2af25469946428565edf4695f17d0c20202813f9b3b0dc723d01,deps=bd6bc3c3ae8e80a12fda7e0e9654118eb231654009ba6fbc6191eb8591be80b0,usage=46eaf60c7cab95f3a837c65a65fe1d5b557a0374fe8a757112b1a94c58c06bca,placement=26f75ebed2a6c702e851abe3fe9c7d5da323593d5ee9075aedae13db2b8486cc",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
@@ -2439,8 +2440,31 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "5a4eb931-7175-4299-96ca-d2773991b74a",
+          "timestamp": "2026-09-14T07:17:37.835Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "invariants"
+          ]
+        },
+        {
+          "runId": "5a4eb931-7175-4299-96ca-d2773991b74a",
+          "timestamp": "2026-09-14T07:25:05.562Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "workflows",
+            "limitations"
+          ],
+          "manualReviewNeeded": true
         }
-      ]
+      ],
+      "signature": "verifyBlocksAgainstDeps(args: {\n  service: CodeloreService;\n  index: ProjectIndex;\n  targets: Array<{ sectionId: string; blockIds: BlockId[] }>;\n  provider: ChatCompletionProvider;\n}): Promise<Set<string>>"
     },
     "symbol:src/llm/file-pipeline.ts#privateHelperDepIds": {
       "heading": "privateHelperDepIds",

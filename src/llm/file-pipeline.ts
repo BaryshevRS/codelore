@@ -1310,45 +1310,56 @@ export async function verifyBlocksAgainstDeps(args: {
     byFile.set(file, bucket);
   }
 
-  for (const [file, fileTargets] of byFile) {
-    const dependencyDocs = collectDependencyDocs(index, [file]);
-    if (dependencyDocs.length === 0) {
-      // Nothing to verify against → cannot confirm clean → leave for regeneration.
-      continue;
-    }
-    const fileSource = await readFile(join(service.config.rootDir, file), "utf8");
-    const verifySections: VerifySectionInput[] = [];
-    for (const { sectionId, blockIds } of fileTargets) {
-      const section = index.docs.sections[sectionId];
-      const entity = section ? index.code.entities[section.owns[0]] : undefined;
-      if (!section || !entity) {
-        continue;
-      }
-      const wanted = new Set(blockIds);
-      const blocks = section.blocks
-        .filter((block) => wanted.has(block.id as BlockId) && block.body.trim() !== "")
-        .map((block) => ({ blockId: block.id as BlockId, text: block.body }));
-      if (blocks.length === 0) {
-        continue;
-      }
-      verifySections.push({
-        sectionId,
-        entityId: entity.id,
-        source: verificationSource(fileSource, entity, index.code),
-        blocks,
-      });
-    }
-    if (verifySections.length === 0) {
-      continue;
-    }
-    const response = await provider.complete(buildVerifyRequest({ sections: verifySections, dependencyDocs }));
-    const contradicted = new Set(parseVerifyResponse(response.content, verifySections).map((claim) => claim.sectionId));
-    for (const section of verifySections) {
-      if (!contradicted.has(section.sectionId)) {
-        verifiedClean.add(section.sectionId);
-      }
-    }
-  }
+  // One request per file, and the files are independent — so they run at the
+  // configured concurrency like the rest of the pipeline. Walking them serially
+  // made this gate the tail of every run: it fires after the last write, when a
+  // central file's rewrite has left depDocs drift on each of its dependents.
+  const limit = pLimit(service.config.llm.concurrency);
+  await Promise.all(
+    [...byFile].map(([file, fileTargets]) =>
+      limit(async () => {
+        const dependencyDocs = collectDependencyDocs(index, [file]);
+        if (dependencyDocs.length === 0) {
+          // Nothing to verify against → cannot confirm clean → leave for regeneration.
+          return;
+        }
+        const fileSource = await readFile(join(service.config.rootDir, file), "utf8");
+        const verifySections: VerifySectionInput[] = [];
+        for (const { sectionId, blockIds } of fileTargets) {
+          const section = index.docs.sections[sectionId];
+          const entity = section ? index.code.entities[section.owns[0]] : undefined;
+          if (!section || !entity) {
+            continue;
+          }
+          const wanted = new Set(blockIds);
+          const blocks = section.blocks
+            .filter((block) => wanted.has(block.id as BlockId) && block.body.trim() !== "")
+            .map((block) => ({ blockId: block.id as BlockId, text: block.body }));
+          if (blocks.length === 0) {
+            continue;
+          }
+          verifySections.push({
+            sectionId,
+            entityId: entity.id,
+            source: verificationSource(fileSource, entity, index.code),
+            blocks,
+          });
+        }
+        if (verifySections.length === 0) {
+          return;
+        }
+        const response = await provider.complete(buildVerifyRequest({ sections: verifySections, dependencyDocs }));
+        const contradicted = new Set(
+          parseVerifyResponse(response.content, verifySections).map((claim) => claim.sectionId)
+        );
+        for (const section of verifySections) {
+          if (!contradicted.has(section.sectionId)) {
+            verifiedClean.add(section.sectionId);
+          }
+        }
+      })
+    )
+  );
   return verifiedClean;
 }
 

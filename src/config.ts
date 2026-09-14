@@ -157,6 +157,7 @@ const providerSchema = z
     charsPerToken: z.number().positive().optional(),
     maxSectionsPerChunk: positiveInt.optional(),
     responseFormat: z.enum(["json_object", "json_schema"]).optional(),
+    reasoningEffort: z.enum(["none", "low", "medium", "high"]).optional(),
   })
   .strict()
   .refine((config) => (config.contextWindow ?? Infinity) > (config.reservedOutputTokens ?? 0), {

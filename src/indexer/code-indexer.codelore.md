@@ -34,7 +34,7 @@
 
 - `CodeloreService.buildPrepareInitialDocsIndex` вызывает `buildCodeIndex` параллельно с `buildDocIndex`, передавая `scope` из входных параметров для фильтрации набора файлов; результат объединяется в `ProjectIndex`.
 - [`CodeloreService.prepareInitialDocs`](../service/codelore-service.codelore.md#prepareinitialdocs) при наличии скоупа повторно вызывает `buildCodeIndex` без `scope` для записи новых секций, чтобы получить полный граф зависимостей.
-- `CodeloreService.rebuildIndexes` вызывает `buildCodeIndex` без `scope` для построения полного индекса, который затем кешируется в сервисе.
+- [`CodeloreService.rebuildIndexes`](../service/codelore-service.codelore.md#rebuildindexes) вызывает `buildCodeIndex` без `scope` для построения полного индекса, который затем кешируется в сервисе.
 
 ## Чего не делает
 

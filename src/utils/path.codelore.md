@@ -18,7 +18,7 @@
 
 ## Кто и как использует
 
-Вызывается из `buildCodeIndex` ([`src/indexer/code-indexer.ts`](../indexer/code-indexer.codelore.md)) для нормализации путей файлов, полученных от `ts-morph`. Также используется в `CodeloreService` ([`src/service/codelore-service.ts`](../service/codelore-service.codelore.md)) при построении индекса и в [`relativeProjectPath`](#relativeprojectpath) для приведения результата `relative()` к POSIX-формату.
+Вызывается из `buildCodeIndex` ([`src/indexer/code-indexer.ts`](../indexer/code-indexer.codelore.md)) для нормализации путей файлов, полученных от `ts-morph`. Также используется в `CodeloreService` ([`src/service/codelore-service.ts`](../service/codelore-service.codelore.md#codelore-servicets)) при построении индекса и в [`relativeProjectPath`](#relativeprojectpath) для приведения результата `relative()` к POSIX-формату.
 
 ## Чего не делает
 

@@ -82,7 +82,7 @@ translationBlockKey(sectionId: string, blockId: BlockId): string
 
 ## Кто и как использует
 
-Импортируется в [src/service/codelore-service.ts](../service/codelore-service.codelore.md) и используется в процедуре обновления состояния документа для определения, нужно ли переводить блок заново, даже если его фингерпринт не изменился. Вызов translationNeedsWork(source, translation) позволяет отбросить дефектный перевод при следующей волне перевода.
+Импортируется в [src/service/codelore-service.ts](../service/codelore-service.codelore.md#codelore-servicets) и используется в процедуре обновления состояния документа для определения, нужно ли переводить блок заново, даже если его фингерпринт не изменился. Вызов translationNeedsWork(source, translation) позволяет отбросить дефектный перевод при следующей волне перевода.
 
 ## Чего не делает
 

@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "src/cli/run-cli.codelore.md",
-  "generatedAt": "2026-09-13T19:41:29.553Z",
+  "generatedAt": "2026-09-14T07:25:05.597Z",
   "sectionOrder": [
     "symbol:src/cli/run-cli.ts#runCli"
   ],
@@ -22,7 +22,7 @@
         "file:src/bin/codelore-mcp.ts",
         "file:src/bin/codelore.ts"
       ],
-      "status": "normal",
+      "status": "review_needed",
       "allowedBlocks": [
         "purpose",
         "responsibility",
@@ -78,14 +78,14 @@
           "language": "ru"
         },
         "dependencies": {
-          "body": "runCli использует три внешних модуля: `toCodeloreErrorPayload` из `src/errors.ts` — сериализует перехваченные исключения в JSON для вывода в `stderr`; `startStdioServer` из `src/server/start-stdio-server.ts` — запускает MCP-сервер для команды `mcp`; `CodeloreService` из `src/service/codelore-service.ts` — предоставляет методы для всех остальных команд (делегируется через `runCommand`).",
+          "body": "runCli использует три внешних модуля: `toCodeloreErrorPayload` из `src/errors.ts` — сериализует перехваченные исключения в JSON для вывода в stderr; `startStdioServer` из `src/server/start-stdio-server.ts` — запускает MCP-сервер для команды `mcp`; `CodeloreService` из `src/service/codelore-service.ts` — предоставляет методы для всех остальных команд (делегируется через `runCommand`).",
           "rendered": true,
           "fingerprint": "deps=d1216775679b741d8e0128aefefea87b568c26c2b55a8dab0e2763a27a86491e",
           "scores": {
             "informativeness": 0.75,
-            "novelty": 1,
+            "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "runCli полагается на toCodeloreErrorPayload для унифицированной сериализации ошибок и на CodeloreService для всей бизнес-логики, кроме mcp."
+            "novelFact": "runCli использует три внешних модуля: toCodeloreErrorPayload, startStdioServer, CodeloreService."
           },
           "language": "ru"
         },
@@ -102,31 +102,31 @@
           "language": "ru"
         },
         "limitations": {
-          "body": "- Команда `mcp` блокирует процесс навсегда — конструкция `await startStdioServer({ rootDir: parsed.rootDir })` без таймаута или graceful shutdown.\n- Нет поддержки конфигурационных файлов — параметры `--root` и `--provider` читаются только из CLI-аргументов.\n- Обрабатывается только девят команд — `switch` в `runCommand` покрывает эти случаи; остальное выдает сообщеные об ошибке.",
+          "body": "- Команда `mcp` блокирует процесс навсегда — конструкция `await startStdioServer({ rootDir: parsed.rootDir })` без таймаута или graceful shutdown.\n- Нет поддержки конфигурационных файлов — параметры `--root` и `--provider` читаются только из CLI-аргументов, вызов `parseGlobalArgs` не проверяет существование `rootDir`.\n- Обрабатывается только девять команд — `switch` в `runCommand` покрывает эти случаи; остальное выдаёт сообщение об ошибке через `CodeloreError(\"INTERNAL_ERROR\", ...)`.\n- Нет валидации, что указанный `--root` существует или доступен для чтения — `parseGlobalArgs` принимает любое строковое значение.",
           "rendered": true,
           "fingerprint": "body=9993804a61c37f3b66fba8adc54cfd22f43162afde3254cfd5291e14dd1acab6",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Команда `mcp` блокирует процесс навсегда — конструкция `await startStdioServer({ rootDir: parsed.rootDir })` без таймаута или graceful shutdown."
+            "novelFact": "Команда mcp блокирует процесс навсегда — await startStdioServer без таймаута."
           },
           "language": "ru"
         },
         "changeGuide": {
-          "body": "- Формат вывода ошибки в stderr фиксирован: JSON с полями `ok` и `error`. Конструкция: `runtime.stderr.write(\\`${JSON.stringify({ ok: false, error: toCodeloreErrorPayload(error) }, null, 2)}\\n\\`)`.\n- Код возврата для успеха (0), исключения (1), и наличия непустых `failed` или `issues` (2) зафиксирован. Конструкции: `return 0;`, `return 1;`, `return 2;` в соответствующих ветвях.",
+          "body": "- Формат вывода ошибки в stderr фиксирован: JSON с полями `ok` и `error`. Конструкция: `` `${JSON.stringify({ ok: false, error: toCodeloreErrorPayload(error) }, null, 2)}\\n` ``.\n- Код возврата 2 при непустых `failed` или `issues` зафиксирован. Конструкции: `isUnclean(result)` и `return 2;`.\n- Команда `help` не создаёт экземпляр `CodeloreService` — проверка `if (parsed.command === \"help\" || parsed.command === \"--help\" || parsed.command === \"-h\")` выполняется до `new CodeloreService`.",
           "rendered": true,
           "fingerprint": "body=9993804a61c37f3b66fba8adc54cfd22f43162afde3254cfd5291e14dd1acab6,deps=d1216775679b741d8e0128aefefea87b568c26c2b55a8dab0e2763a27a86491e,usage=21f2e8b2f60cb40f7aea8b55fcd924a4934360234e3c7733acf8f8a14e044533,placement=e1399646d6cbb2f2a808d5a003e1147c33a937b826eff47117e0d1a5700dac1f",
           "scores": {
             "informativeness": 0.75,
             "novelty": 0.75,
             "specificity": 0.75,
-            "novelFact": "Код возврата для успеха (0), исключения (1), и наличия непустых `failed` или `issues` (2) зафиксирован."
+            "novelFact": "Формат вывода ошибки в stderr фиксирован: JSON с полями ok и error, конструкция: `${JSON.stringify({ ok: false, error: toCodeloreErrorPayload(error) }, null, 2)}\\n`."
           },
           "language": "ru"
         }
       },
-      "depDocsFingerprint": "d1bded5da59b16201cf6fd860232ee02810a56a4379b779cb2f24d0ba60e3b5f",
+      "depDocsFingerprint": "dc34227ae258676fa7c834f2db7f842f8792d70dec640fc5fc1aa6890d2a25b3",
       "generationHistory": [
         {
           "runId": "ee069a72-0d61-4285-b9c9-6103b0868625",
@@ -348,6 +348,19 @@
             "limitations",
             "changeGuide"
           ]
+        },
+        {
+          "runId": "5a4eb931-7175-4299-96ca-d2773991b74a",
+          "timestamp": "2026-09-14T07:25:05.597Z",
+          "command": "fix-stale",
+          "provider": "aitunnel-flash",
+          "model": "deepseek-v4-flash",
+          "generatedBlocks": [
+            "dependencies",
+            "limitations",
+            "changeGuide"
+          ],
+          "manualReviewNeeded": true
         }
       ],
       "signature": "runCli(argv: string[], runtime: CliRuntime): Promise<number>"

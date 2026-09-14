@@ -334,7 +334,7 @@
           ]
         }
       ],
-      "depDocsFingerprint": "ce1886a1e6a4b567b33975340d86c15307a237ac4da72793b9e2acc0f66e31b7",
+      "depDocsFingerprint": "5bc96320fc624da80d2157e1bb0d2dc395c9e63e617f8a5627cfd315a37eefb7",
       "signature": "createCodeloreServer(options: { rootDir: string }): Promise<McpServer>"
     }
   },

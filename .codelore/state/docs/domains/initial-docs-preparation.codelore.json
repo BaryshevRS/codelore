@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "docs/domains/initial-docs-preparation.codelore.md",
-  "generatedAt": "2026-09-14T06:50:18.105Z",
+  "generatedAt": "2026-09-14T07:28:47.944Z",
   "sectionOrder": [
     "domain:initial-docs-preparation"
   ],
@@ -14,11 +14,11 @@
         "domain:initial-docs-preparation"
       ],
       "depends": [
-        "domain:common-utils",
-        "domain:service-helpers",
         "file:src/service/domain-docs.ts",
         "file:src/service/file-layout.ts",
-        "file:src/service/prepare-docs.ts"
+        "file:src/service/prepare-docs.ts",
+        "domain:common-utils",
+        "domain:service-helpers"
       ],
       "usedBy": [
         "domain:codelore-service-facade"

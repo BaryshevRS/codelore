@@ -112,12 +112,12 @@ The function builds the initial skeleton structure for each entity's domain doc,
 
 ## Кто и как использует
 
-Вызывается из `CodeloreService.prepareDomainDocs` после перестройки индексов. Функция получает массив сущностей из индекса и для каждой создает скелет документа, который затем сохраняется через `docStateStorage.saveDocState`.
+Вызывается из [`CodeloreService.prepareDomainDocs`](codelore-service.codelore.md#codeloreservicepreparedomaindocs) после перестройки индексов. Функция получает массив сущностей из индекса и для каждой создает скелет документа, который затем сохраняется через `docStateStorage.saveDocState`.
 
 ## Чего не делает
 
-Функция не проверяет, существует ли уже документ по вычисленному пути — она всегда создает новый скелет, а проверка наличия выполняется позже в `prepareDomainDocs`.
+Функция не проверяет, существует ли уже документ по вычисленному пути — она всегда создает новый скелет, а проверка наличия выполняется позже в [`prepareDomainDocs`](codelore-service.codelore.md#codeloreservicepreparedomaindocs).
 
 ## Как менять и что проверять
 
-При изменении порядка секций в скелете необходимо обновить `sectionOrder` в возвращаемом объекте, так как вызывающий код (`prepareDomainDocs`) полагается на этот порядок для сохранения предыдущих тел блоков.
+При изменении порядка секций в скелете необходимо обновить `sectionOrder` в возвращаемом объекте, так как вызывающий код ([`prepareDomainDocs`](codelore-service.codelore.md#codeloreservicepreparedomaindocs)) полагается на этот порядок для сохранения предыдущих тел блоков.

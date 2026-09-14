@@ -159,10 +159,20 @@ async function prepareInitialDocs(service: CodeloreService, parsed: ParsedCli, r
 }
 
 function generateRuntime(parsed: ParsedCli, runtime: CliRuntime, command: string): GenerateDocsRuntime {
+  const started = Date.now();
   return {
     env: runtime.env,
     fetch: runtime.fetch,
     command,
+    // stdout stays the JSON result; progress goes to stderr so pipes and the MCP
+    // contract are untouched. Elapsed time is prefixed here rather than in the
+    // service: what the service reports is what happened, not how long it took.
+    onProgress: (message) => {
+      const elapsed = Math.round((Date.now() - started) / 1000);
+      runtime.stderr.write(
+        `[${String(Math.floor(elapsed / 60)).padStart(2, "0")}:${String(elapsed % 60).padStart(2, "0")}] ${message}\n`
+      );
+    },
     ...(parsed.provider ? { providerName: parsed.provider } : {}),
   };
 }

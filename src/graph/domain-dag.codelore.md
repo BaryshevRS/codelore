@@ -23,7 +23,7 @@ buildDomainDag(code: CodeIndex, fileToDomain: ReadonlyMap<string, string>): DepG
 ## Кто и как использует
 
 - Called by [`buildDomainEntities`](../indexer/domain-entities.codelore.md#builddomainentities) in `src/indexer/domain-entities.ts` to compute the domain dependency graph; the caller then inverts the DAG to build a dependents map and iterates over `dag.keys()` to construct domain entities.
-- Called by `CodeloreService.tierGenerationWaves` in [`src/service/codelore-service.ts`](../service/codelore-service.codelore.md) to compute the domain DAG for wave generation.
+- Called by `CodeloreService.tierGenerationWaves` in [`src/service/codelore-service.ts`](../service/codelore-service.codelore.md#codelore-servicets) to compute the domain DAG for wave generation.
 
 ## Чего не делает
 

@@ -1,7 +1,7 @@
 {
   "version": 4,
   "docPath": "docs/domains/common-utils.codelore.md",
-  "generatedAt": "2026-09-14T06:50:18.098Z",
+  "generatedAt": "2026-09-14T07:28:47.944Z",
   "sectionOrder": [
     "domain:common-utils"
   ],
@@ -14,11 +14,11 @@
         "domain:common-utils"
       ],
       "depends": [
-        "domain:error-handling",
-        "domain:llm-json-response-parsing",
         "file:src/domains/assign.ts",
         "file:src/utils/hash.ts",
-        "file:src/utils/path.ts"
+        "file:src/utils/path.ts",
+        "domain:error-handling",
+        "domain:llm-json-response-parsing"
       ],
       "usedBy": [
         "domain:block-fingerprinting",

@@ -521,6 +521,17 @@ export interface OpenAiCompatibleProviderConfig {
    * prompts already carry.
    */
   responseFormat?: "json_object" | "json_schema";
+  /**
+   * Sent as `reasoning_effort`. A reasoning model billed and timed per token spends
+   * most of them in a hidden channel: measured on deepseek-v4-flash-0731, a one-line
+   * answer cost 98 tokens of which 60 were reasoning, and a 400-word one cost 5088 of
+   * which ~4400 — at ~33 tok/s that is minutes per call. "none" removes them entirely.
+   * Unset leaves the request as the endpoint defaults it, which may mean reasoning on.
+   * It is a quality/latency trade and belongs to whoever picks the model: reasoning
+   * earns its keep in the writer far more than in verification, which only checks a
+   * claim against a slice it was handed.
+   */
+  reasoningEffort?: "none" | "low" | "medium" | "high";
 }
 
 export type LlmProviderConfig = OpenAiCompatibleProviderConfig;

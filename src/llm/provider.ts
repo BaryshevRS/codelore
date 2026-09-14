@@ -240,6 +240,10 @@ class OpenAiCompatibleProvider implements ChatCompletionProvider {
           // biome-ignore lint/style/useNamingConvention: OpenAI wire format uses snake_case
           stream_options: { include_usage: true },
           ...responseFormatField(this.config.responseFormat, input.responseSchema),
+          ...(this.config.reasoningEffort
+            ? // biome-ignore lint/style/useNamingConvention: OpenAI wire format uses snake_case
+              { reasoning_effort: this.config.reasoningEffort }
+            : {}),
         }),
         signal: controller.signal,
       });

@@ -25,7 +25,7 @@ class CodeloreError extends Error
 
 1. Вызывающий код (например, [`src/cli/run-cli.ts`](cli/run-cli.codelore.md), [`src/indexer/state-indexer.ts`](indexer/state-indexer.codelore.md)) создаёт `CodeloreError` с кодом и сообщением при обнаружении ошибочной ситуации.
 2. Верхний обработчик в `runCli` перехватывает ошибку и передаёт её в [`toCodeloreErrorPayload`](#tocodeloreerrorpayload) для сериализации в JSON-ответ.
-3. Другие компоненты (например, [`src/llm/complete-and-parse.ts`](llm/complete-and-parse.codelore.md), [`src/service/codelore-service.ts`](service/codelore-service.codelore.md)) также выбрасывают `CodeloreError` при невалидных входных данных или внутренних сбоях.
+3. Другие компоненты (например, [`src/llm/complete-and-parse.ts`](llm/complete-and-parse.codelore.md), [`src/service/codelore-service.ts`](service/codelore-service.codelore.md#codelore-servicets)) также выбрасывают `CodeloreError` при невалидных входных данных или внутренних сбоях.
 
 ## Чего не делает
 

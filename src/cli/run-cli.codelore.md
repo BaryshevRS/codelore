@@ -29,7 +29,7 @@ runCli всегда сериализует результат работы ко�
 
 ## От чего зависит
 
-runCli использует три внешних модуля: [`toCodeloreErrorPayload`](../errors.codelore.md#tocodeloreerrorpayload) из `src/errors.ts` — сериализует перехваченные исключения в JSON для вывода в `stderr`; [`startStdioServer`](../server/start-stdio-server.codelore.md#startstdioserver) из `src/server/start-stdio-server.ts` — запускает MCP-сервер для команды `mcp`; [`CodeloreService`](../service/codelore-service.codelore.md#codeloreservice) из `src/service/codelore-service.ts` — предоставляет методы для всех остальных команд (делегируется через `runCommand`).
+runCli использует три внешних модуля: [`toCodeloreErrorPayload`](../errors.codelore.md#tocodeloreerrorpayload) из `src/errors.ts` — сериализует перехваченные исключения в JSON для вывода в stderr; [`startStdioServer`](../server/start-stdio-server.codelore.md#startstdioserver) из `src/server/start-stdio-server.ts` — запускает MCP-сервер для команды `mcp`; [`CodeloreService`](../service/codelore-service.codelore.md#codeloreservice) из `src/service/codelore-service.ts` — предоставляет методы для всех остальных команд (делегируется через `runCommand`).
 
 ## Кто и как использует
 
@@ -49,10 +49,12 @@ runCli использует три внешних модуля: [`toCodeloreErro
 ## Чего не делает
 
 - Команда `mcp` блокирует процесс навсегда — конструкция `await startStdioServer({ rootDir: parsed.rootDir })` без таймаута или graceful shutdown.
-- Нет поддержки конфигурационных файлов — параметры `--root` и `--provider` читаются только из CLI-аргументов.
-- Обрабатывается только девят команд — `switch` в `runCommand` покрывает эти случаи; остальное выдает сообщеные об ошибке.
+- Нет поддержки конфигурационных файлов — параметры `--root` и `--provider` читаются только из CLI-аргументов, вызов `parseGlobalArgs` не проверяет существование `rootDir`.
+- Обрабатывается только девять команд — `switch` в `runCommand` покрывает эти случаи; остальное выдаёт сообщение об ошибке через `CodeloreError("INTERNAL_ERROR", ...)`.
+- Нет валидации, что указанный `--root` существует или доступен для чтения — `parseGlobalArgs` принимает любое строковое значение.
 
 ## Как менять и что проверять
 
-- Формат вывода ошибки в stderr фиксирован: JSON с полями `ok` и `error`. Конструкция: `runtime.stderr.write(\`${JSON.stringify({ ok: false, error: toCodeloreErrorPayload(error) }, null, 2)}\n\`)`.
-- Код возврата для успеха (0), исключения (1), и наличия непустых `failed` или `issues` (2) зафиксирован. Конструкции: `return 0;`, `return 1;`, `return 2;` в соответствующих ветвях.
+- Формат вывода ошибки в stderr фиксирован: JSON с полями `ok` и `error`. Конструкция: `` `${JSON.stringify({ ok: false, error: toCodeloreErrorPayload(error) }, null, 2)}\n` ``.
+- Код возврата 2 при непустых `failed` или `issues` зафиксирован. Конструкции: `isUnclean(result)` и `return 2;`.
+- Команда `help` не создаёт экземпляр [`CodeloreService`](../service/codelore-service.codelore.md#codeloreservice) — проверка `if (parsed.command === "help" || parsed.command === "--help" || parsed.command === "-h")` выполняется до `new CodeloreService`.

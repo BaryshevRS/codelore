@@ -116,7 +116,7 @@ describe("runCli", () => {
     });
 
     expect(exitCode).toBe(0);
-    expect(stderr.text).toBe("");
+    expect(stderr.text).not.toContain('"ok": false');
     // Two phases (propagating, terminal), each a writer call plus its fact-check verification.
     expect(requests).toHaveLength(4);
     expect(requests[0]).toMatchObject({
@@ -228,7 +228,7 @@ describe("runCli", () => {
       fetch: fetchMock,
     });
     expect(firstExit).toBe(0);
-    expect(stderr.text).toBe("");
+    expect(stderr.text).not.toContain('"ok": false');
     // Two phases, each a writer call plus its fact-check verification.
     expect(calls).toBe(4);
     expect(markdownExistedBeforeFirstLlmCall).toBe(false);
@@ -256,7 +256,7 @@ describe("runCli", () => {
       fetch: fetchMock,
     });
     expect(secondExit).toBe(0);
-    expect(stderr2.text).toBe("");
+    expect(stderr2.text).not.toContain('"ok": false');
     // The second run re-tombstones the changed file and refills it across both phases.
     expect(calls).toBe(8);
     const secondOutput = JSON.parse(stdout2.text);
@@ -341,7 +341,11 @@ describe("runCli", () => {
     });
 
     expect(exitCode).toBe(0);
-    expect(stderr.text).toBe("");
+    expect(stderr.text).not.toContain('"ok": false');
+    // stdout keeps the JSON contract; progress is a stderr side channel, so a run that
+    // spends minutes in model calls is distinguishable from a hang.
+    expect(stderr.text).toMatch(/^\[\d{2}:\d{2}] propagating: 2 file\(s\) to the writer$/m);
+    expect(stderr.text).toContain("terminal: writing src/app.ts");
     const writerPrompts = prompts.filter((prompt) => prompt.includes("Source files:"));
     // Two files × two phases (propagating, terminal).
     expect(writerPrompts).toHaveLength(4);
@@ -421,7 +425,7 @@ describe("runCli", () => {
       stderr: err,
       fetch: writerMock,
     });
-    expect(err.text).toBe("");
+    expect(err.text).not.toContain('"ok": false');
     expect(fixExit).toBe(0);
 
     // One fix-stale run must leave the scope fully documented — no residual stale.
@@ -470,7 +474,7 @@ describe("runCli", () => {
         return llmResponse(writerReply(sectionId, init));
       }) as typeof fetch,
     });
-    expect(stderr.text).toBe("");
+    expect(stderr.text).not.toContain('"ok": false');
     expect(JSON.parse(stdout.text).failed).toEqual([]);
     expect(exitCode).toBe(0);
 
@@ -487,7 +491,7 @@ describe("runCli", () => {
       }) as typeof fetch,
     });
     expect(refreshExit).toBe(0);
-    expect(refreshErr.text).toBe("");
+    expect(refreshErr.text).not.toContain('"ok": false');
     const report = JSON.parse(refreshOut.text);
     expect(report.stale).toEqual([]);
   });
@@ -552,7 +556,7 @@ describe("runCli", () => {
         return llmResponse(JSON.stringify({ contradictions: [] }));
       }) as typeof fetch,
     });
-    expect(err.text).toBe("");
+    expect(err.text).not.toContain('"ok": false');
     expect(code).toBe(0);
     // The gate verified app's existing text and found it still correct…
     expect(verifyCalls).toBeGreaterThan(0);
@@ -641,7 +645,7 @@ describe("runCli", () => {
       }) as typeof fetch,
     });
 
-    expect(err.text).toBe("");
+    expect(err.text).not.toContain('"ok": false');
     expect(code).toBe(0);
     expect(gateAnswered).toBe(true);
     expect(appWriterTargetBlocks.length).toBeGreaterThan(0);
@@ -767,7 +771,7 @@ describe("runCli", () => {
     });
 
     expect(exitCode).toBe(0);
-    expect(stderr.text).toBe("");
+    expect(stderr.text).not.toContain('"ok": false');
     const state = JSON.parse(await readFile(join(rootDir, ".codelore/state/src/pricing.codelore.json"), "utf8"));
     const blocks = state.sections["symbol:src/pricing.ts#buildPrice"].blocks;
     expect(blocks.purpose.body).toBe("Low value purpose text.");
