@@ -147,6 +147,17 @@ export interface DocIndex {
   entityToSections: Record<string, string[]>;
 }
 
+/** One routing candidate returned by `locateSections`: what the section is about and where its code lives. */
+export interface LocatedSection {
+  sectionId: string;
+  heading: string;
+  /** Source path of the section's first owned entity; absent for the domain and project tiers, which own no source file. */
+  path?: string;
+  purpose: string;
+  /** The purpose block drifted from the code; still worth routing on, but read the source before trusting it. */
+  stale?: boolean;
+}
+
 export interface ProjectIndex {
   version: number;
   generatedAt: string;

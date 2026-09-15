@@ -942,6 +942,35 @@ describe("loadOrRebuildIndexes", () => {
 
     expect(Object.keys(index.docs.sections)).toEqual(["sentinel"]);
   });
+
+  it("lists only sections that carry a purpose, with the path of the code they own", async () => {
+    const rootDir = await makeTempProject({
+      "src/pricing.ts": "export function roundPrice(value: number): number { return Math.round(value); }",
+      "src/cart/total.ts": "export function cartTotal(prices: number[]): number { return prices.length; }",
+    });
+    const service = new CodeloreService(rootDir);
+    await service.prepareInitialDocs();
+    await service.rewriteSections([
+      {
+        sectionId: "symbol:src/pricing.ts#roundPrice",
+        generatedBlocks: { purpose: generatedBlock("Rounds a price to whole units.") },
+      },
+      {
+        sectionId: "symbol:src/cart/total.ts#cartTotal",
+        generatedBlocks: { purpose: generatedBlock("Counts the items a cart holds.") },
+      },
+    ]);
+
+    const { sections } = await service.locateSections();
+    const located = sections.find((section) => section.sectionId === "symbol:src/pricing.ts#roundPrice");
+
+    expect(located).toMatchObject({ path: "src/pricing.ts", purpose: "Rounds a price to whole units." });
+    expect(sections.every((section) => section.purpose.trim() !== "")).toBe(true);
+
+    const scoped = await service.locateSections({ paths: ["src/cart"] });
+
+    expect(scoped.sections.map((section) => section.sectionId)).toEqual(["symbol:src/cart/total.ts#cartTotal"]);
+  });
 });
 
 async function makeTempProject(files: Record<string, string>): Promise<string> {
