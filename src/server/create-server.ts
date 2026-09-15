@@ -161,6 +161,24 @@ function registerTools(server: McpServer, service: CodeloreService): void {
   });
 
   server.registerTool(
+    "constraints",
+    {
+      title: "Constraints On Code You Are About To Change",
+      description:
+        "Call this before editing a file, not before finding one. Given files or entityIds, returns what is recorded about that code: the contracts it must keep, the cases it does not cover, how to change it safely, and what depends on it. A block marked stale drifted from the code — read the source instead of trusting it. Purpose and responsibility are deliberately omitted: you are holding the file, read it.",
+      inputSchema: z.object({
+        files: z.array(z.string()).optional(),
+        entityIds: z.array(z.string()).optional(),
+      }),
+      annotations: {
+        readOnlyHint: true,
+        idempotentHint: true,
+      },
+    },
+    async (input) => safely(() => service.constraintsFor(input))
+  );
+
+  server.registerTool(
     "document",
     {
       title: "Document Code",
@@ -310,6 +328,7 @@ function summarizeToolResult(data: unknown): string {
     "updatedBlocks",
     "issues",
     "failed",
+    "constraints",
   ]) {
     const value = record[key];
     if (Array.isArray(value)) {

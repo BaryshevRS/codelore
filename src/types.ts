@@ -147,6 +147,20 @@ export interface DocIndex {
   entityToSections: Record<string, string[]>;
 }
 
+/** What is recorded about a piece of code a caller is about to change. */
+export interface CodeConstraints {
+  sectionId: string;
+  heading: string;
+  path?: string;
+  invariants?: string;
+  limitations?: string;
+  changeGuide?: string;
+  /** Blocks that drifted from the code. A stale invariant is worse than none: read the source. */
+  stale: BlockId[];
+  /** Ids recorded as depending on this section's code — what else moves when it changes. */
+  usedBy: string[];
+}
+
 export interface ProjectIndex {
   version: number;
   generatedAt: string;

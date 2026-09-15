@@ -49,7 +49,7 @@ import {
   translationNeedsWork,
 } from "../llm/translator.js";
 import { computeBlockFingerprint, translationSourceFingerprint } from "../markdown/block-facets.js";
-import { BLOCK_IDS, type BlockId } from "../markdown/block-ids.js";
+import { BLOCK_IDS, type BlockId, CONSTRAINT_BLOCKS } from "../markdown/block-ids.js";
 import { docResponsibilities } from "../markdown/linkify.js";
 import { renderSection } from "../markdown/render-doc.js";
 import { DocStateStorage } from "../storage/doc-state-storage.js";
@@ -58,6 +58,7 @@ import type {
   AffectedSection,
   BlockSkipReason,
   ChangeAnalysis,
+  CodeConstraints,
   CodeEntity,
   CodeIndex,
   CodeloreConfig,
@@ -1949,6 +1950,68 @@ export class CodeloreService {
       throw new CodeloreError("UNKNOWN_CHANGE", `Unknown change id "${changeId}"`, { changeId });
     }
     return change;
+  }
+
+  /**
+   * What is recorded about code the caller is about to change: the contracts it must keep,
+   * the cases it does not cover, and how to change it safely — plus what depends on it.
+   *
+   * Scoped by file or entity, never repo-wide: the caller already knows where it is, so this
+   * answers "what do I need to know here", not "where is it". Purpose and responsibility are
+   * left out on purpose — a caller that can read the code does not need them narrated.
+   */
+  async constraintsFor(input: { files?: string[]; entityIds?: string[] }): Promise<{
+    constraints: CodeConstraints[];
+  }> {
+    const index = await this.loadOrRebuildIndexes();
+    const wanted = new Set(input.entityIds ?? []);
+    for (const file of input.files ?? []) {
+      for (const entityId of index.code.fileToEntities[file] ?? []) {
+        wanted.add(entityId);
+      }
+    }
+
+    const sectionIds = new Set<string>();
+    for (const entityId of wanted) {
+      for (const sectionId of index.docs.entityToSections[entityId] ?? []) {
+        sectionIds.add(sectionId);
+      }
+    }
+
+    const constraints: CodeConstraints[] = [];
+    for (const sectionId of [...sectionIds].sort()) {
+      const section = index.docs.sections[sectionId];
+      if (!section) {
+        continue;
+      }
+      const bodies: Partial<Record<BlockId, string>> = {};
+      const stale: BlockId[] = [];
+      for (const blockId of CONSTRAINT_BLOCKS) {
+        const block = section.blocks.find((candidate) => candidate.id === blockId);
+        const body = block?.body.trim();
+        if (!block || !body) {
+          continue;
+        }
+        bodies[blockId] = body;
+        if (block.staleSince) {
+          stale.push(blockId);
+        }
+      }
+      if (Object.keys(bodies).length === 0) {
+        continue;
+      }
+      const owner = index.code.entities[section.owns[0] ?? ""];
+      constraints.push({
+        sectionId,
+        heading: section.heading,
+        ...(owner && isSourceCodeEntity(owner) ? { path: owner.path } : {}),
+        ...bodies,
+        stale,
+        usedBy: section.usedBy,
+      });
+    }
+
+    return { constraints };
   }
 
   async readDocFile(docPath: string): Promise<string> {

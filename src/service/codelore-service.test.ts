@@ -942,6 +942,53 @@ describe("loadOrRebuildIndexes", () => {
 
     expect(Object.keys(index.docs.sections)).toEqual(["sentinel"]);
   });
+
+  it("returns the constraints recorded for a file and marks the ones that drifted", async () => {
+    const rootDir = await makeTempProject({
+      "src/pricing.ts": "export function roundPrice(value: number): number { return Math.round(value); }",
+      "src/cart/total.ts": "export function cartTotal(prices: number[]): number { return prices.length; }",
+    });
+    const service = new CodeloreService(rootDir);
+    await service.prepareInitialDocs();
+    await service.rewriteSections([
+      {
+        sectionId: "symbol:src/pricing.ts#roundPrice",
+        generatedBlocks: {
+          purpose: generatedBlock("Rounds a price."),
+          invariants: generatedBlock("Never returns a fractional value."),
+          limitations: generatedBlock("Does not handle negative input."),
+        },
+      },
+    ]);
+
+    const { constraints } = await service.constraintsFor({ files: ["src/pricing.ts"] });
+    const found = constraints.find((entry) => entry.sectionId === "symbol:src/pricing.ts#roundPrice");
+
+    expect(found).toMatchObject({
+      path: "src/pricing.ts",
+      invariants: "Never returns a fractional value.",
+      limitations: "Does not handle negative input.",
+      stale: [],
+    });
+    // Purpose is deliberately withheld: the caller is holding the file.
+    expect(found).not.toHaveProperty("purpose");
+    // A file outside the requested scope contributes nothing.
+    expect(constraints.some((entry) => entry.path === "src/cart/total.ts")).toBe(false);
+
+    await writeFile(
+      join(rootDir, "src/pricing.ts"),
+      "export function roundPrice(value: number, digits: number): number { return Number(value.toFixed(digits)); }",
+      "utf8"
+    );
+    await service.refreshStaleDocs({ mode: "tombstone" });
+
+    const afterDrift = await service.constraintsFor({ files: ["src/pricing.ts"] });
+    const drifted = afterDrift.constraints.find((entry) => entry.sectionId === "symbol:src/pricing.ts#roundPrice");
+
+    expect(drifted?.stale).toContain("invariants");
+    // The body survives the drift so the caller can weigh it against the source.
+    expect(drifted?.invariants).toBe("Never returns a fractional value.");
+  });
 });
 
 async function makeTempProject(files: Record<string, string>): Promise<string> {
