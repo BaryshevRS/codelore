@@ -83,6 +83,7 @@ import type {
   SectionContext,
   StaleBlockInfo,
 } from "../types.js";
+import { writeArchitectureDoc } from "./architecture-doc.js";
 import { blockDepDocsFingerprint, mentionCandidatesFor } from "./dep-fingerprints.js";
 import { reconcileDocStateWithCode } from "./doc-reconcile.js";
 import {
@@ -1365,6 +1366,9 @@ export class CodeloreService {
     if (updated.length > 0) {
       await this.patchDocIndexForDocs(updated);
     }
+    // The architecture page summarizes the docs this run just wrote, so it is
+    // rewritten with them rather than waiting for the next index rebuild.
+    await writeArchitectureDoc(this.config, this.docStateStorage, (await this.indexManager.loadOrRebuild()).code);
   }
 
   /**

@@ -8,6 +8,7 @@ import type { DocStateStorage } from "../storage/doc-state-storage.js";
 import type { JsonStorage } from "../storage/json-storage.js";
 import type { CodeloreConfig, ProjectIndex } from "../types.js";
 import { INDEX_VERSION } from "../types.js";
+import { writeArchitectureDoc } from "./architecture-doc.js";
 
 export interface RebuildIndexesOptions {
   persist?: boolean;
@@ -56,6 +57,11 @@ export class IndexManager {
     };
     if (options.persist ?? false) {
       await this.storage.saveProjectIndex(index);
+    }
+    if (options.renderDocs ?? false) {
+      // The architecture page reads the tiers and the entry points, so it is written
+      // from the finished index rather than alongside the per-doc reconcile above.
+      await writeArchitectureDoc(this.config, this.docStateStorage, code);
     }
     this.cache = index;
     this.onIndexChanged();

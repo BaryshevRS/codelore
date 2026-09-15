@@ -21,6 +21,19 @@ export interface LocaleBundle {
     dependsOn: string;
     usedBy: string;
   };
+  /** Headings and fixed lines of the generated ARCHITECTURE page. */
+  architecture: {
+    title: string;
+    generatedNote: string;
+    birdsEyeView: string;
+    boundaries: string;
+    entryPoints: string;
+    codeMap: string;
+    layers: string;
+    coverage: string;
+    coverageLine: string;
+    undocumented: string;
+  };
 }
 
 const LOCALES: Record<string, LocaleBundle> = { en, ru };

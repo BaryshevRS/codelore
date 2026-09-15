@@ -303,6 +303,14 @@ export class DocStateStorage {
     return { updated };
   }
 
+  /**
+   * Write a generated page that has no doc state of its own (the ARCHITECTURE map).
+   * Same atomic write as a doc's `.md`, and a no-op when the content is unchanged.
+   */
+  async writeGeneratedPage(docPath: string, markdown: string): Promise<void> {
+    await this.writeDocFileIfChanged(docPath, markdown);
+  }
+
   private async writeDocFileIfChanged(docPath: string, markdown: string): Promise<void> {
     let existing: string | undefined;
     try {
