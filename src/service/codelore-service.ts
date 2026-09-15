@@ -1953,12 +1953,15 @@ export class CodeloreService {
   }
 
   /**
-   * What is recorded about code the caller is about to change: the contracts it must keep,
-   * the cases it does not cover, and how to change it safely — plus what depends on it.
+   * What a caller needs before changing code it has already found: who depends on each entity,
+   * and what was written down about it that the entity itself cannot show.
    *
-   * Scoped by file or entity, never repo-wide: the caller already knows where it is, so this
-   * answers "what do I need to know here", not "where is it". Purpose and responsibility are
-   * left out on purpose — a caller that can read the code does not need them narrated.
+   * Usage comes from the code graph, so it answers for undocumented entities too — 74 of this
+   * repo's 293 used entities have no doc, and a text search would both miss aliased imports and
+   * match strings that merely spell the name. Prose is the optional layer on top, withheld when
+   * everything written about a file runs longer than the file: reading the code is then cheaper
+   * than reading about it. Purpose, responsibility and dependencies never ship — the file shows
+   * those.
    */
   async constraintsFor(input: { files?: string[]; entityIds?: string[] }): Promise<{
     constraints: CodeConstraints[];
@@ -1971,44 +1974,64 @@ export class CodeloreService {
       }
     }
 
-    const sectionIds = new Set<string>();
-    for (const entityId of wanted) {
-      for (const sectionId of index.docs.entityToSections[entityId] ?? []) {
-        sectionIds.add(sectionId);
-      }
-    }
-
     const constraints: CodeConstraints[] = [];
-    for (const sectionId of [...sectionIds].sort()) {
-      const section = index.docs.sections[sectionId];
-      if (!section) {
+    const textCharsByFile = new Map<string, number>();
+    const codeCharsByFile = new Map<string, number>();
+    for (const entityId of [...wanted].sort()) {
+      const entity = index.code.entities[entityId];
+      if (!entity || !isSourceCodeEntity(entity)) {
         continue;
       }
+
       const bodies: Partial<Record<BlockId, string>> = {};
-      const stale: BlockId[] = [];
-      for (const blockId of CONSTRAINT_BLOCKS) {
-        const block = section.blocks.find((candidate) => candidate.id === blockId);
-        const body = block?.body.trim();
-        if (!block || !body) {
+      let textChars = 0;
+      for (const sectionId of index.docs.entityToSections[entityId] ?? []) {
+        const section = index.docs.sections[sectionId];
+        if (!section?.owns.includes(entityId)) {
           continue;
         }
-        bodies[blockId] = body;
-        if (block.staleSince) {
-          stale.push(blockId);
+        for (const blockId of CONSTRAINT_BLOCKS) {
+          const body = section.blocks.find((block) => block.id === blockId)?.body.trim();
+          if (body && !bodies[blockId]) {
+            bodies[blockId] = body;
+            textChars += body.length;
+          }
         }
       }
-      if (Object.keys(bodies).length === 0) {
+
+      if (entity.directUsages.length === 0 && textChars === 0) {
         continue;
       }
-      const owner = index.code.entities[section.owns[0] ?? ""];
+      textCharsByFile.set(entity.path, (textCharsByFile.get(entity.path) ?? 0) + textChars);
+      codeCharsByFile.set(entity.path, Math.max(codeCharsByFile.get(entity.path) ?? 0, entity.range.endOffset));
+
       constraints.push({
-        sectionId,
-        heading: section.heading,
-        ...(owner && isSourceCodeEntity(owner) ? { path: owner.path } : {}),
+        entityId,
+        name: entity.name,
+        path: entity.path,
+        usedBy: entity.directUsages,
         ...bodies,
-        stale,
-        usedBy: section.usedBy,
       });
+    }
+
+    // The caller opens a file, not a span, so the trade is judged per file: when everything
+    // written about it runs longer than the file itself, restating the body costs more than
+    // reading it. Usage survives the cut — no amount of reading the file recovers it.
+    for (const entry of constraints) {
+      if ((textCharsByFile.get(entry.path) ?? 0) < (codeCharsByFile.get(entry.path) ?? 0)) {
+        continue;
+      }
+      let dropped = false;
+      const record = entry as Partial<Record<BlockId, string>>;
+      for (const blockId of CONSTRAINT_BLOCKS) {
+        if (record[blockId] !== undefined) {
+          delete record[blockId];
+          dropped = true;
+        }
+      }
+      if (dropped) {
+        entry.textWithheld = true;
+      }
     }
 
     return { constraints };

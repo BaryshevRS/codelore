@@ -943,9 +943,12 @@ describe("loadOrRebuildIndexes", () => {
     expect(Object.keys(index.docs.sections)).toEqual(["sentinel"]);
   });
 
-  it("returns the constraints recorded for a file and marks the ones that drifted", async () => {
+  it("answers from the code graph for documented and undocumented entities alike", async () => {
     const rootDir = await makeTempProject({
-      "src/pricing.ts": "export function roundPrice(value: number): number { return Math.round(value); }",
+      "src/pricing.ts": [
+        "export function undocumented(value: number): number { return Math.round(value); }",
+        "export function roundPrice(value: number): number { return undocumented(value) + 1; }",
+      ].join("\n"),
       "src/cart/total.ts": "export function cartTotal(prices: number[]): number { return prices.length; }",
     });
     const service = new CodeloreService(rootDir);
@@ -956,38 +959,46 @@ describe("loadOrRebuildIndexes", () => {
         generatedBlocks: {
           purpose: generatedBlock("Rounds a price."),
           invariants: generatedBlock("Never returns a fractional value."),
-          limitations: generatedBlock("Does not handle negative input."),
         },
       },
     ]);
 
     const { constraints } = await service.constraintsFor({ files: ["src/pricing.ts"] });
-    const found = constraints.find((entry) => entry.sectionId === "symbol:src/pricing.ts#roundPrice");
+    const documented = constraints.find((entry) => entry.entityId === "symbol:src/pricing.ts#roundPrice");
+    const undocumented = constraints.find((entry) => entry.entityId === "symbol:src/pricing.ts#undocumented");
 
-    expect(found).toMatchObject({
-      path: "src/pricing.ts",
-      invariants: "Never returns a fractional value.",
-      limitations: "Does not handle negative input.",
-      stale: [],
-    });
-    // Purpose is deliberately withheld: the caller is holding the file.
-    expect(found).not.toHaveProperty("purpose");
-    // A file outside the requested scope contributes nothing.
+    // An entity nobody documented still answers, because usage comes from the graph.
+    expect(undocumented?.usedBy).toContain("symbol:src/pricing.ts#roundPrice");
+    expect(undocumented).not.toHaveProperty("invariants");
+    expect(documented?.invariants).toBe("Never returns a fractional value.");
+    // The file shows these, so they never ship.
+    expect(documented).not.toHaveProperty("purpose");
+    expect(documented).not.toHaveProperty("responsibility");
+    expect(documented).not.toHaveProperty("dependencies");
+    // Scope is honoured.
     expect(constraints.some((entry) => entry.path === "src/cart/total.ts")).toBe(false);
+  });
 
-    await writeFile(
-      join(rootDir, "src/pricing.ts"),
-      "export function roundPrice(value: number, digits: number): number { return Number(value.toFixed(digits)); }",
-      "utf8"
-    );
-    await service.refreshStaleDocs({ mode: "tombstone" });
+  it("withholds prose that runs longer than the file it describes", async () => {
+    const rootDir = await makeTempProject({
+      "src/tiny.ts": "export function tag(): number { return 1; }\nexport function used(): number { return tag(); }",
+    });
+    const service = new CodeloreService(rootDir);
+    await service.prepareInitialDocs();
+    await service.rewriteSections([
+      {
+        sectionId: "symbol:src/tiny.ts#tag",
+        generatedBlocks: { invariants: generatedBlock("A ".repeat(200)) },
+      },
+    ]);
 
-    const afterDrift = await service.constraintsFor({ files: ["src/pricing.ts"] });
-    const drifted = afterDrift.constraints.find((entry) => entry.sectionId === "symbol:src/pricing.ts#roundPrice");
+    const { constraints } = await service.constraintsFor({ files: ["src/tiny.ts"] });
+    const tag = constraints.find((entry) => entry.entityId === "symbol:src/tiny.ts#tag");
 
-    expect(drifted?.stale).toContain("invariants");
-    // The body survives the drift so the caller can weigh it against the source.
-    expect(drifted?.invariants).toBe("Never returns a fractional value.");
+    expect(tag?.textWithheld).toBe(true);
+    expect(tag).not.toHaveProperty("invariants");
+    // Usage is not prose and survives the cut.
+    expect(tag?.usedBy).toContain("symbol:src/tiny.ts#used");
   });
 });
 

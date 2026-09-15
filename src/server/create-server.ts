@@ -169,7 +169,7 @@ function registerTools(server: McpServer, service: CodeloreService): void {
     {
       title: "Constraints On Code You Are About To Change",
       description:
-        "Call this before editing a file, not before finding one. Given files or entityIds, returns what is recorded about that code: the contracts it must keep, the cases it does not cover, how to change it safely, and what depends on it. A block marked stale drifted from the code — read the source instead of trusting it. Purpose and responsibility are deliberately omitted: you are holding the file, read it.",
+        "Call this before editing a file, not before finding one. Given files or entityIds it returns, per entity, the callers that depend on it — read from the code graph, so it answers for undocumented code too and neither misses an aliased import nor matches a string that merely spells the name — plus whatever was written down that the entity itself cannot show: the contracts it must keep, the cases it does not cover, and how to change it safely. textWithheld means prose exists but runs longer than the file it covers: read the code instead. Purpose, responsibility and dependencies never ship — you are holding the file.",
       inputSchema: z.object({
         files: z.array(z.string()).optional(),
         entityIds: z.array(z.string()).optional(),

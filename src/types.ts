@@ -147,18 +147,25 @@ export interface DocIndex {
   entityToSections: Record<string, string[]>;
 }
 
-/** What is recorded about a piece of code a caller is about to change. */
+/** What a caller needs before changing one entity: who depends on it, and what was written down about it. */
 export interface CodeConstraints {
-  sectionId: string;
-  heading: string;
-  path?: string;
+  entityId: string;
+  name: string;
+  path: string;
+  /**
+   * Entities that call or reference this one, read from the code graph. Present whether or
+   * not the entity is documented, and unlike a text search it neither misses an aliased
+   * import nor matches a string that merely spells the name.
+   */
+  usedBy: string[];
   invariants?: string;
   limitations?: string;
   changeGuide?: string;
-  /** Blocks that drifted from the code. A stale invariant is worse than none: read the source. */
-  stale: BlockId[];
-  /** Ids recorded as depending on this section's code — what else moves when it changes. */
-  usedBy: string[];
+  /**
+   * Set when prose exists but runs longer than the file it covers: returning it would cost
+   * the caller more than reading the code. Distinguishes "withheld" from "never written".
+   */
+  textWithheld?: boolean;
 }
 
 export interface ProjectIndex {
