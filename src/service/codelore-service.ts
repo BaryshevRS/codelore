@@ -68,7 +68,6 @@ import type {
   DocValidationIssue,
   FilteredGeneratedBlock,
   GenerationHistoryEntry,
-  LocatedSection,
   PreparedDocSection,
   PrepareInitialDocsInput,
   PrepareInitialDocsResult,
@@ -1950,43 +1949,6 @@ export class CodeloreService {
       throw new CodeloreError("UNKNOWN_CHANGE", `Unknown change id "${changeId}"`, { changeId });
     }
     return change;
-  }
-
-  /**
-   * Lists every documented section as one routing line: id, source path, and purpose. The caller
-   * picks the ids it needs and reads them back through `doc://section/{id}`.
-   *
-   * Ranking deliberately stays with the caller. The canonical docs are written in `docs.language`,
-   * while the task a caller is holding arrives in whatever language its user typed; a lexical
-   * retriever scores those at zero. The caller is already a language model, so it ranks better than
-   * a retriever would and needs no index kept in sync with the state.
-   */
-  async locateSections(input: { paths?: string[] } = {}): Promise<{ sections: LocatedSection[] }> {
-    const index = await this.loadOrRebuildIndexes();
-    const paths = input.paths ?? [];
-    const sections: LocatedSection[] = [];
-
-    for (const section of Object.values(index.docs.sections)) {
-      const purpose = section.blocks.find((block) => block.id === "purpose");
-      const body = purpose?.body.trim();
-      if (!purpose || !body) {
-        continue;
-      }
-      const owner = index.code.entities[section.owns[0] ?? ""];
-      const path = owner && isSourceCodeEntity(owner) ? owner.path : undefined;
-      if (paths.length > 0 && !paths.some((scope) => path === scope || path?.startsWith(`${scope}/`))) {
-        continue;
-      }
-      sections.push({
-        sectionId: section.id,
-        heading: section.heading,
-        ...(path ? { path } : {}),
-        purpose: body,
-        ...(purpose.staleSince ? { stale: true } : {}),
-      });
-    }
-
-    return { sections };
   }
 
   async readDocFile(docPath: string): Promise<string> {

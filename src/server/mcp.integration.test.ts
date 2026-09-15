@@ -65,7 +65,7 @@ describe("MCP integration", () => {
     try {
       const tools = await client.listTools();
       const toolNames = tools.tools.map((tool) => tool.name);
-      expect(toolNames).toEqual(["locate", "document", "update", "mark_stale", "check"]);
+      expect(toolNames).toEqual(["document", "update", "mark_stale", "check"]);
       expect(toolNames).not.toContain("rebuild_index");
       expect(toolNames).not.toContain("analyze_change");
       expect(toolNames).not.toContain("get_affected_sections");

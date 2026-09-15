@@ -161,23 +161,6 @@ function registerTools(server: McpServer, service: CodeloreService): void {
   });
 
   server.registerTool(
-    "locate",
-    {
-      title: "Locate Documented Code",
-      description:
-        "Start here when you need to find where something lives. Returns one line per documented section: its id, the source path, and what that code is for, so you can pick the sections worth reading instead of grepping. Scope with paths to narrow to a subtree. Read a chosen section back with the doc://section/{sectionId} resource, then open the source before editing: a purpose line routes you, it does not prove anything.",
-      inputSchema: z.object({
-        paths: z.array(z.string()).optional(),
-      }),
-      annotations: {
-        readOnlyHint: true,
-        idempotentHint: true,
-      },
-    },
-    async (input) => safely(() => service.locateSections(input))
-  );
-
-  server.registerTool(
     "document",
     {
       title: "Document Code",
