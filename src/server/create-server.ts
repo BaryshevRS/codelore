@@ -17,7 +17,11 @@ const { version: packageVersion } = createRequire(import.meta.url)("../../packag
 
 export async function createCodeloreServer(options: { rootDir: string }): Promise<McpServer> {
   const service = new CodeloreService(options.rootDir);
+  // The instructions field is the only channel that reaches a client without being asked
+  // for, so the read rule leads: knowledge nobody requests is knowledge nobody gets. A
+  // documented contract sitting unread in a .md is how working code gets broken.
   const baseInstructions =
+    "Before you edit a source file, call constraints with that file. It returns the contracts that code must keep, the cases it does not cover, how to change it safely, and what depends on it \u2014 facts that are not visible in the file you are editing. A block listed in stale drifted from the code: read the source instead of trusting it. " +
     "Codelore stores documentation in per-doc JSON state under .codelore/state/. The .codelore.md files are rendered artifacts and must not be edited by hand. Use document to create or fill documentation for paths/files/entityIds. Use update after code changes to refresh stale documentation with LLM generation. Use mark_stale to mark drifted docs without generation. Use check to validate saved documentation without generating text. The server runs the full LLM pipeline (context assembly → block generation → validation → repair → verification → write) on its own; do not compose lower-level rewrite steps.";
   const server = new McpServer(
     {
