@@ -44,6 +44,29 @@ export function addTargetBlock(targets: Map<string, BlockId[]>, sectionId: strin
   }
 }
 
+/**
+ * Narrows a target map to `blocks`. A section already carrying targets keeps only
+ * the requested ones; a section with none (the `--force` path, which means "every
+ * allowed block") gets the requested set. Sections left with nothing are dropped
+ * here and reported as skipped by the pipeline.
+ */
+export function narrowTargetBlocks(
+  targets: ReadonlyMap<string, BlockId[]>,
+  sectionIds: string[],
+  blocks: BlockId[]
+): Map<string, BlockId[]> {
+  const requested = new Set(blocks);
+  const narrowed = new Map<string, BlockId[]>();
+  for (const sectionId of sectionIds) {
+    const existing = targets.get(sectionId);
+    const kept = existing ? existing.filter((blockId) => requested.has(blockId)) : blocks;
+    if (kept.length > 0) {
+      narrowed.set(sectionId, kept);
+    }
+  }
+  return narrowed;
+}
+
 export function filterSectionsByScope(
   sections: DocSection[],
   scope: RefreshStaleScope | undefined,

@@ -1,8 +1,10 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { CodeloreError, toCodeloreErrorPayload } from "../errors.js";
+import { BLOCK_IDS, type BlockId } from "../markdown/block-ids.js";
 import { startStdioServer } from "../server/start-stdio-server.js";
 import { CodeloreService, type GenerateDocsRuntime } from "../service/codelore-service.js";
+import { isKnownBlockId } from "../service/helpers.js";
 import type { PrepareInitialDocsInput, RefreshStaleDocsInput, RefreshStaleMode } from "../types.js";
 import { renderGraphHtml, renderGraphTree } from "./render-graph.js";
 
@@ -58,8 +60,9 @@ const VALUE_OPTIONS = new Set([
   "--mode",
   "--diff-file",
   "--reason",
+  "--blocks",
 ]);
-const FLAG_OPTIONS = new Set(["--dry-run", "--fill", "--verbose", "--quality", "--html", "--force"]);
+const FLAG_OPTIONS = new Set(["--dry-run", "--fill", "--verbose", "--quality", "--html", "--force", "--no-verify"]);
 
 /**
  * Every command except mark-review-needed takes options only. A stray
@@ -106,6 +109,8 @@ async function runCommand(service: CodeloreService, parsed: ParsedCli, runtime: 
           ...parseScope(parsed.args),
           intent: optionValue(parsed.args, "--intent"),
           force: hasFlag(parsed.args, "--force"),
+          ...(parseBlocks(parsed.args) ? { blocks: parseBlocks(parsed.args) } : {}),
+          verifyFacts: !hasFlag(parsed.args, "--no-verify"),
         },
         generateRuntime(parsed, runtime, "generate")
       );
@@ -192,6 +197,26 @@ function parseScope(args: string[]): PrepareInitialDocsInput {
     entityIds: optionValues(args, "--entity"),
     dryRun: hasFlag(args, "--dry-run"),
   };
+}
+
+/** `--blocks purpose,responsibility` narrows a run to those blocks. An unknown id is an error, not a silent no-op. */
+function parseBlocks(args: string[]): BlockId[] | undefined {
+  const raw = optionValue(args, "--blocks");
+  if (!raw) {
+    return undefined;
+  }
+  const ids = raw
+    .split(",")
+    .map((value) => value.trim())
+    .filter((value) => value !== "");
+  const unknown = ids.filter((value) => !isKnownBlockId(value));
+  if (unknown.length > 0) {
+    throw new CodeloreError(
+      "INTERNAL_ERROR",
+      `Unknown block id(s) ${unknown.join(", ")}. Known blocks: ${BLOCK_IDS.join(", ")}.`
+    );
+  }
+  return ids.filter(isKnownBlockId);
 }
 
 function parseRefreshStaleDocsInput(args: string[]): RefreshStaleDocsInput {
@@ -302,9 +327,15 @@ Commands:
   analyze-change [--file <path>] [--diff-file <path>]
   prepare-initial-docs [--path <path>] [--file <path>] [--entity <id>] [--dry-run] [--fill] [--intent <text>]
   generate [--path <path>] [--file <path>] [--entity <id>] [--intent <text>] [--force]
+           [--blocks <ids>] [--no-verify]
                                            Prepare skeletons, fill them, tombstone stale blocks, refill.
                                            --force regenerates every allowed block in scope (not just drifted),
                                            clearing a review_needed section whose blocks are all fresh.
+                                           --blocks narrows the run to a comma-separated block list
+                                           (purpose,responsibility,...); each section still keeps only the
+                                           blocks its own analysis allows.
+                                           --no-verify skips the LLM fact-check pass; the deterministic
+                                           reference validation still runs.
   fix-stale [--path <path>] [--file <path>] [--section <id>] [--intent <text>]
                                            Tombstone stale blocks then refill them via the LLM pipeline
   refresh-stale-docs [--mode report|rewrite_plan|tombstone] [--section <id>] [--file <path>] [--path <path>]

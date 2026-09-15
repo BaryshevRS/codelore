@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { computeBlockFingerprint } from "../markdown/block-facets.js";
+import type { BlockId } from "../markdown/block-ids.js";
 import type { CodeEntity, DocBlock, DocSection } from "../types.js";
-import { collectLanguageStaleBlocks, collectUnwrittenBlocks } from "./stale-detection.js";
+import { collectLanguageStaleBlocks, collectUnwrittenBlocks, narrowTargetBlocks } from "./stale-detection.js";
 
 function block(overrides: Partial<DocBlock> = {}): DocBlock {
   return { id: "purpose", heading: "Purpose", depth: 3, body: "Body.", rendered: true, ...overrides };
@@ -97,5 +98,20 @@ describe("collectUnwrittenBlocks", () => {
 
   it("ignores a section whose owning entity is gone", () => {
     expect(collectUnwrittenBlocks([owned([block({ body: "" })], { purpose: "old" })], {})).toHaveLength(0);
+  });
+});
+
+describe("narrowTargetBlocks", () => {
+  it("intersects existing targets, fills sections that had none, and drops sections left empty", () => {
+    const existing = new Map<string, BlockId[]>([
+      ["kept", ["purpose", "workflows"]],
+      ["emptied", ["workflows"]],
+    ]);
+
+    const narrowed = narrowTargetBlocks(existing, ["kept", "emptied", "forced"], ["purpose", "responsibility"]);
+
+    expect(narrowed.get("kept")).toEqual(["purpose"]);
+    expect(narrowed.has("emptied")).toBe(false);
+    expect(narrowed.get("forced")).toEqual(["purpose", "responsibility"]);
   });
 });

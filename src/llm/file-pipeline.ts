@@ -104,6 +104,12 @@ export interface FileGenerationInput {
   phase?: GenerationPhase;
   /** Optional per-section block targets for block-level stale refills. */
   targetBlocksBySection?: ReadonlyMap<string, BlockId[]>;
+  /**
+   * Run the LLM fact-check pass (verification → factRepair → factRecheck) over the
+   * freshly written blocks. Default true. The deterministic reference validation
+   * runs regardless; only the contradiction check is skipped.
+   */
+  verifyFacts?: boolean;
   maxRetries?: number;
 }
 
@@ -207,6 +213,7 @@ export async function generateFileGroup(input: FileGenerationInput): Promise<Fil
           provider,
           verifyProvider,
           maxRetries,
+          verifyFacts: input.verifyFacts ?? true,
           llmStages,
           debugSink,
         })
@@ -245,6 +252,7 @@ async function generateChunk(args: {
   provider: ChatCompletionProvider;
   verifyProvider: ChatCompletionProvider;
   maxRetries: number;
+  verifyFacts: boolean;
   llmStages: GenerationDebugLlmPipelineInput;
   debugSink: { writeError: (extra: { error?: GenerationDebugError }) => Promise<Record<string, string>> };
 }): Promise<{ result: FileWriteResult; violations: DocViolation[]; remainingViolations: DocViolation[] }> {
@@ -318,22 +326,24 @@ async function generateChunk(args: {
     result = dropViolatingBlocks(result, remainingViolations);
   }
 
-  const verified = await verifyChunkFacts({
-    sections,
-    result,
-    sources: args.sources,
-    code: args.index.code,
-    rootDir: args.rootDir,
-    verifyTypeContext: args.verifyTypeContext,
-    dependencyDocs: args.dependencyDocs,
-    groupFiles: args.files,
-    provider,
-    verifyProvider: args.verifyProvider,
-    maxRetries,
-    stageSuffix,
-    llmStages,
-    debugSink,
-  });
+  const verified = args.verifyFacts
+    ? await verifyChunkFacts({
+        sections,
+        result,
+        sources: args.sources,
+        code: args.index.code,
+        rootDir: args.rootDir,
+        verifyTypeContext: args.verifyTypeContext,
+        dependencyDocs: args.dependencyDocs,
+        groupFiles: args.files,
+        provider,
+        verifyProvider: args.verifyProvider,
+        maxRetries,
+        stageSuffix,
+        llmStages,
+        debugSink,
+      })
+    : { result, factViolations: [], remaining: [] };
   result = verified.result;
   if (verified.factViolations.length > 0) {
     // Fact repair may have introduced fresh ref violations; the deterministic

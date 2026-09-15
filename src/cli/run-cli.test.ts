@@ -299,6 +299,64 @@ describe("runCli", () => {
     expect(JSON.parse(await readFile(statePath, "utf8")).sections[sectionId].status).toBe("normal");
   });
 
+  it("generate --blocks narrows the run to those blocks and --no-verify drops the fact-check call", async () => {
+    const rootDir = await makeTempProject({
+      "codelore.config.json": JSON.stringify(TEST_LLM_CONFIG),
+      "src/pricing.ts": [
+        "export function buildPrice(amount: number): number {",
+        "  return Math.round(amount);",
+        "}",
+      ].join("\n"),
+    });
+    const stdout = buffer();
+    const stderr = buffer();
+    let calls = 0;
+    const fetchMock = (async (_url: string | URL | Request, init?: RequestInit) => {
+      calls += 1;
+      return llmResponse(writerReply("symbol:src/pricing.ts#buildPrice", init));
+    }) as typeof fetch;
+
+    const exitCode = await runCli(["--root", rootDir, "generate", "--blocks", "purpose", "--no-verify"], {
+      cwd: rootDir,
+      env: {},
+      stdout,
+      stderr,
+      fetch: fetchMock,
+    });
+
+    expect(exitCode).toBe(0);
+    expect(stderr.text).not.toContain('"ok": false');
+    // Both flags together leave exactly one call: purpose is a propagating block, so the
+    // terminal phase has no targets and never reaches the writer, and no verification runs.
+    expect(calls).toBe(1);
+    const state = JSON.parse(await readFile(join(rootDir, ".codelore/state/src/pricing.codelore.json"), "utf8"));
+    const blocks = state.sections["symbol:src/pricing.ts#buildPrice"].blocks;
+    expect(blocks.purpose.body).toBe("Generated purpose.");
+    expect(blocks.responsibility?.body ?? "").toBe("");
+  });
+
+  it("generate rejects an unknown --blocks id instead of silently writing nothing", async () => {
+    const rootDir = await makeTempProject({
+      "codelore.config.json": JSON.stringify(TEST_LLM_CONFIG),
+      "src/pricing.ts": "export function buildPrice(amount: number): number { return amount; }\n",
+    });
+    const stdout = buffer();
+    const stderr = buffer();
+
+    const exitCode = await runCli(["--root", rootDir, "generate", "--blocks", "purpose,summary"], {
+      cwd: rootDir,
+      env: {},
+      stdout,
+      stderr,
+      fetch: (async () => {
+        throw new Error("no request should be made");
+      }) as typeof fetch,
+    });
+
+    expect(exitCode).toBe(1);
+    expect(stderr.text).toContain("summary");
+  });
+
   it("generates propagating blocks without dep docs, then feeds them to dependents' terminal blocks", async () => {
     const rootDir = await makeTempProject({
       "codelore.config.json": JSON.stringify(TEST_LLM_CONFIG),
