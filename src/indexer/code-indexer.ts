@@ -465,6 +465,25 @@ function resolveNamespaceImportDeps(
   return deps;
 }
 
+/**
+ * The implementation behind a resolved module path. A project that commits generated
+ * declarations next to its sources — bpmn-js ships fifteen of them in `lib/` — resolves
+ * `./BaseModeler` to `BaseModeler.d.ts`, and declarations are excluded from the index,
+ * so the edge to the code itself was dropped and the module reported no callers.
+ */
+function implementationPath(importedPath: string, rootDir: string): string {
+  if (!importedPath.endsWith(".d.ts")) {
+    return importedPath;
+  }
+  for (const extension of [".js", ".ts"]) {
+    const candidate = importedPath.replace(/\.d\.ts$/, extension);
+    if (existsSync(join(rootDir, candidate))) {
+      return candidate;
+    }
+  }
+  return importedPath;
+}
+
 function resolveImportDeclaration(
   decl: ImportDeclaration,
   identifiers: Set<string>,
@@ -478,7 +497,7 @@ function resolveImportDeclaration(
     return deps;
   }
 
-  const importedPath = relativeProjectPath(rootDir, importedFile.getFilePath());
+  const importedPath = implementationPath(relativeProjectPath(rootDir, importedFile.getFilePath()), rootDir);
 
   // An export the index does not carry as an entity — a const table, a re-export — still
   // makes the importer depend on the module it came from. Without the fallback the edge

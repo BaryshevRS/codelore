@@ -131,6 +131,23 @@ describe("buildCodeIndex", () => {
     expect(index.entities["file:src/options.ts"].directUsages).toContain("symbol:src/menu.ts#entries");
   });
 
+  it("links a caller through a generated declaration sitting next to the source", async () => {
+    // A project that commits its generated .d.ts next to the code resolves the import to
+    // the declaration, which the index excludes; the edge to the implementation must
+    // survive that, or the module reports no callers at all.
+    const rootDir = await makeTempProject({
+      "src/base.js": "export default function base(value) {\n  return value;\n}\n",
+      "src/base.d.ts": "export default function base(value: unknown): unknown;\n",
+      "src/app.js": ['import base from "./base";', "export function run(value) {", "  return base(value);", "}"].join(
+        "\n"
+      ),
+    });
+
+    const index = await buildCodeIndex(loadConfig(rootDir));
+
+    expect(index.entities["symbol:src/base.js#default"].directUsages).toContain("symbol:src/app.js#run");
+  });
+
   it("links callers across extensionless relative imports", async () => {
     // How plain JS built by a bundler is written, and the only spelling a project with no
     // tsconfig gets: NodeNext resolution rejects it as ESM and loses every cross-file link.
