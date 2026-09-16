@@ -979,7 +979,7 @@ describe("loadOrRebuildIndexes", () => {
     expect(constraints.some((entry) => entry.path === "src/cart/total.ts")).toBe(false);
   });
 
-  it("withholds prose that runs longer than the file it describes", async () => {
+  it("returns prose that runs longer than the code it describes", async () => {
     const rootDir = await makeTempProject({
       "src/tiny.ts": "export function tag(): number { return 1; }\nexport function used(): number { return tag(); }",
     });
@@ -995,9 +995,10 @@ describe("loadOrRebuildIndexes", () => {
     const { constraints } = await service.constraintsFor({ files: ["src/tiny.ts"] });
     const tag = constraints.find((entry) => entry.entityId === "symbol:src/tiny.ts#tag");
 
-    expect(tag?.textWithheld).toBe(true);
-    expect(tag).not.toHaveProperty("invariants");
-    // Usage is not prose and survives the cut.
+    // The length trade is gone: it measured the documented symbol's span, which on a file
+    // that hangs its behaviour on the prototype has nothing to do with how much code the
+    // caller is holding, and silenced the contracts exactly there.
+    expect(tag?.invariants).toBe("A ".repeat(200).trim());
     expect(tag?.usedBy).toContain("symbol:src/tiny.ts#used");
   });
 });

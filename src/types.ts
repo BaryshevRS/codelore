@@ -161,11 +161,6 @@ export interface CodeConstraints {
   invariants?: string;
   limitations?: string;
   changeGuide?: string;
-  /**
-   * Set when prose exists but runs longer than the file it covers: returning it would cost
-   * the caller more than reading the code. Distinguishes "withheld" from "never written".
-   */
-  textWithheld?: boolean;
 }
 
 export interface ProjectIndex {

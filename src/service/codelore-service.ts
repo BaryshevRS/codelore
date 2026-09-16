@@ -1979,8 +1979,6 @@ export class CodeloreService {
     }
 
     const constraints: CodeConstraints[] = [];
-    const textCharsByFile = new Map<string, number>();
-    const codeCharsByFile = new Map<string, number>();
     for (const entityId of [...wanted].sort()) {
       const entity = index.code.entities[entityId];
       if (!entity || !isSourceCodeEntity(entity)) {
@@ -1988,7 +1986,6 @@ export class CodeloreService {
       }
 
       const bodies: Partial<Record<BlockId, string>> = {};
-      let textChars = 0;
       for (const sectionId of index.docs.entityToSections[entityId] ?? []) {
         const section = index.docs.sections[sectionId];
         if (!section?.owns.includes(entityId)) {
@@ -1998,16 +1995,13 @@ export class CodeloreService {
           const body = section.blocks.find((block) => block.id === blockId)?.body.trim();
           if (body && !bodies[blockId]) {
             bodies[blockId] = body;
-            textChars += body.length;
           }
         }
       }
 
-      if (entity.directUsages.length === 0 && textChars === 0) {
+      if (entity.directUsages.length === 0 && Object.keys(bodies).length === 0) {
         continue;
       }
-      textCharsByFile.set(entity.path, (textCharsByFile.get(entity.path) ?? 0) + textChars);
-      codeCharsByFile.set(entity.path, Math.max(codeCharsByFile.get(entity.path) ?? 0, entity.range.endOffset));
 
       constraints.push({
         entityId,
@@ -2018,26 +2012,12 @@ export class CodeloreService {
       });
     }
 
-    // The caller opens a file, not a span, so the trade is judged per file: when everything
-    // written about it runs longer than the file itself, restating the body costs more than
-    // reading it. Usage survives the cut — no amount of reading the file recovers it.
-    for (const entry of constraints) {
-      if ((textCharsByFile.get(entry.path) ?? 0) < (codeCharsByFile.get(entry.path) ?? 0)) {
-        continue;
-      }
-      let dropped = false;
-      const record = entry as Partial<Record<BlockId, string>>;
-      for (const blockId of CONSTRAINT_BLOCKS) {
-        if (record[blockId] !== undefined) {
-          delete record[blockId];
-          dropped = true;
-        }
-      }
-      if (dropped) {
-        entry.textWithheld = true;
-      }
-    }
-
+    // Written prose ships whatever its length. The length trade this used to make compared
+    // the text against `entity.range.endOffset` of the documented symbol, not against the
+    // file: where a file exports a short function and hangs its behaviour on the prototype
+    // below (the bpmn-js style), a 16 KB file measured 767 bytes and every contract was
+    // dropped. Measured on that repo: 64 of 115 files have their largest symbol span under
+    // 1500 chars, against 600-800 chars for a single invariants block.
     return { constraints };
   }
 
