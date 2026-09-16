@@ -125,7 +125,15 @@ function createProject(config: CodeloreConfig, scope: NormalizedCodeIndexScope):
         compilerOptions: {
           allowJs: true,
           checkJs: false,
-          moduleResolution: ModuleResolutionKind.NodeNext,
+          // Bundler, not NodeNext: a project without a tsconfig is usually plain JS built
+          // by a bundler, and there `import { is } from './ModelUtil'` — extensionless and
+          // relative — is the normal spelling. NodeNext refuses it as ESM, the specifier
+          // resolves to nothing, and every cross-file reference disappears with it: on
+          // bpmn-js only 21 of 297 entities kept a caller, so `constraints` answered
+          // "nobody calls this" about code that is called eleven times. Bundler resolves
+          // both spellings and honours package.json "exports"; a project that does ship a
+          // tsconfig still takes the branch above and keeps its own setting.
+          moduleResolution: ModuleResolutionKind.Bundler,
           target: ScriptTarget.ES2022,
         },
       });

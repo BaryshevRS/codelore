@@ -96,6 +96,25 @@ describe("buildCodeIndex", () => {
     expect(index.entities["symbol:src/app.ts#run"].directDeps).toContain("symbol:src/utils.ts#helper");
   });
 
+  it("links callers across extensionless relative imports", async () => {
+    // How plain JS built by a bundler is written, and the only spelling a project with no
+    // tsconfig gets: NodeNext resolution rejects it as ESM and loses every cross-file link.
+    const rootDir = await makeTempProject({
+      "src/util.js": "export function planeId(element) {\n  return element.id;\n}\n",
+      "src/caller.js": [
+        "import { planeId } from './util';",
+        "export function render(element) {",
+        "  return planeId(element);",
+        "}",
+      ].join("\n"),
+    });
+
+    const index = await buildCodeIndex(loadConfig(rootDir));
+
+    expect(index.entities["symbol:src/caller.js#render"].directDeps).toContain("symbol:src/util.js#planeId");
+    expect(index.entities["symbol:src/util.js#planeId"].directUsages).toContain("symbol:src/caller.js#render");
+  });
+
   it("supports only .ts and .js files in v1", async () => {
     const rootDir = await makeTempProject({
       "src/pricing.js": "export function buildPrice(amount) { return amount; }\n",
