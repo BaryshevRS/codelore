@@ -455,11 +455,12 @@ function resolveNamespaceImportDeps(
   if (!namespaceImport) {
     return deps;
   }
+  // Same fallback as a named import: a member the index has no entity for — a const
+  // table reached as `options.TASK` — still ties the reader to the module it reads.
+  // bpmn-js imports its replace options exactly this way, and without it the module
+  // reported no callers at all.
   for (const member of namespaceAccesses.get(namespaceImport.getText()) ?? []) {
-    const symbolId = exportIdByFileAndName.get(`${importedPath}#${member}`);
-    if (symbolId) {
-      deps.add(symbolId);
-    }
+    deps.add(exportIdByFileAndName.get(`${importedPath}#${member}`) ?? `file:${importedPath}`);
   }
   return deps;
 }

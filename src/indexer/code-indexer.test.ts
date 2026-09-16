@@ -115,6 +115,22 @@ describe("buildCodeIndex", () => {
     expect(index.entities["file:src/options.ts"].directUsages).toContain("symbol:src/menu.ts#entries");
   });
 
+  it("records a caller that reaches data through a namespace import", async () => {
+    const rootDir = await makeTempProject({
+      "src/options.ts": 'export const TASK = ["a"];\n',
+      "src/menu.ts": [
+        'import * as options from "./options.js";',
+        "export function entries(): string[] {",
+        "  return options.TASK;",
+        "}",
+      ].join("\n"),
+    });
+
+    const index = await buildCodeIndex(loadConfig(rootDir));
+
+    expect(index.entities["file:src/options.ts"].directUsages).toContain("symbol:src/menu.ts#entries");
+  });
+
   it("links callers across extensionless relative imports", async () => {
     // How plain JS built by a bundler is written, and the only spelling a project with no
     // tsconfig gets: NodeNext resolution rejects it as ESM and loses every cross-file link.
