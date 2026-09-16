@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.0](https://github.com/BaryshevRS/codelore/compare/@codelore/mcp@1.1.0...@codelore/mcp@1.2.0) (2026-09-15)
+
+
+### Features
+
+* **cli:** narrow a generation run to named blocks and let it skip the fact-check ([d2170b2](https://github.com/BaryshevRS/codelore/commit/d2170b23678bbec66cc8720e0a629e0fe48dbd7d))
+* **docs:** render ARCHITECTURE.md from the documentation state ([e69ce34](https://github.com/BaryshevRS/codelore/commit/e69ce34f4f419e8dfe5f7954b3997c4a09bbc141))
+* **mcp:** add a locate tool so an agent can find documented code ([7d5f8b5](https://github.com/BaryshevRS/codelore/commit/7d5f8b55c94ad2c8e5adf015aee508b22793d617))
+* **mcp:** answer from the call graph, and stop restating small files ([28e1709](https://github.com/BaryshevRS/codelore/commit/28e17091fdbbbd62e1badb4776fdb60245f0aaf9))
+* **mcp:** put the read rule where a client gets it without asking ([1c7a784](https://github.com/BaryshevRS/codelore/commit/1c7a784e4cc22c05eb5183746dbc43e78a862d95))
+* **mcp:** tell a caller what it must not break in code it is about to change ([43ed5a7](https://github.com/BaryshevRS/codelore/commit/43ed5a72c1ff38dcda13369da90c1f722aba7e83))
+
 ## [1.1.0](https://github.com/BaryshevRS/codelore/compare/@codelore/mcp@1.0.1...@codelore/mcp@1.1.0) (2026-09-14)
 
 
