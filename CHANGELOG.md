@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.2.1](https://github.com/BaryshevRS/codelore/compare/@codelore/mcp@1.2.0...@codelore/mcp@1.2.1) (2026-09-16)
+
+
+### Bug Fixes
+
+* **indexer:** follow a generated declaration back to the code it describes ([b6f856d](https://github.com/BaryshevRS/codelore/commit/b6f856d147e307e80065bbbc9083c93f46b76520))
+* **indexer:** keep the edge for a namespace import of data too ([c3ae76b](https://github.com/BaryshevRS/codelore/commit/c3ae76b07554164a1623e44a280cd19560b89602))
+* **indexer:** keep the edge when an import names something the index has no entity for ([c2e4881](https://github.com/BaryshevRS/codelore/commit/c2e4881f755264c16420f442cd99067ed80869f7))
+* **indexer:** resolve extensionless imports in projects without a tsconfig ([f5f061e](https://github.com/BaryshevRS/codelore/commit/f5f061e631b884d8ef0a91eb9c0a6b7c11d31a53))
+* **mcp:** stop silencing contracts on files whose export is a short stub ([4567dfe](https://github.com/BaryshevRS/codelore/commit/4567dfe14a080193448f68c08716dc3ba1a4b425))
+
 ## [1.2.0](https://github.com/BaryshevRS/codelore/compare/@codelore/mcp@1.1.0...@codelore/mcp@1.2.0) (2026-09-15)
 
 
