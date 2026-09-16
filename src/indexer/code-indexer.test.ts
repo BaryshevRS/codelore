@@ -96,6 +96,25 @@ describe("buildCodeIndex", () => {
     expect(index.entities["symbol:src/app.ts#run"].directDeps).toContain("symbol:src/utils.ts#helper");
   });
 
+  it("records a caller of a module whose exports are data, not entities", async () => {
+    // A table of constants carries no documented entity, so the named import resolves to
+    // no symbol. Dropping the edge there left such a module reporting no callers at all,
+    // which is what `constraints` answers with.
+    const rootDir = await makeTempProject({
+      "src/options.ts": "export const TASK = ['a'];\nexport const GATEWAY = ['b'];\n",
+      "src/menu.ts": [
+        "import { TASK } from './options.js';",
+        "export function entries(): string[] {",
+        "  return TASK;",
+        "}",
+      ].join("\n"),
+    });
+
+    const index = await buildCodeIndex(loadConfig(rootDir));
+
+    expect(index.entities["file:src/options.ts"].directUsages).toContain("symbol:src/menu.ts#entries");
+  });
+
   it("links callers across extensionless relative imports", async () => {
     // How plain JS built by a bundler is written, and the only spelling a project with no
     // tsconfig gets: NodeNext resolution rejects it as ESM and loses every cross-file link.

@@ -479,24 +479,28 @@ function resolveImportDeclaration(
 
   const importedPath = relativeProjectPath(rootDir, importedFile.getFilePath());
 
+  // An export the index does not carry as an entity — a const table, a re-export — still
+  // makes the importer depend on the module it came from. Without the fallback the edge
+  // is dropped entirely and the imported file learns nothing about its callers: on
+  // bpmn-js `ReplaceOptions.js` exports seventeen arrays, is imported by name, and
+  // reported no callers at all.
+  const fileId = `file:${importedPath}`;
+  const addSymbolOrFile = (symbolId: string | undefined): void => {
+    deps.add(symbolId ?? fileId);
+  };
+
   for (const namedImport of decl.getNamedImports()) {
     const localName = namedImport.getAliasNode()?.getText() ?? namedImport.getName();
     if (!identifiers.has(localName)) {
       continue;
     }
     const exportedName = namedImport.getName();
-    const symbolId = exportIdByFileAndName.get(`${importedPath}#${exportedName}`);
-    if (symbolId) {
-      deps.add(symbolId);
-    }
+    addSymbolOrFile(exportIdByFileAndName.get(`${importedPath}#${exportedName}`));
   }
 
   const defaultImport = decl.getDefaultImport();
   if (defaultImport && identifiers.has(defaultImport.getText())) {
-    const symbolId = exportIdByFileAndName.get(`${importedPath}#default`);
-    if (symbolId) {
-      deps.add(symbolId);
-    }
+    addSymbolOrFile(exportIdByFileAndName.get(`${importedPath}#default`));
   }
 
   for (const depId of resolveNamespaceImportDeps(decl, namespaceAccesses, exportIdByFileAndName, importedPath)) {
