@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.2](https://github.com/BaryshevRS/codelore/compare/@codelore/mcp@1.2.1...@codelore/mcp@1.2.2) (2026-11-21)
+
+
+### Bug Fixes
+
+* **mcp:** withhold stale code contracts from agents ([b0620e4](https://github.com/BaryshevRS/codelore/commit/b0620e4009deb7cedfe744bcc9a85fa4ea1f0f5f))
+
 ## [1.2.1](https://github.com/BaryshevRS/codelore/compare/@codelore/mcp@1.2.0...@codelore/mcp@1.2.1) (2026-09-16)
 
 
