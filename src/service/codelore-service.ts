@@ -1962,21 +1962,29 @@ export class CodeloreService {
    *
    * Usage comes from the code graph, so it answers for undocumented entities too — 74 of this
    * repo's 293 used entities have no doc, and a text search would both miss aliased imports and
-   * match strings that merely spell the name. Prose is the optional layer on top, withheld when
-   * everything written about a file runs longer than the file: reading the code is then cheaper
-   * than reading about it. Purpose, responsibility and dependencies never ship — the file shows
-   * those.
+   * match strings that merely spell the name. Contract prose is included when its blocks are
+   * current. Stale blocks are listed by id so the caller knows to check the source.
    */
   async constraintsFor(input: { files?: string[]; entityIds?: string[] }): Promise<{
     constraints: CodeConstraints[];
   }> {
-    const index = await this.loadOrRebuildIndexes();
+    // A long-running MCP server can receive edits between calls. Read the current
+    // source and doc state without replacing the shared index.
+    const index = await this.indexManager.buildScopedIndex(undefined);
     const wanted = new Set(input.entityIds ?? []);
     for (const file of input.files ?? []) {
       for (const entityId of index.code.fileToEntities[file] ?? []) {
         wanted.add(entityId);
       }
     }
+
+    const sectionIds = new Set([...wanted].flatMap((id) => index.docs.entityToSections[id] ?? []));
+    const sections = [...sectionIds].map((id) => index.docs.sections[id]).filter((section) => section !== undefined);
+    const detector = new StaleDetector(index, this.config.docs.language);
+    const staleBySection = groupBy(
+      [...detector.stale(sections), ...detector.tombstoned(sections)],
+      (entry) => entry.sectionId
+    );
 
     const constraints: CodeConstraints[] = [];
     for (const entityId of [...wanted].sort()) {
@@ -1986,20 +1994,27 @@ export class CodeloreService {
       }
 
       const bodies: Partial<Record<BlockId, string>> = {};
+      const stale: BlockId[] = [];
       for (const sectionId of index.docs.entityToSections[entityId] ?? []) {
         const section = index.docs.sections[sectionId];
         if (!section?.owns.includes(entityId)) {
           continue;
         }
+        const staleBlocks = staleBySection.get(sectionId);
         for (const blockId of CONSTRAINT_BLOCKS) {
           const body = section.blocks.find((block) => block.id === blockId)?.body.trim();
-          if (body && !bodies[blockId]) {
+          if (!body || bodies[blockId] || stale.includes(blockId)) {
+            continue;
+          }
+          if (staleBlocks?.some((entry) => entry.blockId === blockId)) {
+            stale.push(blockId);
+          } else {
             bodies[blockId] = body;
           }
         }
       }
 
-      if (entity.directUsages.length === 0 && Object.keys(bodies).length === 0) {
+      if (entity.directUsages.length === 0 && Object.keys(bodies).length === 0 && stale.length === 0) {
         continue;
       }
 
@@ -2009,15 +2024,10 @@ export class CodeloreService {
         path: entity.path,
         usedBy: entity.directUsages,
         ...bodies,
+        ...(stale.length > 0 ? { stale } : {}),
       });
     }
 
-    // Written prose ships whatever its length. The length trade this used to make compared
-    // the text against `entity.range.endOffset` of the documented symbol, not against the
-    // file: where a file exports a short function and hangs its behaviour on the prototype
-    // below (the bpmn-js style), a 16 KB file measured 767 bytes and every contract was
-    // dropped. Measured on that repo: 64 of 115 files have their largest symbol span under
-    // 1500 chars, against 600-800 chars for a single invariants block.
     return { constraints };
   }
 

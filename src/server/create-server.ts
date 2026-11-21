@@ -21,7 +21,7 @@ export async function createCodeloreServer(options: { rootDir: string }): Promis
   // for, so the read rule leads: knowledge nobody requests is knowledge nobody gets. A
   // documented contract sitting unread in a .md is how working code gets broken.
   const baseInstructions =
-    "Before you edit a source file, call constraints with that file. It returns the contracts that code must keep, the cases it does not cover, how to change it safely, and what depends on it \u2014 facts that are not visible in the file you are editing. A block listed in stale drifted from the code: read the source instead of trusting it. " +
+    "Before you edit a source file, call constraints with that file. It returns the contracts that code must keep, the cases it does not cover, how to change it safely, and what depends on it \u2014 facts that are not visible in the file you are editing. For blocks listed in stale, read the source to verify the current behavior. " +
     "Codelore stores documentation in per-doc JSON state under .codelore/state/. The .codelore.md files are rendered artifacts and must not be edited by hand. Use document to create or fill documentation for paths/files/entityIds. Use update after code changes to refresh stale documentation with LLM generation. Use mark_stale to mark drifted docs without generation. Use check to validate saved documentation without generating text. The server runs the full LLM pipeline (context assembly → block generation → validation → repair → verification → write) on its own; do not compose lower-level rewrite steps.";
   const server = new McpServer(
     {
@@ -169,7 +169,7 @@ function registerTools(server: McpServer, service: CodeloreService): void {
     {
       title: "Constraints On Code You Are About To Change",
       description:
-        "Call this before editing a file, not before finding one. Given files or entityIds it returns, per entity, the callers that depend on it — read from the code graph, so it answers for undocumented code too and neither misses an aliased import nor matches a string that merely spells the name — plus whatever was written down that the entity itself cannot show: the contracts it must keep, the cases it does not cover, and how to change it safely. Purpose, responsibility and dependencies never ship — you are holding the file.",
+        "Call this before editing a file, not before finding one. Given files or entityIds it returns, per entity, the callers that depend on it — read from the code graph, so it answers for undocumented code too and neither misses an aliased import nor matches a string that merely spells the name — plus whatever was written down that the entity itself cannot show: the contracts it must keep, the cases it does not cover, and how to change it safely. Stale contract blocks are listed by id in stale, with their text withheld. Purpose, responsibility and dependencies never ship — you are holding the file.",
       inputSchema: z.object({
         files: z.array(z.string()).optional(),
         entityIds: z.array(z.string()).optional(),

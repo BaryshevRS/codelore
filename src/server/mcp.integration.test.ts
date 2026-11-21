@@ -121,6 +121,53 @@ describe("MCP integration", () => {
       await transport.close();
     }
   });
+
+  it("warns about a stale contract before and after it is marked in doc state", async () => {
+    const file = "src/pricing.ts";
+    const docPath = "src/pricing.codelore.md";
+    const entityId = "symbol:src/pricing.ts#roundPrice";
+    const invariants = "Returns a whole number.";
+    const rootDir = await makeTempProject({
+      [file]: "export function roundPrice(value: number): number { return Math.round(value); }\n",
+    });
+    const service = new CodeloreService(rootDir);
+    await service.prepareInitialDocs();
+    await service.rewriteSection(entityId, {
+      generatedBlocks: {
+        invariants: { text: invariants, novelFact: invariants, informativeness: 1, novelty: 1, specificity: 1 },
+      },
+    });
+
+    const { client, transport } = await connectClient(rootDir);
+    try {
+      const scope = { files: [file] };
+      const request = { name: "constraints", arguments: scope };
+      const entity = { entityId, name: "roundPrice", path: file, usedBy: [] };
+      const initial = await client.callTool(request);
+      expect(initial.structuredContent).toEqual({ constraints: [{ ...entity, invariants }] });
+
+      await writeFile(
+        join(rootDir, file),
+        "export function roundPrice(value: number): number { return Math.round(value) / 2; }\n",
+        "utf8"
+      );
+      const warning = { constraints: [{ ...entity, stale: ["invariants"] }] };
+      const afterEdit = await client.callTool(request);
+      expect(afterEdit.structuredContent).toEqual(warning);
+      const stateAfterRead = await service.docStateStorage.loadDocState(docPath);
+      expect(stateAfterRead?.sections[entityId]?.blocks.invariants?.staleSince).toBeUndefined();
+
+      const marked = await client.callTool({ name: "mark_stale", arguments: scope });
+      expect(marked.structuredContent).toMatchObject({
+        appliedTombstones: [{ sectionId: entityId, blockId: "invariants" }],
+      });
+      const afterMark = await client.callTool(request);
+      expect(afterMark.structuredContent).toEqual(warning);
+    } finally {
+      await client.close();
+      await transport.close();
+    }
+  });
 });
 
 async function connectClient(rootDir: string): Promise<{ client: Client; transport: StdioClientTransport }> {

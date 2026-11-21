@@ -161,6 +161,8 @@ export interface CodeConstraints {
   invariants?: string;
   limitations?: string;
   changeGuide?: string;
+  /** Contract blocks that need checking against the source. Their text is withheld. */
+  stale?: BlockId[];
 }
 
 export interface ProjectIndex {
